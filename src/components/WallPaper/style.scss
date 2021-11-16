@@ -1,0 +1,20 @@
+.wall-paper {
+    width: 100%;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 2rem;
+    background: no-repeat center center;
+    background-size: 25%;
+    border-radius: 4px;
+}
+
+.change-btn {
+    margin: 4px 8px;
+    display: inline-block;
+    padding: 2px 4px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    cursor: pointer;
+}

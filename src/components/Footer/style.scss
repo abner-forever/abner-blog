@@ -1,0 +1,15 @@
+.footer {
+    height: 100px;
+    // background-color: rgb(58, 59, 62);
+    .footer-content {
+        min-width: 60%;
+        max-width: 920px;
+        margin: 0 auto;
+        text-align: center;
+        vertical-align: middle;
+        a{
+            font-size: 18px;
+            color: #333;
+        }
+    }
+}

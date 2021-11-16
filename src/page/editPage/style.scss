@@ -1,0 +1,42 @@
+.edit-content{
+    padding: .16rem;
+    background-color: #fff;
+    .title-container{
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #ccc;
+        .title{
+            font-size: 18px;
+            font-weight: 500;
+            width: 95px;
+        }
+        .title-input{
+            border: none;
+            font-size: 18px;
+            &:focus{
+                border: none;
+                outline: none;
+                box-shadow: none;
+            }
+        }
+    }
+    .edit-content{
+        background-color: #fff;
+    }
+    .save-footer{
+        position: fixed;
+        bottom: 0;
+        right: 0;
+        background-color:#fff;
+        padding: 8px 50px;
+        width: 100%;
+        display: flex;
+        justify-content: flex-end;
+        z-index: 999;
+    }
+    .bf-content{
+        height: 619px;
+    }
+}

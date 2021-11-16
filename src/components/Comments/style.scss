@@ -1,0 +1,73 @@
+.comment-box {
+
+    background-color: #fff;
+    margin-top: 20px;
+    padding: 16px;
+
+    .input-box {
+        display: flex;
+
+        input {
+            margin-right: 20px;
+        }
+    }
+
+    .comment-list {
+        
+        .comment-item:nth-last-child(1) {
+            border-bottom: none;
+        }
+        .comment-item {
+            display: flex;
+            padding: 16px;
+            border-bottom: 1px solid #eee;
+            
+            .user-icon {
+                width: 36px;
+                height: 36px;
+                overflow: hidden;
+                border-radius: 50%;
+
+                img {
+                    width: 100%;
+                    height: 100%;
+                }
+            }
+
+            .comment-detail {
+                flex: 1;
+
+                padding: 8px 16px;
+
+                .user-name {
+                    font-size: 16px;
+                    color: #333;
+                }
+
+                .comments {
+
+                    display: -webkit-box;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    // white-space: nowrap;
+                    -webkit-line-clamp: 3; // 设置文本显示行数
+                    -webkit-box-orient: vertical; // 设置元素的排列方式
+                    margin-bottom: 8px;
+                    margin-top: 8px;
+                }
+
+                .remove-icon {
+                    cursor: pointer;
+                }
+            }
+        }
+
+    }
+
+    .no-comment {
+        height: 40px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+}

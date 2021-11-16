@@ -1,0 +1,27 @@
+.modal-mask{
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background: rgba($color: #000000, $alpha: 0.3);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    .modal-content{
+        width: 500px;
+        height: 75px;
+        background: #f5f5ff;
+        border-radius: 8px;
+        box-shadow: rgba($color: #000000, $alpha: 0.1);
+        .modal-title{
+            height: 75px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #222;
+            font-size: 28px;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+    }
+}
