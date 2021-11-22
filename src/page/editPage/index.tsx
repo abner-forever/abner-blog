@@ -1,5 +1,5 @@
 import React from 'react'
-import Editor from './Editor'
+import Editor from './components/Editor'
 import { observer, inject } from 'mobx-react'
 import { runInAction } from 'mobx'
 

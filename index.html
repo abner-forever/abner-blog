@@ -8,6 +8,9 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      var global = globalThis || window; // 防止启动报错
+    </script>
     <script type="module" src="/src/index.tsx"></script>
   </body>
 </html>

@@ -7,7 +7,7 @@ class Http {
   constructor(config: HttpConfigType) {
     this.HOST = config.HOST;
     this.headers = config.headers || {};
-    this.timeout = config.timeout || 3000;
+    this.timeout = config.timeout || 10000;
     if (
       config.interceptors &&
       typeof config.interceptors.response === "function"
