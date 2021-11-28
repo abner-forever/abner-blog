@@ -28,7 +28,7 @@ export default class Editor extends Component<P, S> {
     }
     componentDidMount() {
         console.log('commonStore.history',);
-        const htmlContent = this.props?.editArticle?.contents
+        const htmlContent = this.props?.editArticle?.content
         this.setState({
             editorState: BraftEditor.createEditorState(htmlContent)
         })
@@ -55,7 +55,7 @@ export default class Editor extends Component<P, S> {
             id: editArticle.id,
             title: this.state.articleTitle,
             description: desc,
-            contents: htmlContent
+            content: htmlContent
         }
         await ApiBlog.updateArticle(params)
         message.success("修改成功")
