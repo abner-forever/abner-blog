@@ -37,6 +37,7 @@ const AuthToken = withRouter(() => {
       <header className="header-container">
         <ul className="banner">
           <div className='banner-left'>
+            <span className='banner-logo'>Abner的笔记</span>
             {routerConfig.map(
               (item:any, index) =>
                 item.isShowHeader && (

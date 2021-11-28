@@ -14,8 +14,8 @@ BraftEditor.use(CodeHighlighter(options))
 //文章详细信息
 const ArticleDetail = ({editArticle}:any) => {
 
-    const { title, contents, userName, updateTime, createTime } = editArticle||{}
-    const htmlContent = contents
+    const { title, content, userName, updateTime, createTime } = editArticle||{}
+    const htmlContent = content
     return (
         <div className='detail-content'>
             <p className="detail-title">{title}</p>

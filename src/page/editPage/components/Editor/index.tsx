@@ -1,4 +1,4 @@
-import React, { Component,  } from 'react'
+import React, { Component, } from 'react'
 import { message, Button, Input } from 'antd'
 import ApiBlog from '@/api/apiBlog'
 import Cookies from "js-cookie"
@@ -14,14 +14,14 @@ const options = {
     includeEditors: ['editor-with-code-highlighter']
 }
 BraftEditor.use(CodeHighlighter(options))
-interface P{
+interface P {
     editArticle: any;
     location: any;
 }
-interface S{
-    
+interface S {
+
 }
-export default class Editor extends Component<P,S> {
+export default class Editor extends Component<P, S> {
     state = {
         editorState: BraftEditor.createEditorState(null),
         articleTitle: this.props?.editArticle?.title || '',
@@ -34,22 +34,22 @@ export default class Editor extends Component<P,S> {
         })
     }
     //点击保存
-    submitContent = (editArticle:string) => {
+    submitContent = (editArticle: string) => {
         const htmlContent = this.state.editorState.toHTML()
         let pathName = this.props.location.pathname
         if (pathName.indexOf('addArticle') === -1) {
             this.updateEditorContent(editArticle, htmlContent)
 
-        }else{
-        this.addEditorContent(htmlContent)
+        } else {
+            this.addEditorContent(htmlContent)
         }
     }
 
-    handleEditorChange = (editorState:any) => {
+    handleEditorChange = (editorState: any) => {
         this.setState({ editorState })
     }
     //更新文章
-    updateEditorContent = async (editArticle:any, htmlContent:string) => {
+    updateEditorContent = async (editArticle: any, htmlContent: string) => {
         let desc = this.state.editorState.toRAW(true).blocks[0].text
         let params = {
             id: editArticle.id,
@@ -62,22 +62,31 @@ export default class Editor extends Component<P,S> {
         commonStore.location.history.replace('/')
     }
     //添加文章
-    addEditorContent = async ( htmlContent:string) => {
+    addEditorContent = async (htmlContent: string) => {
         const desc = this.state.editorState.toRAW(true).blocks[0].text
         let params = {
-            userId:Cookies.get('userId'),
-            user:Cookies.get('userName'),
-            title: this.state.articleTitle||'未命名文章',
+            userId: Cookies.get('userId'),
+            author: Cookies.get('userName'),
+            title: this.state.articleTitle,
             description: desc,
-            contents: htmlContent
+            content: htmlContent
         }
-        await ApiBlog.addArticle(params)
-        message.success("保存成功")
-        commonStore.location.history.replace('/')
+        console.log('params',params);
+        
+        try {
+            const res = await ApiBlog.addArticle(params);
+            console.log('ssss',res);
+            message.success("保存成功")
+            commonStore.location.history.replace('/')
+        } catch (error) {
+            console.log('add error', error);
+            
+        }
     }
-    onInputChange = (e:any) => {
+    onInputChange = (e: any) => {
+        const val =  e.target.value.replace(/(^\s*)|(\s*$)/g, ""); 
         this.setState({
-            articleTitle: e.target.value
+            articleTitle: val
         })
     }
     _clearText = () => {
@@ -85,7 +94,7 @@ export default class Editor extends Component<P,S> {
             editorState: BraftEditor.createEditorState(null),
         })
     }
-    componentWillUnmount(){
+    componentWillUnmount() {
         this._clearText()
     }
 

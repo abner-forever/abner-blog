@@ -109,6 +109,7 @@ li{
   left: 0;
   top: 0;
   z-index: 999;
+  // display: flex;
 }
 
 .banner {
@@ -175,4 +176,12 @@ li{
     height: 30px;
     border-radius: 50%;
   }
+}
+.banner-logo{
+  font-size: 18px;
+  padding: 0 16px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  line-height: 26px;
 }
