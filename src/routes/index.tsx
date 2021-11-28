@@ -11,6 +11,8 @@ import "@/index.scss";
 import { Loading, PageNotFound, Footer } from "@/components";
 import Cookies from "js-cookie";
 import { commonStore } from "@/utils/store";
+import { Modal } from 'antd';
+
 const Routers = () => {
   return (
     <Router>
@@ -32,6 +34,9 @@ const AuthToken = withRouter(() => {
       item.current = false;
     }
   });
+  const onLogin = ()=>{
+    Modal
+  }
   return (
     <div>
       <header className="header-container">
@@ -52,7 +57,7 @@ const AuthToken = withRouter(() => {
           </div>
            <li className="tab-item">
             {!token ? (
-              <Link to='/login'>登录</Link>
+              <span onClick={onLogin}>登录</span>
             ) : (
                <Link to='/mine'>
                 <img className="user-icon" src={Cookies.get("avator")} alt="" />

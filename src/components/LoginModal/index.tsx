@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import ApiBlog from '@/api/apiBlog'
 import Cookies from "js-cookie"
-import { Button, message, Upload } from 'antd';
+import { Button, message, Modal, Upload } from 'antd';
 import { LoadingOutlined, PlusOutlined } from '@ant-design/icons';
 import ImgCrop from 'antd-img-crop'
 import './style.scss'
@@ -171,13 +171,15 @@ const LoginModal = (props:any) => {
         )
     }
     return (
-        <div className='content-item'>
+        <Modal 
+            className='content-item'
+        >
             <div className='form-item'>
                 {
                     isLogin ? loginForm() : registerForm()
                 }
             </div>
-        </div>
+        </Modal>
     )
 }
 export default LoginModal;
