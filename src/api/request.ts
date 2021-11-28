@@ -16,12 +16,18 @@ const request = new Http({
     },
     response(res: any) {
       return new Promise((resolve, reject) => {
-        let code = res.code;
-        if (code === 200 && res.data) {
+        try {
+          let code = res.code;
+        if (code === 200 ) {
+          res.message && message.success(res.message);
           resolve(res.data);
         } else if (code === 500) {
           message.warn(res.msg);
           reject(res.msg);
+        }
+        } catch (error: any) {
+          message.error(error.message);
+          reject(error)
         }
       });
     },

@@ -58,7 +58,6 @@ export default class Editor extends Component<P, S> {
             content: htmlContent
         }
         await ApiBlog.updateArticle(params)
-        message.success("修改成功")
         commonStore.location.history.replace('/')
     }
     //添加文章
@@ -75,8 +74,6 @@ export default class Editor extends Component<P, S> {
         
         try {
             const res = await ApiBlog.addArticle(params);
-            console.log('ssss',res);
-            message.success("保存成功")
             commonStore.location.history.replace('/')
         } catch (error) {
             console.log('add error', error);
