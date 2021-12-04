@@ -52,6 +52,13 @@ const routes = [
         title: '登录',
         exact: true,
         isShowHeader:false
+    },
+    {
+        path: '/add-md',
+        component: React.lazy(()=>import('../page/AddMD')),
+        title: '登录',
+        exact: true,
+        isShowHeader:false
     }
 ]
 export default routes

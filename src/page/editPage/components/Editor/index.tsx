@@ -70,10 +70,8 @@ export default class Editor extends Component<P, S> {
             description: desc,
             content: htmlContent
         }
-        console.log('params',params);
-        
         try {
-            const res = await ApiBlog.addArticle(params);
+            await ApiBlog.addArticle(params);
             commonStore.location.history.replace('/')
         } catch (error) {
             console.log('add error', error);
