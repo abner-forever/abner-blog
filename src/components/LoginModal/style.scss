@@ -20,9 +20,10 @@
     flex-direction: column;
     
     input {
+
         margin-bottom: .2rem;
         border: .01rem solid #ccc;
-        height: .3rem;
+        height: .36rem;
         padding: 0 .08rem;
         border-radius: .04rem;
         overflow: hidden;
@@ -36,6 +37,8 @@
     display: flex;
     justify-content: space-around;
     button{
+        width: 100%;
+        height: 40px;
         border: 1px solid #ccc;
         border-radius: 4px;
         outline: none;
@@ -46,4 +49,7 @@
     .delete-icon{
         position: absolute;
     }
+}
+.ant-modal {
+    padding-bottom: 0 !important;
 }

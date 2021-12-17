@@ -6,6 +6,8 @@ import Comments from './Comments'
 import Video from './Video'
 import Footer from './Footer'
 import WallPaper from './WallPaper'
+import LoginModal from './LoginModal'
+import MarkDownEditor from './MarkDownEditor'
 
 
 export {
@@ -16,5 +18,7 @@ export {
     Comments,
     Video,
     Footer,
-    WallPaper
+    WallPaper,
+    LoginModal,
+    MarkDownEditor
 }

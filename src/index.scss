@@ -1,3 +1,4 @@
+@import '../node_modules/antd/dist/antd.css';
 body {
   margin: 0;
   padding: 0;
@@ -24,9 +25,10 @@ code {
     top: 0;
 }
 
-div,span h1,h2,h3,h4,h5,h6,p,li,ul {
+div,span h1,h2,h3,h4,h5,h6,p,li,ul,p,ol, a {
   margin: 0;
   padding: 0;
+  margin-bottom: 0;
 }
 a{
   text-decoration:none!important;
@@ -122,6 +124,7 @@ li{
   margin: 0 auto;
   .banner-left{
     display: flex;
+    word-break: keep-all;
   }
   li {
       margin: 0 5px;
@@ -130,7 +133,7 @@ li{
       justify-content: center;
       align-items: center;
       line-height: 26px;
-
+      word-break: keep-all;
       a {
           color: #757575;
           font-size: 0.17rem;
@@ -150,6 +153,7 @@ li{
   }
 }
 
+ 
 .content-box {
   padding-top: .16rem;
   background-color: #f4f5f5;
@@ -164,8 +168,10 @@ li{
   min-height: 90%;
   border-radius: 4px 4px 0 0;
   position: relative;
-  box-shadow: 0 1px 2px 0 rgba(0,0,0,.05);
-  padding: 40px;
+  box-shadow: 0 0px 9px 0 rgb(0 0 0 / 8%);
+  padding: 16px;
+  background-color: #fff;
+  // height: 80vh;
 }
 .content-item{
   background-color: #fff;
@@ -184,4 +190,9 @@ li{
   justify-content: center;
   align-items: center;
   line-height: 26px;
+  cursor: pointer;
+  color: #000;
+}
+@media (max-width: 500px) {
+  .banner-logo{display: none !important;}
 }

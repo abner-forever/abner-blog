@@ -6,7 +6,8 @@ import { LoadingOutlined, PlusOutlined } from '@ant-design/icons';
 import ImgCrop from 'antd-img-crop'
 import './style.scss'
 
-const LoginModal = (props:any) => {
+const LoginModal = (props: any) => {
+    const { onClose = () => { } } = props;
     const [userName, setUserName] = useState('');
     const [password, setPassword] = useState('');
     const [imageUrl, setImageUrl] = useState('');
@@ -17,7 +18,7 @@ const LoginModal = (props:any) => {
     const [fileList, setFileList] = useState<any>([])
 
     const login = async () => {
-        let res:any = await ApiBlog.login({
+        let res: any = await ApiBlog.login({
             userName: userName,
             password: password
         })
@@ -30,8 +31,7 @@ const LoginModal = (props:any) => {
             Cookies.set('userId', res.userId, currentCookieSetting)
             Cookies.set('userName', res.userName, currentCookieSetting)
             message.success("登录成功")
-            props.history.replace('/mine')
-
+            onClose();
         }
     }
     const register = async () => {
@@ -54,7 +54,7 @@ const LoginModal = (props:any) => {
             props.history.replace('/mine')
         }
     })
-    const beforeUpload = (file:any) => {
+    const beforeUpload = (file: any) => {
         const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
         if (!isJpgOrPng) {
             message.error('You can only upload JPG/PNG file!');
@@ -64,14 +64,14 @@ const LoginModal = (props:any) => {
             message.error('Image must smaller than 2MB!');
         }
         setFileList([...fileList, file])
-        getImgBase64Data(file, (url:string) => {
+        getImgBase64Data(file, (url: string) => {
             setImageUrl(url)
         })
         return false;
     }
-    const getImgBase64Data = (file:any, callback:Function) => {
+    const getImgBase64Data = (file: any, callback: Function) => {
         var reader = new FileReader();
-        reader.onload = function (e:any) {
+        reader.onload = function (e: any) {
             callback(e.target.result);
         };
         reader.readAsDataURL(file); // 读取完后会调用onload方法
@@ -82,12 +82,12 @@ const LoginModal = (props:any) => {
             <div style={{ marginTop: 8 }}>Upload</div>
         </div>
     );
-    const removeImg = (e:any) => {
+    const removeImg = (e: any) => {
         console.log('remove', e);
     }
     const uploadImg = () => {
         const formData = new FormData();
-        fileList.forEach((file:any) => {
+        fileList.forEach((file: any) => {
             formData.append('avator', file);
         });
         setLoading(true)
@@ -106,7 +106,7 @@ const LoginModal = (props:any) => {
     }
 
     //检查密码两次输入的密码是否一致
-    const checkPasswords = (e:any) => {
+    const checkPasswords = (e: any) => {
         let newPassword = e.target.value.trim();
         setCheckPassword(newPassword)
         if (newPassword.length === password.length && password !== newPassword) {
@@ -125,7 +125,6 @@ const LoginModal = (props:any) => {
     const loginForm = () => {
         return (
             <div >
-                <p>用户登录</p>
                 <label htmlFor="head">
                 </label>
                 <div className='form-input'>
@@ -171,14 +170,19 @@ const LoginModal = (props:any) => {
         )
     }
     return (
-        <Modal 
+        <Modal
             className='content-item'
+            visible
+            onCancel={onClose}
+            // footer={null}
+            centered
+            width={400}
+            title={isLogin?'登录':'注册'}
+            footer={null}
         >
-            <div className='form-item'>
-                {
-                    isLogin ? loginForm() : registerForm()
-                }
-            </div>
+            {
+                isLogin ? loginForm() : registerForm()
+            }
         </Modal>
     )
 }

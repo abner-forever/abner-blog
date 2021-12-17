@@ -1,4 +1,4 @@
-import React, { Suspense } from "react";
+import React, { Suspense, useState } from "react";
 import {
   BrowserRouter as Router,
   Link,
@@ -8,7 +8,7 @@ import {
 } from "react-router-dom";
 import routerConfig from "./routers";
 import "@/index.scss";
-import { Loading, PageNotFound, Footer } from "@/components";
+import { Loading, PageNotFound, Footer,LoginModal } from "@/components";
 import Cookies from "js-cookie";
 import { commonStore } from "@/utils/store";
 import { Modal } from 'antd';
@@ -24,6 +24,7 @@ const Routers = () => {
 const AuthToken = withRouter(() => {
   let token = Cookies.get("token");
   const path = window.location.pathname;
+  const [isLoginModalShow,setIsModalShow ] = useState(false);
   routerConfig.forEach((item:any, index) => {
     if (path === item.path) {
       if (item.isShowHeader) {
@@ -32,17 +33,22 @@ const AuthToken = withRouter(() => {
       }
     } else {
       item.current = false;
+      if(item.path === '/christmas'){
+        const endTime = 1640448000000; // new Date('2021 12 25').getTime()
+        const currentTime = Date.now();
+         item.isShowHeader = currentTime < endTime;
+      }
     }
   });
-  const onLogin = ()=>{
-    Modal
+  const onToggleLoginModal = ()=>{
+    setIsModalShow(!isLoginModalShow)
   }
   return (
     <div>
       <header className="header-container">
         <ul className="banner">
           <div className='banner-left'>
-            <span className='banner-logo'>Abner的笔记</span>
+            <Link to="/" className='banner-logo'>Abner的笔记</Link>
             {routerConfig.map(
               (item:any, index) =>
                 item.isShowHeader && (
@@ -57,7 +63,7 @@ const AuthToken = withRouter(() => {
           </div>
            <li className="tab-item">
             {!token ? (
-              <span onClick={onLogin}>登录</span>
+              <a onClick={onToggleLoginModal}>登录</a>
             ) : (
                <Link to='/mine'>
                 <img className="user-icon" src={Cookies.get("avator")} alt="" />
@@ -94,6 +100,9 @@ const AuthToken = withRouter(() => {
         </div>
       </Suspense>
       <Footer />
+      {
+        isLoginModalShow && <LoginModal onClose={onToggleLoginModal}/>
+      }
     </div>
   );
 });
