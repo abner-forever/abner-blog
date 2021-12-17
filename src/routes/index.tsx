@@ -33,6 +33,11 @@ const AuthToken = withRouter(() => {
       }
     } else {
       item.current = false;
+      if(item.path === '/christmas'){
+        const endTime = 1640448000000; // new Date('2021 12 25').getTime()
+        const currentTime = Date.now();
+         item.isShowHeader = currentTime < endTime;
+      }
     }
   });
   const onToggleLoginModal = ()=>{
@@ -43,7 +48,7 @@ const AuthToken = withRouter(() => {
       <header className="header-container">
         <ul className="banner">
           <div className='banner-left'>
-            <span className='banner-logo'>Abner的笔记</span>
+            <Link to="/" className='banner-logo'>Abner的笔记</Link>
             {routerConfig.map(
               (item:any, index) =>
                 item.isShowHeader && (

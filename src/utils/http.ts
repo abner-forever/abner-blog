@@ -1,3 +1,4 @@
+import { PROXY_ENV } from "@/config";
 import Common from "./Common";
 class Http {
   HOST: string;
@@ -49,7 +50,9 @@ class Http {
       };
     }
     const request = new Promise((resolve, reject) => {
-      fetch(this.HOST + url, initParams)
+      console.log('this.HOST + PROXY_ENV +url',this.HOST + PROXY_ENV +url);
+      
+      fetch(this.HOST + PROXY_ENV +url, initParams)
         .then((response) => response.json())
         .then((res) => {
           resolve(res);

@@ -178,6 +178,7 @@ const LoginModal = (props: any) => {
             centered
             width={400}
             title={isLogin?'登录':'注册'}
+            footer={null}
         >
             {
                 isLogin ? loginForm() : registerForm()

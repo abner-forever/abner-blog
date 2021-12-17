@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import ApiBlog from '@/api/apiBlog'
 import { Button, Input, message } from 'antd'
-import Cookies from "js-cookie"
+import Cookies from "js-cookie";
 import './style.scss'
 
 const PageNotFound = ({id}:any) => {
