@@ -47,7 +47,7 @@ const MinePage = (props: any) => {
           <div className="write-article">
             <p
               onClick={() => {
-                props.history.push("/addArticle");
+                props.history.push("/add-article");
               }}
             >
               去写文章

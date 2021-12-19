@@ -101,7 +101,7 @@ const MarkDownEditor = () => {
             await ApiBlog.addArticle(params);
             // commonStore.location.history.replace('/')
         } catch (error) {
-            console.log('add error', error);
+            console.error('add error', error);
             
         }
     }

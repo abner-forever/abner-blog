@@ -16,19 +16,21 @@ const routes = [
         isShowHeader:true,
     },
    {
-        path: '/edit',
+        path: '/edit/:id',
         component: React.lazy(()=>import('../page/editPage')),
         title: '编辑',
-        isShowHeader:false
+        isShowHeader:false,
+        authCheck:true, // 登录验证
     },
     {
-        path: '/addArticle',
+        path: '/add-article',
         component: React.lazy(()=>import('../page/editPage')),
         title: '新增文章',
-        isShowHeader:false
+        isShowHeader:false,
+        authCheck:true, // 登录验证
     },
      {
-        path: '/articledetail',
+        path: '/article-detail/:id',
         component: React.lazy(()=>import('../page/detailPage')),
         title: '文章详情',
         isShowHeader:false
@@ -37,7 +39,8 @@ const routes = [
         component: React.lazy(()=>import('../page/minePage')),
         title: '关于我',
         exact: true,
-        isShowHeader:false
+        isShowHeader:false,
+        authCheck:true, // 登录验证
     },
     {
         path: '/myArticle',

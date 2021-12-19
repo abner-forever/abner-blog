@@ -13,7 +13,7 @@ class ApiBlog {
   /**
    * 博客详情页
    */
-  apiArticleOne = (params:any) => {
+  getArticleDetail = (params:any) => {
     return Fetch.get("/article/getArticle", params);
   };
   /**

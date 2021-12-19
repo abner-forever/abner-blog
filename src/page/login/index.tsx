@@ -6,7 +6,12 @@ import { LoadingOutlined, PlusOutlined } from '@ant-design/icons';
 import ImgCrop from 'antd-img-crop'
 import './style.scss'
 
-const LoginModal = (props:any) => {
+/**
+ * 登录页面
+ * @param props 
+ * @returns 
+ */
+const Login = (props:any) => {
     const [userName, setUserName] = useState('');
     const [password, setPassword] = useState('');
     const [imageUrl, setImageUrl] = useState('');
@@ -49,10 +54,6 @@ const LoginModal = (props:any) => {
         props.history.push(`/mine`)
     }
     useEffect(() => {
-        let token = Cookies.get('token')
-        if (token) {
-            props.history.replace('/mine')
-        }
     })
     const beforeUpload = (file:any) => {
         const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
@@ -180,4 +181,4 @@ const LoginModal = (props:any) => {
         </div>
     )
 }
-export default LoginModal;
+export default Login;

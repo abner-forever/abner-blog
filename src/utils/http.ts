@@ -100,8 +100,6 @@ class Http {
       try {
         this.interceptorsResponse(res)
           .then((result) => {
-            console.log("result", result);
-
             resolve(result);
           })
           .catch((err) => {

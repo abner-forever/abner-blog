@@ -44,9 +44,12 @@ export default defineConfig({
     proxy: {
       "/dev_api": { // 调试本地node服务使用
         target: "http://localhost:8080",
+        // changeOrigin: true,
+        rewrite: path => path.replace(/^\/dev_api/, '/api'), 
       },
       "/api": {
         target: "http://foreverheart.top:8080",
+        // changeOrigin: true,
       },
     },
   },

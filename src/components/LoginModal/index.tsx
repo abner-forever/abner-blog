@@ -48,12 +48,6 @@ const LoginModal = (props: any) => {
         message.success('注册成功')
         props.history.push(`/mine`)
     }
-    useEffect(() => {
-        let token = Cookies.get('token')
-        if (token) {
-            props.history.replace('/mine')
-        }
-    })
     const beforeUpload = (file: any) => {
         const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
         if (!isJpgOrPng) {

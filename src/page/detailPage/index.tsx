@@ -3,16 +3,17 @@ import ArticleDetail from "@/components/ArticleDetail";
 import { Loading, Comments } from "@/components";
 import ApiBlog from "@/api/apiBlog";
 import Cookies from "js-cookie";
+import { getEndofUrlPath } from "@/utils";
 
 const DetailPage = (props: any) => {
-  const id = props.history.location.pathname.split("/")[2] || "";
+  const id = getEndofUrlPath(props.history.location.pathname);
   const [articleDetail, setArticleDetail] = useState();
   useEffect(() => {
-    getArticleDetail(); // eslint-disable-next-line
+    getArticleDetail();
   }, []);
   let userId = Cookies.get("userId");
   const getArticleDetail = async () => {
-    let res: any = await ApiBlog.apiArticleOne({ id });
+    let res: any = await ApiBlog.getArticleDetail({ id });
     setArticleDetail(res);
   };
   return (
@@ -27,4 +28,3 @@ const DetailPage = (props: any) => {
   );
 };
 export default DetailPage;
-// export default observer(DetailPage)
