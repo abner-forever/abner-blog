@@ -12,7 +12,7 @@ jobs:
     # 获取源码
       - name: 迁出代码
         # 使用action库  actions/checkout获取源码
-        uses: actions/checkout@qa
+        uses: actions/checkout@master
       # 安装Node10
       
       - name: 安装node.js
@@ -23,8 +23,8 @@ jobs:
 
       # 安装依赖
       - name: 安装依赖
-        run: yarn
-
+        run: git checkout qa
+              yarn install --frozen-lockfile
       # 打包
       - name: 打包
         run: yarn build
