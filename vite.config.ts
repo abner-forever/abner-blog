@@ -3,7 +3,11 @@ import react from "@vitejs/plugin-react";
 import path from "path";
 
 // https://vitejs.dev/config/
-export default defineConfig({
+// export default defineConfig({
+
+// });
+
+const baseConfig = {
   plugins: [
     react({
       babel: {
@@ -45,7 +49,7 @@ export default defineConfig({
       "/dev_api": { // 调试本地node服务使用
         target: "http://localhost:8080",
         // changeOrigin: true,
-        rewrite: path => path.replace(/^\/dev_api/, '/api'), 
+        rewrite: path => path.replace(/^\/dev_api/, '/api'),
       },
       "/api": {
         target: "http://foreverheart.top:8080",
@@ -63,4 +67,18 @@ export default defineConfig({
       },
     },
   },
-});
+}
+
+export default defineConfig(({ command, mode }) => {
+  if (command === "serve") {
+    return {
+      ...baseConfig
+    }
+  }
+  if (command === "build") {
+    return {
+      base: mode==='qa'?'/qa':'/',
+      ...baseConfig
+    }
+  }
+})

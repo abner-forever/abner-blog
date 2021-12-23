@@ -4,9 +4,8 @@
   "scripts": {
     "start": "vite serve --mode online",
     "dev": "vite serve --mode dev",
-    "build:online": "vite serve --mode online",
-    "build:qa": "tsc && vite build  --mode --mode qa",
-    "build": "tsc && vite build  --mode online",
+    "build:qa": "tsc && vite build  --mode qa",
+    "build:online": "tsc && vite build  --mode online",
     "serve": "vite preview",
     "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s -r 0",
     "tag": "node ./scripts/release-ci.js --tag $TAG"
