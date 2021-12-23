@@ -20,11 +20,9 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: 12.14.0
-
       # 安装依赖
       - name: 安装依赖
-        run: git checkout qa
-              yarn install --frozen-lockfile
+        run: yarn install --frozen-lockfile
       # 打包
       - name: 打包
         run: yarn build
