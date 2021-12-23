@@ -1,19 +1,18 @@
-name: 打包应用并上传服务器
+name: 打包应用并上传服务器-qa
 
 on:
   push:
     branches:
-      - master
-
+      - qa
 jobs:
   build:
     # runs-on 指定job任务运行所需要的虚拟机环境(必填字段)
     runs-on: ubuntu-latest
     steps:
-      # 获取源码
+    # 获取源码
       - name: 迁出代码
         # 使用action库  actions/checkout获取源码
-        uses: actions/checkout@master
+        uses: actions/checkout@qa
       # 安装Node10
       
       - name: 安装node.js
@@ -44,4 +43,4 @@ jobs:
           # 用户
           REMOTE_USER: "root"
           # 目标地址
-          TARGET: "/www/site/blog"
+          TARGET: "/www/site/blog-qa"
