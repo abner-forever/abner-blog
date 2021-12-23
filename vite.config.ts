@@ -72,12 +72,13 @@ const baseConfig = {
 export default defineConfig(({ command, mode }) => {
   if (command === "serve") {
     return {
+      base: mode==='dev'?'/qa/':'/',
       ...baseConfig
     }
   }
   if (command === "build") {
     return {
-      base: mode==='qa'?'/qa':'/',
+      base: mode==='qa'?'/qa/':'/',
       ...baseConfig
     }
   }
