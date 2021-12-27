@@ -10,9 +10,9 @@ const routes = [
         isShowHeader:true
     },
     {
-        path: '/Vitw',
-        component: React.lazy(()=>import('../page/viteDemo')),
-        title: 'vite',
+        path: '/demo',
+        component: React.lazy(()=>import('../page/demo')),
+        title: 'Demo',
         isShowHeader:true,
     },
    {

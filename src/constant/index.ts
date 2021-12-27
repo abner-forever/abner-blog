@@ -1,4 +1,6 @@
+const host = location.origin
+
 export const HOSTS: Record<string,string> = {
-  online: "http://foreverheart.top",
-  dev: "http://localhost:3000/"
+  online: host,
+  dev: host
 }
