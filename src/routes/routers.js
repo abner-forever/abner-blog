@@ -10,9 +10,9 @@ const routes = [
         isShowHeader:true
     },
     {
-        path: '/Vitw',
-        component: React.lazy(()=>import('../page/viteDemo')),
-        title: 'vite',
+        path: '/demo',
+        component: React.lazy(()=>import('../page/demo')),
+        title: 'Demo',
         isShowHeader:true,
     },
    {
@@ -37,9 +37,9 @@ const routes = [
     },{
         path: '/mine',
         component: React.lazy(()=>import('../page/minePage')),
-        title: '关于我',
+        title: '我的',
         exact: true,
-        isShowHeader:false,
+        isShowHeader: false,
         authCheck:true, // 登录验证
     },
     {
@@ -68,7 +68,15 @@ const routes = [
         component: React.lazy(()=>import('../page/Christmas')),
         title: '圣诞节快乐',
         exact: true,
-        isShowHeader:true
+        isShowHeader:false
+    },
+    {
+        path: '/about',
+        component: React.lazy(()=>import('../page/About')),
+        title: '日志',
+        exact: true,
+        isShowHeader:true,
+        authCheck:true, // 登录验证
     }
 ]
 export default routes

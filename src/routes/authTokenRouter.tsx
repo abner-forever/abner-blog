@@ -42,7 +42,7 @@ const AuthToken = withRouter(({ token }: any) => {
           </div>
         }
       >
-        <div className="content-box">
+        <div className="content-wrap">
           <div className="content">
             {/* Route 组件必须是Switch 的子元素 不然正常渲染的时候 404页面也会渲染 */}
             <Switch>

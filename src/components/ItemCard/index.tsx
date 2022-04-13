@@ -1,12 +1,19 @@
 import React from "react";
 import "./style.scss";
+interface IProps {
+  item: IArticleItemtype,
+  isEdit?: boolean;
+  onGetArticle: Function;
+  editArticle: Function;
+  deleteArticle?: Function;
+}
 function ItemCard({
   item,
   isEdit,
-  onGetArticle = () => {},
+  onGetArticle,
   editArticle,
-  deleteArticle,
-}: any) {
+  deleteArticle = () => { },
+}: IProps) {
   return (
     <div className="item-card" key={item.id}>
       <div onClick={() => onGetArticle(item.id)}>
@@ -14,7 +21,7 @@ function ItemCard({
         <p className="contents">{item.description}</p>
       </div>
       <div className="meta">
-        <span>{item.userName}</span>
+        <span>{item.author}</span>
         <span className="update-time">
           {item.updateTime || item.createTime}
         </span>
