@@ -9,10 +9,10 @@ const Demo = ()=>{
         Demo
         {
             demoComponents.map((item,index)=>(
-                // <div key={index}>
-                //     {}
-                // </div>
-                item()
+                <div key={index}>
+                    {item()}
+                </div>
+                
             ))
         } 
     </div>

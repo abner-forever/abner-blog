@@ -36,7 +36,7 @@ class Home extends Component<P, S> {
     return (
       <div className='home-content'>
         {
-          articleList.map((item: any, index: number) => (
+          articleList.map((item: IArticleItemtype, index: number) => (
             <ItemCard
               key={index}
               item={item}

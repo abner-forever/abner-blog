@@ -4,6 +4,7 @@ import ApiBlog from "@/api/apiBlog";
 import "./style.scss";
 import GithubIcon from "@img/github.svg";
 import { Button } from "antd";
+import { DEFAULT_HEAD } from "@/constant";
 const MinePage = (props: any) => {
   const [userInfo, setUserInfo] = useState<Record<string, string>>({});
   useEffect(() => {
@@ -37,11 +38,10 @@ const MinePage = (props: any) => {
     Cookies.set("userName", "", currentCookieSetting);
     props.history.replace("/login");
   };
-  console.log("GithubIcon", GithubIcon);
   return (
     <div className="content-item">
       <div className="user-content">
-        <img className="head" src={userInfo.avator} alt="" />
+        <img className="head" src={userInfo.avator || DEFAULT_HEAD} alt="" />
         <div className="userinfo">
           <p className="user-name">{userInfo.userName}</p>
           <div className="write-article">
