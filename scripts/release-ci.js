@@ -20,8 +20,7 @@ warn("请确保 changelog-ci.js 运行完毕");
 
 const cwd = process.cwd();
 
-const { CI_JOB_ID, CI_COMMIT_SHA, GL_USER_NAME, GL_TOKEN, REPO_URL } =
-  process.env;
+const { CI_JOB_ID, CI_COMMIT_SHA, GL_USER_NAME, GL_TOKEN, REPO_URL } = process.env;
 
 // 变动包
 // const lernaChanged = shell.exec("npx lerna changed").stdout;
