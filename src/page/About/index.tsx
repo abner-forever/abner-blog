@@ -14,18 +14,18 @@ const columns = [
   }
 ]
 const tabList = [
+  // {
+  //   key: '0',
+  //   name: '数据请求',
+  //   value: 'request'
+  // },
   {
     key: '0',
-    name: '数据请求',
-    value: 'request'
-  },
-  {
-    key: '1',
     name: '请求日志',
     value: 'out'
   },
   {
-    key: '2',
+    key: '1',
     name: '异常信息',
     value: 'error'
   }
@@ -43,7 +43,7 @@ const About = () => {
   }, [currentTab])
   const getLogList = async () => {
     const res: any = await ApiBlog.logList({
-      type: tabList[Number(currentTab)].value
+      type: tabList[Number(currentTab)]?.value
     });
     console.log('res', res);
     setList(res.list);
