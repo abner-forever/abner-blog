@@ -4,7 +4,7 @@ const { log, error } = require("./log");
 const tags = require("./tags");
 
 const { tag } = argv;
-console.log(argv, 222);
+console.log('argv', argv);
 if (!tag) {
   error(`请检查参数 tag:${tag}`);
   shell.exit(1);

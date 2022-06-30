@@ -8,7 +8,7 @@ const simpleGit = require("simple-git");
 const { log, warn, error } = require("../scripts/log");
 
 const { tag } = argv;
-
+console.log('argv', argv);
 warn(`publish argv: ${tag}`);
 
 if (!tag) {
