@@ -23,18 +23,18 @@ const cwd = process.cwd();
 const { CI_JOB_ID, CI_COMMIT_SHA, GL_USER_NAME, GL_TOKEN, REPO_URL } = process.env;
 
 // 变动包
-// const lernaChanged = shell.exec("npx lerna changed").stdout;
-// console.log("lernaChanged:", lernaChanged);
+const lernaChanged = shell.exec("npx lerna changed").stdout;
+console.log("lernaChanged:", lernaChanged,CI_JOB_ID);
 // 包名
-// const changedRepos = lernaChanged
-//   .split("\n")
-//   .map((line) => line.replace("- ", ""))
-//   .filter((line) => line !== "");
+const changedRepos = lernaChanged
+  .split("\n")
+  .map((line) => line.replace("- ", ""))
+  .filter((line) => line !== "");
 
-// if (changedRepos.length === 0) {
-//   log("没有需要更新的包");
-//   shell.exit(0);
-// }
+if (changedRepos.length === 0) {
+  log("没有需要更新的包");
+  shell.exit(0);
+}
 
 _commit();
 

@@ -14,18 +14,17 @@ if (!tag) {
 const lernaUpdated = shell.exec("npx lerna changed").stdout;
 console.log("lernaUpdated", lernaUpdated);
 
-// shell.exit(0);
-const updatedRepos = lernaUpdated
-  .split("\n")
-  .map((line) => line.replace("- ", ""))
-  .filter((line) => line !== "");
+// const updatedRepos = lernaUpdated
+//   .split("\n")
+//   .map((line) => line.replace("- ", ""))
+//   .filter((line) => line !== "");
 
-if (updatedRepos.length === 0) {
-  log("没有需要更新的包");
-  shell.exit(0);
-} else {
-  updateChangelog(tag);
-}
+// if (updatedRepos.length === 0) {
+//   log("没有需要更新的包");
+//   shell.exit(0);
+// } else {
+//   updateChangelog(tag);
+// }
 updateChangelog(tag);
 
 function updateChangelog(_tag) {
