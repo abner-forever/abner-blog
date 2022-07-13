@@ -32,7 +32,7 @@ export default defineConfig({
         javascriptEnabled: true,
         // 重写 less 变量，定制样式
         modifyVars: {
-          "@primary-color": "red",
+          "@primary-color": "#009a61",
         },
       },
       scss: {
@@ -52,6 +52,7 @@ export default defineConfig({
         // changeOrigin: true,
       },
     },
+    open: 'index.html'
   },
   build: {  // 调整打包后文件放置路径
     assetsDir: "static/img/",
