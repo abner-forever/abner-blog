@@ -21,6 +21,7 @@
     "dva": "^2.4.1",
     "easymde": "^2.15.0",
     "js-cookie": "^2.2.1",
+    "lottie-web": "^5.9.6",
     "mobx": "^5.9.4",
     "mobx-react": "^5.4.4",
     "prismjs": "^1.25.0",
@@ -30,7 +31,8 @@
     "react-dom": "^17.0.0",
     "react-router": "^5.1.2",
     "react-router-dom": "^5.0.1",
-    "react-simplemde-editor": "^5.0.2"
+    "react-simplemde-editor": "^5.0.2",
+    "react-transition-group": "^4.4.2"
   },
   "devDependencies": {
     "@babel/plugin-proposal-class-properties": "^7.14.5",
@@ -40,6 +42,7 @@
     "@types/prismjs": "^1.16.6",
     "@types/react": "^17.0.0",
     "@types/react-dom": "^17.0.0",
+    "@types/react-transition-group": "^4.4.5",
     "@vitejs/plugin-react": "^1.0.0",
     "babel-plugin-transform-decorators-legacy": "^1.3.5",
     "conventional-changelog": "^3.1.24",
