@@ -18,7 +18,7 @@ const MyArticle = (props:any) => {
         
     }
     const onGetArticle = (articleId:string) => {
-        props.history.push(`/article-detail/${articleId}`)
+        props.history.push(`/articleDetail/${articleId}`)
     }
     const editArticle = (articleId:string) => {
         props.history.push(`/edit/${articleId}`)

@@ -23,14 +23,14 @@ const routes = [
         authCheck:true, // 登录验证
     },
     {
-        path: '/add-article',
+        path: '/addArticle',
         component: React.lazy(()=>import('../page/editPage')),
         title: '新增文章',
         isShowHeader:false,
         authCheck:true, // 登录验证
     },
      {
-        path: '/article-detail/:id',
+        path: '/articleDetail/:id',
         component: React.lazy(()=>import('../page/detailPage')),
         title: '文章详情',
         isShowHeader:false

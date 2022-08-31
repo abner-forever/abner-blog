@@ -16,7 +16,7 @@ const Login = (props:any) => {
     const [password, setPassword] = useState('');
     const [imageUrl, setImageUrl] = useState('');
     const [loading, setLoading] = useState(false);
-    const [isLogin, setIsLogin] = useState(true)
+    const [isLogin, setIsLogin] = useState(false)
     const [checkPassword, setCheckPassword] = useState('')
     const [buttonDisable, setButtonDisable] = useState(true)
     const [fileList, setFileList] = useState<any>([])
@@ -173,6 +173,9 @@ const Login = (props:any) => {
     }
     return (
         <div className='content-item'>
+            <p className='sign-in-up' onClick={() => {
+                setIsLogin(!isLogin);
+            }}>{isLogin ? '登录' : '注册'}</p>
             <div className='form-item'>
                 {
                     isLogin ? loginForm() : registerForm()

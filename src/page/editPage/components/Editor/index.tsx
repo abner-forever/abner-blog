@@ -27,7 +27,7 @@ const blankEditorVal = BraftEditor.createEditorState(null);
 
 const Editor = ({ location, editArticle }: IProps) => {
   const [title, setTitle] = useState(editArticle?.title);
-  const [editorVal, setEtitorVal] = useState(BraftEditor.createEditorState(editArticle.content))
+  const [editorVal, setEtitorVal] = useState(BraftEditor.createEditorState(editArticle?.content))
   const [id] = useState(getEndofUrlPath(location.pathname))
   const onInputChange = (e: any) => {
     const val = e.target.value.replace(/(^\s*)|(\s*$)/g, "");
@@ -40,7 +40,7 @@ const Editor = ({ location, editArticle }: IProps) => {
   const onSave = () => {
     const htmlContent = editorVal.toHTML()
     let pathName = location.pathname
-    if (pathName.indexOf('add-article') === -1) {
+    if (pathName.indexOf('addArticle') === -1) {
       updateEditorContent(htmlContent)
     } else {
       addEditorContent(htmlContent)
