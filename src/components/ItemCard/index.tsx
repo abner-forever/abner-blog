@@ -1,3 +1,4 @@
+import dayjs from "dayjs";
 import React from "react";
 import "./style.scss";
 interface IProps {
@@ -23,7 +24,7 @@ function ItemCard({
       <div className="meta">
         <span>{item.author}</span>
         <span className="update-time">
-          {item.updateTime || item.createTime}
+          {dayjs(item.updateTime || item.createTime).format('YYYY-MM-DD hh:mm')}
         </span>
         {isEdit && (
           <div onClick={() => editArticle(item.id)} className="edit-icon">

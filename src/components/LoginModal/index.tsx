@@ -29,7 +29,6 @@ const LoginModal = (props: any) => {
             Object.assign(currentCookieSetting, {})
             Cookies.set('token', res.token, currentCookieSetting)
             Cookies.set('userId', res.userId, currentCookieSetting)
-            Cookies.set('userName', res.userName, currentCookieSetting)
             message.success("登录成功")
             onClose();
         }

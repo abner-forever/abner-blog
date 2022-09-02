@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 import { CSSTransition } from 'react-transition-group'
 import dayjs from 'dayjs';
 import AdvancedFormat from 'dayjs/plugin/advancedFormat'
-import Lottie from '@/components/Lottie';
+// import Lottie from '@/components/Lottie';
 import littlePersion from '@/assets/lottie/little-persion.json';
 import './style.less';
 
@@ -34,7 +34,7 @@ const Animate = () => {
     >
       <div>boss级人物:{dayjs().format('Do')}</div>
     </CSSTransition>
-    <Lottie ref={aniRef} autoplay={false} animationData={littlePersion} />
+    {/* <Lottie ref={aniRef} autoplay={false} animationData={littlePersion} /> */}
     <div>
       <button onClick={changeToshow}>召唤boss{show ? '动' : '停'}</button>
     </div>

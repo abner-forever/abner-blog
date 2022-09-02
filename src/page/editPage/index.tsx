@@ -36,7 +36,7 @@ class EditorPage extends React.Component<P, S> {
     };
     componentDidMount() {
         let pathName = this.props.location.pathname
-        if (pathName.indexOf('add-article') === -1) {
+        if (pathName.indexOf('addArticle') === -1) {
             this.getArticleDetail();
         } else {
             runInAction(() => {

@@ -8,6 +8,7 @@ import Footer from './Footer'
 import WallPaper from './WallPaper'
 import LoginModal from './LoginModal'
 import MarkDownEditor from './MarkDownEditor'
+import Header from './Header'
 
 
 export {
@@ -20,5 +21,6 @@ export {
     Footer,
     WallPaper,
     LoginModal,
-    MarkDownEditor
+    MarkDownEditor,
+    Header,
 }

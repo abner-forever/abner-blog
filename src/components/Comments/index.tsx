@@ -3,12 +3,16 @@ import ApiBlog from '@/api/apiBlog'
 import { Button, Input, message } from 'antd'
 import Cookies from "js-cookie";
 import './style.scss'
+import { DEFAULT_HEAD } from '@/constant';
 
-const PageNotFound = ({id}:any) => {
+/**
+ * 评论组件
+ */
+const Comments = ({id}:any) => {
     // const [iscommentShow, setiscommentShow] = useState(true)
     const [commentList, setCommentList] = useState([])
     const [comment, setComment] = useState('')
-    let userName = Cookies.get('userName')
+    let userId = Cookies.get('userId')
     useEffect(() => {
         getCommentList(); // eslint-disable-next-line 
     }, [])
@@ -20,12 +24,12 @@ const PageNotFound = ({id}:any) => {
     
     const addComment = async () => {
 
-        if (!userName) {
+        if (!userId) {
             message.warn('请登录后再评论');
             return;
         }
         let params = {
-            name: userName,
+            userId: userId,
             content: comment,
             postid: id,
         }
@@ -54,12 +58,12 @@ const PageNotFound = ({id}:any) => {
                     commentList.length > 0 ? commentList.map((item:any, index) => (
                         <div className='comment-item' key={index}>
                             <div className='user-icon'>
-                                <img src={item.avator} alt="" />
+                                <img src={item.avator|| DEFAULT_HEAD} alt="" />
                             </div>
                             <div className='comment-detail'>
-                                <span className='user-name'>{item.name}</span>
+                                <span className='user-name'>{item.userName}</span>
                                 <p className='comments'>{item.content}</p>
-                                {userName === item.name && <span className='remove-icon' onClick={() => onRemoveComment(item.id)}>删除</span>}
+                                {userId === String(item.userId) && <span className='remove-icon' onClick={() => onRemoveComment(item.id)}>删除</span>}
                             </div>
                         </div>
                     )) : <div className='no-comment'>暂无评论</div>
@@ -68,4 +72,4 @@ const PageNotFound = ({id}:any) => {
         </div>
     )
 }
-export default PageNotFound
+export default Comments

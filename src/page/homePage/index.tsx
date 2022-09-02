@@ -23,7 +23,7 @@ class Home extends Component<P, S> {
   }
   onGetArticle = (articleId: string) => {
     this.store.onGetEditText(articleId).then(() => {
-      this.props.history.push(`/article-detail/${articleId}`)
+      this.props.history.push(`/articleDetail/${articleId}`)
     })
   }
   editArticle = (articleId: any) => {

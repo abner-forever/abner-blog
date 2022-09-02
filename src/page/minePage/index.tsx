@@ -5,29 +5,18 @@ import "./style.scss";
 import GithubIcon from "@img/github.svg";
 import { Button } from "antd";
 import { DEFAULT_HEAD } from "@/constant";
-const MinePage = (props: any) => {
-  const [userInfo, setUserInfo] = useState<Record<string, string>>({});
+import { observer, inject } from 'mobx-react';
+
+const MinePage = ({ history, globalStore }: any) => {
+  const { userInfo } = globalStore;
   useEffect(() => {
     let userId = Cookies.get("userId");
     if (!userId) {
-      props.history.replace("/login");
+      history.replace("/login");
       return;
     }
-    getuserInfo(userId);
-  }, [props.history]);
-  const getuserInfo = async (userId: string) => {
-    let res: any = await ApiBlog.userInfo({
-      userId,
-    });
-    if (res) {
-      setUserInfo(res);
-      let currentCookieSetting = {
-        expires: 1,
-      };
-      Object.assign(currentCookieSetting, {});
-      Cookies.set("avator", res.avator, currentCookieSetting);
-    }
-  };
+  }, [history]);
+
   const loginout = () => {
     let currentCookieSetting = {
       expires: -1,
@@ -36,25 +25,25 @@ const MinePage = (props: any) => {
     Cookies.set("token", "", currentCookieSetting);
     Cookies.set("userId", "", currentCookieSetting);
     Cookies.set("userName", "", currentCookieSetting);
-    props.history.replace("/login");
+    history.replace("/login");
   };
   return (
     <div className="content-item">
       <div className="user-content">
-        <img className="head" src={userInfo.avator || DEFAULT_HEAD} alt="" />
+        <img className="head" src={userInfo?.avator || DEFAULT_HEAD} alt="" />
         <div className="userinfo">
-          <p className="user-name">{userInfo.userName}</p>
+          <p className="user-name">{userInfo?.userName}</p>
           <div className="write-article">
             <p
               onClick={() => {
-                props.history.push("/add-article");
+                history.push("/addArticle");
               }}
             >
               去写文章
             </p>
             <p
               onClick={() => {
-                props.history.push("/myArticle");
+                history.push("/myArticle");
               }}
             >
               我的文章
@@ -62,7 +51,7 @@ const MinePage = (props: any) => {
           </div>
         </div>
         <div className="social-content">
-          <a href="https://github.com/abner-jlm">
+          <a href="https://github.com/abner-forever">
             <img src={GithubIcon} alt="" />
           </a>
         </div>
@@ -71,4 +60,5 @@ const MinePage = (props: any) => {
     </div>
   );
 };
-export default MinePage;
+
+export default inject('globalStore')(observer(MinePage));

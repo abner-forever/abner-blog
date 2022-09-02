@@ -41,6 +41,7 @@ export default defineConfig({
     },
   },
   server: {
+    port: 3000,
     proxy: {
       "/dev_api": { // 调试本地node服务使用
         target: "http://localhost:8080",
@@ -64,4 +65,9 @@ export default defineConfig({
       },
     },
   },
+  esbuild: {
+    define: {
+      this: 'window'
+     }
+  }
 });
