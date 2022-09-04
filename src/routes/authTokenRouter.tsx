@@ -1,28 +1,17 @@
-import React, { Suspense, useState } from "react";
-import {
-  Link,
-  withRouter,
-  Route,
-  Switch,
-  Redirect,
-} from "react-router-dom";
-import routerConfig from "./routers";
+import React, { Suspense } from "react";
+import { useRoutes } from "react-router-dom";
+import routeConfig from "./routers";
 import "@/index.scss";
-import { Loading, PageNotFound, Footer, LoginModal } from "@/components";
-import { commonStore } from "@/utils/store";
+import { Loading } from "@/components";
 
-const AuthToken = withRouter(({ token }: any) => {
+
+const AuthToken = () => {
   const { pathname } = location;
-  const targetRouterConfig = routerConfig.find(
-    (item) => item.path === pathname
-  );
-  console.log('targetRouterConfig',targetRouterConfig);
-  
-  routerConfig.forEach((item: any, index) => {
+  const element = useRoutes(routeConfig);
+  routeConfig.forEach((item: any) => {
     if (pathname === item.path) {
       if (item.isShowHeader) {
         item.current = true;
-      } else {
       }
     } else {
       item.current = false;
@@ -33,55 +22,19 @@ const AuthToken = withRouter(({ token }: any) => {
       }
     }
   });
+
   return (
-    <div>
-      <Suspense
-        fallback={
-          <div>
-            <Loading />
-          </div>
-        }
-      >
-        <div className="content-wrap">
-          <div className="content">
-            {/* Route 组件必须是Switch 的子元素 不然正常渲染的时候 404页面也会渲染 */}
-            <Switch>
-            {
-                routerConfig.map((item, index) => {
-                  return <Route
-                    exact={item.exact}
-                    key={index}
-                    path={item.path}
-                    component={(location: any) => {
-                      commonStore.getHistory({ ...location });
-                      return <item.component {...location} />
-                    }}
-                  />
-                })
-              }
-              {/* {
-                routerConfig.map((item, index) => {
-                  const isRedrict = !!item.authCheck && !token;
-                  return !isRedrict ? <Route
-                    exact={item.exact}
-                    key={index}
-                    path={item.path}
-                    component={(location: any) => {
-                      commonStore.getHistory({ ...location });
-                      return <item.component {...location} />
-                    }}
-                  /> : <Redirect key={index} to={{
-                    pathname: '/login',
-                    state: location
-                  }} />
-                })
-              } */}
-              <Route component={PageNotFound} />
-            </Switch>
-          </div>
+    <Suspense
+      fallback={<Loading />}
+    >
+      <div className="content-wrap">
+        <div className="content">
+          {/* Route 组件必须是Switch 的子元素 不然正常渲染的时候 404页面也会渲染 */}
+          {element}
         </div>
-      </Suspense>
-    </div>
+      </div>
+    </Suspense>
   );
-});
+};
+
 export default AuthToken;

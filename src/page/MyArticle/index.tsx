@@ -44,8 +44,6 @@ const MyArticle = (props:any) => {
                         key={index}
                         item={item}
                         isEdit={true}
-                        onGetArticle={onGetArticle}
-                        editArticle={editArticle}
                         deleteArticle={deleteArticle}
                     />
                 ))

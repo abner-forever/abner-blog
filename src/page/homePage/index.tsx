@@ -21,16 +21,6 @@ class Home extends Component<P, S> {
   componentDidMount() {
     this.store.onGetArticle() //初始化数据
   }
-  onGetArticle = (articleId: string) => {
-    this.store.onGetEditText(articleId).then(() => {
-      this.props.history.push(`/articleDetail/${articleId}`)
-    })
-  }
-  editArticle = (articleId: any) => {
-    this.store.onGetEditText(articleId).then((res: any) => {
-      this.props.history.push(`/edit/${articleId}`)
-    })
-  }
   render() {
     const { articleList = [] } = this.store;
     return (
@@ -40,8 +30,6 @@ class Home extends Component<P, S> {
             <ItemCard
               key={index}
               item={item}
-              onGetArticle={this.onGetArticle}
-              editArticle={this.editArticle}
             />
           ))
         }

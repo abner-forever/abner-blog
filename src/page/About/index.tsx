@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import ApiBlog from "@/api/apiBlog";
-import { Table, Tabs } from "antd";
+import { Table, Tabs, Pagination } from "antd";
 const { TabPane } = Tabs;
 
 const columns = [
@@ -45,7 +45,6 @@ const About = () => {
     const res: any = await ApiBlog.logList({
       type: tabList[Number(currentTab)]?.value
     });
-    console.log('res', res);
     setList(res.list);
   }
   const onChangeTab = (val: string) => {
@@ -62,7 +61,14 @@ const About = () => {
               rowKey='id'
               columns={columns}
               dataSource={list}
+              // pagination=""
             />
+            {/* <Pagination
+                total={85}
+                showSizeChanger
+                showQuickJumper
+                showTotal={total => `Total ${total} items`}
+              /> */}
           </TabPane>
         ))
       }

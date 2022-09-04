@@ -1,6 +1,7 @@
 .edit-content{
     padding: .16rem;
     background-color: #fff;
+    position: relative;
     .title-container{
         display: flex;
         align-items: center;
@@ -26,17 +27,18 @@
         background-color: #fff;
     }
     .save-footer{
-        position: fixed;
+        position: absolute;
         bottom: 0;
         right: 0;
         background-color:#fff;
-        padding: 8px 50px;
+        height: 40px;
         width: 100%;
         display: flex;
         justify-content: flex-end;
+        align-items: center;
         z-index: 999;
     }
     .bf-content{
-        height: 619px;
+        min-height: 800px;
     }
 }

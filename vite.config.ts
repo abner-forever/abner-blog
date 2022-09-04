@@ -21,6 +21,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "src"),
+      "@page": path.resolve(__dirname, "src/page"),
       "@img": path.resolve(__dirname, "src/assets/img"),
       "@node_modules": path.resolve(__dirname, "node_modules"),
     },
@@ -46,7 +47,7 @@ export default defineConfig({
       "/dev_api": { // 调试本地node服务使用
         target: "http://localhost:8080",
         // changeOrigin: true,
-        rewrite: path => path.replace(/^\/dev_api/, '/api'), 
+        rewrite: path => path.replace(/^\/dev_api/, '/api'),
       },
       "/api": {
         target: "http://foreverheart.top:8080",
@@ -68,6 +69,6 @@ export default defineConfig({
   esbuild: {
     define: {
       this: 'window'
-     }
+    }
   }
 });

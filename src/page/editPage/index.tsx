@@ -1,63 +1,50 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import Editor from './components/Editor'
-import { observer, inject } from 'mobx-react'
-import { runInAction } from 'mobx'
 import ApiBlog from "@/api/apiBlog";
-import { getEndofUrlPath } from '@/utils';
+import { useLocation, useParams } from 'react-router-dom';
 
-interface P {
-    storeArticle: any;
-    location: any;
+
+interface ArticleType {
+    title: string
+    content: string;
+    createTime?: string
+    description?: string;
+    id?: number
+    updateTime?: string
 }
-interface S {
-    isAdd: boolean;
-    count: number;
-    editArticle: any;
+
+const defaultData = {
+    content: '',
+    title: '新建文本标题',
 }
-@inject('storeArticle')
-@observer
-class EditorPage extends React.Component<P, S> {
-    store: any
-    constructor(props: any) {
-        super(props)
-        this.store = this.props.storeArticle
-        this.state = {
-            count: 0,
-            isAdd: false,
-            editArticle: null,
-        }
-    }
-    getArticleDetail = async () => {
-        const id = getEndofUrlPath(this.props.location.pathname);
-        let res: any = await ApiBlog.getArticleDetail({ id });
-        this.setState({
-            editArticle:res,
-        })
-    };
-    componentDidMount() {
-        let pathName = this.props.location.pathname
-        if (pathName.indexOf('addArticle') === -1) {
-            this.getArticleDetail();
+ 
+const EditorPage = ( ) => {
+
+    const [isAdd, setIsAdd] = useState(false);
+    const { pathname } = useLocation();
+    const { id } = useParams();
+    const [editArticle,seteditArticle] = useState<ArticleType>(defaultData)
+    useEffect(() => {
+        if (pathname.indexOf('addArticle') === -1) {
+            getArticleDetail();
         } else {
-            runInAction(() => {
-                this.store.editArticle = ''
-            })
-            this.setState({
-                isAdd: true
-            })
+            setIsAdd(true)
         }
-
-    }
-    render() {
-        return (
-            <>
-                {(this.state.editArticle || this.state.isAdd) && <Editor
-                    editArticle={this.state.editArticle}
-                    location={this.props.location}
-                />}
-            </>
-        )
-
-    }
+ 
+    }, []);
+    const getArticleDetail = async () => {
+        let res: any = await ApiBlog.getArticleDetail({ id });
+        console.log('res',res);
+        seteditArticle(res)
+    
+    };
+    return (
+        <>
+            {(editArticle || isAdd) && <Editor
+                editArticle={editArticle}
+                id={id}
+            />}
+        </>
+    )
 }
-export default EditorPage
+export default EditorPage;
