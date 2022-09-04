@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import ApiBlog from '@/api/apiBlog'
 import Cookies from "js-cookie"
-import { Button, message, Upload } from 'antd';
+import { Button, message, Upload, Input } from 'antd';
 import { LoadingOutlined, PlusOutlined } from '@ant-design/icons';
 import ImgCrop from 'antd-img-crop'
 import './style.scss'
@@ -161,9 +161,9 @@ const Login = (props:any) => {
                     </ImgCrop>
                 </label>
                 <div className='form-input'>
-                    <input placeholder='请输入账号' onChange={(e) => { setUserName(e.target.value) }} type="text" name='userName' value={userName} />
-                    <input placeholder='请输入密码' onChange={(e) => { setPassword(e.target.value) }} type="password" name='passWord' value={password} />
-                    <input placeholder='再次确认密码' onBlur={checkPasswords} onChange={checkPasswords} type="password" name='checkPassWord' value={checkPassword} />
+                    <Input placeholder='请输入账号' onChange={(e) => { setUserName(e.target.value) }} type="text" name='userName' value={userName} />
+                    <Input placeholder='请输入密码' onChange={(e) => { setPassword(e.target.value) }} type="password" name='passWord' value={password} />
+                    <Input placeholder='再次确认密码' onBlur={checkPasswords} onChange={checkPasswords} type="password" name='checkPassWord' value={checkPassword} />
                 </div>
                 <div className='form-submit'>
                     <Button disabled={buttonDisable} type={'primary'} onClick={register}>注册</Button>

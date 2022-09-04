@@ -7,6 +7,7 @@ class GlobalStore {
   @action
   getUserInfo = async () => {
     let userId = Cookies.get("userId");
+    if(!userId) return;
     let res = await ApiBlog.getUserInfo({ userId })
     runInAction(() => {
       this.userInfo = res;

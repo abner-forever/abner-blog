@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
 import ArticleDetail from "@/components/ArticleDetail";
 import { Loading, Comments } from "@/components";
+import { useParams } from "react-router-dom";
 import ApiBlog from "@/api/apiBlog";
 import Cookies from "js-cookie";
-import { getEndofUrlPath } from "@/utils";
 
-const DetailPage = (props: any) => {
-  const id = getEndofUrlPath(props.history.location.pathname);
+const DetailPage = () => {
+  const { id } = useParams();
   const [articleDetail, setArticleDetail] = useState();
   useEffect(() => {
     getArticleDetail();
