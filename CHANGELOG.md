@@ -1,6 +1,11 @@
 ## 0.0.2 (2023-03-23)
 
 
+### Bug Fixes
+
+* 删除mobx 对打包后路由展示的影响 ([2a4a471](https://github.com/abner-forever/abner-blog/commit/2a4a471737061dc40072267e40895e261d0c5b7b))
+
+
 ### Features
 
 * 切换 构建文件 ([7b4303d](https://github.com/abner-forever/abner-blog/commit/7b4303dd93494e2d88eeef05911ae5d437178a94))
