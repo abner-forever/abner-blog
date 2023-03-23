@@ -4,7 +4,7 @@ import Cookies from "js-cookie"
 import { Button, message, Form, Modal, Upload, Input } from 'antd';
 import { LoadingOutlined, PlusOutlined, UserOutlined, EyeTwoTone, EyeInvisibleOutlined } from '@ant-design/icons';
 import ImgCrop from 'antd-img-crop'
-import { observer, inject } from 'mobx-react';
+import { observer, } from 'mobx-react-lite';
 import './style.scss'
 
 /**
@@ -13,7 +13,7 @@ import './style.scss'
  * @returns 
  */
 const LoginModal = (props: any) => {
-  const { onClose = () => { }, globalStore:{ getUserInfo} } = props;
+  const { onClose = () => { } } = props||{};
   const [userName, setUserName] = useState('');
   const [password, setPassword] = useState('');
   const [imageUrl, setImageUrl] = useState('');
@@ -37,7 +37,6 @@ const LoginModal = (props: any) => {
       Cookies.set('token', res.token, currentCookieSetting)
       Cookies.set('userId', res.userId, currentCookieSetting)
       message.success("登录成功");
-      getUserInfo();
       onClose();
     }
   }
@@ -216,4 +215,4 @@ const LoginModal = (props: any) => {
 
   )
 }
-export default inject('globalStore')(observer(LoginModal));
+export default LoginModal
