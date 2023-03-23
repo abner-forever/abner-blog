@@ -4,10 +4,10 @@ import "./style.scss";
 import GithubIcon from "@img/github.svg";
 import { Button } from "antd";
 import { DEFAULT_HEAD } from "@/constant";
-import { observer, inject } from 'mobx-react';
+
 import { useNavigate } from "react-router-dom";
 const MinePage = ({ history, globalStore }: any) => {
-  const { userInfo } = globalStore;
+  const { userInfo } = globalStore||{};
   const navigate = useNavigate();
   useEffect(() => {
     let userToken = Cookies.get("token");
@@ -69,4 +69,4 @@ const MinePage = ({ history, globalStore }: any) => {
   );
 };
 
-export default inject('globalStore')(observer(MinePage));
+export default MinePage;

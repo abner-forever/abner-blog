@@ -65,6 +65,8 @@ export default defineConfig({
         assetFileNames: "static/[ext]/[name]-[hash].[ext]",
       },
     },
+    sourcemap:'inline',
+    chunkSizeWarningLimit: 500
   },
   esbuild: {
     define: {

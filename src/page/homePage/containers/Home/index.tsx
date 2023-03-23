@@ -1,26 +1,26 @@
 import React, { Component } from 'react'
+import { observer, } from 'mobx-react-lite'
+import './style.scss'
 import { Empty, ItemCard } from '@/components'
-import withRouter from '@/components/WithRouter'
 
 interface P {
-  storeArticle?: any;
-  history?: any;
-  router: any
+  storeArticle: any;
+  history: any;
 }
 interface S {
 }
+
 class Home extends Component<P, S> {
   store: any
   constructor(props: any) {
     super(props)
-    this.store = this.props.storeArticle||{}
+    this.store = this.props?.storeArticle
   }
   componentDidMount() {
-    // this?.store?.onGetArticle() //初始化数据
+    this.store.onGetArticle() //初始化数据
   }
   render() {
     const { articleList = [] } = this.store;
-    const { router } = this.props;
     return (
       <div className='home-content'>
         {
@@ -39,4 +39,4 @@ class Home extends Component<P, S> {
   }
 }
 
-export default withRouter(Home)
+export default Home

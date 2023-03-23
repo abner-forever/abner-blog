@@ -6,7 +6,7 @@
 
 1. 前端本地调试开发
     yarn start
-2. 前后端联跳开发
+2. 前后端联调开发
     yarn dev
 
 ## TODO

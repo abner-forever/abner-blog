@@ -1,4 +1,4 @@
-import React, { useState, } from 'react'
+import React, { useEffect, useState, } from 'react'
 import { Button, Input } from 'antd'
 import ApiBlog from '@/api/apiBlog'
 import Cookies from "js-cookie"
@@ -7,7 +7,6 @@ import CodeHighlighter from 'braft-extensions/dist/code-highlighter';
 import './style.scss'
 import 'braft-editor/dist/index.css';
 import 'braft-extensions/dist/code-highlighter.css';
-import { getEndofUrlPath } from '@/utils'
 
 const options = {
   them: "dark",
@@ -78,7 +77,6 @@ const Editor = ({ id, editArticle }: IProps) => {
   const onClearText = () => {
     setEtitorVal(blankEditorVal);
   }
-
   return <div className='edit-content'>
     <div className='title-container'>
       <Input
