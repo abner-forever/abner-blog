@@ -1,61 +1,70 @@
 import React,{lazy} from 'react'
 import { Navigate } from 'react-router-dom'
 import { PageNotFound } from "@/components";
+import HomePage from '../page/homePage'
+import Demo from '../page/demo'
+import UserCenter from '../page/userCenter'
+import About from '../page/About'
+import ArticleDetail from '../page/detailPage'
+import MyArticle from '../page/MyArticle'
+import EditPage from '../page/editPage'
+import Login from '../page/login'
 
 // 快速导入工具函数
-const lazyLoad = (moduleName: string) => {
-  const Module = lazy(() => import(`../page/${moduleName}`));
-  return <Module />;
-};
+// const lazyLoad = async (moduleName: string) => {
+//   const Module = lazy(() => import(`../page/${moduleName}`));
+//   return <Module />;
+// };
  
 // 路由表配置
 const routes = [
   {
     path: '/',
-    element: lazyLoad('homePage'),
+    element: <HomePage />,
     exact: true,
     title: '首页',
     isShowHeader: true
   },
   {
     path: '/demo',
-    element: lazyLoad('demo'),
+    element: <Demo />,
     title: 'Demo',
     isShowHeader: true,
   },
   {
     path: '/edit/:id',
-    element: lazyLoad('editPage'),
+    element: <EditPage />,
     title: '编辑',
     isShowHeader: false,
     authCheck: true, // 登录验证
   },
   {
     path: '/addArticle',
-    element:  lazyLoad('editPage'),
+    element: <EditPage />,
     title: '新增文章',
     isShowHeader: false,
     authCheck: true, // 登录验证
   },
   {
     path: '/articleDetail/:id',
-    element:  lazyLoad('articleDetail'),
+    element: <ArticleDetail />,
     title: '文章详情',
     isShowHeader: false
   },
   {
-    path: '/myArticle',
-    element: lazyLoad('myArticle'),
-    title: '我的文章',
-    isShowHeader: false
-  },
-  {
     path: '/mine',
-    element: lazyLoad('userCenter'),
+    element: <UserCenter />,
     title: '我的',
     exact: true,
     isShowHeader: false,
     authCheck: true, // 登录验证
+  },
+  {
+    path: '/myArticle',
+    element: <MyArticle />,
+    title: '我的文章',
+    exact: true,
+    isShowHeader: false
   },
   {
     path: '/404',
@@ -63,7 +72,7 @@ const routes = [
   },
   {
     path: '/about',
-    element: lazyLoad('About'),
+    element: <About />,
     title: '日志',
     exact: true,
     isShowHeader: true,
@@ -71,7 +80,7 @@ const routes = [
   },
   {
     path: '/login',
-    element: lazyLoad('login'),
+    element: <Login/>,
     title: '登录',
     exact: true,
     isShowHeader: false
