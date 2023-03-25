@@ -1,10 +1,11 @@
-import { defineConfig } from "vite";
+import { defineConfig, splitVendorChunkPlugin  } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
+    splitVendorChunkPlugin(),
     react({
       babel: {
         parserOpts: {
@@ -63,8 +64,10 @@ export default defineConfig({
         chunkFileNames: "js/[name]-[hash].js",
         entryFileNames: "js/[name]-[hash].js",
         assetFileNames: "static/[ext]/[name]-[hash].[ext]",
-      },
-    },
+        // manualChunks:{
+        //   lodash: ['lodash']
+        // }
+    }},
     sourcemap:'inline',
     chunkSizeWarningLimit: 500
   },
