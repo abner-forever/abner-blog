@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { CSSTransition } from 'react-transition-group'
 import dayjs from 'dayjs';
 import AdvancedFormat from 'dayjs/plugin/advancedFormat'
@@ -15,6 +15,7 @@ dayjs.extend(AdvancedFormat);
 const Animate = () => {
   const [show, setShow] = useState(false);
   const [showButton, setShowButton] = useState(false);
+  const [currentTime, setCurrentTime] = useState(dayjs().format('YYYY-MM-DD hh:mm:ss'))
   const aniRef: any = useRef(null);
   const changeToshow = () => {
     setShow(!show);
@@ -24,6 +25,14 @@ const Animate = () => {
       aniRef.current?.play();
     }
   }
+  useEffect(()=>{
+    let timer = setInterval(()=>{
+      setCurrentTime(dayjs().format('YYYY-MM-DD hh:mm:ss'))
+    },1000);
+    return ()=>{
+      clearInterval(timer);
+    }
+  },[])
 
   return <div className='animate-container'>
     {/*this.state.toshow值为true时，className为show意思是显示div内的文字；反之隐藏。  */}
@@ -39,7 +48,7 @@ const Animate = () => {
     >
       <div>
         <div>
-          boss级人物:{dayjs().format('Do')}
+          当前日期:{currentTime}
         </div>
       </div>
     </CSSTransition>
