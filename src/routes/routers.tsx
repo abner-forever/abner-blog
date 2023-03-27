@@ -75,7 +75,7 @@ const routes = [
     element: <About />,
     title: '日志',
     exact: true,
-    isShowHeader: true,
+    isShowHeader: false,
     authCheck: true, // 登录验证
   },
   {

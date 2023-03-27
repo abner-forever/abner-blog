@@ -1,10 +1,10 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import ApiBlog from '@/api/apiBlog'
 import Cookies from "js-cookie"
 import { Button, message, Form, Modal, Upload, Input } from 'antd';
 import { LoadingOutlined, PlusOutlined, UserOutlined, EyeTwoTone, EyeInvisibleOutlined } from '@ant-design/icons';
 import ImgCrop from 'antd-img-crop'
-import { observer, } from 'mobx-react-lite';
+import { useLocation } from "react-router-dom";
 import './style.scss'
 
 /**
@@ -23,6 +23,11 @@ const LoginModal = (props: any) => {
   const [buttonDisable, setButtonDisable] = useState(true)
   const [fileList, setFileList] = useState<any>([])
 
+  const { search } = useLocation();
+  useEffect(()=>{
+    console.log('location',search);
+    // setIsLogin()
+  },[])
   const onLogin = async (values: any) => {
     const { userName, password } = values
     let res: any = await ApiBlog.login({

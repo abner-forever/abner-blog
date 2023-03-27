@@ -1,26 +1,33 @@
 import React, { Component } from 'react'
 import { Empty, ItemCard } from '@/components'
 import withRouter from '@/components/WithRouter'
-
+import ApiBlog from '@/api/apiBlog'
 interface P {
   storeArticle?: any;
   history?: any;
   router: any
 }
 interface S {
+  articleList: any[]
 }
 class Home extends Component<P, S> {
   store: any
   constructor(props: any) {
     super(props)
-    this.store = this.props.storeArticle||{}
+    this.state = {
+      articleList: []
+    }
   }
-  componentDidMount() {
-    // this?.store?.onGetArticle() //初始化数据
+
+  async componentDidMount() {
+    let res: any = await ApiBlog.apiArticleList();
+    this.setState({
+      articleList: res.list
+    })
   }
+
   render() {
-    const { articleList = [] } = this.store;
-    const { router } = this.props;
+    const { articleList = [] } = this.state;
     return (
       <div className='home-content'>
         {

@@ -16,14 +16,14 @@ BraftEditor.use(CodeHighlighter(options))
 //文章详细信息
 const ArticleDetail = ({editArticle}:any) => {
 
-    const { title, content, userName = '佚名', updateTime, createTime } = editArticle || {}
+    const { title, content, author = '佚名', updateTime, createTime } = editArticle || {}
     const htmlContent = content;
     const _createTime  = dayjs(updateTime || createTime).format('YYYY-MM-DD HH:MM')
     return (
         <div className='detail-content'>
             <p className="detail-title">{title}</p>
             <div className='title-desc'>
-                <span>作者：{userName}</span>
+                <span>作者：{author}</span>
                 <span style={{ marginLeft: 8 }}> 发布于：{_createTime}</span>
             </div>
             {/* 文章内容 */}
