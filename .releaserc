@@ -27,6 +27,16 @@
               "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
           }
       ],
+      [
+        "semantic-release-bot", {
+          "githubToken": "GITHUB_TOKEN",
+          "branch": "masters",
+          "labels": ["release"],
+          "assignees": ["@Abner"],
+          "draft": false,
+          "prerelease": false
+        }
+      ],
       "@semantic-release/github"
   ],
   "changelogFile": "CHANGELOG.md"
