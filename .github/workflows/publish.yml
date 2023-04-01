@@ -40,6 +40,7 @@ jobs:
         env:
           # 私钥 这里是阿里云的私钥 使用本地的私钥
           SSH_PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # scp参数 
           ARGS: "-avzr --delete"
           # 源目录

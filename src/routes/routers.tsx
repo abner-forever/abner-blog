@@ -9,6 +9,7 @@ import ArticleDetail from '../page/detailPage'
 import MyArticle from '../page/MyArticle'
 import EditPage from '../page/editPage'
 import Login from '../page/login'
+import AddMD from '../page/AddMD'
 
 // 快速导入工具函数
 // const lazyLoad = async (moduleName: string) => {
@@ -85,6 +86,14 @@ const routes = [
     exact: true,
     isShowHeader: false
   },
+  {
+    path: '/add',
+    element: <AddMD/>,
+    title: 'markdown',
+    exact: true,
+    isShowHeader: true
+  },
+  
   {
     path: "*",
     element: <Navigate to='/404' />,
