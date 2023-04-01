@@ -91,7 +91,7 @@ const routes = [
     element: <AddMD/>,
     title: 'markdown',
     exact: true,
-    isShowHeader: true
+    isShowHeader: false
   },
   
   {
