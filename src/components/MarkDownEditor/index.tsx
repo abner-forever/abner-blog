@@ -1,6 +1,6 @@
 import React, { useState,useCallback } from "react";
 import SimpleMDE from "react-simplemde-editor";
-import marked from 'marked';
+import * as marked from 'marked';
 import Prism from 'prismjs';
 import Cookies from "js-cookie"
 import ApiBlog from '@/api/apiBlog'
