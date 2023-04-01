@@ -2,6 +2,7 @@
   "name": "my-blog",
   "version": "0.0.2",
   "license": "MIT",
+  "private": true,
   "scripts": {
     "start": "vite serve --mode online",
     "dev": "vite serve --mode dev",
