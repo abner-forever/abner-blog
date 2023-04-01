@@ -1,4 +1,4 @@
-import React, { useState, } from 'react'
+import React, { useEffect, useState, } from 'react'
 import { Button, Input } from 'antd'
 import ApiBlog from '@/api/apiBlog'
 import Cookies from "js-cookie"
@@ -7,7 +7,6 @@ import CodeHighlighter from 'braft-extensions/dist/code-highlighter';
 import './style.scss'
 import 'braft-editor/dist/index.css';
 import 'braft-extensions/dist/code-highlighter.css';
-import { getEndofUrlPath } from '@/utils'
 
 const options = {
   them: "dark",
@@ -15,7 +14,8 @@ const options = {
 }
 BraftEditor.use(CodeHighlighter(options))
 interface IProps {
-  location: any;
+  /** 文章id */
+  id?: string;
   editArticle: {
     title: string;
     content: string
@@ -25,14 +25,15 @@ interface IProps {
 
 const blankEditorVal = BraftEditor.createEditorState(null);
 
-const Editor = ({ location, editArticle }: IProps) => {
+const Editor = ({ id, editArticle }: IProps) => {
   const [title, setTitle] = useState(editArticle?.title);
-  const [editorVal, setEtitorVal] = useState(BraftEditor.createEditorState(editArticle.content))
-  const [id] = useState(getEndofUrlPath(location.pathname))
+  const [editorVal, setEtitorVal] = useState(BraftEditor.createEditorState(editArticle?.content))
+
   const onInputChange = (e: any) => {
     const val = e.target.value.replace(/(^\s*)|(\s*$)/g, "");
     setTitle(val);
   }
+
   const handleEditorChange = (content: any) => {
     setEtitorVal(content);
   }
@@ -40,7 +41,7 @@ const Editor = ({ location, editArticle }: IProps) => {
   const onSave = () => {
     const htmlContent = editorVal.toHTML()
     let pathName = location.pathname
-    if (pathName.indexOf('add-article') === -1) {
+    if (pathName.indexOf('addArticle') === -1) {
       updateEditorContent(htmlContent)
     } else {
       addEditorContent(htmlContent)
@@ -69,31 +70,31 @@ const Editor = ({ location, editArticle }: IProps) => {
     }
     try {
       await ApiBlog.addArticle(params);
-    } catch (error) {
-      console.error('add error', error);
+    } catch (error: any) {
+      console.error('add article error', error.message);
     }
   }
   const onClearText = () => {
     setEtitorVal(blankEditorVal);
   }
-
   return <div className='edit-content'>
     <div className='title-container'>
       <Input
         className='title-input'
         onChange={onInputChange}
+        onFocus={() => {
+          if (title === '新建文本标题') setTitle('');
+        }}
         value={title}
         placeholder="文章标题" />
     </div>
-    <div>
-      <BraftEditor
-        id="editor-with-code-highlighter"
-        value={editorVal}
-        onChange={handleEditorChange}
-        onSave={onSave}
-        placeholder='请输入正文内容'
-      />
-    </div>
+    <BraftEditor
+      id="editor-with-code-highlighter"
+      value={editorVal}
+      onChange={handleEditorChange}
+      onSave={onSave}
+      placeholder='请输入正文内容'
+    />
     <div className='save-footer'>
       <Button onClick={onClearText}>清空</Button>
       <Button style={{ marginLeft: 25 }} type='primary' onClick={onSave}>保存</Button>

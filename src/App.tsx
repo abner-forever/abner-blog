@@ -1,20 +1,20 @@
 import React, { Component } from 'react';
-import {Provider } from 'mobx-react'
-import Store from './store'
-import Page from './page'
+import { BrowserRouter } from "react-router-dom";
+// import { Provider } from 'mobx-react-lite'
+
+import store from './store'
+import AppRouter from "./routes";
 
 class App extends Component {
   render() {
-    console.log('log test');
-    console.log('log test');
-    console.log('log test');
-    console.log('log test');
     return (
-       <Provider {...Store}>
-         <Page/>
-       </Provider>
+      <BrowserRouter>
+        {/* <Provider {...store}> */}
+          <AppRouter />
+         {/* </Provider> */}
+       </BrowserRouter>
     );
   }
 }
- 
+
 export default App;

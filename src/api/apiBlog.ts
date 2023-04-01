@@ -64,8 +64,13 @@ class ApiBlog {
   uploadHead = (params: any) => {
     return upLoad.post("/users/head", params);
   };
-  //用户信息
-  userInfo = (params: any, type?: string) => {
+  /**
+   * 获取用户信息
+   * @param params 
+   * @param type 
+   * @returns 
+   */
+  getUserInfo = (params: any, type?: string) => {
     return Fetch.get("/users/userinfo", params);
   };
   //日志列表

@@ -1,33 +1,26 @@
 import React, { Component } from 'react'
+import { observer, } from 'mobx-react-lite'
+import './style.scss'
 import { Empty, ItemCard } from '@/components'
-import withRouter from '@/components/WithRouter'
-import ApiBlog from '@/api/apiBlog'
+
 interface P {
-  storeArticle?: any;
-  history?: any;
-  router: any
+  storeArticle: any;
+  history: any;
 }
 interface S {
-  articleList: any[]
 }
+
 class Home extends Component<P, S> {
   store: any
   constructor(props: any) {
     super(props)
-    this.state = {
-      articleList: []
-    }
+    this.store = this.props?.storeArticle
   }
-
-  async componentDidMount() {
-    let res: any = await ApiBlog.apiArticleList();
-    this.setState({
-      articleList: res.list
-    })
+  componentDidMount() {
+    this.store.onGetArticle() //初始化数据
   }
-
   render() {
-    const { articleList = [] } = this.state;
+    const { articleList = [] } = this.store;
     return (
       <div className='home-content'>
         {
@@ -46,4 +39,4 @@ class Home extends Component<P, S> {
   }
 }
 
-export default withRouter(Home)
+export default Home

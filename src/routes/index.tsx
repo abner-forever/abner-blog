@@ -1,61 +1,47 @@
-import React, { useState } from "react";
+import React, { Suspense, useState } from "react";
 import {
-  BrowserRouter as Router,
-  Link,
+  BrowserRouter as Router, Route, Routes, useRoutes, useLocation,Outlet
 } from "react-router-dom";
 import routerConfig from "./routers";
+import { Footer, LoginModal, Header } from "@/components";
+// import AuthToken from "./authTokenRouter";
+ 
+import HomePage from '../page/homePage'
+import Demo from '../page/demo'
 import "@/index.scss";
-import { Footer, LoginModal } from "@/components";
-import Cookies from "js-cookie";
 
-import AuthToken from "./authTokenRouter";
+const App = () => {
+  const { pathname} = useLocation()
+  console.log('pathname',pathname);
+  
+  let routes = useRoutes(routerConfig,pathname);
+  return routes;
+};
+
 const Routers = () => {
+
   const [isLoginModalShow, setIsModalShow] = useState(false);
-  let token = Cookies.get("token");
   const onToggleLoginModal = () => {
     setIsModalShow(!isLoginModalShow)
   }
   return (
-    <>
-      <Router>
-        <header className="header-container">
-          <ul className="banner">
-            <div className='banner-left'>
-              <Link to="/" className='banner-logo'>Abner的笔记</Link>
-              {routerConfig.map(
-                (item: any, index) =>
-                  item.isShowHeader && (
-                    <li
-                      key={index}
-                      className={item.current ? "active-tab" : "tab-item"}
-                    >
-                      <Link to={item.path}>{item.title}</Link>
-                    </li>
-                  )
-              )}
-            </div>
-            <li className="tab-item">
-              {!token ? (
-                <a onClick={onToggleLoginModal}>登录</a>
-              ) : (
-                <Link to='/mine'>
-                  <img className="user-icon" src={Cookies.get("avator")} alt="" />
-                </Link>
-              )}
-            </li>
-          </ul>
-        </header>
-        <AuthToken
-          token={token}
+    <Suspense>
+      <Header
+          onToggleLoginModal={onToggleLoginModal}
+          routerConfig={routerConfig}
         />
-      </Router>
-      <Footer />
-      {
-        isLoginModalShow && <LoginModal onClose={onToggleLoginModal} />
-      }
-    </>
+        <div className="content-wrap">
+          <div className="content">
+            <App />
+          </div>
+        </div>
+        <Footer />
+        {
+          isLoginModalShow && <LoginModal onClose={onToggleLoginModal} />
+        }
+    </Suspense>
   );
 };
 
-
 export default Routers;
+

@@ -1,63 +1,48 @@
-import React from 'react'
+import React, { Suspense, useEffect, useState } from 'react'
 import Editor from './components/Editor'
-import { observer, inject } from 'mobx-react'
-import { runInAction } from 'mobx'
 import ApiBlog from "@/api/apiBlog";
-import { getEndofUrlPath } from '@/utils';
+import { useLocation, useParams } from 'react-router-dom';
 
-interface P {
-    storeArticle: any;
-    location: any;
-}
-interface S {
-    isAdd: boolean;
-    count: number;
-    editArticle: any;
-}
-@inject('storeArticle')
-@observer
-class EditorPage extends React.Component<P, S> {
-    store: any
-    constructor(props: any) {
-        super(props)
-        this.store = this.props.storeArticle
-        this.state = {
-            count: 0,
-            isAdd: false,
-            editArticle: null,
-        }
-    }
-    getArticleDetail = async () => {
-        const id = getEndofUrlPath(this.props.location.pathname);
-        let res: any = await ApiBlog.getArticleDetail({ id });
-        this.setState({
-            editArticle:res,
-        })
-    };
-    componentDidMount() {
-        let pathName = this.props.location.pathname
-        if (pathName.indexOf('add-article') === -1) {
-            this.getArticleDetail();
-        } else {
-            runInAction(() => {
-                this.store.editArticle = ''
-            })
-            this.setState({
-                isAdd: true
-            })
-        }
 
-    }
-    render() {
-        return (
-            <>
-                {(this.state.editArticle || this.state.isAdd) && <Editor
-                    editArticle={this.state.editArticle}
-                    location={this.props.location}
-                />}
-            </>
-        )
-
-    }
+interface ArticleType {
+  title: string
+  content: string;
+  createTime?: string
+  description?: string;
+  id?: number
+  updateTime?: string
 }
-export default EditorPage
+
+const defaultData = {
+  content: '',
+  title: '新建文本标题',
+}
+
+const EditorPage = () => {
+
+  const [isAdd, setIsAdd] = useState(false);
+  const { pathname } = useLocation();
+  const { id } = useParams();
+  const [editArticle, seteditArticle] = useState<ArticleType>(defaultData)
+  useEffect(() => {
+    if (pathname.indexOf('addArticle') === -1) {
+      getArticleDetail();
+    } else {
+      setIsAdd(true)
+    }
+
+  }, []);
+  const getArticleDetail = async () => {
+    let res: any = await ApiBlog.getArticleDetail({ id });
+    seteditArticle(res)
+  };
+  return (
+    <Suspense>
+      {(editArticle.content || isAdd) && <Editor
+        editArticle={editArticle}
+        id={id}
+      />}
+    </Suspense>
+  )
+}
+export default EditorPage;

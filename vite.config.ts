@@ -1,10 +1,11 @@
-import { defineConfig } from "vite";
+import { defineConfig, splitVendorChunkPlugin  } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
+    splitVendorChunkPlugin(),
     react({
       babel: {
         parserOpts: {
@@ -21,6 +22,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "src"),
+      "@page": path.resolve(__dirname, "src/page"),
       "@img": path.resolve(__dirname, "src/assets/img"),
       "@node_modules": path.resolve(__dirname, "node_modules"),
     },
@@ -41,11 +43,12 @@ export default defineConfig({
     },
   },
   server: {
+    port: 3000,
     proxy: {
       "/dev_api": { // 调试本地node服务使用
         target: "http://localhost:8080",
         // changeOrigin: true,
-        rewrite: path => path.replace(/^\/dev_api/, '/api'), 
+        rewrite: path => path.replace(/^\/dev_api/, '/api'),
       },
       "/api": {
         target: "http://foreverheart.top:8080",
@@ -61,7 +64,16 @@ export default defineConfig({
         chunkFileNames: "js/[name]-[hash].js",
         entryFileNames: "js/[name]-[hash].js",
         assetFileNames: "static/[ext]/[name]-[hash].[ext]",
-      },
-    },
+        // manualChunks:{
+        //   lodash: ['lodash']
+        // }
+    }},
+    sourcemap:'inline',
+    chunkSizeWarningLimit: 500
   },
+  esbuild: {
+    define: {
+      this: 'window'
+    }
+  }
 });

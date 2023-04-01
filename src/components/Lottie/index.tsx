@@ -80,5 +80,5 @@ export default forwardRef(({
 
   }, [animationOptions]);
 
-  return <div ref={refComponent} className={`lottie-animate ${className ? className : ''}`} />
+  return <div ref={refComponent} className={`lottie-animate ${ className}`} />
 });

@@ -1,8 +1,10 @@
 import React from 'react'
 import BraftEditor from 'braft-editor'
+import dayjs from 'dayjs'
 import 'braft-editor/dist/output.css'
 import 'braft-extensions/dist/code-highlighter.css'
-import './style.scss'
+import './style.scss';
+
 
 import CodeHighlighter from 'braft-extensions/dist/code-highlighter'
 let options = {
@@ -14,14 +16,15 @@ BraftEditor.use(CodeHighlighter(options))
 //文章详细信息
 const ArticleDetail = ({editArticle}:any) => {
 
-    const { title, content, userName, updateTime, createTime } = editArticle||{}
-    const htmlContent = content
+    const { title, content, author = '佚名', updateTime, createTime } = editArticle || {}
+    const htmlContent = content;
+    const _createTime  = dayjs(updateTime || createTime).format('YYYY-MM-DD HH:MM')
     return (
         <div className='detail-content'>
             <p className="detail-title">{title}</p>
             <div className='title-desc'>
-                <span>作者：{userName}</span>
-                <span style={{ marginLeft: 8 }}> 发布于：{updateTime || createTime}</span>
+                <span>作者：{author}</span>
+                <span style={{ marginLeft: 8 }}> 发布于：{_createTime}</span>
             </div>
             {/* 文章内容 */}
             <div

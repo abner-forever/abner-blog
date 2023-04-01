@@ -17,12 +17,6 @@ const MyArticle = (props:any) => {
         setArticleList(res)
         
     }
-    const onGetArticle = (articleId:string) => {
-        props.history.push(`/article-detail/${articleId}`)
-    }
-    const editArticle = (articleId:string) => {
-        props.history.push(`/edit/${articleId}`)
-    }
     //删除某一条数据
     const deleteArticle = async (id:string)=>{
         await ApiBlog.removeArticle({
@@ -44,8 +38,6 @@ const MyArticle = (props:any) => {
                         key={index}
                         item={item}
                         isEdit={true}
-                        onGetArticle={onGetArticle}
-                        editArticle={editArticle}
                         deleteArticle={deleteArticle}
                     />
                 ))

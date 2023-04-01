@@ -1,9 +1,13 @@
 .item-card{
     position: relative;
-    padding: .16rem;
+    padding: .2rem;
     border-bottom: 1px solid #f0f0f0;
     word-wrap: break-word;
     cursor: pointer;
+    margin-bottom: 20px;
+    &:last-of-type{
+        border: none;
+    }
     &:hover{
         background-color: rgba(0,0,0,.01);
     }
