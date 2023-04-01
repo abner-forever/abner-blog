@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { BrowserRouter } from "react-router-dom";
 // import { Provider } from 'mobx-react-lite'
 
-import store from './store'
+// import store from './store'
 import AppRouter from "./routes";
 
 class App extends Component {
