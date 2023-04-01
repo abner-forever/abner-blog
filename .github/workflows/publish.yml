@@ -32,6 +32,8 @@ jobs:
 
         # 构建release
       - name: release
+        env: 
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: yarn semantic-release
 
       # 上传阿里云
@@ -40,7 +42,6 @@ jobs:
         env:
           # 私钥 这里是阿里云的私钥 使用本地的私钥
           SSH_PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # scp参数 
           ARGS: "-avzr --delete"
           # 源目录
