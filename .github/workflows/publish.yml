@@ -30,6 +30,10 @@ jobs:
       - name: 打包
         run: yarn build
 
+        # 构建release
+      - name: release
+        run: yarn semantic-release
+
       # 上传阿里云
       - name: 发布
         uses: easingthemes/ssh-deploy@v2.1.1
