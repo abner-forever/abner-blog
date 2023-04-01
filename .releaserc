@@ -28,5 +28,6 @@
           }
       ],
       "@semantic-release/github"
-  ]
+  ],
+  "changelogFile": "CHANGELOG.md"
 }
