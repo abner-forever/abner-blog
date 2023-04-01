@@ -34,17 +34,11 @@ jobs:
       - name: changelog
         run: yarn changelog
 
-          # 更新
-      - name: changelog
-        run: git add .
-        run: git commit -m 'changelog'
-        run: git push origin master
-
         # 构建release
       - name: release
         env: 
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: yarn semantic-release
+        run: npm run release
 
       # 上传阿里云
       - name: 发布
