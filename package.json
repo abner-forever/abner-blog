@@ -18,7 +18,7 @@
     "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s -r 0",
     "tag": "node ./scripts/release-ci.js --tag $TAG",
     "release": "npm run semantic-release",
-    "semantic-release": "dotenv -c -- semantic-release"
+    "semantic-release": "dotenv semantic-release"
   },
   "dependencies": {
     "@ant-design/icons": "^4.7.0",
