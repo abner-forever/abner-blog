@@ -36,9 +36,9 @@ jobs:
 
           # 更新
       - name: changelog
-        run: git add .
-        run: git commit -m 'changelog'
-        run: git push origin master
+        run:  git add .
+              git commit -m 'changelog'
+              git push origin master
 
         # 构建release
       - name: release
