@@ -1,77 +1,9 @@
-## [0.0.2](https://github.com/abner-forever/abner-blog/compare/v1.1.1...v0.0.2) (2023-04-01)
-
-
-
-## [1.1.1](https://github.com/abner-forever/abner-blog/compare/v1.1.0...v1.1.1) (2023-04-01)
+## 1.1.1 (2023-04-03)
 
 
 ### Bug Fixes
 
-* 修改changelog ([08e7c78](https://github.com/abner-forever/abner-blog/commit/08e7c78c06be9c5dee3921ea74b1ce8c8bdc5394))
-* 修改ci命令 ([a356189](https://github.com/abner-forever/abner-blog/commit/a356189e0f7296498c3d930736a31c41a1edcf0d))
-* test ([3099ec3](https://github.com/abner-forever/abner-blog/commit/3099ec3ec4bbdd7a5d54378aa4d4c15c6c7d1bc6))
-
-
-
-# [1.1.0](https://github.com/abner-forever/abner-blog/compare/v1.0.0...v1.1.0) (2023-04-01)
-
-
-### Features
-
-* 隐藏markdown ([549a84d](https://github.com/abner-forever/abner-blog/commit/549a84daa995f0a770712e85329bef65667c08aa))
-
-
-
-# [1.0.0](https://github.com/abner-forever/abner-blog/compare/0.0.2...v1.0.0) (2023-04-01)
-
-
-### Bug Fixes
-
-* 取消动态组件引入 ([d67ab21](https://github.com/abner-forever/abner-blog/commit/d67ab21c79ca25dbc02e03404679f093420da43d))
-* 删除mobx 对打包后路由展示的影响 ([2a4a471](https://github.com/abner-forever/abner-blog/commit/2a4a471737061dc40072267e40895e261d0c5b7b))
-* 修改引用方式 ([70b6d1a](https://github.com/abner-forever/abner-blog/commit/70b6d1af5fadb996aec6274c13fdd8d61f99c6ed))
-
-
-### Features
-
-* 删除lerna ([d74cbbb](https://github.com/abner-forever/abner-blog/commit/d74cbbbf2f0f5d335f97ac245c72b35b6410d429))
-* 删除lerna ([a28a208](https://github.com/abner-forever/abner-blog/commit/a28a2087478ef05116cb4991e39f854b2c050029))
-* 升级路由版本 ([03efecc](https://github.com/abner-forever/abner-blog/commit/03efecc15bffebd4505644e4bfc188551aef623e))
-* 添加动画demo ([3e56b1b](https://github.com/abner-forever/abner-blog/commit/3e56b1b964034243fad94c0ca056de730d0127db))
-* 修改数据查询 ([5b926e7](https://github.com/abner-forever/abner-blog/commit/5b926e77c464ca0412a70ccd3de6894b3b2136b7))
-* 修改数据展示 ([1f3c39d](https://github.com/abner-forever/abner-blog/commit/1f3c39d3272a807b002e00d2b5be24bd04132d41))
-* 修改页面数据获取 ([a8e64b2](https://github.com/abner-forever/abner-blog/commit/a8e64b2e13691ce7cbc496370217d92581dd69b4))
-* test 2 ([8939273](https://github.com/abner-forever/abner-blog/commit/893927386559ad9ebd9becf3b5868d6811e26b00))
-
-
-
-## [0.0.2](https://github.com/abner-forever/abner-blog/compare/0.0.1...0.0.2) (2022-06-30)
-
-
-### Features
-
-* 添加打包tag信息 -undefined-undefined -0.0.1 [skip ci] ([5b30bab](https://github.com/abner-forever/abner-blog/commit/5b30babf992b29f50ee976233017593e786b3220))
-* 添加日志列表 ([e3c7bfd](https://github.com/abner-forever/abner-blog/commit/e3c7bfd8596224ef192765c0c1c261aedd21bc21))
-* 添加qa环境ci ([f23706a](https://github.com/abner-forever/abner-blog/commit/f23706abee90adb64b532286a08512cb666e9f30))
-* 暂存 ([dc2cac7](https://github.com/abner-forever/abner-blog/commit/dc2cac7e8644e73c5268dc681a193dede0c2bbf1))
-
-
-
-## [0.0.1](https://github.com/abner-forever/abner-blog/compare/7b4303dd93494e2d88eeef05911ae5d437178a94...0.0.1) (2021-12-23)
-
-
-### Features
-
-* 切换 构建文件 ([7b4303d](https://github.com/abner-forever/abner-blog/commit/7b4303dd93494e2d88eeef05911ae5d437178a94))
-* 添加打包tag信息 ([fa87ac4](https://github.com/abner-forever/abner-blog/commit/fa87ac4177cee2b1c68ba0c3ec33e4be779d12f3))
-* 添加登录弹窗 ([a9924e3](https://github.com/abner-forever/abner-blog/commit/a9924e318fc829755733ad7573ac3e2fa0a97060))
-* 添加评论组件渲染条件 ([12af487](https://github.com/abner-forever/abner-blog/commit/12af48751fe134322832d080b82dd195bc5bd767))
-* 添加圣诞节页面 ([4c4768c](https://github.com/abner-forever/abner-blog/commit/4c4768c6da01e25dab6b8c0368dcb65ea0de6c85))
-* 修改路径 ([a231d9f](https://github.com/abner-forever/abner-blog/commit/a231d9ff9becd611218ec304f2184bbf1c1fa39d))
-* 修改提示信息 ([c989406](https://github.com/abner-forever/abner-blog/commit/c9894067aced96ee250c462facfc42509bde361c))
-* 优化代码 ([3577544](https://github.com/abner-forever/abner-blog/commit/357754430a7af09791214168eb5fc56a5fa1f2fa))
-* 暂存 ([e3a3e52](https://github.com/abner-forever/abner-blog/commit/e3a3e52c598348841d576e4bafef70b70b428959))
-* update yml ([4719fd7](https://github.com/abner-forever/abner-blog/commit/4719fd7ffa48ee9146bb69ae2d213711cc45460e))
+* 修改loadIng样式 ([a1f1041](https://github.com/abner-forever/abner-blog/commit/a1f10411009840208f9c941663d2cb65697f5af6))
 
 
 
