@@ -16,18 +16,16 @@ BraftEditor.use(CodeHighlighter(options))
 interface IProps {
   /** 文章id */
   id?: string;
-  editArticle: {
-    title: string;
-    content: string
-  }
+  title?: string;
+  content?: string
 }
 
 
 const blankEditorVal = BraftEditor.createEditorState(null);
 
-const Editor = ({ id, editArticle }: IProps) => {
-  const [title, setTitle] = useState(editArticle?.title);
-  const [editorVal, setEtitorVal] = useState(BraftEditor.createEditorState(editArticle?.content))
+const Editor = ({ id, title: defaultTitle, content }: IProps) => {
+  const [title, setTitle] = useState(defaultTitle);
+  const [editorVal, setEtitorVal] = useState(BraftEditor.createEditorState(content))
 
   const onInputChange = (e: any) => {
     const val = e.target.value.replace(/(^\s*)|(\s*$)/g, "");
@@ -62,7 +60,7 @@ const Editor = ({ id, editArticle }: IProps) => {
   const addEditorContent = async (htmlContent: string) => {
     const desc = editorVal.toRAW(true).blocks[0].text
     let params = {
-      userId: Cookies.get('userId'),
+      userId: Cookies.get('userId') || 1,
       author: Cookies.get('userName'),
       title,
       description: desc,
@@ -77,6 +75,7 @@ const Editor = ({ id, editArticle }: IProps) => {
   const onClearText = () => {
     setEtitorVal(blankEditorVal);
   }
+
   return <div className='edit-content'>
     <div className='title-container'>
       <Input

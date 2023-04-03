@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import ArticleDetail from "@/components/ArticleDetail";
-import { Loading, Comments } from "@/components";
+import { Comments,Page } from "@/components";
 import { useParams } from "react-router-dom";
 import ApiBlog from "@/api/apiBlog";
 import Cookies from "js-cookie";
@@ -17,14 +17,10 @@ const DetailPage = () => {
     setArticleDetail(res);
   };
   return (
-    <div>
-      {articleDetail ? (
-        <ArticleDetail editArticle={articleDetail} />
-      ) : (
-        <Loading />
-      )}
+    <Page loading={!articleDetail} >
+      <ArticleDetail editArticle={articleDetail} />
       {!!userId && <Comments id={id} />}
-    </div>
+    </Page>
   );
 };
 export default DetailPage;

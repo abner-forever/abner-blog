@@ -1,6 +1,6 @@
 {
   "name": "my-blog",
-  "version": "0.0.2",
+  "version": "1.1.1",
   "license": "MIT",
   "private": true,
   "repository": {
@@ -10,7 +10,7 @@
   "homepage": "http://foreverheart.top",
   "author": "Abner",
   "scripts": {
-    "start": "vite serve --mode online",
+    "start": "vite serve --mode online --open",
     "dev": "vite serve --mode dev",
     "build:online": "vite serve --mode online",
     "build": "tsc && vite build  --mode online",

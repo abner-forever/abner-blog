@@ -1,9 +1,13 @@
 import React from 'react'
+import Lottie from '@/components/Lottie';
+import loadingJson from '@/assets/lottie/loading.json'
+
 import './style.scss'
+
 const Loading = () => {
     return (
         <div className='loading-cont'>
-            <p>页面加载中...</p>
+            <Lottie animationData={loadingJson} />
         </div>
     )
 }

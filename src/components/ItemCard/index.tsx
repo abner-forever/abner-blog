@@ -24,7 +24,7 @@ function ItemCard({
       <div className="meta">
         <span>{item.author}</span>
         <span className="update-time">
-          {dayjs(item.updateTime || item.createTime).format('YYYY-MM-DD hh:mm')}
+          {dayjs(item.updateTime || item.createTime).format('YYYY-MM-DD HH:MM')}
         </span>
         {isEdit && (
           <div onClick={() => {

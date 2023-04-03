@@ -9,7 +9,7 @@ import WallPaper from './WallPaper'
 import LoginModal from './LoginModal'
 import MarkDownEditor from './MarkDownEditor'
 import Header from './Header'
-
+export {Page}  from './Page'
 
 export {
     Empty,

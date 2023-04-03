@@ -3,7 +3,7 @@ import {
   BrowserRouter as Router, Route, Routes, useRoutes, useLocation,Outlet
 } from "react-router-dom";
 import routerConfig from "./routers";
-import { Footer, LoginModal, Header } from "@/components";
+import { Footer, LoginModal, Header, Loading } from "@/components";
 // import AuthToken from "./authTokenRouter";
  
 import HomePage from '../page/homePage'
@@ -25,7 +25,7 @@ const Routers = () => {
     setIsModalShow(!isLoginModalShow)
   }
   return (
-    <Suspense>
+    <Suspense fallback={<Loading/>}>
       <Header
           onToggleLoginModal={onToggleLoginModal}
           routerConfig={routerConfig}

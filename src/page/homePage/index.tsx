@@ -1,5 +1,5 @@
-import React, { Component } from 'react'
-import { Empty, ItemCard } from '@/components'
+import React, { Component, Suspense } from 'react'
+import { Empty, ItemCard, Page } from '@/components'
 import withRouter from '@/components/WithRouter'
 import ApiBlog from '@/api/apiBlog'
 interface P {
@@ -29,19 +29,19 @@ class Home extends Component<P, S> {
   render() {
     const { articleList = [] } = this.state;
     return (
-      <div className='home-content'>
-        {
-          articleList.map((item: IArticleItemtype, index: number) => (
-            <ItemCard
-              key={index}
-              item={item}
-            />
-          ))
-        }
-        {
-          articleList.length === 0 && <Empty title='暂无文章' />
-        }
-      </div>
+        <Page className='home-content' loading={!articleList.length}>
+          {
+            articleList.map((item: IArticleItemtype, index: number) => (
+              <ItemCard
+                key={index}
+                item={item}
+              />
+            ))
+          }
+          {
+            articleList.length === 0 && <Empty title='暂无文章' />
+          }
+        </Page>
     );
   }
 }

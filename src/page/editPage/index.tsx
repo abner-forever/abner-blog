@@ -2,11 +2,12 @@ import React, { Suspense, useEffect, useState } from 'react'
 import Editor from './components/Editor'
 import ApiBlog from "@/api/apiBlog";
 import { useLocation, useParams } from 'react-router-dom';
+import { Loading } from '@/components';
 
 
 interface ArticleType {
-  title: string
-  content: string;
+  title?: string
+  content?: string;
   createTime?: string
   description?: string;
   id?: number
@@ -14,8 +15,8 @@ interface ArticleType {
 }
 
 const defaultData = {
-  content: '',
-  title: '新建文本标题',
+  content: undefined,
+  title: undefined,
 }
 
 const EditorPage = () => {
@@ -33,13 +34,21 @@ const EditorPage = () => {
 
   }, []);
   const getArticleDetail = async () => {
-    let res: any = await ApiBlog.getArticleDetail({ id });
-    seteditArticle(res)
+    let { title, content }: any = await ApiBlog.getArticleDetail({ id });
+    console.log('title, content',title, content);
+    
+    seteditArticle({
+      title,
+      content
+    })
   };
+  console.log('editArticle',editArticle);
+  
   return (
-    <Suspense>
-      {(editArticle.content || isAdd) && <Editor
-        editArticle={editArticle}
+    <Suspense fallback={<Loading/>}>
+      {(editArticle.content !== undefined || isAdd) && <Editor
+        title={editArticle.title}
+        content={editArticle.content}
         id={id}
       />}
     </Suspense>
