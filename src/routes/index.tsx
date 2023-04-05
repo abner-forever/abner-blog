@@ -8,7 +8,7 @@ import { Footer, LoginModal, Header, Loading } from "@/components";
  
 import HomePage from '../page/homePage'
 import Demo from '../page/demo'
-import "@/index.scss";
+import "@/index.less";
 
 const App = () => {
   const { pathname} = useLocation()

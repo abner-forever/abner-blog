@@ -49,15 +49,19 @@ a {
 
 a {
   text-decoration: none !important;
-
+  color: @primary-color;
   &:hover {
-    color: #009a61;
+    color: @primary-color;
   }
+}
+::selection {
+  background: @primary-color !important;
 }
 
 .App {
   text-align: center;
 }
+
 
 .App-logo {
   animation: App-logo-spin infinite 20s linear;

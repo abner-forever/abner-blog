@@ -2,7 +2,11 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import './lib/flex'
-import './index.scss';
+import './index.less';
 
-// @ts-ignore
-ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+let rootEl = document.getElementById('root');
+
+if (rootEl) {
+  rootEl.classList.remove('root-loading');
+  ReactDOM.createRoot(rootEl).render(<App />);
+}
