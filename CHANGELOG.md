@@ -1,3 +1,10 @@
+## [1.1.7](https://github.com/abner-forever/abner-blog/compare/v1.1.6...v1.1.7) (2023-04-07)
+
+
+### Bug Fixes
+
+* 修改动态路由组件引入 ([65d8590](https://github.com/abner-forever/abner-blog/commit/65d85905a2b49c4cb88440f453abea5016030441))
+
 ## [1.1.6](https://github.com/abner-forever/abner-blog/compare/v1.1.5...v1.1.6) (2023-04-07)
 
 
