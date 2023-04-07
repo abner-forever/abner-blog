@@ -1,20 +1,13 @@
 import React, { Suspense, useState } from "react";
-import {
-  BrowserRouter as Router, Route, Routes, useRoutes, useLocation,Outlet
-} from "react-router-dom";
-import routerConfig from "./routers";
+import { BrowserRouter, useRoutes, useLocation } from "react-router-dom";
 import { Footer, LoginModal, Header, Loading } from "@/components";
-// import AuthToken from "./authTokenRouter";
- 
-import HomePage from '../page/homePage'
-import Demo from '../page/demo'
+import routerConfig from "./routers";
+
 import "@/index.less";
 
 const App = () => {
-  const { pathname} = useLocation()
-  console.log('pathname',pathname);
-  
-  let routes = useRoutes(routerConfig,pathname);
+  const { pathname } = useLocation()
+  let routes = useRoutes(routerConfig, pathname);
   return routes;
 };
 
@@ -24,9 +17,11 @@ const Routers = () => {
   const onToggleLoginModal = () => {
     setIsModalShow(!isLoginModalShow)
   }
+  
   return (
-    <Suspense fallback={<Loading/>}>
-      <Header
+    <Suspense fallback={<Loading />}>
+      <BrowserRouter>
+        <Header
           onToggleLoginModal={onToggleLoginModal}
           routerConfig={routerConfig}
         />
@@ -39,6 +34,7 @@ const Routers = () => {
         {
           isLoginModalShow && <LoginModal onClose={onToggleLoginModal} />
         }
+      </BrowserRouter>
     </Suspense>
   );
 };

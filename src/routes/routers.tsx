@@ -11,14 +11,22 @@ import EditPage from '../page/editPage'
 import Login from '../page/login'
 import AddMD from '../page/AddMD'
 
-// 快速导入工具函数
-// const lazyLoad = async (moduleName: string) => {
-//   const Module = lazy(() => import(`../page/${moduleName}`));
-//   return <Module />;
-// };
- 
+// 动态引入路由
+const lazyLoad = (moduleName: string) => {
+  const viteModule = import.meta.glob('../page/*/index.tsx');
+  const URL = `../page/${moduleName}/index.tsx`;
+  console.log('viteModule[`${URL}`]',viteModule, viteModule[`${URL}`])
+  let Module = React.lazy(viteModule[`${URL}`] as any);
+  return (
+    <React.Suspense>
+      <Module />
+    </React.Suspense>
+  );
+}
+
+
 // 路由表配置
-const routes = [
+const routerList = [
   {
     path: '/',
     element: <HomePage />,
@@ -28,7 +36,7 @@ const routes = [
   },
   {
     path: '/demo',
-    element: <Demo />,
+    element: lazyLoad('demo'),
     title: 'Demo',
     isShowHeader: true,
   },
@@ -100,4 +108,4 @@ const routes = [
   },
 ]
  
-export default routes
+export default routerList
