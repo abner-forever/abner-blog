@@ -1,9 +1,9 @@
-## 1.1.1 (2023-04-03)
+## 1.1.2 (2023-04-07)
 
 
 ### Bug Fixes
 
-* 修改loadIng样式 ([a1f1041](https://github.com/abner-forever/abner-blog/commit/a1f10411009840208f9c941663d2cb65697f5af6))
+* test ci ([485fe74](https://github.com/abner-forever/abner-blog/commit/485fe74727da2ccde7a29640cc4194f35da26205))
 
 
 
