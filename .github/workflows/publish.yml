@@ -30,10 +30,6 @@ jobs:
       - name: 打包
         run: yarn build
 
-        # 打包
-      - name: changelog
-        run: yarn changelog
-
         # 构建release
       - name: release
         env: 
