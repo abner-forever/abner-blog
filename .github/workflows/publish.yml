@@ -36,6 +36,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npm run release
 
+        # 打包
+      - name: changelog
+        run: yarn changelog
+
       # 上传阿里云
       - name: 发布
         uses: easingthemes/ssh-deploy@v2.1.1
