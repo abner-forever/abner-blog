@@ -9,39 +9,53 @@ interface P {
 }
 interface S {
   articleList: any[]
+  loading: boolean
 }
 class Home extends Component<P, S> {
   store: any
   constructor(props: any) {
     super(props)
     this.state = {
-      articleList: []
+      articleList: [],
+      loading: true,
     }
   }
 
-  async componentDidMount() {
-    let res: any = await ApiBlog.apiArticleList();
-    this.setState({
-      articleList: res.list
-    })
+  componentDidMount() {
+    this.init()
+  }
+
+  init = async () => {
+    try {
+      let res: any = await ApiBlog.apiArticleList();
+      this.setState({
+        articleList: res.list,
+        loading: false
+      })
+    } catch (error: any) {
+      this.setState({
+        loading: false
+      })
+      console.error('get article list error', error.message)
+    }
   }
 
   render() {
-    const { articleList = [] } = this.state;
+    const { articleList = [], loading } = this.state;
     return (
-        <Page className='home-content' loading={!articleList.length}>
-          {
-            articleList.map((item: IArticleItemtype, index: number) => (
-              <ItemCard
-                key={index}
-                item={item}
-              />
-            ))
-          }
-          {
-            articleList.length === 0 && <Empty title='暂无文章' />
-          }
-        </Page>
+      <Page className='home-content' loading={loading}>
+        {
+          articleList.map((item: IArticleItemtype, index: number) => (
+            <ItemCard
+              key={index}
+              item={item}
+            />
+          ))
+        }
+        {
+          articleList.length === 0 && <Empty title='暂无文章' />
+        }
+      </Page>
     );
   }
 }

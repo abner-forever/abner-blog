@@ -2,7 +2,6 @@ import React,{lazy} from 'react'
 import { Navigate } from 'react-router-dom'
 import { PageNotFound } from "@/components";
 import HomePage from '../page/homePage'
-import Demo from '../page/demo'
 import UserCenter from '../page/userCenter'
 import About from '../page/About'
 import ArticleDetail from '../page/detailPage'
@@ -15,13 +14,8 @@ import AddMD from '../page/AddMD'
 const lazyLoad = (moduleName: string) => {
   const viteModule = import.meta.glob('../page/*/index.tsx');
   const URL = `../page/${moduleName}/index.tsx`;
-  console.log('viteModule[`${URL}`]',viteModule, viteModule[`${URL}`])
   let Module = React.lazy(viteModule[`${URL}`] as any);
-  return (
-    <React.Suspense>
-      <Module />
-    </React.Suspense>
-  );
+  return <Module />
 }
 
 
@@ -39,6 +33,12 @@ const routerList = [
     element: lazyLoad('demo'),
     title: 'Demo',
     isShowHeader: true,
+  },
+  {
+    path: '/gpt',
+    element: lazyLoad('chatgpt'),
+    title: 'gpt',
+    isShowHeader: false,
   },
   {
     path: '/edit/:id',

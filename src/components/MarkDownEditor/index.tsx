@@ -1,14 +1,15 @@
-import React, { useState,useCallback } from "react";
+import React, { useState,useCallback, useEffect } from "react";
 import SimpleMDE from "react-simplemde-editor";
-import * as marked from 'marked';
+import { marked } from 'marked';
 import Prism from 'prismjs';
 import Cookies from "js-cookie"
 import ApiBlog from '@/api/apiBlog'
-import { commonStore } from '@/utils/store'
-
+import { Button } from "antd";
+import hljs from "highlight.js"; // 引入 highlight.js
 import "easymde/dist/easymde.min.css";
 // import loadLanguages from 'prismjs/components/index';
 import 'prismjs/themes/prism-okaidia.css';
+import { log } from "console";
 
 // loadLanguages([
 //     'css',
@@ -31,16 +32,37 @@ import 'prismjs/themes/prism-okaidia.css';
 //     'yaml',
 // ]);
 
-
-
 const MarkDownEditor = () => {
-    const [mdValue, setMdValue] = useState('# 你好');
-
+    const [mdValue, setMdValue] = useState('');
     const onChange = useCallback(async (value: string) => {
         setMdValue(value);
       }, []);
+
+      useEffect(()=>{
+        
+        
+      },[])
+
     const renderMarkdown = (text: string) => {
+        var rendererMD = new marked.Renderer();
+        marked.setOptions({
+            renderer: rendererMD,
+            highlight: (code:string)=> {
+              return hljs.highlightAuto(code).value;
+            },
+            pedantic: false,
+            gfm: true,
+            tables: true,
+            breaks: false,
+            sanitize: false,
+            smartLists: true,
+            smartypants: false,
+            xhtml: false
+          });
         const html = marked(text, { breaks: true });
+       
+        console.log('html',html);
+        
         if (/language-/.test(html)) {
             const container = document.createElement('div');
             container.innerHTML = html;
@@ -84,14 +106,13 @@ const MarkDownEditor = () => {
                     win.focus();
                   }
                 },
-                className: 'fa fa-info-circle',
                 title: 'Markdown 语法！',
               }
         ]
     }
     const onSave = async ()=>{
         let params = {
-            userId: Cookies.get('userId'),
+            userId: Cookies.get('userId')||'1',
             author: Cookies.get('userName'),
             title: 'articleTitle',
             description: 'desc',
@@ -111,11 +132,14 @@ const MarkDownEditor = () => {
             value={mdValue}
             onChange={onChange}
             options={options}
-            // getMdeInstance={(simplemde: any) => {
-            //     simplemde = simplemde;
-            // }}
-            // // uploadOptions={upLoad}
+            getMdeInstance={(simplemde: any) => {
+                simplemde = simplemde;
+            }}
+            // uploadOptions={upLoad}
         />
+        <div className='save-footer'>
+      <Button style={{ marginLeft: 25 }} type='primary' onClick={onSave}>保存</Button>
+    </div>
     </div>
 };
 export default MarkDownEditor;

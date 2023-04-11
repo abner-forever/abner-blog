@@ -1,5 +1,7 @@
 <!DOCTYPE html>
-<html lang="zh-cn">
+<html lang="zh-cn" 
+data-env="<%= env %>"
+>
 
 <head>
   <meta charset="UTF-8" />
@@ -13,8 +15,7 @@
       -webkit-font-smoothing: antialiased;
       margin: 0;
     }
-
-    .root-loading {
+    .root-loading{
       position: absolute;
       top: calc(50% - 20px);
       left: calc(50% - 20px);
@@ -25,7 +26,6 @@
       border-right-color: rgba(0, 0, 0, 0.2);
       border-bottom-color: rgba(0, 0, 0, 0.2);
       border-radius: 100%;
-
       animation: circle infinite 0.75s linear;
     }
 

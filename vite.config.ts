@@ -1,7 +1,7 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
-
+import { ViteEjsPlugin } from 'vite-plugin-ejs'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
@@ -16,6 +16,17 @@ export default defineConfig({
           ["@babel/plugin-proposal-class-properties", { loose: true }],
         ],
       },
+    }),
+    ViteEjsPlugin((viteConfig) => {
+      // viteConfig is the current viteResolved config.
+      console.log('viteConfig',viteConfig.root, viteConfig);
+      
+      return {
+        root: viteConfig.root,
+        domain: "example.com",
+        title: "My vue project!",
+        env:viteConfig.mode
+      }
     }),
   ],
   resolve: {

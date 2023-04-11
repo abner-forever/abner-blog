@@ -1228,6 +1228,11 @@ async-validator@^4.1.0:
   resolved "https://registry.yarnpkg.com/async-validator/-/async-validator-4.2.5.tgz#c96ea3332a521699d0afaaceed510a54656c6339"
   integrity sha512-7HhHjtERjqlNbZtqNqy2rckN/SpOOlmDliet+lP7k+eKZEjPk3DgyeU9lIXLdeLz0uBbbVp+9Qdow9wJWgwwfg==
 
+async@^3.2.3:
+  version "3.2.4"
+  resolved "https://registry.yarnpkg.com/async/-/async-3.2.4.tgz#2d22e00f8cddeb5fde5dd33522b56d1cf569a81c"
+  integrity sha512-iAB+JbDEGXhyIUavoDl9WP/Jj106Kz9DEn1DPgYw5ruDn0e3Wgi3sKFm55sASdGBNOQB8F59d9qQ7deqrHA8wQ==
+
 atomic-sleep@^1.0.0:
   version "1.0.0"
   resolved "https://registry.npm.taobao.org/atomic-sleep/download/atomic-sleep-1.0.0.tgz#eb85b77a601fc932cfe432c5acd364a9e2c9075b"
@@ -1537,7 +1542,7 @@ chalk@^1.1.3:
     strip-ansi "^3.0.0"
     supports-color "^2.0.0"
 
-chalk@^4.0.0, chalk@^4.1.0, chalk@^4.1.2:
+chalk@^4.0.0, chalk@^4.0.2, chalk@^4.1.0, chalk@^4.1.2:
   version "4.1.2"
   resolved "https://registry.npmjs.org/chalk/-/chalk-4.1.2.tgz#aac4e2b7734a740867aeb16bf02aad556a1e7a01"
   integrity sha512-oKnbhFyRIXpUuez8iBMmyEa4nbj4IOQyuhc/wy9kY7/WVPcwIO9VA668Pu8RkO7+0G76SLROeyw9CpQ061i4mA==
@@ -2216,6 +2221,13 @@ easymde@^2.15.0:
     codemirror-spell-checker "1.1.2"
     marked "^2.0.3"
 
+ejs@^3.1.8:
+  version "3.1.9"
+  resolved "https://registry.yarnpkg.com/ejs/-/ejs-3.1.9.tgz#03c9e8777fe12686a9effcef22303ca3d8eeb361"
+  integrity sha512-rC+QVNMJWv+MtPgkt0y+0rVEIdbtxVADApW9JXrUVlzHetgcyczP/E7DJmWJ4fJCZF2cPcBk0laWO9ZHMG3DmQ==
+  dependencies:
+    jake "^10.8.5"
+
 electron-to-chromium@^1.3.896:
   version "1.3.899"
   resolved "https://registry.npmjs.org/electron-to-chromium/-/electron-to-chromium-1.3.899.tgz#4d7d040e73def3d5f5bd6b8a21049025dce6fce0"
@@ -2692,6 +2704,13 @@ figures@^5.0.0:
     escape-string-regexp "^5.0.0"
     is-unicode-supported "^1.2.0"
 
+filelist@^1.0.1:
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/filelist/-/filelist-1.0.4.tgz#f78978a1e944775ff9e62e744424f215e58352b5"
+  integrity sha512-w1cEuf3S+DrLCQL7ET6kz+gmlJdbq9J7yXCSjK/OZCPA+qEN1WyF4ZAf0YYJa4/shHJra2t/d/r8SV4Ji+x+8Q==
+  dependencies:
+    minimatch "^5.0.1"
+
 fill-range@^7.0.1:
   version "7.0.1"
   resolved "https://registry.npmjs.org/fill-range/-/fill-range-7.0.1.tgz#1919a6a7c75fe38b2c7c77e5198535da9acdda40"
@@ -3018,6 +3037,11 @@ has@^1.0.3:
   integrity sha512-f2dvO0VU6Oej7RkWJGrehjbzMAjFp5/VKPp5tTpWIV4JHHZK1/BxbFRtf/siA2SWTe09caDmVtYYzWEIbBS4zw==
   dependencies:
     function-bind "^1.1.1"
+
+highlight.js@^11.7.0:
+  version "11.7.0"
+  resolved "https://registry.yarnpkg.com/highlight.js/-/highlight.js-11.7.0.tgz#3ff0165bc843f8c9bce1fd89e2fda9143d24b11e"
+  integrity sha512-1rRqesRFhMO/PRF+G86evnyJkCgaZFOI+Z6kdj15TA18funfoqJXvgPCLSf0SWq3SRfg1j3HlDs8o4s3EGq1oQ==
 
 history@^4.6.3, history@^4.7.2:
   version "4.10.1"
@@ -3415,6 +3439,16 @@ issue-parser@^6.0.0:
     lodash.isplainobject "^4.0.6"
     lodash.isstring "^4.0.1"
     lodash.uniqby "^4.7.0"
+
+jake@^10.8.5:
+  version "10.8.5"
+  resolved "https://registry.yarnpkg.com/jake/-/jake-10.8.5.tgz#f2183d2c59382cb274226034543b9c03b8164c46"
+  integrity sha512-sVpxYeuAhWt0OTWITwT98oyV0GsXyMlXCF+3L1SuafBVUIr/uILGRB+NqwkzhgXKvoJpDIpQvqkUALgdmQsQxw==
+  dependencies:
+    async "^3.2.3"
+    chalk "^4.0.2"
+    filelist "^1.0.1"
+    minimatch "^3.0.4"
 
 java-properties@^1.0.2:
   version "1.0.2"
@@ -3848,9 +3882,9 @@ marked@^2.0.3:
   resolved "https://registry.npmjs.org/marked/-/marked-2.1.3.tgz#bd017cef6431724fd4b27e0657f5ceb14bff3753"
   integrity sha512-/Q+7MGzaETqifOMWYEA7HVMaZb4XbcRfaOzcSsHZEith83KGlvaSG33u0SKu89Mj5h+T8V2hM+8O45Qc5XTgwA==
 
-marked@^4.1.0:
+marked@^4.1.0, marked@^4.3.0:
   version "4.3.0"
-  resolved "https://registry.npmjs.org/marked/-/marked-4.3.0.tgz#796362821b019f734054582038b116481b456cf3"
+  resolved "https://registry.yarnpkg.com/marked/-/marked-4.3.0.tgz#796362821b019f734054582038b116481b456cf3"
   integrity sha512-PRsaiG84bK+AMvxziE/lCFss8juXjNaWzVbN5tXAm4XjeaS9NAHhop+PjQxz2A9h8Q4M/xGmzP8vqNwy6JeK0A==
 
 material-colors@^1.2.1:
@@ -6425,6 +6459,13 @@ value-equal@^1.0.1:
   version "1.0.1"
   resolved "https://registry.npmjs.org/value-equal/-/value-equal-1.0.1.tgz#1e0b794c734c5c0cade179c437d356d931a34d6c"
   integrity sha512-NOJ6JZCAWr0zlxZt+xqCHNTEKOsrks2HQd4MqhP1qy4z1SkbEP467eNx6TgDKXMvUOb+OENfJCZwM+16n7fRfw==
+
+vite-plugin-ejs@^1.6.4:
+  version "1.6.4"
+  resolved "https://registry.yarnpkg.com/vite-plugin-ejs/-/vite-plugin-ejs-1.6.4.tgz#aa30820d8235774e717d902754a552480cf7758b"
+  integrity sha512-23p1RS4PiA0veXY5/gHZ60pl3pPvd8NEqdBsDgxNK8nM1rjFFDcVb0paNmuipzCgNP/Y0f/Id22M7Il4kvZ2jA==
+  dependencies:
+    ejs "^3.1.8"
 
 vite@^3.0.7:
   version "3.0.9"

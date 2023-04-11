@@ -17,25 +17,26 @@ const Routers = () => {
   const onToggleLoginModal = () => {
     setIsModalShow(!isLoginModalShow)
   }
-  
+
   return (
-    <Suspense fallback={<Loading />}>
-      <BrowserRouter>
-        <Header
-          onToggleLoginModal={onToggleLoginModal}
-          routerConfig={routerConfig}
-        />
-        <div className="content-wrap">
-          <div className="content">
+    <BrowserRouter>
+      <Header
+        onToggleLoginModal={onToggleLoginModal}
+        routerConfig={routerConfig}
+      />
+      <div className="content-wrap">
+        <div className="content">
+          <Suspense fallback={<Loading />}>
             <App />
-          </div>
+          </Suspense>
         </div>
-        <Footer />
-        {
-          isLoginModalShow && <LoginModal onClose={onToggleLoginModal} />
-        }
-      </BrowserRouter>
-    </Suspense>
+      </div>
+      <Footer />
+      {
+        isLoginModalShow && <LoginModal onClose={onToggleLoginModal} />
+      }
+    </BrowserRouter>
+
   );
 };
 
