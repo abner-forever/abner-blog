@@ -18,14 +18,10 @@ export default defineConfig({
       },
     }),
     ViteEjsPlugin((viteConfig) => {
-      // viteConfig is the current viteResolved config.
-      console.log('viteConfig',viteConfig.root, viteConfig);
-      
       return {
         root: viteConfig.root,
-        domain: "example.com",
-        title: "My vue project!",
-        env:viteConfig.mode
+        title: "Abner的笔记",
+        env: viteConfig.mode
       }
     }),
   ],

@@ -1,6 +1,6 @@
 import React, { useState,useCallback, useEffect } from "react";
 import SimpleMDE from "react-simplemde-editor";
-import { marked } from 'marked';
+import * as marked from 'marked';
 import Prism from 'prismjs';
 import Cookies from "js-cookie"
 import ApiBlog from '@/api/apiBlog'
@@ -52,7 +52,6 @@ const MarkDownEditor = () => {
             },
             pedantic: false,
             gfm: true,
-            tables: true,
             breaks: false,
             sanitize: false,
             smartLists: true,
