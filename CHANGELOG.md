@@ -1,3 +1,11 @@
+## [1.1.8](https://github.com/abner-forever/abner-blog/compare/v1.1.7...v1.1.8) (2023-04-11)
+
+
+### Bug Fixes
+
+* 修改loading ([98841a7](https://github.com/abner-forever/abner-blog/commit/98841a721a6d14f46c1c486e56cbf059c033fb28))
+* 修改组件引入 ([f02d39f](https://github.com/abner-forever/abner-blog/commit/f02d39fc2c9cf5e2f9bb5747ba29901fbfc031f8))
+
 ## [1.1.7](https://github.com/abner-forever/abner-blog/compare/v1.1.6...v1.1.7) (2023-04-07)
 
 
