@@ -1,9 +1,13 @@
 import Http from "@/utils/http";
-import { message } from "antd";
+import Cookies from "js-cookie"
+
 import { HOST } from "../config";
 const request = new Http({
   HOST,
-  headers: { "Content-Type": "application/json" },
+  headers: { 
+    "Content-Type": "application/json",
+    "Authorization": `Bearer ${Cookies.get('user-token')}`,
+ },
   interceptors: {
     request(body: Record<string, string>) {
       let adapterData = () => {
@@ -18,15 +22,13 @@ const request = new Http({
       return new Promise((resolve, reject) => {
         try {
           let code = res.code;
-        if (code === 200 ) {
-          res.message && message.success(res.message);
-          resolve(res.data);
-        } else if (code === 500) {
-          message.warn(res.msg);
-          reject(res.msg);
-        }
+          if (code === 0 || code === 200) {
+            resolve(res.data);
+          } else if (code === 500) {
+            const error = Error(res.message)
+            reject(error);
+          }
         } catch (error: any) {
-          message.error(error.message);
           reject(error)
         }
       });

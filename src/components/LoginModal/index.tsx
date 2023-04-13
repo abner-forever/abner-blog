@@ -30,6 +30,7 @@ const LoginModal = (props: any) => {
   },[])
   const onLogin = async (values: any) => {
     const { userName, password } = values
+   try {
     let res: any = await ApiBlog.login({
       userName: userName,
       password: password
@@ -39,11 +40,14 @@ const LoginModal = (props: any) => {
         expires: 1
       }
       Object.assign(currentCookieSetting, {})
-      Cookies.set('token', res.token, currentCookieSetting)
+      Cookies.set('user-token', res.token, currentCookieSetting)
       Cookies.set('userId', res.userId, currentCookieSetting)
       message.success("登录成功");
       onClose();
     }
+   } catch (error:any) {
+    message.error(error.message)
+   }
   }
   const register = async () => {
     if (!userName || !password) {

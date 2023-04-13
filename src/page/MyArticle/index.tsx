@@ -10,7 +10,9 @@ const MyArticle = (props:any) => {
         init()
     },[])
     const init = async () => {
-        let userId = Cookies.get('userId')
+        let userId = Cookies.get('user-id')
+        console.log('userId',userId);
+        
         let res:any = await ApiBlog.getMyArticleList({
             userId
         })

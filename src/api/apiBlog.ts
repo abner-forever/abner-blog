@@ -5,7 +5,7 @@ class ApiBlog {
    * 博客列表数据
    */
   apiArticleList = (params?: any) => {
-    return upLoad.get("/article/articleList", params);
+    return Fetch.get("/article/articleList", params);
   };
   getMyArticleList = (params: any) => {
     return Fetch.get("/article/myarticleList", params);

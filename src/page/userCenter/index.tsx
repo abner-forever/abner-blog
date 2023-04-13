@@ -10,7 +10,7 @@ const MinePage = ({ history, globalStore }: any) => {
   const { userInfo } = globalStore||{};
   const navigate = useNavigate();
   useEffect(() => {
-    let userToken = Cookies.get("token");
+    let userToken = Cookies.get("user-token");
     if (!userToken) {
       navigate("/login",{
         replace: true
@@ -24,7 +24,7 @@ const MinePage = ({ history, globalStore }: any) => {
       expires: -1,
     };
     Object.assign(currentCookieSetting, {});
-    Cookies.set("token", "", currentCookieSetting);
+    Cookies.set("user-token", "", currentCookieSetting);
     Cookies.set("userId", "", currentCookieSetting);
     Cookies.set("userName", "", currentCookieSetting);
     navigate("/login",{

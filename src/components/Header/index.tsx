@@ -13,7 +13,7 @@ interface IProps {
 
 const Header: FC<IProps> = ({ globalStore, routerConfig, onToggleLoginModal }) => {
   const { userInfo } = globalStore||{};
-  const token = Cookies.get("token");
+  const token = Cookies.get("user-token");
   const location = useLocation();
   const [activeTab,setActiveTab] = useState(location.pathname);
   

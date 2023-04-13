@@ -31,7 +31,7 @@ const Login = (props:any) => {
                 expires: 1
             }
             Object.assign(currentCookieSetting, {})
-            Cookies.set('token', res.token, currentCookieSetting)
+            Cookies.set('user-token', res.token, currentCookieSetting)
             Cookies.set('userId', res.userId, currentCookieSetting)
             Cookies.set('userName', res.userName, currentCookieSetting)
             message.success("登录成功")

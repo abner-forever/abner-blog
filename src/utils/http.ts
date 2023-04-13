@@ -39,6 +39,7 @@ class Http {
       url = Common.buildRequestUrl(url, body);
       initParams = {
         ...initParams,
+        headers: { ...headers },
         method,
       };
     } else {
@@ -51,7 +52,6 @@ class Http {
     }
     const request = new Promise((resolve, reject) => {
       console.log('this.HOST + PROXY_ENV +url',this.HOST + PROXY_ENV +url);
-      
       fetch(this.HOST + PROXY_ENV +url, initParams)
         .then((response) => response.json())
         .then((res) => {
@@ -94,7 +94,7 @@ class Http {
   }
   async get(url: string, body: any, options?: any) {
     let { headers = {} } = options || {};
-    headers = { ...this.headers, headers };
+    headers = { ...this.headers, ...headers };
     let res = await this.commonFetch(url, headers, body, options);
     return new Promise((resolve, reject) => {
       try {
