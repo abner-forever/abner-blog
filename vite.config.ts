@@ -60,6 +60,10 @@ export default defineConfig({
         target: "http://foreverheart.top:8080",
         // changeOrigin: true,
       },
+      "/commonstatic": {
+        target: "http://foreverheart.top:8080",
+        // changeOrigin: true,
+      },
     },
     open: 'index.html'
   },

@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import AppRouter from "./routes";
+import AppRouter from "./App";
 
 import './lib/flex'
 import './index.less';

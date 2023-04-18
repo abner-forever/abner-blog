@@ -2,9 +2,9 @@ import React, { useEffect, useState } from 'react'
 import ApiBlog from '@/api/apiBlog'
 import Cookies from "js-cookie"
 import { Button, message, Form, Modal, Upload, Input } from 'antd';
-import { LoadingOutlined, PlusOutlined, UserOutlined, EyeTwoTone, EyeInvisibleOutlined } from '@ant-design/icons';
+import { LoadingOutlined, PlusOutlined, UserOutlined, EyeTwoTone, EyeInvisibleOutlined, LockOutlined } from '@ant-design/icons';
 import ImgCrop from 'antd-img-crop'
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import './style.scss'
 
 /**
@@ -22,7 +22,7 @@ const LoginModal = (props: any) => {
   const [checkPassword, setCheckPassword] = useState('')
   const [buttonDisable, setButtonDisable] = useState(true)
   const [fileList, setFileList] = useState<any>([])
-
+  const [form] = Form.useForm();
   const { search } = useLocation();
   useEffect(()=>{
     console.log('location',search);
@@ -44,6 +44,7 @@ const LoginModal = (props: any) => {
       Cookies.set('userId', res.userId, currentCookieSetting)
       message.success("登录成功");
       onClose();
+      // navigate('/mine')
     }
    } catch (error:any) {
     message.error(error.message)
@@ -120,7 +121,7 @@ const LoginModal = (props: any) => {
     setCheckPassword(newPassword)
     if (newPassword.length === password.length && password !== newPassword) {
       setButtonDisable(true)
-      message.warn('密码不一致')
+      message.warning('密码不一致')
     } else {
       if (userName !== '' && password === newPassword) {
         setButtonDisable(false)
@@ -135,46 +136,53 @@ const LoginModal = (props: any) => {
     return (
       <Form className='modal-content'
         onFinish={onLogin}
+        form={form}
       // onFinishFailed={onFinishFailed}
       >
         <div className='form-input'>
           <Form.Item
-            label="账号"
+            // label="账号"
             name="userName"
             rules={[{ required: true, message: '请输入账号' }]}
           >
             <Input
-              className='input-item'
-              size='small'
-              // onChange={(e) => { setUserName(e.target.value) }}
               type="text"
               name='userName'
               value={userName}
               prefix={<UserOutlined />}
-              placeholder='请输入账号'
+              size='large'
             />
           </Form.Item>
           <Form.Item
-            label="密码"
+            // label="密码"
             name="password"
             rules={[{ required: true, message: '请输入密码' }]}
           >
             <Input.Password
               iconRender={visible => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
               placeholder='请输入密码'
-              className='input-item'
-              // onChange={(e) => { setPassword(e.target.value) }}
               name='passWord'
+              size='large'
+              prefix={<LockOutlined />}
               value={password} />
           </Form.Item>
 
         </div>
-
-        <Form.Item className='form-submit'>
-          <Button className='submit-button' type="primary" htmlType="submit">
+        <Form.Item shouldUpdate>
+        {() => (
+          <Button
+            type="primary"
+            className='submit-button'
+            htmlType="submit"
+            disabled={
+              !form.isFieldsTouched(true) ||
+              !!form.getFieldsError().filter(({ errors }) => errors.length).length
+            }
+          >
             登录
           </Button>
-        </Form.Item>
+        )}
+      </Form.Item>
       </Form>
     )
   }
@@ -183,8 +191,7 @@ const LoginModal = (props: any) => {
       <div >
         <label htmlFor="head" title='头像'>
           <span>头像</span>
-          <ImgCrop
-            rotate>
+          <ImgCrop>
             <Upload
               name="avator"
               listType="picture-card"
@@ -202,7 +209,7 @@ const LoginModal = (props: any) => {
         </label>
         <div className='form-input'>
           <input placeholder='请输入账号' onChange={(e) => { setUserName(e.target.value) }} type="text" name='userName' value={userName} />
-          <input placeholder='请输入密码' onChange={(e) => { setPassword(e.target.value) }} type="password" name='passWord' value={password} />
+          <input placeholder='请输入密码' onChange={(e) => { setPassword(e.target.value) }} type="password" name='current-password' value={password} />
           <input placeholder='再次确认密码' onBlur={checkPasswords} onChange={checkPasswords} type="password" name='checkPassWord' value={checkPassword} />
         </div>
         <div className='form-submit'>
@@ -213,11 +220,12 @@ const LoginModal = (props: any) => {
   }
   return (
     <Modal
-      visible
+      open
       onCancel={onClose}
       centered
       title={isLogin ? '登录' : '注册'}
       footer={null}
+      className='login-modal'
     >
       {isLogin ? <LoginForm /> : <RegisterForm />}
     </Modal>

@@ -1,15 +1,21 @@
-import React, { useEffect } from "react";
-import Cookies from "js-cookie";
-import "./style.scss";
-import GithubIcon from "@img/github.svg";
+import React, { useEffect, useState } from "react";
 import { Button } from "antd";
-import { DEFAULT_HEAD } from "@/constant";
-
+import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
-const MinePage = ({ history, globalStore }: any) => {
-  const { userInfo } = globalStore||{};
+import { DEFAULT_HEAD } from "@/constant";
+import GithubIcon from "@img/github.svg";
+import ApiBlog from '@/api/apiBlog'
+import "./style.scss";
+import { inject, observer } from "mobx-react";
+
+
+const MinePage = ({ history, globalStore:{
+  userInfo
+} }: any) => {
+  
   const navigate = useNavigate();
-  useEffect(() => {
+  
+  useEffect( () => {
     let userToken = Cookies.get("user-token");
     if (!userToken) {
       navigate("/login",{
@@ -19,18 +25,7 @@ const MinePage = ({ history, globalStore }: any) => {
     }
   }, [history]);
 
-  const loginout = () => {
-    let currentCookieSetting = {
-      expires: -1,
-    };
-    Object.assign(currentCookieSetting, {});
-    Cookies.set("user-token", "", currentCookieSetting);
-    Cookies.set("userId", "", currentCookieSetting);
-    Cookies.set("userName", "", currentCookieSetting);
-    navigate("/login",{
-      replace: true
-    });
-  };
+  
   return (
     <div className="content-item">
       <div className="user-content">
@@ -55,7 +50,6 @@ const MinePage = ({ history, globalStore }: any) => {
               </p>
             </div>
           </div>
-          <Button onClick={loginout}>退出登录</Button>
         </div>
         <div className="social-content">
           <a href="https://github.com/abner-forever">
@@ -69,4 +63,4 @@ const MinePage = ({ history, globalStore }: any) => {
   );
 };
 
-export default MinePage;
+export default inject('globalStore')(observer(MinePage));;

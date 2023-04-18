@@ -15,23 +15,7 @@
     background-color: #fff;
     // box-shadow: 0 2px 8px rgba(0, 0, 0, .03);
 }
-.form-input {
-    display: flex;
-    flex-direction: column;
-    
-    input {
-        margin-bottom: .2rem;
-        border: .01rem solid #ccc;
-        height: .3rem;
-        padding: 0 .08rem;
-        border-radius: .04rem;
-        overflow: hidden;
-        &:focus {
-            border: none;
-            outline: 1px solid steelblue;
-        }
-    }
-}
+
 .form-submit{
     display: flex;
     justify-content: space-around;

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import './style.scss'
-import { ItemCard } from '@/components'
+import { Empty, ItemCard } from '@/components'
 import ApiBlog from  '@/api/apiBlog'
 import Cookies from "js-cookie"
 
@@ -10,7 +10,7 @@ const MyArticle = (props:any) => {
         init()
     },[])
     const init = async () => {
-        let userId = Cookies.get('user-id')
+        let userId = Cookies.get('userId')
         console.log('userId',userId);
         
         let res:any = await ApiBlog.getMyArticleList({
@@ -43,6 +43,9 @@ const MyArticle = (props:any) => {
                         deleteArticle={deleteArticle}
                     />
                 ))
+            }
+            {
+                !articleList.length && <Empty title="暂无文章"/>
             }
         </div>
     )

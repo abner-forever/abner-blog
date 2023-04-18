@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from 'react'
 import ApiBlog from '@/api/apiBlog'
 import Cookies from "js-cookie"
-import { Button, message, Upload, Input } from 'antd';
+import { Button, message, Upload, Input, Form } from 'antd';
 import { LoadingOutlined, PlusOutlined } from '@ant-design/icons';
 import ImgCrop from 'antd-img-crop'
 import './style.scss'
+import { useNavigate } from 'react-router-dom';
 
 /**
  * 登录页面
  * @param props 
  * @returns 
  */
-const Login = (props:any) => {
+const Login = (props: any) => {
     const [userName, setUserName] = useState('');
     const [password, setPassword] = useState('');
     const [imageUrl, setImageUrl] = useState('');
@@ -20,9 +21,10 @@ const Login = (props:any) => {
     const [checkPassword, setCheckPassword] = useState('')
     const [buttonDisable, setButtonDisable] = useState(true)
     const [fileList, setFileList] = useState<any>([])
+    const navigate = useNavigate();
 
     const login = async () => {
-        let res:any = await ApiBlog.login({
+        let res: any = await ApiBlog.login({
             userName: userName,
             password: password
         })
@@ -35,8 +37,9 @@ const Login = (props:any) => {
             Cookies.set('userId', res.userId, currentCookieSetting)
             Cookies.set('userName', res.userName, currentCookieSetting)
             message.success("登录成功")
-            props.history.replace('/mine')
-
+            navigate('/mine', {
+                replace: true
+            })
         }
     }
     const register = async () => {
@@ -51,11 +54,13 @@ const Login = (props:any) => {
             avator: url
         })
         message.success('注册成功')
-        props.history.push(`/mine`)
+        navigate(`/mine`, {
+            replace: true
+        })
     }
     useEffect(() => {
     })
-    const beforeUpload = (file:any) => {
+    const beforeUpload = (file: any) => {
         const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
         if (!isJpgOrPng) {
             message.error('You can only upload JPG/PNG file!');
@@ -65,14 +70,14 @@ const Login = (props:any) => {
             message.error('Image must smaller than 2MB!');
         }
         setFileList([...fileList, file])
-        getImgBase64Data(file, (url:string) => {
+        getImgBase64Data(file, (url: string) => {
             setImageUrl(url)
         })
         return false;
     }
-    const getImgBase64Data = (file:any, callback:Function) => {
+    const getImgBase64Data = (file: any, callback: Function) => {
         var reader = new FileReader();
-        reader.onload = function (e:any) {
+        reader.onload = function (e: any) {
             callback(e.target.result);
         };
         reader.readAsDataURL(file); // 读取完后会调用onload方法
@@ -83,17 +88,17 @@ const Login = (props:any) => {
             <div style={{ marginTop: 8 }}>Upload</div>
         </div>
     );
-    const removeImg = (e:any) => {
+    const removeImg = (e: any) => {
         console.log('remove', e);
     }
     const uploadImg = () => {
         const formData = new FormData();
-        fileList.forEach((file:any) => {
+        fileList.forEach((file: any) => {
             formData.append('avator', file);
         });
         setLoading(true)
         return new Promise((resolve) => {
-            fetch('/api/users/head', {
+            fetch('/dev_api/users/head', {
                 method: "POST",
                 body: formData //自动修改请求头,formdata的默认请求头的格式是 multipart/form-data
             }).then((res) => res.json()).then((res) => {
@@ -107,12 +112,12 @@ const Login = (props:any) => {
     }
 
     //检查密码两次输入的密码是否一致
-    const checkPasswords = (e:any) => {
+    const checkPasswords = (e: any) => {
         let newPassword = e.target.value.trim();
         setCheckPassword(newPassword)
         if (newPassword.length === password.length && password !== newPassword) {
             setButtonDisable(true)
-            message.warn('密码不一致')
+            message.warning('密码不一致')
         } else {
             if (userName !== '' && password === newPassword) {
                 setButtonDisable(false)
@@ -130,8 +135,22 @@ const Login = (props:any) => {
                 <label htmlFor="head">
                 </label>
                 <div className='form-input'>
-                    <input onChange={(e) => { setUserName(e.target.value) }} type="text" name='userName' value={userName} />
-                    <input onChange={(e) => { setPassword(e.target.value) }} type="password" name='passWord' value={password} />
+                    <Form.Item
+                        label="账号"
+                        name="userName"
+                        rules={[{ required: true, message: '请输入账号' }]}
+                    >
+                        <Input className='input-item' onChange={(e) => { setUserName(e.target.value) }} type="text" name='userName' value={userName} />
+
+                    </Form.Item>
+                    <Form.Item
+                        label="密码"
+                        name="passWord"
+                        rules={[{ required: true, message: '请输入密码' }]}
+                    >
+                        <Input className='input-item' onChange={(e) => { setPassword(e.target.value) }} type="password" name='passWord' value={password} />
+
+                    </Form.Item>
                 </div>
                 <div className='form-submit'>
                     <Button type={'primary'} onClick={login}>登录</Button>
@@ -141,10 +160,10 @@ const Login = (props:any) => {
     }
     const registerForm = () => {
         return (
-            <div >
+            <div>
                 <label htmlFor="head" title='头像'>
                     <span>头像</span>
-                    <ImgCrop rotate>
+                    <ImgCrop>
                         <Upload
                             name="avator"
                             listType="picture-card"
@@ -161,11 +180,28 @@ const Login = (props:any) => {
                     </ImgCrop>
                 </label>
                 <div className='form-input'>
-                    <Input placeholder='请输入账号' onChange={(e) => { setUserName(e.target.value) }} type="text" name='userName' value={userName} />
-                    <Input placeholder='请输入密码' onChange={(e) => { setPassword(e.target.value) }} type="password" name='passWord' value={password} />
-                    <Input placeholder='再次确认密码' onBlur={checkPasswords} onChange={checkPasswords} type="password" name='checkPassWord' value={checkPassword} />
-                </div>
-                <div className='form-submit'>
+                    <Form.Item
+                        label="账号"
+                        name="userName"
+                        rules={[{ required: true, message: '请输入账号' }]}
+                    >
+                        <Input className='input-item' placeholder='请输入账号' onChange={(e) => { setUserName(e.target.value); }} type="text" name='userName' value={userName} />
+                    </Form.Item>
+                    <Form.Item
+                        label="账号"
+                        name="password"
+                        rules={[{ required: true, message: '请输入密码' }]}
+                    >
+                        <Input className='input-item' placeholder='请输入密码' onChange={(e) => { setPassword(e.target.value); }} type="password" name='passWord' value={password} />
+                    </Form.Item>
+                    <Form.Item
+                        label="账号"
+                        name="checkPassWord"
+                        rules={[{ required: true, message: '再次确认密码' }]}
+                    >
+                        <Input className='input-item' placeholder='再次确认密码' onBlur={checkPasswords} onChange={checkPasswords} type="password" name='checkPassWord' value={checkPassword} />
+                    </Form.Item>
+                </div><div className='form-submit'>
                     <Button disabled={buttonDisable} type={'primary'} onClick={register}>注册</Button>
                 </div>
             </div>

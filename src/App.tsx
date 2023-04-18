@@ -1,18 +1,23 @@
 import React, { Component } from 'react';
-import { BrowserRouter } from "react-router-dom";
-// import { Provider } from 'mobx-react-lite'
+import { ConfigProvider } from 'antd';
+import { Provider } from 'mobx-react';
 
-// import store from './store'
 import AppRouter from "./routes";
+import store from './store'
+
+ConfigProvider.config({
+  theme: {
+    primaryColor: '#009a61',
+  },
+});
 
 class App extends Component {
+
   render() {
     return (
-      <BrowserRouter>
-        {/* <Provider {...store}> */}
+      <Provider {...store}>
           <AppRouter />
-         {/* </Provider> */}
-       </BrowserRouter>
+      </Provider>
     );
   }
 }

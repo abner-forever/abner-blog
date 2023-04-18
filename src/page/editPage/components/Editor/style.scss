@@ -1,5 +1,4 @@
 .edit-content{
-    padding: .16rem;
     background-color: #fff;
     position: relative;
     .title-container{
@@ -28,11 +27,10 @@
     }
     .save-footer{
         position: absolute;
-        bottom: 0;
+        top: 0;
         right: 0;
         background-color:#fff;
         height: 40px;
-        width: 100%;
         display: flex;
         justify-content: flex-end;
         align-items: center;

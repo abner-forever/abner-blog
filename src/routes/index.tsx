@@ -36,7 +36,6 @@ const Routers = () => {
         isLoginModalShow && <LoginModal onClose={onToggleLoginModal} />
       }
     </BrowserRouter>
-
   );
 };
 

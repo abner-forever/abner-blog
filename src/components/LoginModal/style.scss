@@ -1,3 +1,27 @@
+.login-modal{
+    border-radius: 8px !important;
+    overflow: hidden;
+    .ant-modal-title{
+        text-align: center;
+    }
+    .ant-input-affix-wrapper{
+        border-radius: 4px;
+        &:focus{
+            box-shadow: none;
+        }
+    }
+    .form-input{
+        width: 100%;
+    }
+    .ant-form-item{
+        width: 100%;
+    }
+    .submit-button{
+        width: 100%;
+        height: .42rem;
+        border-radius: .04rem;
+    }
+}
 .sign-in-up {
     padding: 10px;
     text-align: center;
@@ -8,42 +32,10 @@
     font-weight: 500;
 }
 
-.form-item {
-    width: 3rem;
-    height: 500px;
-    margin: 0 auto;
-    padding: .2rem .2rem;
-    background-color: #fff;
-    // box-shadow: 0 2px 8px rgba(0, 0, 0, .03);
-}
-
-.form-input {
-    display: flex;
-    flex-direction: column;
-
-    .input-item {
-        margin-bottom: 0.2rem;
-        border: .01rem solid #ccc;
-        height: .42rem;
-        padding: 0 .08rem;
-        border-radius: .04rem;
-        overflow: hidden;
-
-        &:focus {
-            border: none;
-            outline: 1px solid steelblue;
-        }
-    }
-}
-
 .form-submit {
     display: flex;
     justify-content: space-around;
-    .submit-button{
-        width: 392px;
-        height: .42rem;
-        border-radius: .04rem;
-    }
+   
 }
 
 .head-image {
@@ -61,4 +53,8 @@
 .modal-content {
     padding: 20px 40px !important;
     border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    // justify-content: center;
+    align-items: center;
 }

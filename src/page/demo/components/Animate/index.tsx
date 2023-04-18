@@ -5,6 +5,7 @@ import AdvancedFormat from 'dayjs/plugin/advancedFormat'
 import Lottie from '@/components/Lottie';
 import littlePersion from '@/assets/lottie/little-persion.json';
 import './style.less';
+import { Button } from 'antd';
 
 
 dayjs.extend(AdvancedFormat);
@@ -54,7 +55,7 @@ const Animate = () => {
     </CSSTransition>
     <Lottie ref={aniRef} autoplay={false} animationData={littlePersion} />
     <div>
-      <button onClick={changeToshow}>{show ? '动' : '停'}</button>
+      <Button onClick={changeToshow}>{show ? '动' : '停'}</Button>
     </div>
   </div>
 }

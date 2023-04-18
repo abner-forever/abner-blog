@@ -87,13 +87,13 @@ const routerList = [
     isShowHeader: false,
     authCheck: true, // 登录验证
   },
-  {
-    path: '/login',
-    element: <Login/>,
-    title: '登录',
-    exact: true,
-    isShowHeader: false
-  },
+  // {
+  //   path: '/login',
+  //   element: <Login/>,
+  //   title: '登录',
+  //   exact: true,
+  //   isShowHeader: false
+  // },
   {
     path: '/add',
     element: <AddMD/>,

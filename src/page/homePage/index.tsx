@@ -28,8 +28,6 @@ class Home extends Component<P, S> {
   init = async () => {
     try {
       let res: any = await ApiBlog.apiArticleList();
-      console.log('res',res);
-      
       this.setState({
         articleList: res.list,
         loading: false

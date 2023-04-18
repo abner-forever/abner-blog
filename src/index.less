@@ -1,5 +1,5 @@
 @import '../node_modules/antd/dist/antd.css';
-
+@import '../node_modules/antd/dist/antd.variable.min.css';
 body {
   margin: 0;
   padding: 0;
@@ -53,6 +53,7 @@ a {
 }
 ::selection {
   background: @primary-color !important;
+  color: #fff;
 }
 
 .App {
@@ -127,10 +128,8 @@ li {
 }
 
 .content-wrap {
-  padding-top: .16rem;
   background-color: #f4f5f5;
-  padding-bottom: .32rem;
-  // min-height: 720px;
+  padding: 16px 0;
   min-height: calc(100vh - 156px);
 }
 
@@ -138,11 +137,12 @@ li {
   margin: 0 auto;
   min-width: 60%;
   max-width: 9.2rem;
-  border-radius: 4px 4px 0 0;
+  border-radius: 4px;
   position: relative;
   box-shadow: 0 0px 9px 0 rgb(0 0 0 / 8%);
-  padding: 20px;
+  padding: 16px;
   background-color: #fff;
+  min-height: calc(100vh - 188px);
 }
 
 .content-item {

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, } from 'react'
-import { Button, Input } from 'antd'
+import { Button, Input, message } from 'antd'
 import ApiBlog from '@/api/apiBlog'
 import Cookies from "js-cookie"
 import BraftEditor from 'braft-editor'
@@ -55,6 +55,7 @@ const Editor = ({ id, title: defaultTitle, content }: IProps) => {
       content: htmlContent
     }
     await ApiBlog.updateArticle(params)
+    message.success('文章更新成功')
   }
   //添加文章
   const addEditorContent = async (htmlContent: string) => {
@@ -68,6 +69,7 @@ const Editor = ({ id, title: defaultTitle, content }: IProps) => {
     }
     try {
       await ApiBlog.addArticle(params);
+      message.success('文章添加成功')
     } catch (error: any) {
       console.error('add article error', error.message);
     }

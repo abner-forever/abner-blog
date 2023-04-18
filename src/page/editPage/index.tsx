@@ -42,7 +42,6 @@ const EditorPage = () => {
       content
     })
   };
-  console.log('editArticle',editArticle);
   
   return (
     <Suspense fallback={<Loading/>}>
