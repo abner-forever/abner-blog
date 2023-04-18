@@ -1,3 +1,10 @@
+## [1.1.9](https://github.com/abner-forever/abner-blog/compare/v1.1.8...v1.1.9) (2023-04-15)
+
+
+### Bug Fixes
+
+* fix user token ([30171e7](https://github.com/abner-forever/abner-blog/commit/30171e703b5201d5a0e3e9c72e65ebf220413a8f))
+
 ## [1.1.8](https://github.com/abner-forever/abner-blog/compare/v1.1.7...v1.1.8) (2023-04-11)
 
 
