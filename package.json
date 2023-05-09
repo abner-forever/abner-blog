@@ -12,11 +12,8 @@
   "scripts": {
     "start": "vite serve --mode online --open",
     "dev": "vite serve --mode dev",
-    "build:online": "vite serve --mode online",
-    "build": "tsc && vite build  --mode online",
+    "build": "tsc && vite build --node_env production --mode online",
     "serve": "vite preview",
-    "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s -r 0",
-    "tag": "node ./scripts/release-ci.js --tag $TAG",
     "release": "npm run semantic-release",
     "semantic-release": "semantic-release"
   },
@@ -29,7 +26,6 @@
     "customize-cra": "^0.2.11",
     "dayjs": "^1.11.5",
     "draft-js-prism": "^1.0.6",
-    "dva": "^2.4.1",
     "easymde": "^2.15.0",
     "highlight.js": "^11.7.0",
     "js-cookie": "^2.2.1",

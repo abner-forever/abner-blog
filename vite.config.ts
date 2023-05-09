@@ -5,18 +5,18 @@ import { ViteEjsPlugin } from 'vite-plugin-ejs'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
-    react({
-      babel: {
-        parserOpts: {
-          plugins: ["decorators-legacy"],
-        },
-        plugins: [
-          ["@babel/plugin-transform-react-jsx"],
-          ["@babel/plugin-proposal-decorators", { legacy: true }],
-          ["@babel/plugin-proposal-class-properties", { loose: true }],
-        ],
-      },
-    }),
+    // react({
+    //   babel: {
+    //     parserOpts: {
+    //       plugins: ["decorators-legacy"],
+    //     },
+    //     plugins: [
+    //       ["@babel/plugin-transform-react-jsx"],
+    //       ["@babel/plugin-proposal-decorators", { legacy: true }],
+    //       ["@babel/plugin-proposal-class-properties", { loose: true }],
+    //     ],
+    //   },
+    // }),
     ViteEjsPlugin((viteConfig) => {
       return {
         root: viteConfig.root,

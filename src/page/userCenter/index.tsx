@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { Button } from "antd";
 import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
 import { DEFAULT_HEAD } from "@/constant";
 import GithubIcon from "@img/github.svg";
-import ApiBlog from '@/api/apiBlog'
 import "./style.scss";
 import { inject, observer } from "mobx-react";
 
@@ -63,4 +61,5 @@ const MinePage = ({ history, globalStore:{
   );
 };
 
-export default inject('globalStore')(observer(MinePage));;
+const UserCenter = inject('globalStore')(observer(MinePage));
+export default UserCenter 

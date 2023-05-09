@@ -2,6 +2,7 @@ import React, { Suspense, useState } from "react";
 import { BrowserRouter, useRoutes, useLocation } from "react-router-dom";
 import { Footer, LoginModal, Header, Loading } from "@/components";
 import routerConfig from "./routers";
+import { TransitionGroup, CSSTransition } from 'react-transition-group'
 
 import "@/index.less";
 
@@ -20,7 +21,8 @@ const Routers = () => {
 
   return (
     <BrowserRouter>
-      <Header
+    
+    <Header
         onToggleLoginModal={onToggleLoginModal}
         routerConfig={routerConfig}
       />
@@ -35,6 +37,7 @@ const Routers = () => {
       {
         isLoginModalShow && <LoginModal onClose={onToggleLoginModal} />
       }
+      
     </BrowserRouter>
   );
 };

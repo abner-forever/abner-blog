@@ -64,17 +64,16 @@ const Header: FC<IProps> = ({ globalStore, routerConfig, onToggleLoginModal }) =
         )}
       </li>
       <li className="login-item">
-        {!token ? (
-          <a onClick={onToggleLoginModal}>登录</a>
-        ) : (
+        {token &&
           <Dropdown overlayClassName='menu-wrap' menu={{ items }} placement="bottom" arrow>
-            <Link onClick={() => setActiveTab('/mine')} to='/mine'>
+            <Link onClick={() => setActiveTab('admin')} to='admin'>
               <img className="user-icon" src={userInfo?.avator || DEFAULT_HEAD} alt="" />
               <span>{userInfo?.userName}</span>
             </Link>
           </Dropdown>
-        )}
+        }
       </li>
+      <a className="gpt-entry" href="https://openai.foreverheart.top" />
     </ul>
   </header>
 }

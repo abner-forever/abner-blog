@@ -15,12 +15,23 @@
     min-width: 60%;
     max-width: 920px;
     margin: 0 auto;
-
+    position: relative;
     .banner-left {
       display: flex;
       word-break: keep-all;
     }
-
+    .banner-logo {
+      font-size: 18px;
+      padding: 0 16px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      line-height: 26px;
+      cursor: pointer;
+      color: #000;
+      font-weight: 500;
+    }
+    
     .tab-item {
       margin: 0 5px;
       padding: 12px 16px;
@@ -72,9 +83,47 @@
         border-radius: 50%;
         margin-right: 12px;
       }
+      .menu-wrap{
+        white-space: nowrap;
+      }
     }
-    .menu-wrap{
-      background-color: red;
+    .gpt-entry{
+      position: absolute;
+      right: -80px;
+      top: 0;
+      bottom: 0;
+      margin: auto;
+      display: flex;
+      align-items: center;
+      font-size: 18px;
+      background: url(@/assets/img/gpt.svg) center no-repeat;
+      background-size: 80%;
+      width: 40px;
+      height: 40px;
+      background-color: #e7f8ff;
+      border-radius: 8px;
+      transition:all .2s linear;
+      &:active{
+        transform: scale(.9);
+      }
+    }
+    @media (max-width: 530px) {
+      // .banner-logo {
+      //   display: none !important;
+      // }
+      .gpt-entry{
+        position: fixed;
+        right: -35px;
+        top: auto;
+        bottom: 10px;
+        margin: 0;
+        transition: all 0.5s ease-in-out;
+        &:active{
+          // transform:translateX(90);
+          right: 10px;
+        }
+      }
     }
   }
 }
+

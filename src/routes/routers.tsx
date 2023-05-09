@@ -2,7 +2,6 @@ import React,{lazy} from 'react'
 import { Navigate } from 'react-router-dom'
 import { PageNotFound } from "@/components";
 import HomePage from '../page/homePage'
-import UserCenter from '../page/userCenter'
 import About from '../page/About'
 import ArticleDetail from '../page/detailPage'
 import MyArticle from '../page/MyArticle'
@@ -26,18 +25,12 @@ const routerList = [
     element: <HomePage />,
     exact: true,
     title: '首页',
-    isShowHeader: true
+    isShowHeader: false
   },
   {
     path: '/demo',
     element: lazyLoad('demo'),
     title: 'Demo',
-    isShowHeader: true,
-  },
-  {
-    path: '/gpt',
-    element: lazyLoad('chatgpt'),
-    title: 'gpt',
     isShowHeader: false,
   },
   {
@@ -61,8 +54,8 @@ const routerList = [
     isShowHeader: false
   },
   {
-    path: '/mine',
-    element: <UserCenter />,
+    path: '/admin',
+    element:  lazyLoad('userCenter'),
     title: '我的',
     exact: true,
     isShowHeader: false,
@@ -87,13 +80,13 @@ const routerList = [
     isShowHeader: false,
     authCheck: true, // 登录验证
   },
-  // {
-  //   path: '/login',
-  //   element: <Login/>,
-  //   title: '登录',
-  //   exact: true,
-  //   isShowHeader: false
-  // },
+  {
+    path: '/login',
+    element: <Login/>,
+    title: '登录',
+    exact: true,
+    isShowHeader: false
+  },
   {
     path: '/add',
     element: <AddMD/>,

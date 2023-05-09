@@ -24,6 +24,7 @@ const LoginModal = (props: any) => {
   const [fileList, setFileList] = useState<any>([])
   const [form] = Form.useForm();
   const { search } = useLocation();
+  const navigate = useNavigate();
   useEffect(()=>{
     console.log('location',search);
     // setIsLogin()
@@ -44,7 +45,7 @@ const LoginModal = (props: any) => {
       Cookies.set('userId', res.userId, currentCookieSetting)
       message.success("登录成功");
       onClose();
-      // navigate('/mine')
+      // navigate('admin')
     }
    } catch (error:any) {
     message.error(error.message)
@@ -62,7 +63,7 @@ const LoginModal = (props: any) => {
       avator: url
     })
     message.success('注册成功')
-    props.history.push(`/mine`)
+    navigate('/admin')
   }
   const beforeUpload = (file: any) => {
     const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';

@@ -1,11 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { CSSTransition } from 'react-transition-group'
+import { Button } from 'antd';
 import dayjs from 'dayjs';
 import AdvancedFormat from 'dayjs/plugin/advancedFormat'
 import Lottie from '@/components/Lottie';
 import littlePersion from '@/assets/lottie/little-persion.json';
 import './style.less';
-import { Button } from 'antd';
 
 
 dayjs.extend(AdvancedFormat);
@@ -38,7 +38,6 @@ const Animate = () => {
   return <div className='animate-container'>
     {/*this.state.toshow值为true时，className为show意思是显示div内的文字；反之隐藏。  */}
     {/* <div className={this.state.toshow?'show':'hide'}>boss级人物：铠爹</div> */}
-    {/* @ts-ignore */}
     <CSSTransition
       in={show}
       timeout={2000}
