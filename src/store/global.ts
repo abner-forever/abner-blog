@@ -1,5 +1,5 @@
 import { observable, action, runInAction, makeObservable } from 'mobx'
-import ApiBlog from '@/api/apiBlog';
+import ApiBlog from '@/services/apiBlog';
 import Cookies from "js-cookie";
 
 class GlobalStore {

@@ -20,8 +20,6 @@ const ArticleDetail = ({ editArticle }: any) => {
 
   const { title, content: htmlContent, author = '佚名', updateTime, createTime } = editArticle || {}
   const _createTime = dayjs(updateTime || createTime).format('YYYY-MM-DD HH:MM');
-  console.log('htmlContent', BraftEditor.createEditorState(htmlContent, options).toHTML());
-
   return (
     <div className='detail-content'>
       <p className="detail-title">{title}</p>

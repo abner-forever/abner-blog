@@ -1,63 +1,30 @@
 import React, { useState, useEffect } from 'react'
-import ApiBlog from '@/api/apiBlog'
+import ApiBlog from '@/services/apiBlog'
 import Cookies from "js-cookie"
 import { Button, message, Upload, Input, Form } from 'antd';
 import { LoadingOutlined, PlusOutlined } from '@ant-design/icons';
 import ImgCrop from 'antd-img-crop'
 import './style.less'
 import { useNavigate } from 'react-router-dom';
-
+import { UserOutlined, LockOutlined } from '@ant-design/icons';
 /**
  * 登录页面
  * @param props 
  * @returns 
  */
 const Login = (props: any) => {
-  const [userName, setUserName] = useState('');
-  const [password, setPassword] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [loading, setLoading] = useState(false);
-  const [isLogin, setIsLogin] = useState(false)
+  const [isLogin, setIsLogin] = useState(true)
   const [checkPassword, setCheckPassword] = useState('')
   const [buttonDisable, setButtonDisable] = useState(true)
   const [fileList, setFileList] = useState<any>([])
   const navigate = useNavigate();
 
   const login = async () => {
-    let res: any = await ApiBlog.login({
-      userName: userName,
-      password: password
-    })
-    if (res && res.token) {
-      let currentCookieSetting = {
-        expires: 1
-      }
-      Object.assign(currentCookieSetting, {})
-      Cookies.set('user-token', res.token, currentCookieSetting)
-      Cookies.set('userId', res.userId, currentCookieSetting)
-      Cookies.set('userName', res.userName, currentCookieSetting)
-      message.success("登录成功")
-      navigate('/admin', {
-        replace: true
-      })
-    }
+
   }
-  const register = async () => {
-    if (!userName || !password) {
-      message.info("用户名或密码不能为空")
-      return
-    }
-    let url = await uploadImg();
-    await ApiBlog.register({
-      userName: userName,
-      password: password,
-      avator: url
-    })
-    message.success('注册成功')
-    navigate(`/admin`, {
-      replace: true
-    })
-  }
+
   useEffect(() => {
   })
   const beforeUpload = (file: any) => {
@@ -112,48 +79,66 @@ const Login = (props: any) => {
   }
 
   //检查密码两次输入的密码是否一致
-  const checkPasswords = (e: any) => {
-    let newPassword = e.target.value.trim();
-    setCheckPassword(newPassword)
-    if (newPassword.length === password.length && password !== newPassword) {
-      setButtonDisable(true)
-      message.warning('密码不一致')
-    } else {
-      if (userName !== '' && password === newPassword) {
-        setButtonDisable(false)
-      } else {
-        setButtonDisable(true)
+
+
+  const onLogin = async ({ userName, password }: any) => {
+    try {
+      let res: any = await ApiBlog.login({
+        userName,
+        password
+      })
+      if (res && res.token) {
+        let currentCookieSetting = {
+          expires: 1
+        }
+        Object.assign(currentCookieSetting, {})
+        Cookies.set('user-token', res.token, currentCookieSetting)
+        Cookies.set('userId', res.userId, currentCookieSetting)
+        Cookies.set('userName', res.userName, currentCookieSetting)
+        message.success("登录成功")
+        navigate('/admin', {
+          replace: true
+        })
       }
+    } catch (error: any) {
+      message.error(error.message)
     }
   }
 
+  const onLoginFailed = () => {
+
+  }
 
   const loginForm = () => {
     return (
-      <div >
-        <p>用户登录</p>
-        <label htmlFor="head">
-        </label>
-        <div className='form-input'>
-          <Form.Item
-            label="账号"
-            name="userName"
-            rules={[{ required: true, message: '请输入账号' }]}
-          >
-            <Input className='input-item' onChange={(e) => { setUserName(e.target.value) }} type="text" name='userName' value={userName} />
-          </Form.Item>
-          <Form.Item
-            label="密码"
-            name="passWord"
-            rules={[{ required: true, message: '请输入密码' }]}
-          >
-            <Input className='input-item' onChange={(e) => { setPassword(e.target.value) }} type="password" name='passWord' value={password} />
-          </Form.Item>
-        </div>
-        <div className='form-submit'>
-          <Button type={'primary'} onClick={login}>登录</Button>
-        </div>
-      </div>
+      <Form
+        name="login"
+        // labelCol={{ span: 8 }}
+        wrapperCol={{ span: 24 }}
+        style={{ maxWidth: 600 }}
+        initialValues={{ remember: true }}
+        onFinish={onLogin}
+        onFinishFailed={onLoginFailed}
+        autoComplete="off"
+        className='login-form'
+      >
+
+        <Form.Item
+          // label="账号"
+          name="userName"
+          rules={[{ required: true, message: '请输入账号' }]}
+        >
+          <Input prefix={<UserOutlined />} placeholder='请输入账号' className='input-item' />
+        </Form.Item>
+        <Form.Item
+          // label="密码"
+          name="password"
+          rules={[{ required: true, message: '请输入密码' }]}
+        >
+          <Input prefix={<LockOutlined />} placeholder='请输入密码' className='input-item' />
+        </Form.Item>
+        <Button type="primary" size='large' className='button' htmlType='submit'>登录</Button>
+      </Form>
     )
   }
   const registerForm = () => {
@@ -184,43 +169,38 @@ const Login = (props: any) => {
             rules={[{ required: true, message: '请输入账号' }]}
           >
             <Input className='input-item'
-              placeholder='请输入账号'
-              onChange={(e) => { setUserName(e.target.value); }}
-              type="text"
-              name='userName'
-              value={userName} />
+              placeholder='请输入账号' />
           </Form.Item>
           <Form.Item
             label="账号"
             name="password"
             rules={[{ required: true, message: '请输入密码' }]}
           >
-            <Input className='input-item' placeholder='请输入密码' onChange={(e) => { setPassword(e.target.value); }} type="password" name='passWord' value={password} />
+            <Input className='input-item' placeholder='请输入密码' />
           </Form.Item>
           <Form.Item
             label="账号"
             name="checkPassWord"
             rules={[{ required: true, message: '再次确认密码' }]}
           >
-            <Input className='input-item' placeholder='再次确认密码' onBlur={checkPasswords} onChange={checkPasswords} type="password" name='checkPassWord' value={checkPassword} />
+            <Input className='input-item' placeholder='再次确认密码' />
           </Form.Item>
         </div>
         <div className='form-submit'>
-          <Button disabled={buttonDisable} type={'primary'} onClick={register}>注册</Button>
+          <Button disabled={buttonDisable} type={'primary'} >注册</Button>
         </div>
       </div>
     )
   }
   return (
-    <div className='content-item'>
-      <p className='sign-in-up' onClick={() => {
-        setIsLogin(!isLogin);
-      }}>{isLogin ? '登录' : '注册'}</p>
-      <div className='form-item'>
+    <div className='content-item login-page'>
+      <p className='title' >用户登录</p>
         {
           isLogin ? loginForm() : registerForm()
         }
-      </div>
+      <p className='login-tips' onClick={() => {
+        setIsLogin(!isLogin);
+      }}>{isLogin ? '没有账号？去注册' : '有账号，去登录'}</p>
     </div>
   )
 }

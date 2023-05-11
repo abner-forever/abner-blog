@@ -1,7 +1,7 @@
 import React, { Component, Suspense } from 'react'
 import { Empty, ItemCard, Page } from '@/components'
 import withRouter from '@/components/WithRouter'
-import ApiBlog from '@/api/apiBlog'
+import ApiBlog from '@/services/apiBlog'
 interface P {
   storeArticle?: any;
   history?: any;

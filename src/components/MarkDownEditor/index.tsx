@@ -3,7 +3,7 @@ import SimpleMDE from "react-simplemde-editor";
 import * as marked from 'marked';
 import Prism from 'prismjs';
 import Cookies from "js-cookie"
-import ApiBlog from '@/api/apiBlog'
+import ApiBlog from '@/services/apiBlog'
 import { Button } from "antd";
 import hljs from "highlight.js"; // 引入 highlight.js
 import "easymde/dist/easymde.min.css";

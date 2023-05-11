@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react'
-import ApiBlog from '@/api/apiBlog'
+import ApiBlog from '@/services/apiBlog'
 import Cookies from "js-cookie"
 import { Button, message, Form, Modal, Upload, Input } from 'antd';
 import { LoadingOutlined, PlusOutlined, UserOutlined, EyeTwoTone, EyeInvisibleOutlined, LockOutlined } from '@ant-design/icons';
 import ImgCrop from 'antd-img-crop'
 import { useLocation, useNavigate } from "react-router-dom";
-import './style.scss'
+import './style.less'
 
 /**
  * 登录弹窗
@@ -177,7 +177,7 @@ const LoginModal = (props: any) => {
             htmlType="submit"
             disabled={
               !form.isFieldsTouched(true) ||
-              !!form.getFieldsError().filter(({ errors }) => errors.length).length
+              !!form.getFieldsError().filter(({ errors }:any) => errors.length).length
             }
           >
             登录

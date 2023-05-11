@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import ApiBlog from "@/api/apiBlog";
+import ApiBlog from "@/services/apiBlog";
 import { Table, Tabs, Pagination } from "antd";
 const { TabPane } = Tabs;
 

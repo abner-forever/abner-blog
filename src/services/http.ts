@@ -1,5 +1,5 @@
 import { PROXY_ENV } from "@/config";
-import Common from "./Common";
+import Common from "@/utils/Common";
 class Http {
   HOST: string;
   headers: any;

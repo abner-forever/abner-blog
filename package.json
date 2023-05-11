@@ -18,9 +18,9 @@
     "semantic-release": "semantic-release"
   },
   "dependencies": {
-    "@ant-design/icons": "^4.7.0",
-    "antd": "^4.22.8",
-    "antd-img-crop": "^4.2.4",
+    "@ant-design/icons": "^5.0.1",
+    "antd": "^5.4.7",
+    "antd-img-crop": "^4.12.2",
     "braft-editor": "^2.3.9",
     "braft-extensions": "^0.1.1",
     "customize-cra": "^0.2.11",

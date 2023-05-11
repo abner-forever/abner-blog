@@ -1,5 +1,5 @@
 import { observable, action, runInAction, makeObservable } from 'mobx'
-import ApiBlog from '@/api/apiBlog'
+import ApiBlog from '@/services/apiBlog'
 class Article {
    /** 首页文章列表 */
    @observable articleList = []

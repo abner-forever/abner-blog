@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import ArticleDetail from "@/components/ArticleDetail";
 import { Comments, Loading, Page } from "@/components";
 import { useParams } from "react-router-dom";
-import ApiBlog from "@/api/apiBlog";
+import ApiBlog from "@/services/apiBlog";
 import Cookies from "js-cookie";
 
 const DetailPage = () => {
