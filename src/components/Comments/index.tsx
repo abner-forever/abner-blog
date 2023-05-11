@@ -25,7 +25,7 @@ const Comments = ({id}:any) => {
     const addComment = async () => {
 
         if (!userId) {
-            message.warn('请登录后再评论');
+            message.warning('请登录后再评论');
             return;
         }
         let params = {

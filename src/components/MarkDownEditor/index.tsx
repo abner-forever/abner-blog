@@ -45,20 +45,20 @@ const MarkDownEditor = () => {
 
     const renderMarkdown = (text: string) => {
         var rendererMD = new marked.Renderer();
-        marked.setOptions({
-            renderer: rendererMD,
-            highlight: (code:string)=> {
-              return hljs.highlightAuto(code).value;
-            },
-            pedantic: false,
-            gfm: true,
-            breaks: false,
-            sanitize: false,
-            smartLists: true,
-            smartypants: false,
-            xhtml: false
-          });
-        const html = marked(text, { breaks: true });
+        // marked.setOptions({
+        //     renderer: rendererMD,
+        //     highlight: (code:string)=> {
+        //       return hljs.highlightAuto(code).value;
+        //     },
+        //     pedantic: false,
+        //     gfm: true,
+        //     breaks: false,
+        //     sanitize: false,
+        //     smartLists: true,
+        //     smartypants: false,
+        //     xhtml: false
+        //   });
+        const html = text;
        
         console.log('html',html);
         
