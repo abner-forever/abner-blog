@@ -1,3 +1,16 @@
+# [1.2.0](https://github.com/abner-forever/abner-blog/compare/v1.1.9...v1.2.0) (2023-05-11)
+
+
+### Bug Fixes
+
+* fix build ([7998600](https://github.com/abner-forever/abner-blog/commit/799860038a86c6518c50c86e98f5cbbb9dd04a8a))
+
+
+### Features
+
+* 修改登录 ([2a048be](https://github.com/abner-forever/abner-blog/commit/2a048be22843724113ce1f24e275d9e4305950d1))
+* 隐藏登录入口 ([ea1022a](https://github.com/abner-forever/abner-blog/commit/ea1022a7842ce19e239c18673d43c62577d62387))
+
 ## [1.1.9](https://github.com/abner-forever/abner-blog/compare/v1.1.8...v1.1.9) (2023-04-15)
 
 
