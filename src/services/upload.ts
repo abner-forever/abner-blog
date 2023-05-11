@@ -1,4 +1,4 @@
-import Http from "../utils/http";
+import Http from "./http";
 import { message } from "antd";
 import { HOST } from "../config";
 const upLoad = new Http({
@@ -15,7 +15,7 @@ const upLoad = new Http({
         if (code === 200) {
           resolve(res.data);
         } else if (code === 500) {
-          message.warn(res.msg);
+          message.warning(res.msg);
           reject(res.msg);
         }
       });

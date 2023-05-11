@@ -43,8 +43,8 @@ class ApiBlog {
     return Fetch.post("/article/updateArticle", params);
   };
   /**
-   * 更新文章
-   * /article/updateArticle
+   * 添加文章
+   * /article/addArticle
    */
   addArticle = (params: any) => {
     return Fetch.post("/article/addArticle", params);

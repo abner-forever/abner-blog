@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import AppRouter from "./App";
-
+import 'antd/dist/reset.css';
 import './lib/flex'
 import './index.less';
 

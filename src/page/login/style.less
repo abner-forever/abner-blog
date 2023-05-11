@@ -1,33 +1,39 @@
-.sign-in-up{
+.login-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  .title {
     padding: 10px;
     text-align: center;
     cursor: pointer;
-    background-color: @primary-color;
-    color: #fff;
-    font-size: 18px;
-    font-weight: 500;
-}
-.form-item{
-    width: 3rem;
-    height: 500px;
-    margin: 0 auto;
-    padding: .2rem .2rem;
-    background-color: #fff;
-    // box-shadow: 0 2px 8px rgba(0, 0, 0, .03);
-}
+    color: @primary-color;
+    font-size: 24px;
+    font-weight: 700;
+  }
 
-.form-submit{
+  .login-form {
     display: flex;
-    justify-content: space-around;
-    button{
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        outline: none;
+    flex-direction: column;
+    align-items: center;
+
+    .input-item {
+      width: 4rem;
+      height: 40px;
+      margin-bottom: 20px;
     }
-}
-.head-image{
-    position: relative;
-    .delete-icon{
-        position: absolute;
-    }
+  }
+
+
+  .button {
+    min-width: 3rem;
+    padding: 0 48px;
+    margin-top: 40px;
+  }
+
+  .login-tips {
+    text-align: center;
+    cursor: pointer;
+    margin-top: 20px;
+  }
 }

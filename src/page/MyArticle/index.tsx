@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import './style.scss'
 import { Empty, ItemCard } from '@/components'
-import ApiBlog from  '@/api/apiBlog'
+import ApiBlog from  '@/services/apiBlog'
 import Cookies from "js-cookie"
 
 const MyArticle = (props:any) => {

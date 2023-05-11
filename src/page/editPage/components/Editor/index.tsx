@@ -1,6 +1,6 @@
 import React, { useEffect, useState, } from 'react'
 import { Button, Input, message } from 'antd'
-import ApiBlog from '@/api/apiBlog'
+import ApiBlog from '@/services/apiBlog'
 import Cookies from "js-cookie"
 import BraftEditor from 'braft-editor'
 import CodeHighlighter from 'braft-extensions/dist/code-highlighter';

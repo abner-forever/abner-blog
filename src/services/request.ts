@@ -1,7 +1,8 @@
-import Http from "@/utils/http";
+import Http from "@/services/http";
 import Cookies from "js-cookie"
 
 import { HOST } from "../config";
+
 const request = new Http({
   HOST,
   headers: { 
