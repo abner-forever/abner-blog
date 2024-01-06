@@ -4,7 +4,7 @@ import ApiBlog from '@/services/apiBlog'
 import Cookies from "js-cookie"
 import BraftEditor from 'braft-editor'
 import CodeHighlighter from 'braft-extensions/dist/code-highlighter';
-import './style.scss'
+import './styles.less'
 import 'braft-editor/dist/index.css';
 import 'braft-extensions/dist/code-highlighter.css';
 

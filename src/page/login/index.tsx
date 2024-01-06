@@ -4,15 +4,17 @@ import Cookies from "js-cookie"
 import { Button, message, Upload, Input, Form } from 'antd';
 import { LoadingOutlined, PlusOutlined } from '@ant-design/icons';
 import ImgCrop from 'antd-img-crop'
-import './style.less'
+import './styles.less'
 import { useNavigate } from 'react-router-dom';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
+import { validateNickName } from '@/utils/validator';
 /**
  * 登录页面
  * @param props 
  * @returns 
  */
 const Login = (props: any) => {
+  const [form] = Form.useForm();
   const [imageUrl, setImageUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [isLogin, setIsLogin] = useState(true)
@@ -78,6 +80,8 @@ const Login = (props: any) => {
     })
   }
 
+  
+
   //检查密码两次输入的密码是否一致
 
 
@@ -109,10 +113,13 @@ const Login = (props: any) => {
 
   }
 
+  const checkAccount = async (_: any, value: string)=>{
+    await validateNickName(value);
+  }
+
   const loginForm = () => {
     return (
       <Form
-        name="login"
         // labelCol={{ span: 8 }}
         wrapperCol={{ span: 24 }}
         style={{ maxWidth: 600 }}
@@ -121,12 +128,13 @@ const Login = (props: any) => {
         onFinishFailed={onLoginFailed}
         autoComplete="off"
         className='login-form'
+        form={form}
       >
 
         <Form.Item
           // label="账号"
           name="userName"
-          rules={[{ required: true, message: '请输入账号' }]}
+          rules={[{ required: true, validator: checkAccount }]}
         >
           <Input prefix={<UserOutlined />} placeholder='请输入账号' className='input-item' />
         </Form.Item>

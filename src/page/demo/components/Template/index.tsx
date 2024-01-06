@@ -1,5 +1,5 @@
 import React from 'react'
-import './style.scss'
+import './styles.less'
 
 const Template = ()=>{
     return <div className='template-container'>

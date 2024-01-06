@@ -1,6 +1,6 @@
 import React from "react";
 import IconSvg from '@img/github.svg';
-import './style.scss'
+import './styles.less'
 const ViteDemo = ()=>{
   return (
     <div>

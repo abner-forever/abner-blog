@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 
-import './style.less'
+import './styles.less'
 
 
 

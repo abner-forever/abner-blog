@@ -1,5 +1,5 @@
 import React from 'react'
-import './style.scss'
+import './styles.less'
 const PageNotFound = () => {
     return (
         <div className='loading-cont'>

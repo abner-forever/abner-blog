@@ -4,7 +4,7 @@ import Cookies from "js-cookie";
 
 import { DEFAULT_HEAD } from "@/constant";
 
-import "./style.less";
+import "./styles.less";
 import { Dropdown } from "antd";
 interface IProps {
   routerConfig: any[];
@@ -73,7 +73,7 @@ const Header: FC<IProps> = ({ globalStore, routerConfig, onToggleLoginModal }) =
           </Dropdown>
         }
       </li>
-      <a className="gpt-entry" href="https://openai.foreverheart.top" />
+      <a className="gpt-entry" href="https://openai.foreverheart.top" target="_blank" />
     </ul>
   </header>
 }

@@ -5,18 +5,18 @@ import { ViteEjsPlugin } from 'vite-plugin-ejs'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
-    // react({
-    //   babel: {
-    //     parserOpts: {
-    //       plugins: ["decorators-legacy"],
-    //     },
-    //     plugins: [
-    //       ["@babel/plugin-transform-react-jsx"],
-    //       ["@babel/plugin-proposal-decorators", { legacy: true }],
-    //       ["@babel/plugin-proposal-class-properties", { loose: true }],
-    //     ],
-    //   },
-    // }),
+    react({
+      babel: {
+        parserOpts: {
+          plugins: ["decorators-legacy"],
+        },
+        plugins: [
+          ["@babel/plugin-transform-react-jsx"],
+          ["@babel/plugin-proposal-decorators", { legacy: true }],
+          ["@babel/plugin-proposal-class-properties", { loose: true }],
+        ],
+      },
+    }),
     ViteEjsPlugin((viteConfig) => {
       return {
         root: viteConfig.root,
@@ -43,9 +43,6 @@ export default defineConfig({
           "@primary-color": "#009a61",
         },
       },
-      scss: {
-        // additionalData: '@import "node_modules/antd/dist/antd.css";' // 添加公共样式
-      },
     },
   },
   server: {
@@ -69,11 +66,24 @@ export default defineConfig({
   },
   build: {  // 调整打包后文件放置路径
     assetsDir: "static/img/",
+    sourcemap:true,
+    reportCompressedSize: false,
+    chunkSizeWarningLimit: 1024,
     rollupOptions: {
       output: {
         chunkFileNames: "js/[name]-[hash].js",
         entryFileNames: "js/[name]-[hash].js",
         assetFileNames: "static/[ext]/[name]-[hash].[ext]",
+        manualChunks: {
+          lodash: ['lodash'],
+          'braft-editor': ['braft-editor'],
+          'antd': ['antd'],
+        },
+        // manualChunks(id, { getModuleInfo, getModuleIds }) {
+        //   if (id.includes('node_modules')) {
+        //     return 'vendor';
+        //   }
+        // },
       },
     },
   },

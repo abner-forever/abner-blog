@@ -5,7 +5,7 @@ import dayjs from 'dayjs';
 import AdvancedFormat from 'dayjs/plugin/advancedFormat'
 import Lottie from '@/components/Lottie';
 import littlePersion from '@/assets/lottie/little-persion.json';
-import './style.less';
+import './styles.less';
 
 
 dayjs.extend(AdvancedFormat);

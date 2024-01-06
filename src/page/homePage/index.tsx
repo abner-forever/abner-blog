@@ -1,5 +1,5 @@
 import React, { Component, Suspense } from 'react'
-import { Empty, ItemCard, Page } from '@/components'
+import { Empty, ArticleCard, Page } from '@/components'
 import withRouter from '@/components/WithRouter'
 import ApiBlog from '@/services/apiBlog'
 interface P {
@@ -47,7 +47,7 @@ class Home extends Component<P, S> {
       <Page className='home-content' loading={loading}>
         {
           articleList.map((item: IArticleItemtype, index: number) => (
-            <ItemCard
+            <ArticleCard
               key={index}
               item={item}
             />

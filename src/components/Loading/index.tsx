@@ -2,7 +2,7 @@ import React from 'react'
 import Lottie from '@/components/Lottie';
 import loadingJson from '@/assets/lottie/loading.json'
 
-import './style.scss'
+import './styles.less'
 
 const Loading = () => {
     return (

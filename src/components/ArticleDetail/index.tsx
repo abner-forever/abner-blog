@@ -3,10 +3,11 @@ import BraftEditor from 'braft-editor'
 import dayjs from 'dayjs'
 import 'braft-editor/dist/output.css'
 import 'braft-extensions/dist/code-highlighter.css'
-import './style.scss';
+import './styles.less';
 
 
 import CodeHighlighter from 'braft-extensions/dist/code-highlighter'
+import Iconfont from '../Iconfont'
 
 let options = {
   them: "dark",
@@ -24,8 +25,12 @@ const ArticleDetail = ({ editArticle }: any) => {
     <div className='detail-content'>
       <p className="detail-title">{title}</p>
       <div className='title-desc'>
-        <span>作者：{author}</span>
-        <span style={{ marginLeft: 8 }}> 发布于：{_createTime}</span>
+        <span className='author' ><Iconfont type='icon-author' size={24} color='' />
+          <span>{author}</span>
+        </span>
+        <span className='update-time'> <Iconfont type="icon-clock" size={20} color="#b4b4b4" />
+        <span>{_createTime}</span>
+        </span>
       </div>
       {/* 文章内容 */}
       <div

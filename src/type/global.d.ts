@@ -13,4 +13,5 @@ interface IArticleItemtype{
   author: string;
   updateTime: string;
   createTime: string;
+  cover: string;
 }

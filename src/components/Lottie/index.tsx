@@ -1,6 +1,6 @@
 import lottie from "lottie-web";
 import React, { useImperativeHandle, FC, useEffect, useRef, useMemo, forwardRef } from "react";
-import './style.less';
+import './styles.less';
 
 interface IProps {
   animationData: any;
