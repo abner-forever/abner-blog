@@ -1,3 +1,11 @@
+## [1.2.1](https://github.com/abner-forever/abner-blog/compare/v1.2.0...v1.2.1) (2024-01-06)
+
+
+### Bug Fixes
+
+* 修改build ([1c33e77](https://github.com/abner-forever/abner-blog/commit/1c33e77020cb57a212693b3718f998260ba449b0))
+* 移除sass ([7d8ee6d](https://github.com/abner-forever/abner-blog/commit/7d8ee6dfbeaf314e89211ac0ac241ebd9f60b7df))
+
 # [1.2.0](https://github.com/abner-forever/abner-blog/compare/v1.1.9...v1.2.0) (2023-05-11)
 
 
