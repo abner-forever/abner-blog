@@ -3,7 +3,7 @@ import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
 import { DEFAULT_HEAD } from "@/constant";
 import GithubIcon from "@img/github.svg";
-import "./style.scss";
+import "./styles.less";
 import { inject, observer } from "mobx-react";
 
 
@@ -50,7 +50,7 @@ const MinePage = ({ history, globalStore:{
           </div>
         </div>
         <div className="social-content">
-          <a href="https://github.com/abner-forever">
+          <a href="https://github.com/abner-forever" target="_blank">
             <img src={GithubIcon} alt="" />
           </a>
         </div>

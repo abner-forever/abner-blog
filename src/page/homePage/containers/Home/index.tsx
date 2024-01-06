@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import { observer } from 'mobx-react'
-import './style.scss'
-import { Empty, ItemCard } from '@/components'
+import './styles.less'
+import { Empty, ArticleCard } from '@/components'
 
 interface P {
   storeArticle: any;
@@ -25,7 +25,7 @@ class Home extends Component<P, S> {
       <div className='home-content'>
         {
           articleList.map((item: IArticleItemtype, index: number) => (
-            <ItemCard
+            <ArticleCard
               key={index}
               item={item}
             />

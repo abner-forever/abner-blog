@@ -1,6 +1,6 @@
 import React, { useState, useEffect, memo } from 'react'
 import defaultImg from '@img/default.png'
-import './style.scss'
+import './styles.less'
 const WallPaper = () => {
     let [imgUrl, setImgurl] = useState('')
     let size = { width: '100%', height: 'auto' }

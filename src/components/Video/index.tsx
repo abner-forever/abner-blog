@@ -1,5 +1,5 @@
 import React from 'react';
-import './style.scss'
+import './styles.less'
 // 你好，李焕英准高清
 // http://api.xosxx.com/hls/playA.php?vid=qGfJeztPsOO0OO1hMNBiltxhIv8GQszrbV1sNDMWuE84HwmweVvL0jmDOO0OO9x7Xdh319ir
 

@@ -1,0 +1,73 @@
+.item-card {
+    position: relative;
+    padding: .2rem;
+    // border-bottom: 1px solid #f0f0f0;
+    background-color: #fff;
+    word-wrap: break-word;
+    cursor: pointer;
+    margin-top: 20px;
+    border-radius: 12px;
+    min-height: 160px;
+    display: flex;
+
+    &:first-of-type {
+        margin-top: 0;
+    }
+
+    &:hover {
+        background-color: rgba(0, 0, 0, .02);
+        // border-radius: 8px;
+    }
+
+    .item-left {
+        width: 240px;
+        background: url("/cat.png") center no-repeat;
+        background-size: contain;
+    }
+
+    .item-right {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        .title {
+            color: #333;
+            margin: -7px 0 4px;
+            display: inherit;
+            font-size: 18px;
+            font-weight: 700;
+            line-height: 1.5;
+        }
+
+        .desc {
+            margin-bottom: 15px;
+            margin-top: 20px;
+        }
+
+        .meta {
+            color: #b4b4b4;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+
+            .update-time {
+                margin-left: 8px;
+                display: flex;
+                align-items: center;
+                span{
+                    margin-left: 8px;
+                }
+            }
+
+            .edit-icon {
+                padding: 4px;
+
+                &:hover {
+                    color: #333;
+                    // background: rgba(@color: #fff, $alpha: 0.8);
+                    border-radius: 4px;
+                }
+            }
+        }
+    }
+
+}

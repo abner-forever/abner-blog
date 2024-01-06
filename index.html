@@ -1,13 +1,13 @@
 <!DOCTYPE html>
-<html lang="zh-cn" 
-data-env="<%= env %>"
->
+<html lang="zh-cn" data-env="<%= env %>">
 
 <head>
   <meta charset="UTF-8" />
-  <!-- <link rel="shortcut icon" type="image/svg+xml" href="/src/favicon.svg" /> -->
+  <link rel="shortcut icon" type="image/svg+xml" href="/cat.png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title> <%= title %></title>
+  <title>
+    <%= title %>
+  </title>
   <style media="screen">
     body {
       padding: 0;
@@ -15,7 +15,8 @@ data-env="<%= env %>"
       -webkit-font-smoothing: antialiased;
       margin: 0;
     }
-    .root-loading{
+
+    .root-loading {
       position: absolute;
       top: calc(50% - 20px);
       left: calc(50% - 20px);
@@ -46,6 +47,7 @@ data-env="<%= env %>"
   <script>
     var global = globalThis || window; // 防止启动报错
   </script>
+  <script src="/iconfont.js"></script>
   <script type="module" src="/src/index.tsx"></script>
 </body>
 

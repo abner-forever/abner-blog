@@ -5,7 +5,7 @@ import { Button, message, Form, Modal, Upload, Input } from 'antd';
 import { LoadingOutlined, PlusOutlined, UserOutlined, EyeTwoTone, EyeInvisibleOutlined, LockOutlined } from '@ant-design/icons';
 import ImgCrop from 'antd-img-crop'
 import { useLocation, useNavigate } from "react-router-dom";
-import './style.less'
+import './styles.less'
 
 /**
  * 登录弹窗

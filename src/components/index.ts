@@ -1,5 +1,5 @@
 import Empty from './Empty'
-import ItemCard from './ItemCard'
+import ArticleCard from './ArticleCard'
 import PageNotFound from './PageNotFound'
 import Loading from './Loading'
 import Comments from './Comments'
@@ -13,7 +13,7 @@ export {Page}  from './Page'
 
 export {
     Empty,
-    ItemCard,
+    ArticleCard,
     Loading,
     PageNotFound,
     Comments,

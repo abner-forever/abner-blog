@@ -1,5 +1,5 @@
 import React from 'react';
-import './style.scss';
+import './styles.less';
 
 const Christmas = () => {
     return <div className='christmas-box'>

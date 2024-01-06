@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
-import './style.scss'
-import { Empty, ItemCard } from '@/components'
+import './styles.less'
+import { Empty, ArticleCard } from '@/components'
 import ApiBlog from  '@/services/apiBlog'
 import Cookies from "js-cookie"
 
@@ -36,7 +36,7 @@ const MyArticle = (props:any) => {
         <div className='content-item'>
             {
                 articleList.length>0 && articleList.map((item, index) => (
-                    <ItemCard
+                    <ArticleCard
                         key={index}
                         item={item}
                         isEdit={true}

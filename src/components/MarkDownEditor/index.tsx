@@ -26,7 +26,7 @@ import { log } from "console";
 //     'python',
 //     'jsx',
 //     'tsx',
-//     'scss',
+//     'less',
 //     'sql',
 //     'vim',
 //     'yaml',
