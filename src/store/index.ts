@@ -1,7 +1,10 @@
-import storeArticle from './storeArticle'
-import globalStore from './global'
+import ArticlStore from "./articleStore";
+import GlobalStore from "./globalStore";
+import React from "react";
 
-export default{
-    storeArticle,
-    globalStore
-}
+const stores = React.createContext({
+  article: new ArticlStore(),
+  global: new GlobalStore(),
+});
+
+export default stores;

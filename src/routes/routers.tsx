@@ -1,104 +1,105 @@
-import React,{lazy} from 'react'
-import { Navigate } from 'react-router-dom'
+import React, { lazy } from "react";
+import { Navigate } from "react-router-dom";
 import { PageNotFound } from "@/components";
-import HomePage from '../page/homePage'
-import About from '../page/About'
-import ArticleDetail from '../page/detailPage'
-import MyArticle from '../page/MyArticle'
-import EditPage from '../page/editPage'
-import Login from '../page/login'
-import AddMD from '../page/AddMD'
+import HomePage from "../page/homePage";
+import About from "../page/About";
+import ArticleDetail from "../page/detailPage";
+import MyArticle from "../page/MyArticle";
+import Login from "../page/auth/login/Login";
+import AddMD from "../page/AddMD";
+import { ViteEnv } from "@/config";
 
 // 动态引入路由
 const lazyLoad = (moduleName: string) => {
-  const viteModule = import.meta.glob('../page/*/index.tsx');
+  const viteModule = import.meta.glob("../page/*/index.tsx");
   const URL = `../page/${moduleName}/index.tsx`;
   let Module = React.lazy(viteModule[`${URL}`] as any);
-  return <Module />
-}
+  return <Module />;
+};
 
+console.log("env", ViteEnv);
 
 // 路由表配置
 const routerList = [
   {
-    path: '/',
+    path: "/",
     element: <HomePage />,
     exact: true,
-    title: '首页',
-    isShowHeader: false
-  },
-  {
-    path: '/demo',
-    element: lazyLoad('demo'),
-    title: 'Demo',
+    title: "首页",
     isShowHeader: false,
   },
   {
-    path: '/edit/:id',
-    element: <EditPage />,
-    title: '编辑',
-    isShowHeader: false,
-    authCheck: true, // 登录验证
+    path: "/video",
+    element: lazyLoad("video"),
+    title: "视频",
+    isShowHeader: true,
   },
   {
-    path: '/addArticle',
-    element: <EditPage />,
-    title: '新增文章',
+    path: "/edit/:id",
+    element: lazyLoad("../page/editPage"),
+    title: "编辑",
     isShowHeader: false,
     authCheck: true, // 登录验证
   },
   {
-    path: '/articleDetail/:id',
+    path: "/addArticle",
+    element: lazyLoad("../page/editPage"),
+    title: "新增文章",
+    isShowHeader: false,
+    authCheck: true, // 登录验证
+  },
+  {
+    path: "/articleDetail/:id",
     element: <ArticleDetail />,
-    title: '文章详情',
-    isShowHeader: false
+    title: "文章详情",
+    isShowHeader: false,
   },
   {
-    path: '/admin',
-    element:  lazyLoad('userCenter'),
-    title: '我的',
+    path: "/admin",
+    element: lazyLoad("userCenter"),
+    title: "我的",
     exact: true,
     isShowHeader: false,
     authCheck: true, // 登录验证
   },
   {
-    path: '/myArticle',
+    path: "/myArticle",
     element: <MyArticle />,
-    title: '我的文章',
+    title: "我的文章",
     exact: true,
-    isShowHeader: false
+    isShowHeader: false,
   },
   {
-    path: '/404',
-    element: <PageNotFound />
+    path: "/404",
+    element: <PageNotFound />,
   },
   {
-    path: '/about',
+    path: "/about",
     element: <About />,
-    title: '日志',
+    title: "日志",
     exact: true,
     isShowHeader: false,
     authCheck: true, // 登录验证
   },
   {
-    path: '/login',
-    element: <Login/>,
-    title: '登录',
+    path: "/login",
+    element: <Login />,
+    title: "登录",
     exact: true,
-    isShowHeader: false
+    isShowHeader: ViteEnv !== "online",
   },
   {
-    path: '/add',
-    element: <AddMD/>,
-    title: 'markdown',
+    path: "/add",
+    element: <AddMD />,
+    title: "markdown",
     exact: true,
-    isShowHeader: false
+    isShowHeader: false,
   },
-  
+
   {
     path: "*",
-    element: <Navigate to='/404' />,
+    element: <Navigate to="/404" />,
   },
-]
- 
-export default routerList
+];
+
+export default routerList;

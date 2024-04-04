@@ -3,8 +3,7 @@ import { BrowserRouter, useRoutes, useLocation, useNavigationType } from "react-
 import { Footer, LoginModal, Header, Loading } from "@/components";
 import routerConfig from "./routers";
 import { TransitionGroup, CSSTransition } from 'react-transition-group'
-
-import "@/index.less";
+import "@/assets/styles/app.less";
 
 const App = () => {
   const { pathname } = useLocation()

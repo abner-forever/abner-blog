@@ -1,0 +1,162 @@
+@import "@/assets/styles/index.less";
+
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  animation: App-logo-spin infinite 20s linear;
+  height: 40vmin;
+  pointer-events: none;
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.active {
+  color: red
+}
+
+.line {
+  display: inline-block;
+  border-bottom: 1px solid #222222;
+  width: 100px;
+  position: absolute;
+  left: 0;
+  top: 7px;
+}
+
+.comment {
+  padding: 0;
+  margin: 24px 0 0;
+}
+
+li {
+  list-style: none;
+}
+
+.app-container {
+  height: 100%;
+  background-color: #f4f5f5;
+}
+
+.container {
+  margin: 0 auto;
+  background: #e9ecef;
+  min-height: 100%;
+  position: relative;
+
+}
+
+.content-wrap {
+  background-color: #f4f5f5;
+  padding-top: 32px;
+  min-height: calc(100vh - 172px);
+}
+
+.content {
+  margin: 0 auto;
+  min-width: 60%;
+  width: 1280px;
+  border-radius: 4px;
+  position: relative;
+  >div{
+    min-height: calc(100vh - 188px);
+  }
+}
+
+.content-item {
+  background-color: #fff;
+}
+
+
+.base-layout {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  margin: auto;
+}
+
+/* 路由前进时的入场/离场动画 */
+.forward-enter {
+  .base-layout;
+  opacity: 0;
+  // transform: translate3d(100vw, 0, 0);
+  z-index: 2;
+}
+
+.forward-enter-active {
+  .base-layout;
+  opacity: 1;
+  // transform: translate3d(0, 0, 0);
+  transition: all 300ms;
+  z-index: 2;
+}
+
+.forward-exit {
+  .base-layout;
+  opacity: 1;
+  // transform: translate3d(0, 0, 0);
+  z-index: 1;
+}
+
+.forward-exit-active {
+  .base-layout;
+  opacity: 0;
+  // transform: translate3d(-20vw, 0, 0);
+  transition: all 300ms;
+  z-index: 1;
+}
+
+/* 路由后退时的入场/离场动画 */
+.back-enter {
+  opacity: 1;
+  // transform: translate3d(-20vw, 0, 0);
+  z-index: 1;
+}
+
+.back-enter-active {
+  .base-layout;
+  opacity: 1;
+  // transform: translate3d(0, 0, 0);
+  transition: all 300ms ease-out;
+  z-index: 1;
+}
+
+.back-exit {
+  .base-layout;
+  // transform: translate3d(0, 0, 0);
+  z-index: 2;
+}
+
+.back-exit-active {
+  .base-layout;
+  // transform: translate3d(100vw, 0, 0);
+  transition: all 300ms ease-out;
+  z-index: 2;
+}

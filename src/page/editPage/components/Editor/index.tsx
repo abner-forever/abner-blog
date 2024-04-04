@@ -1,7 +1,6 @@
-import React, { useEffect, useState, } from 'react'
+import React, { useState, } from 'react'
 import { Button, Input, message } from 'antd'
 import ApiBlog from '@/services/apiBlog'
-import Cookies from "js-cookie"
 import BraftEditor from 'braft-editor'
 import CodeHighlighter from 'braft-extensions/dist/code-highlighter';
 import './styles.less'
@@ -61,11 +60,10 @@ const Editor = ({ id, title: defaultTitle, content }: IProps) => {
   const addEditorContent = async (htmlContent: string) => {
     const desc = editorVal.toRAW(true).blocks[0].text
     let params = {
-      userId: Cookies.get('userId') || 1,
-      author: Cookies.get('userName'),
       title,
       description: desc,
-      content: htmlContent
+      content: htmlContent,
+      type: 1,
     }
     try {
       await ApiBlog.addArticle(params);
@@ -91,6 +89,7 @@ const Editor = ({ id, title: defaultTitle, content }: IProps) => {
     </div>
     <BraftEditor
       id="editor-with-code-highlighter"
+      className='my-edit'
       value={editorVal}
       onChange={handleEditorChange}
       onSave={onSave}

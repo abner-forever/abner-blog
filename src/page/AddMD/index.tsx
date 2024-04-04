@@ -1,7 +1,7 @@
 import React from "react";
-import { MarkDownEditor } from "@/components";
+// import { MarkDownEditor } from "@/components";
 
 const AddMD = ()=>{
-    return <MarkDownEditor/>
+    return <p>MarkDownEditor</p>
 }
 export default AddMD;

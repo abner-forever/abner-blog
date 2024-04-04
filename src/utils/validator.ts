@@ -16,21 +16,21 @@ export const validatePhone = (value: MobileValue) => {
     const countryCode = value.countryCode.toString();
     const regex = countryRules[countryCode] || countryRules["default"];
     if (!regex.test(value.phone)) {
-      return Promise.reject(new Error(""));
+      return Promise.reject(new Error("手机号格式不正确"));
     }
     return Promise.resolve();
   }
-  return Promise.reject(new Error(""));
+  return Promise.reject(new Error("手机号不能为空"));
 };
 
 export const validatePassword = (value: string) => {
   if (value) {
     if (!/^(?=.*[A-Za-z])(?=.*\d).{6,}$/.test(value)) {
-      return Promise.reject(new Error(""));
+      return Promise.reject(new Error("密码格式不正确"));
     }
     return Promise.resolve();
   }
-  return Promise.reject(new Error(""));
+  return Promise.reject(new Error("密码不能为空"));
 };
 
 export const validateNickName = (value: string) => {
