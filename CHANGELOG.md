@@ -1,3 +1,11 @@
+## [1.2.2](https://github.com/abner-forever/abner-blog/compare/v1.2.1...v1.2.2) (2024-04-04)
+
+
+### Bug Fixes
+
+* ci build ([faa6a22](https://github.com/abner-forever/abner-blog/commit/faa6a2259d03ac4ac2fcbabf197f6d01842b8f8e))
+* 更新接口请求 ([1a29045](https://github.com/abner-forever/abner-blog/commit/1a290455f6058168c10d62f633fb951c021483be))
+
 ## [1.2.1](https://github.com/abner-forever/abner-blog/compare/v1.2.0...v1.2.1) (2024-01-06)
 
 
