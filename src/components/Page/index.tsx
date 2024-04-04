@@ -1,18 +1,15 @@
-import React,{ FC} from "react";
+import React, { FC } from "react";
 import Loading from "../Loading";
 
-interface IProps{
+interface IProps {
   children: React.ReactNode | string;
   loading?: boolean;
-  className?: string
+  className?: string;
 }
 
-export const Page:FC<IProps> = ({children, loading=false,className})=>{
-
-  if(loading){
-    return <Loading/>
+export const Page: FC<IProps> = ({ children, loading = false, className }) => {
+  if (loading) {
+    return <Loading />;
   }
-  return <div className={className||''}>
-    {children}
-  </div>
-}
+  return <div className={className || ""}>{children}</div>;
+};

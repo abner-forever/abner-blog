@@ -50,7 +50,7 @@
 
       a {
         color: #757575;
-        font-size: 0.17rem;
+        font-size: 18px;
         font-weight: 700;
       }
 
@@ -77,12 +77,18 @@
         font-weight: bold;
         cursor: pointer;
       }
-      .user-icon {
-        width: 30px;
-        height: 30px;
-        border-radius: 50%;
-        margin-right: 12px;
+      .avator-container{
+        display: flex;
+        flex-wrap: nowrap;
+        align-items: center;
+        .user-avator {
+          width: 30px;
+          height: 30px;
+          border-radius: 50%;
+          margin-right: 12px;
+        }
       }
+      
       .menu-wrap{
         white-space: nowrap;
       }
@@ -108,9 +114,6 @@
       }
     }
     @media (max-width: 530px) {
-      // .banner-logo {
-      //   display: none !important;
-      // }
       .gpt-entry{
         position: fixed;
         right: -35px;

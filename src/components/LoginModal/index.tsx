@@ -14,7 +14,7 @@ import './styles.less'
  */
 const LoginModal = (props: any) => {
   const { onClose = () => { } } = props||{};
-  const [userName, setUserName] = useState('');
+  const [username, setusername] = useState('');
   const [password, setPassword] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [loading, setLoading] = useState(false);
@@ -30,10 +30,10 @@ const LoginModal = (props: any) => {
     // setIsLogin()
   },[])
   const onLogin = async (values: any) => {
-    const { userName, password } = values
+    const { username, password } = values
    try {
     let res: any = await ApiBlog.login({
-      userName: userName,
+      username: username,
       password: password
     })
     if (res && res.token) {
@@ -50,35 +50,6 @@ const LoginModal = (props: any) => {
    } catch (error:any) {
     message.error(error.message)
    }
-  }
-  const register = async () => {
-    if (!userName || !password) {
-      message.info("用户名或密码不能为空")
-      return
-    }
-    let url = await uploadImg();
-    await ApiBlog.register({
-      userName: userName,
-      password: password,
-      avator: url
-    })
-    message.success('注册成功')
-    navigate('/admin')
-  }
-  const beforeUpload = (file: any) => {
-    const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
-    if (!isJpgOrPng) {
-      message.error('You can only upload JPG/PNG file!');
-    }
-    const isLt2M = file.size / 1024 / 1024 < 2;
-    if (!isLt2M) {
-      message.error('Image must smaller than 2MB!');
-    }
-    setFileList([...fileList, file])
-    getImgBase64Data(file, (url: string) => {
-      setImageUrl(url)
-    })
-    return false;
   }
   const getImgBase64Data = (file: any, callback: Function) => {
     var reader = new FileReader();
@@ -103,7 +74,7 @@ const LoginModal = (props: any) => {
     });
     setLoading(true)
     return new Promise((resolve) => {
-      fetch('/api/users/head', {
+      fetch('/api/user/head', {
         method: "POST",
         body: formData //自动修改请求头,formdata的默认请求头的格式是 multipart/form-data
       }).then((res) => res.json()).then((res) => {
@@ -124,7 +95,7 @@ const LoginModal = (props: any) => {
       setButtonDisable(true)
       message.warning('密码不一致')
     } else {
-      if (userName !== '' && password === newPassword) {
+      if (username !== '' && password === newPassword) {
         setButtonDisable(false)
       } else {
         setButtonDisable(true)
@@ -138,24 +109,21 @@ const LoginModal = (props: any) => {
       <Form className='modal-content'
         onFinish={onLogin}
         form={form}
-      // onFinishFailed={onFinishFailed}
       >
         <div className='form-input'>
           <Form.Item
-            // label="账号"
-            name="userName"
+            name="username"
             rules={[{ required: true, message: '请输入账号' }]}
           >
             <Input
               type="text"
-              name='userName'
-              value={userName}
+              name='username'
+              value={username}
               prefix={<UserOutlined />}
               size='large'
             />
           </Form.Item>
           <Form.Item
-            // label="密码"
             name="password"
             rules={[{ required: true, message: '请输入密码' }]}
           >
@@ -187,48 +155,16 @@ const LoginModal = (props: any) => {
       </Form>
     )
   }
-  const RegisterForm = () => {
-    return (
-      <div >
-        <label htmlFor="head" title='头像'>
-          <span>头像</span>
-          <ImgCrop>
-            <Upload
-              name="avator"
-              listType="picture-card"
-              className="avator-uploader"
-              showUploadList={false}
-              beforeUpload={beforeUpload}
-              fileList={fileList}
-              onRemove={removeImg}
-            >
-              {imageUrl ? <div className='head-image'>
-                <img src={imageUrl} alt="avator" style={{ width: '100%' }} />
-              </div> : uploadButton}
-            </Upload>
-          </ImgCrop>
-        </label>
-        <div className='form-input'>
-          <input placeholder='请输入账号' onChange={(e) => { setUserName(e.target.value) }} type="text" name='userName' value={userName} />
-          <input placeholder='请输入密码' onChange={(e) => { setPassword(e.target.value) }} type="password" name='current-password' value={password} />
-          <input placeholder='再次确认密码' onBlur={checkPasswords} onChange={checkPasswords} type="password" name='checkPassWord' value={checkPassword} />
-        </div>
-        <div className='form-submit'>
-          <Button disabled={buttonDisable} type={'primary'} onClick={register}>注册</Button>
-        </div>
-      </div>
-    )
-  }
   return (
     <Modal
       open
       onCancel={onClose}
       centered
-      title={isLogin ? '登录' : '注册'}
+      title="登录"
       footer={null}
       className='login-modal'
     >
-      {isLogin ? <LoginForm /> : <RegisterForm />}
+      <LoginForm />
     </Modal>
 
   )

@@ -5,16 +5,16 @@ class ApiBlog {
    * 博客列表数据
    */
   apiArticleList = (params?: any) => {
-    return Fetch.get("/article/articleList", params);
+    return Fetch.get("/article/list", params);
   };
-  getMyArticleList = (params: any) => {
-    return Fetch.get("/article/myarticleList", params);
+  getMyArticleList = () => {
+    return Fetch.get("/article/myarticleList");
   };
   /**
    * 博客详情页
    */
-  getArticleDetail = (params: any) => {
-    return Fetch.get("/article/getArticle", params);
+  getArticleDetail = ({ id }: any) => {
+    return Fetch.get(`/article/deatil/${id}`);
   };
   /**
    * 添加文章评论
@@ -40,38 +40,40 @@ class ApiBlog {
    * /article/updateArticle
    */
   updateArticle = (params: any) => {
-    return Fetch.post("/article/updateArticle", params);
+    return Fetch.post("/article/update", params);
   };
   /**
    * 添加文章
    * /article/addArticle
    */
-  addArticle = (params: any) => {
-    return Fetch.post("/article/addArticle", params);
+  addArticle = (params: any): Promise<any> => {
+    return Fetch.post("/article/add", params);
   };
 
   removeArticle = (params: any) => {
-    return Fetch.post("/article/removeArticle", params);
+    return Fetch.post("/article/delete", params);
   };
   //登录
   login = (params: any) => {
-    return Fetch.post("/users/login", params);
+    return Fetch.post("/login", params);
   };
-  //注册
-  register = (params: any) => {
-    return Fetch.post("/users/register", params);
+
+  uploadAvator = (params: any) => {
+    return upLoad.post("/files/upload/avator", params);
   };
-  uploadHead = (params: any) => {
-    return upLoad.post("/users/head", params);
+  updateUserInfo = (params: any) => {
+    return Fetch.post("/user/updateUserInfo", params);
+  };
+  uploadMarkdownImage = (params: any) => {
+    return upLoad.post("/files/upload/markdown", params);
   };
   /**
    * 获取用户信息
-   * @param params 
-   * @param type 
-   * @returns 
+   * @param params
+   * @returns
    */
-  getUserInfo = (params: any, type?: string) => {
-    return Fetch.get("/users/userinfo", params);
+  requestUserInfo = (params?: any) => {
+    return Fetch.get("/user/userInfo", params);
   };
   //日志列表
   logList = (params?: any) => {
@@ -79,4 +81,5 @@ class ApiBlog {
   };
 }
 
-export default new ApiBlog();
+const apiBlog = new ApiBlog();
+export default apiBlog;

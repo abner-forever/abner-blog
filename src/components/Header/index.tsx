@@ -1,26 +1,24 @@
 import React, { FC, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
-
+import { Dropdown } from "antd";
+import useStore from "@/hooks/useStore";
+import { observer } from "mobx-react";
 import { DEFAULT_HEAD } from "@/constant";
 
 import "./styles.less";
-import { Dropdown } from "antd";
+import { isMobile } from "@/utils/userAgent";
+
 interface IProps {
   routerConfig: any[];
   onToggleLoginModal: () => void;
-  globalStore?: any;
 }
 
-
-
-const Header: FC<IProps> = ({ globalStore, routerConfig, onToggleLoginModal }) => {
-  const { userInfo } = globalStore || {};
-  const token = Cookies.get("user-token");
+const Header: FC<IProps> = ({ routerConfig, onToggleLoginModal }) => {
+  const { global } = useStore();
   const location = useLocation();
   const [activeTab, setActiveTab] = useState(location.pathname);
   const navigate = useNavigate();
-
 
   const loginout = () => {
     let currentCookieSetting = {
@@ -28,53 +26,85 @@ const Header: FC<IProps> = ({ globalStore, routerConfig, onToggleLoginModal }) =
     };
     Object.assign(currentCookieSetting, {});
     Cookies.set("user-token", "", currentCookieSetting);
-    Cookies.set("userId", "", currentCookieSetting);
-    Cookies.set("userName", "", currentCookieSetting);
+    Cookies.set("user-id", "", currentCookieSetting);
     navigate("/login", {
-      replace: true
+      replace: true,
     });
+    global.isLogin = false;
+    global.userInfo = undefined;
   };
 
   const items = [
     {
-      key: '1',
+      key: "1",
       label: (
-        <span onClick={loginout}>
-          退出登录
-        </span>
+        <a href="https://github.com/abner-forever" target="_blank">
+          About me
+        </a>
       ),
     },
-  ]
+    {
+      key: "2",
+      label: <span onClick={loginout}>退出登录</span>,
+    },
+  ];
 
-  return <header className="header-container">
-    <ul className="banner">
-      <li className='banner-left'>
-        <Link to="" className='banner-logo'>Abner的笔记</Link>
-        {routerConfig.map(
-          (item: any, index) => {
-            return item.isShowHeader && (
-              <span
-                key={index}
-                className={`tab-item ${item.path === activeTab ? "active" : ''}`}
-              >
-                <Link onClick={() => setActiveTab(item.path)} to={item.path}>{item.title}</Link>
-              </span>
-            )
-          }
-        )}
-      </li>
-      <li className="login-item">
-        {token &&
-          <Dropdown overlayClassName='menu-wrap' menu={{ items }} placement="bottom" arrow>
-            <Link onClick={() => setActiveTab('admin')} to='admin'>
-              <img className="user-icon" src={userInfo?.avator || DEFAULT_HEAD} alt="" />
-              <span>{userInfo?.userName}</span>
+  return (
+    <header className="header-container">
+      <ul className="banner">
+        <li className="banner-left">
+          {!isMobile() && (
+            <Link to="" className="banner-logo">
+              Abner的笔记
             </Link>
-          </Dropdown>
-        }
-      </li>
-      <a className="gpt-entry" href="https://openai.foreverheart.top" target="_blank" />
-    </ul>
-  </header>
-}
-export default Header;
+          )}
+          {routerConfig.map((item: any, index) => {
+            return (
+              item.isShowHeader && (
+                <span
+                  key={index}
+                  className={`tab-item ${
+                    item.path === activeTab ? "active" : ""
+                  }`}
+                >
+                  <Link onClick={() => setActiveTab(item.path)} to={item.path}>
+                    {item.title}
+                  </Link>
+                </span>
+              )
+            );
+          })}
+        </li>
+        <li className="login-item">
+          {global.isLogin && (
+            <Dropdown
+              overlayClassName="menu-wrap"
+              menu={{ items }}
+              placement="bottom"
+              arrow
+            >
+              <Link
+                className="avator-container"
+                onClick={() => setActiveTab("admin")}
+                to="admin"
+              >
+                <img
+                  className="user-avator"
+                  src={global.userInfo?.avator || DEFAULT_HEAD}
+                  alt=""
+                />
+                <span>{global.userInfo?.username}</span>
+              </Link>
+            </Dropdown>
+          )}
+        </li>
+        <a
+          className="gpt-entry"
+          href="https://openai.foreverheart.top"
+          target="_blank"
+        />
+      </ul>
+    </header>
+  );
+};
+export default observer(Header);

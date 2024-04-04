@@ -61,7 +61,7 @@ const Comments = ({id}:any) => {
                                 <img src={item.avator|| DEFAULT_HEAD} alt="" />
                             </div>
                             <div className='comment-detail'>
-                                <span className='user-name'>{item.userName}</span>
+                                <span className='user-name'>{item.username}</span>
                                 <p className='comments'>{item.content}</p>
                                 {userId === String(item.userId) && <span className='remove-icon' onClick={() => onRemoveComment(item.id)}>删除</span>}
                             </div>

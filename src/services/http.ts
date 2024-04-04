@@ -1,63 +1,76 @@
-import { PROXY_ENV } from "@/config";
+import configs from "@/config";
 import Common from "@/utils/Common";
+import Cookies from "js-cookie";
+
+function prependDomainIfNeeded(url: string, domain: string) {
+  // 构建匹配域名的正则表达式
+  const domainRegex =
+    /^(?:https?:\/\/)?(?:www\.)?([a-zA-Z0-9-]+\.?)+\.[a-zA-Z]{2,}(?:\/[^\s]*)?$/;
+  if (!domainRegex.test(url)) {
+    url = domain + url;
+  }
+  return url;
+}
+
 class Http {
-  HOST: string;
+  domain: string;
   headers: any;
   timeout?: number;
 
   constructor(config: HttpConfigType) {
-    this.HOST = config.HOST;
-    this.headers = config.headers || {};
-    this.timeout = config.timeout || 10000;
-    if (
-      config.interceptors &&
-      typeof config.interceptors.response === "function"
-    ) {
-      this.interceptorsResponse = config.interceptors.response;
+    const { domain, headers, timeout, interceptors } = config || {};
+    this.domain = domain || configs.api;
+    this.headers = headers || {};
+    this.timeout = timeout || 10000;
+
+    if (interceptors && typeof interceptors.response === "function") {
+      this.interceptorsResponse = interceptors.response;
     }
-    if (
-      config.interceptors &&
-      typeof config.interceptors.requset === "function"
-    ) {
-      this.interceptorsRequest = config.interceptors.requset;
+    if (interceptors && typeof interceptors.request === "function") {
+      this.interceptorsRequest = interceptors.request;
     }
   }
-  interceptorsResponse(res: any) {
-    return new Promise((resolve) => {
-      resolve(res);
+  interceptorsResponse(response: any, options?: any) {
+    return new Promise(resolve => {
+      resolve(response);
     });
   }
   interceptorsRequest(res: any) {
     return res;
   }
-  commonFetch(url: string, headers: any, body: any, method = "GET") {
+  commonFetch(path: string, headers: any, body: any, method = "GET") {
     const abortController = new AbortController();
     let initParams: any = {
       signal: abortController.signal,
     };
+    const _headers = {
+      ...headers,
+      Authorization: `Bearer ${Cookies.get("user-token")}`,
+    };
+    const requestUrl = prependDomainIfNeeded(path, this.domain);
     if (method === "GET") {
-      url = Common.buildRequestUrl(url, body);
+      path = Common.buildRequestUrl(path, body);
       initParams = {
         ...initParams,
-        headers: { ...headers },
+        headers: _headers,
         method,
       };
     } else {
       initParams = {
         ...initParams,
         method,
-        headers: { ...headers },
-        body: JSON.stringify(body),
+        headers: _headers,
+        body: body,
       };
     }
+
     const request = new Promise((resolve, reject) => {
-      console.log('this.HOST + PROXY_ENV +url',this.HOST + PROXY_ENV +url);
-      fetch(this.HOST + PROXY_ENV +url, initParams)
-        .then((response) => response.json())
-        .then((res) => {
+      fetch(requestUrl, initParams)
+        .then(response => response.json())
+        .then(res => {
           resolve(res);
         })
-        .catch((err) => {
+        .catch(err => {
           reject(err);
         });
     });
@@ -69,7 +82,7 @@ class Http {
     });
     return Promise.race([request, timeOut]);
   }
-  async post(url: string, body: any, options?: any) {
+  async post(url: string, body: any, options?: any): Promise<any> {
     let { headers = {} } = options || {};
     headers = { ...this.headers, ...headers };
     let res = await this.commonFetch(
@@ -80,29 +93,29 @@ class Http {
     );
     return new Promise((resolve, reject) => {
       try {
-        this.interceptorsResponse(res)
-          .then((result) => {
+        this.interceptorsResponse(res, options)
+          .then(result => {
             resolve(result);
           })
-          .catch((err) => {
-            reject(err);
+          .catch(error => {
+            reject(error);
           });
       } catch (error) {
         reject(error);
       }
     });
   }
-  async get(url: string, body: any, options?: any) {
+  async get(url: string, params?: any, options?: any) {
     let { headers = {} } = options || {};
     headers = { ...this.headers, ...headers };
-    let res = await this.commonFetch(url, headers, body, options);
+    let res = await this.commonFetch(url, headers, params, options);
     return new Promise((resolve, reject) => {
       try {
         this.interceptorsResponse(res)
-          .then((result) => {
+          .then(result => {
             resolve(result);
           })
-          .catch((err) => {
+          .catch(err => {
             reject(err);
           });
       } catch (error) {

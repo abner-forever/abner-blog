@@ -1,12 +1,29 @@
 import { HOSTS } from "@/constant";
 
-const ViteEnv = import.meta.env.MODE;
-console.log('ViteEnv',ViteEnv);
-
+export const ViteEnv = import.meta.env.MODE;
 const HOST = HOSTS[ViteEnv];
-const PROXY_ENV = ViteEnv === 'online' ? '/api': '/dev_api';
+const PROXY_ENV = ViteEnv === "online" ? "/api" : "/dev_api";
 
-export{
-  HOST,
-  PROXY_ENV
+interface ConfigItem {
+  api: string;
+  imageServer: string;
 }
+interface Config {
+  dev: ConfigItem;
+  online: ConfigItem;
+}
+
+const config: Config = {
+  dev: {
+    api: HOST + PROXY_ENV,
+    imageServer: "http://localhost:8080",
+  },
+  online: {
+    api: HOST + PROXY_ENV,
+    imageServer: HOST, // cdf
+  },
+};
+
+const currentConfig = ViteEnv === "online" ? config.online : config.dev;
+
+export default currentConfig;

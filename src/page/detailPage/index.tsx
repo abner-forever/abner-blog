@@ -22,7 +22,6 @@ const DetailPage = () => {
         <ArticleDetail editArticle={articleDetail} />
         {!!userId && <Comments id={id} />}
       </React.Suspense>
-
     </Page>
   );
 };
