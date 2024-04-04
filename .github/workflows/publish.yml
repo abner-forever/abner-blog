@@ -20,15 +20,15 @@ jobs:
         # 使用action库  actions/setup-node安装node
         uses: actions/setup-node@v1
         with:
-          node-version: 18.15.0
+          node-version: 18.16.1
 
       # 安装依赖
       - name: 安装依赖
-        run: yarn
+        run: pnpm i
 
       # 打包
       - name: 打包
-        run: yarn build
+        run: pnpm build
 
         # 构建release
       - name: release
