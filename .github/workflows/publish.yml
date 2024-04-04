@@ -24,11 +24,11 @@ jobs:
 
       # 安装依赖
       - name: 安装依赖
-        run: pnpm i
+        run: npx pnpm i
 
       # 打包
       - name: 打包
-        run: pnpm build
+        run: npx pnpm build
 
         # 构建release
       - name: release

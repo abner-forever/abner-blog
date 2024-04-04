@@ -13,9 +13,8 @@ export default defineConfig(({command, mode,...rest}) => {
             plugins: ["decorators-legacy"],
           },
           plugins: [
-            ["@babel/plugin-transform-react-jsx"],
             ["@babel/plugin-proposal-decorators", { legacy: true }],
-            ["@babel/plugin-proposal-class-properties", { loose: true }],
+            ["@babel/plugin-transform-class-properties", { loose: true }],
           ],
         },
       }),
@@ -75,7 +74,7 @@ export default defineConfig(({command, mode,...rest}) => {
       chunkSizeWarningLimit: 1024,
       rollupOptions: {
         // 确保外部化处理那些你不想打包进库的依赖
-        external: ['lodash', 'antd', 'braft-editor'],
+        external: ['lodash', 'braft-editor'],
         output: {
           chunkFileNames: "js/[name]-[hash].js",
           entryFileNames: "js/[name]-[hash].js",
@@ -83,7 +82,6 @@ export default defineConfig(({command, mode,...rest}) => {
           globals: {
             'lodash': 'lodash',
             'braft-editor': 'braft-editor',
-            'antd': 'antd',
           }
         },
       },
