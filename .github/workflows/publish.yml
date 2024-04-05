@@ -1,4 +1,4 @@
-name: 打包应用并上传服务器
+name: build:online
 
 on:
   push:
@@ -14,8 +14,8 @@ jobs:
       - name: 迁出代码
         # 使用action库  actions/checkout获取源码
         uses: actions/checkout@master
-      # 安装Node10
-      
+
+      # 安装Node18
       - name: 安装node.js
         # 使用action库  actions/setup-node安装node
         uses: actions/setup-node@v1
@@ -30,25 +30,25 @@ jobs:
       - name: 打包
         run: npx pnpm build
 
-        # 构建release
+      # 构建release
       - name: release
-        env: 
+        env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: npm run release
 
-      # 上传阿里云
-      - name: 发布
+      # 上传
+      - name: upload
         uses: easingthemes/ssh-deploy@v2.1.1
         env:
-          # 私钥 这里是阿里云的私钥 使用本地的私钥
-          SSH_PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
-          # scp参数 
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          # scp参数
           ARGS: "-avzr --delete"
           # 源目录
           SOURCE: "./dist"
           # 服务器ip：换成你的服务器IP
-          REMOTE_HOST: "foreverheart.top"
+          REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
           # 用户
-          REMOTE_USER: "root"
+          REMOTE_USER: ${{ secrets.REMOTE_USER }}
           # 目标地址
           TARGET: "/www/blog"

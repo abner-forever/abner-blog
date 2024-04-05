@@ -20,7 +20,7 @@ const config: Config = {
   },
   online: {
     api: HOST + PROXY_ENV,
-    imageServer: HOST, // cdf
+    imageServer: HOST,
   },
 };
 
