@@ -12,8 +12,7 @@ import { isMobile, isPad } from "../utils/userAgent";
   // 横屏根据屏幕高度计算 rem
   const clientWidth = document.documentElement.clientWidth;
   const DESIGN_DRAFT = isMobile() ? DESIGN_DRAFT_MOBILE : DESIGN_DRAFT_PC;
-  const dpr = window.devicePixelRatio
-  const scale = isMobile() ? (clientWidth * dpr) / DESIGN_DRAFT : 2;
+  const scale = isMobile() ? (clientWidth * 2) / DESIGN_DRAFT : 2;
 
   document.documentElement.style.fontSize = BASE_SIZE * scale + "px";
   }
