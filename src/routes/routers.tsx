@@ -4,7 +4,7 @@ import { PageNotFound } from "@/components";
 import HomePage from "../page/homePage";
 import About from "../page/About";
 import ArticleDetail from "../page/detailPage";
-import MyArticle from "@/page/myArticle";
+import MyArticle from "@/page/myArticles";
 import Login from "../page/auth/login/Login";
 import AddMD from "../page/AddMD";
 import { ViteEnv } from "@/config";
