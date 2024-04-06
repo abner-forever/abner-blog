@@ -1,32 +1,23 @@
-import { defineConfig, splitVendorChunkPlugin } from "vite";
+import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
-import { ViteEjsPlugin } from 'vite-plugin-ejs'
+import { ViteEjsPlugin } from "vite-plugin-ejs";
+import babel from "vite-plugin-babel";
+
 // https://vitejs.dev/config/
-export default defineConfig(({command, mode,...rest}) => {
-  
+export default defineConfig(({}) => {
   return {
     plugins: [
-      react({
-        babel: {
-          parserOpts: {
-            plugins: ["decorators-legacy"],
-          },
-          plugins: [
-            ["@babel/plugin-proposal-decorators", { legacy: true }],
-            ["@babel/plugin-transform-class-properties", { loose: true }],
-          ],
-        },
-      }),
-      ViteEjsPlugin((viteConfig) => {
+      babel(),
+      react(),
+      ViteEjsPlugin(viteConfig => {
         return {
           root: viteConfig.root,
           title: "Abner的笔记",
           env: viteConfig.mode,
-          __APP_VERSION__: process.env.npm_package_version
-        }
+          __APP_VERSION__: process.env.npm_package_version,
+        };
       }),
-      splitVendorChunkPlugin()
     ],
     resolve: {
       alias: {
@@ -50,46 +41,43 @@ export default defineConfig(({command, mode,...rest}) => {
     },
     server: {
       port: 3000,
+      host: true,
       proxy: {
-        "/dev_api": { // 调试本地node服务使用
+        "/dev_api": {
+          // 调试本地node服务使用
           target: "http://localhost:8080",
-          // changeOrigin: true,
-          rewrite: path => path.replace(/^\/dev_api/, '/api'),
+          rewrite: path => path.replace(/^\/dev_api/, "/api"),
         },
         "/api": {
-          target: "http://foreverheart.top:8080",
-          // changeOrigin: true,
-        },
-        "/commonstatic": {
-          target: "http://foreverheart.top:8080",
-          // changeOrigin: true,
+          target: "https://foreverheart.top",
+          changeOrigin: true,
         },
       },
-      open: 'index.html'
+      open: "index.html",
     },
-    build: {  // 调整打包后文件放置路径
+    build: {
+      // 调整打包后文件放置路径
       assetsDir: "static",
       sourcemap: true,
       reportCompressedSize: false,
       chunkSizeWarningLimit: 1024,
       rollupOptions: {
-        // 确保外部化处理那些你不想打包进库的依赖
-        external: ['lodash', 'braft-editor'],
         output: {
           chunkFileNames: "js/[name]-[hash].js",
           entryFileNames: "js/[name]-[hash].js",
           assetFileNames: "static/[ext]/[name]-[hash].[ext]",
-          globals: {
-            'lodash': 'lodash',
-            'braft-editor': 'braft-editor',
-          }
         },
       },
+      rollupOutput:{
+        manualChunks: {
+          lodash: ['lodash']
+        }
+      }
     },
     esbuild: {
       define: {
-        this: 'window'
-      }
-    }
-  }
+        this: "window",
+      },
+    },
+  };
 });

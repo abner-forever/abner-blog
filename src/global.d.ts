@@ -1,8 +1,6 @@
 /// <reference types="react-scripts" />
 
 declare module "js-cookie";
-declare module "braft-extensions/dist/code-highlighter";
-declare module "editor.md/editormd.amd";
 
 interface MobileValue {
   countryCode: number;

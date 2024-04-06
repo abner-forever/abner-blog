@@ -1,5 +1,4 @@
 import React, { Suspense, useEffect, useState } from "react";
-import Editor from "./components/Editor";
 import ApiBlog from "@/services/apiBlog";
 import { useLocation, useParams } from "react-router-dom";
 import { Loading } from "@/components";

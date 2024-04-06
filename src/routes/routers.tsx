@@ -1,6 +1,6 @@
-import React from "react";
+import React, { ComponentType, Suspense, lazy } from "react";
 import { Navigate } from "react-router-dom";
-import { PageNotFound } from "@/components";
+import { Loading, PageNotFound } from "@/components";
 import HomePage from "../page/homePage";
 import About from "../page/About";
 import ArticleDetail from "../page/detailPage";
@@ -12,12 +12,14 @@ import EditorPage from "@/page/editPage";
 import UserCenter from "@/page/userCenter";
 import Video from "@/page/video";
 
-// 动态引入路由
-const lazyLoad = (moduleName: string) => {
-  const viteModule = import.meta.glob("../page/*/index.tsx");
-  const URL = `../page/${moduleName}/index.tsx`;
-  let Module = React.lazy(viteModule[`${URL}`] as any);
-  return <Module />;
+// 自定义懒加载函数
+const lazyLoad = (factory: () => Promise<{ default: ComponentType }>) => {
+  const Module = lazy(factory);
+  return (
+    <Suspense fallback={<Loading />}>
+      <Module />
+    </Suspense>
+  );
 };
 
 console.log("env", ViteEnv);
@@ -33,27 +35,27 @@ const routerList = [
   },
   {
     path: "/video",
-    element: <Video />,
+    element: lazyLoad(() => import("@/page/video")),
     title: "视频",
     isShowHeader: true,
   },
   {
     path: "/edit/:id",
-    element: <EditorPage />,
+    element: lazyLoad(() => import("@/page/editPage")),
     title: "编辑",
     isShowHeader: false,
     authCheck: true, // 登录验证
   },
   {
     path: "/addArticle",
-    element: <EditorPage />,
+    element: lazyLoad(() => import("@/page/editPage")),
     title: "新增文章",
     isShowHeader: false,
     authCheck: true, // 登录验证
   },
   {
     path: "/articleDetail/:id",
-    element: <ArticleDetail />,
+    element: lazyLoad(() => import("@/page/detailPage")),
     title: "文章详情",
     isShowHeader: false,
   },
