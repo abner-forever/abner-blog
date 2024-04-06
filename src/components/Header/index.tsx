@@ -9,12 +9,11 @@ import { DEFAULT_HEAD } from "@/constant";
 import "./styles.less";
 import { isMobile } from "@/utils/userAgent";
 
-interface IProps {
+interface HeaderProps {
   routerConfig: any[];
-  onToggleLoginModal: () => void;
 }
 
-const Header: FC<IProps> = ({ routerConfig, onToggleLoginModal }) => {
+const Header: FC<HeaderProps> = ({ routerConfig }) => {
   const { global } = useStore();
   const location = useLocation();
   const [activeTab, setActiveTab] = useState(location.pathname);
@@ -53,11 +52,12 @@ const Header: FC<IProps> = ({ routerConfig, onToggleLoginModal }) => {
     <header className="header-container">
       <ul className="banner">
         <li className="banner-left">
-          {!isMobile() && (
-            <Link to="" className="banner-logo">
-              Abner的笔记
-            </Link>
-          )}
+          <span
+            onClick={() => navigate("/", { replace: true })}
+            className="banner-logo"
+          >
+            {isMobile() ? "首页" : "Abner的笔记"}
+          </span>
           {routerConfig.map((item: any, index) => {
             return (
               item.isShowHeader && (
@@ -79,7 +79,7 @@ const Header: FC<IProps> = ({ routerConfig, onToggleLoginModal }) => {
           {global.isLogin && (
             <Dropdown
               overlayClassName="menu-wrap"
-              menu={{ items }}
+              menu={{ items: isMobile() ? [] : items }}
               placement="bottom"
               arrow
             >
@@ -93,16 +93,16 @@ const Header: FC<IProps> = ({ routerConfig, onToggleLoginModal }) => {
                   src={global.userInfo?.avator || DEFAULT_HEAD}
                   alt=""
                 />
-                <span>{global.userInfo?.username}</span>
+                {!isMobile() && <span>{global.userInfo?.username}</span>}
               </Link>
             </Dropdown>
           )}
         </li>
-        <a
+        {/* <a
           className="gpt-entry"
           href="https://openai.foreverheart.top"
           target="_blank"
-        />
+        /> */}
       </ul>
     </header>
   );

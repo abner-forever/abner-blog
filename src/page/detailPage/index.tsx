@@ -7,7 +7,7 @@ import Cookies from "js-cookie";
 
 const DetailPage = () => {
   const { id } = useParams();
-  const [articleDetail, setArticleDetail] = useState();
+  const [articleDetail, setArticleDetail] = useState<any>();
   useEffect(() => {
     getArticleDetail();
   }, []);
@@ -17,11 +17,9 @@ const DetailPage = () => {
     setArticleDetail(res);
   };
   return (
-    <Page>
-      <React.Suspense fallback={<Loading />}>
-        <ArticleDetail editArticle={articleDetail} />
-        {!!userId && <Comments id={id} />}
-      </React.Suspense>
+    <Page title={articleDetail?.title}>
+      <ArticleDetail editArticle={articleDetail} />
+      {!!userId && <Comments id={id} />}
     </Page>
   );
 };

@@ -1,65 +1,62 @@
-import React, { Component, Suspense } from 'react'
-import { Empty, ArticleCard, Page } from '@/components'
-import withRouter from '@/components/WithRouter'
-import ApiBlog from '@/services/apiBlog'
+import React, { Component } from "react";
+import { Empty, ArticleCard, Page, Header } from "@/components";
+import withRouter from "@/components/WithRouter";
+import ApiBlog from "@/services/apiBlog";
+import routerConfig from "@/routes/routers";
+import "./style.less";
+
 interface P {
   storeArticle?: any;
   history?: any;
-  router: any
+  router: any;
 }
 interface S {
-  articleList: any[]
-  loading: boolean
+  articleList: any[];
+  loading: boolean;
 }
 class Home extends Component<P, S> {
-  store: any
+  store: any;
   constructor(props: any) {
-    super(props)
+    super(props);
     this.state = {
       articleList: [],
       loading: true,
-    }
+    };
   }
 
   componentDidMount() {
-    this.init()
+    this.init();
   }
 
   init = async () => {
     try {
       let res: any = await ApiBlog.apiArticleList();
-      console.log('liost',res);
       this.setState({
         articleList: res.list,
-        loading: false
-      })
+        loading: false,
+      });
     } catch (error: any) {
-      console.error('get article list error', error.message)
+      console.error("get article list error", error.message);
       this.setState({
-        loading: false
-      })
-      
+        loading: false,
+      });
     }
-  }
+  };
 
   render() {
-    const { articleList = [], loading } = this.state;
+    const { articleList = [] } = this.state;
     return (
-      <Page className='home-content' loading={loading}>
-        {
-          articleList.map((item: IArticleItemtype, index: number) => (
-            <ArticleCard
-              key={index}
-              item={item}
-            />
-          ))
-        }
-        {
-          articleList.length === 0 && <Empty title='暂无文章' />
-        }
-      </Page>
+      <div className="home-content">
+        <Header routerConfig={routerConfig} />
+        <div className="article-list">
+          {articleList.map((item: IArticleItemtype, index: number) => (
+            <ArticleCard key={index} item={item} />
+          ))}
+        </div>
+        {articleList.length === 0 && <Empty title="暂无文章" />}
+      </div>
     );
   }
 }
 
-export default withRouter(Home)
+export default withRouter(Home);

@@ -25,20 +25,20 @@ const MinePage = ({}: any) => {
     }
     if (isLogin && !userInfo) global.getUserInfo();
   }, [isLogin]);
-  const handleAvatorChange = async (event: any)=>{
+  const handleAvatorChange = async (event: any) => {
     const file = event.target.files[0];
     const formData = new FormData();
-    formData.append('file', file)
+    formData.append("file", file);
     const { url } = await apiBlog.uploadAvator(formData);
-    const urls = config.imageServer+url;
+    const urls = config.imageServer + url;
     await apiBlog.updateUserInfo({
       avator: urls,
-    }) 
+    });
     global.updateUserInfo({
       avator: urls,
     });
-    message.success('头像更新成功')
-  }
+    message.success("头像更新成功");
+  };
 
   return (
     <Page className="user-content">
@@ -49,22 +49,22 @@ const MinePage = ({}: any) => {
       <div className="userinfo-wrap">
         <div className="userinfo">
           <p className="user-name">{userInfo?.username}</p>
-          <div className="write-article">
-            <p
-              onClick={() => {
-                navigate("/addArticle");
-              }}
-            >
-              去写文章
-            </p>
-            <p
-              onClick={() => {
-                navigate("/myArticle");
-              }}
-            >
-              我的文章
-            </p>
-          </div>
+        </div>
+        <div className="write-article">
+          <p
+            onClick={() => {
+              navigate("/addArticle");
+            }}
+          >
+            去写文章
+          </p>
+          <p
+            onClick={() => {
+              navigate("/myArticle");
+            }}
+          >
+            我的文章
+          </p>
         </div>
       </div>
       <div className="social-content">

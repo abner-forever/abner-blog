@@ -1,4 +1,7 @@
-import React, { FC } from "react";
+import React from "react";
+import classNames from "classnames";
+import { FC } from "react";
+import "./style.less";
 
 interface IProps extends IObject {
   /** 图标类型 icon- */
@@ -10,15 +13,19 @@ interface IProps extends IObject {
 }
 
 /** 字体图标 */
-const Iconfont: FC<IProps> = (props) => {
-  const { type, color, size, style, ...rest } = props;
+const Iconfont: FC<IProps> = props => {
+  const { type, color, size, style, className, ...rest } = props;
 
   return (
     <svg
-      className="iconfont"
+      className={classNames(
+        "iconfont",
+        size && `iconfont-size-${size}`,
+        className
+      )}
       aria-hidden="true"
       fill={color}
-      style={{ width: size, height: size, ...style }}
+      style={style}
       {...rest}
     >
       <use xlinkHref={`#${type}`}></use>

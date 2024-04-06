@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Empty, ArticleCard } from "@/components";
+import { Empty, ArticleCard, Page } from "@/components";
 import ApiBlog from "@/services/apiBlog";
 import "./styles.less";
 
@@ -26,7 +26,7 @@ const MyArticle = (props: any) => {
     setArticleList(newlist);
   };
   return (
-    <div className="content-item">
+    <Page className="content-item">
       {articleList.length > 0 &&
         articleList.map((item, index) => (
           <ArticleCard
@@ -37,7 +37,7 @@ const MyArticle = (props: any) => {
           />
         ))}
       {!articleList.length && <Empty title="暂无文章" />}
-    </div>
+    </Page>
   );
 };
 export default MyArticle;

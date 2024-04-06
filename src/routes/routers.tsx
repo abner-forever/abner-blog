@@ -1,13 +1,16 @@
-import React, { lazy } from "react";
+import React from "react";
 import { Navigate } from "react-router-dom";
 import { PageNotFound } from "@/components";
 import HomePage from "../page/homePage";
 import About from "../page/About";
 import ArticleDetail from "../page/detailPage";
-import MyArticle from "../page/MyArticle";
+import MyArticle from "../page/myArticle";
 import Login from "../page/auth/login/Login";
 import AddMD from "../page/AddMD";
 import { ViteEnv } from "@/config";
+import EditorPage from "@/page/editPage";
+import UserCenter from "@/page/userCenter";
+import Video from "@/page/video";
 
 // 动态引入路由
 const lazyLoad = (moduleName: string) => {
@@ -30,20 +33,20 @@ const routerList = [
   },
   {
     path: "/video",
-    element: lazyLoad("video"),
+    element: <Video />,
     title: "视频",
     isShowHeader: true,
   },
   {
     path: "/edit/:id",
-    element: lazyLoad("../page/editPage"),
+    element: <EditorPage />,
     title: "编辑",
     isShowHeader: false,
     authCheck: true, // 登录验证
   },
   {
     path: "/addArticle",
-    element: lazyLoad("../page/editPage"),
+    element: <EditorPage />,
     title: "新增文章",
     isShowHeader: false,
     authCheck: true, // 登录验证
@@ -56,7 +59,7 @@ const routerList = [
   },
   {
     path: "/admin",
-    element: lazyLoad("userCenter"),
+    element: <UserCenter />,
     title: "我的",
     exact: true,
     isShowHeader: false,

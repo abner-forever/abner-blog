@@ -1,4 +1,4 @@
-.item-card {
+.article-card {
   position: relative;
   padding: 20px;
   background-color: #fff;
@@ -22,9 +22,10 @@
     flex: none;
     width: 120px;
     height: 120px;
-    background: url(@/assets/img/default.png)  center no-repeat;
+    background: url(@/assets/img/default.png) center no-repeat;
     background-size: contain;
     opacity: 0.6;
+
     img {
       width: 100%;
       height: 100%;
@@ -85,7 +86,9 @@
           margin-left: 8px;
         }
       }
-
+      .edit-options{
+        display: flex;
+      }
       .edit-icon {
         padding: 4px;
 
@@ -98,4 +101,19 @@
     }
   }
 
+}
+
+@media screen and (max-width: @mobile-max-width) {
+  .article-card {
+    width: 350px;
+    .item-right {
+      .meta {
+        flex-direction: column;
+        align-items: flex-start;
+        .update-time{
+          margin-left: 0;
+        }
+      }
+    }
+  }
 }

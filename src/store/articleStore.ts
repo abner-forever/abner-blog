@@ -9,9 +9,7 @@ class Article {
   @observable isModalVisible = false;
 
   @action onGetEditText = async (id: any) => {
-    let res: any = await ApiBlog.getArticleDetail({
-      id: id,
-    });
+    let res: any = await ApiBlog.getArticleDetail({id});
     runInAction(() => {
       this.editArticle = res;
     });

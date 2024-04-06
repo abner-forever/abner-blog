@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import PasswordForm from '@/components/AuthForm/PasswordForm';
 import useStore from '@/hooks/useStore';
 import './styles.less'
+import { Page } from '@/components';
 /**
  * 登录页面
  * @param props 
@@ -31,10 +32,10 @@ const Login = () => {
     }
   }
   return (
-    <div className='content-item login-page'>
+    <Page className='login-page'>
       <p className='title' >用户登录</p>
       <PasswordForm onSubmit={onLogin}/>
-    </div>
+    </Page>
   )
 }
 export default Login;

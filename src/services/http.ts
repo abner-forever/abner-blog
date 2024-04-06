@@ -14,7 +14,7 @@ function prependDomainIfNeeded(url: string, domain: string) {
 
 class Http {
   domain: string;
-  headers: any;
+  headers: Record<string, string>;
   timeout?: number;
 
   constructor(config: HttpConfigType) {
@@ -35,8 +35,8 @@ class Http {
       resolve(response);
     });
   }
-  interceptorsRequest(res: any) {
-    return res;
+  interceptorsRequest(request: any) {
+    return request;
   }
   commonFetch(path: string, headers: any, body: any, method = "GET") {
     const abortController = new AbortController();

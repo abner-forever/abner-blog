@@ -1,10 +1,11 @@
 import React, { useCallback, useEffect, useState } from "react";
+import { useNavigate } from "react-router";
 import apiBlog from "@/services/apiBlog";
 import Editor from "for-editor";
 import { throttle } from "lodash";
 import configs from "@/config";
 import "./style.less";
-import { useNavigate } from "react-router";
+import { isMobile } from "@/utils/userAgent";
 
 interface MarkdownEditerProps {
   id?: number;
@@ -24,7 +25,6 @@ const matchTitleAndDesc = (markdown: string): DditorParams => {
   const descriptionMatch = markdown.match(descriptionRegex);
   const title = titleMatch ? titleMatch[1] : "";
   const description = descriptionMatch ? descriptionMatch[0] : "";
-  console.log("description", description);
 
   return {
     title,
@@ -112,7 +112,7 @@ const MarkdownEditer = ({ id, content }: MarkdownEditerProps) => {
       </div>
       <Editor
         subfield={true}
-        preview={true}
+        preview={!isMobile()}
         addImg={uploadHandler}
         value={markdown}
         onChange={updateMarkdown}

@@ -1,6 +1,6 @@
 .markdown-container {
   position: fixed !important;
-  top: 66px;
+  top: 0;
   left: 0;
   width: 100vw;
   height: calc(100vh - 120px);
@@ -43,6 +43,17 @@
     .cm-line {
       font-size: 18px;
       font-family: 'Courier New', Courier, monospace;
+    }
+  }
+}
+@media screen {
+  
+}
+@media screen and (max-width: @mobile-max-width) {
+  .markdown-container{
+    height: 100vh;
+    .for-container {
+      padding-bottom: 20px;
     }
   }
 }

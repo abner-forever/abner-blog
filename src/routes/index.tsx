@@ -1,64 +1,61 @@
 import React, { Suspense, useState } from "react";
-import { BrowserRouter, useRoutes, useLocation, useNavigationType } from "react-router-dom";
-import { Footer, LoginModal, Header, Loading } from "@/components";
+import {
+  BrowserRouter,
+  useRoutes,
+  useLocation,
+  useNavigationType,
+} from "react-router-dom";
+import { Footer, LoginModal, Loading } from "@/components";
 import routerConfig from "./routers";
-import { TransitionGroup, CSSTransition } from 'react-transition-group'
+import { TransitionGroup, CSSTransition } from "react-transition-group";
 import "@/assets/styles/app.less";
-
-const App = () => {
-  const { pathname } = useLocation()
-  let routes = useRoutes(routerConfig, pathname);
-  const navigateType = useNavigationType();
-  //@ts-ignore
-  const { nodeRef } =
-    routerConfig.find((route) => route.path === location.pathname) ?? {};
-  return <TransitionGroup
-    childFactory={(child) =>
-      React.cloneElement(child, { classNames: ANIMATION_MAP[navigateType] })
-    }
-  >
-    <CSSTransition
-      key={location.pathname}
-      nodeRef={nodeRef}
-      timeout={300}
-      unmountOnExit
-    >
-      {routes}
-    </CSSTransition>
-  </TransitionGroup>;
-};
+import "./route.less";
+import { isMobile } from "@/utils/userAgent";
 const ANIMATION_MAP = {
   PUSH: "forward",
   POP: "back",
   REPLACE: "back",
 };
 
+const App = () => {
+  const { pathname } = useLocation();
+  let routes = useRoutes(routerConfig, pathname);
+  const navigateType = useNavigationType();
+  //@ts-ignore
+  const { nodeRef } =
+    routerConfig.find(route => route.path === location.pathname) ?? {};
+  return (
+    <>
+      <div className="content-wrap">
+        <Suspense fallback={<Loading />}>
+          <TransitionGroup
+            childFactory={child =>
+              React.cloneElement(child, {
+                classNames: ANIMATION_MAP[navigateType],
+              })
+            }
+          >
+            <CSSTransition
+              key={location.pathname}
+              nodeRef={nodeRef}
+              timeout={300}
+              unmountOnExit
+            >
+              {routes}
+            </CSSTransition>
+          </TransitionGroup>
+        </Suspense>
+      </div>
+      {!isMobile() && <Footer />}
+    </>
+  );
+};
 const Routers = () => {
-  const [isLoginModalShow, setIsModalShow] = useState(false);
-  const onToggleLoginModal = () => {
-    setIsModalShow(!isLoginModalShow)
-  }
-
   return (
     <BrowserRouter>
-      <Header
-        onToggleLoginModal={onToggleLoginModal}
-        routerConfig={routerConfig}
-      />
-      <div className="content-wrap">
-        <div className="content">
-          <Suspense fallback={<Loading />}>
-            <App />
-          </Suspense>
-        </div>
-      </div>
-      <Footer />
-      {
-        isLoginModalShow && <LoginModal onClose={onToggleLoginModal} />
-      }
+      <App />
     </BrowserRouter>
   );
 };
 
 export default Routers;
-

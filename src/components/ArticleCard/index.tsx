@@ -15,7 +15,7 @@ function ArticleCard({ item, isEdit, deleteArticle = () => {} }: IProps) {
       onClick={() => {
         navigate(`/articleDetail/${item.id}`);
       }}
-      className="item-card"
+      className="article-card"
       key={item.id}
     >
       <div className="item-left">{item.cover && <img src={item.cover} />}</div>
@@ -35,25 +35,25 @@ function ArticleCard({ item, isEdit, deleteArticle = () => {} }: IProps) {
             </span>
           </span>
           {isEdit && (
-            <div
-              onClick={event => {
-                event.stopPropagation();
-                navigate(`/edit/${item.id}`);
-              }}
-              className="edit-icon"
-            >
-              编辑
-            </div>
-          )}
-          {isEdit && (
-            <div
-              onClick={event => {
-                event.stopPropagation();
-                deleteArticle(item.id);
-              }}
-              className="edit-icon"
-            >
-              删除
+            <div className="edit-options">
+              <div
+                onClick={event => {
+                  event.stopPropagation();
+                  navigate(`/edit/${item.id}`);
+                }}
+                className="edit-icon"
+              >
+                编辑
+              </div>
+              <div
+                onClick={event => {
+                  event.stopPropagation();
+                  deleteArticle(item.id);
+                }}
+                className="edit-icon"
+              >
+                删除
+              </div>
             </div>
           )}
         </div>

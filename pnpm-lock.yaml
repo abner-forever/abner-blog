@@ -29,6 +29,9 @@ dependencies:
   braft-extensions:
     specifier: ^0.1.1
     version: 0.1.1(draft-js-prism@1.0.6)(draft-js@0.10.5)(draftjs-utils@0.9.4)(html-table-to-json@0.4.1)(immutable@3.7.6)(prismjs@1.29.0)(react-color@2.19.3)(react-dom@18.2.0)(react@18.2.0)
+  classnames:
+    specifier: ^2.5.1
+    version: 2.5.1
   customize-cra:
     specifier: ^0.2.11
     version: 0.2.14

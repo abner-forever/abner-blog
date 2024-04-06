@@ -2,7 +2,7 @@ import React from "react";
 import dayjs from "dayjs";
 import MarkdownPreview from "@uiw/react-markdown-preview";
 import Iconfont from "../Iconfont";
-import { Page } from "../Page";
+import { isMobile } from "@/utils/userAgent";
 import "./styles.less";
 
 //文章详情页
@@ -18,8 +18,8 @@ const ArticleDetail = ({ editArticle }: any) => {
     "YYYY-MM-DD HH:MM"
   );
   return (
-    <Page loading={!editArticle} className="detail-content">
-      <p className="detail-title">{title}</p>
+    <div className="detail-content">
+     {!isMobile() && <p className="detail-title">{title}</p>}
       <div className="title-desc">
         <span className="author">
           <Iconfont type="icon-author" size={24} color="" />
@@ -45,7 +45,7 @@ const ArticleDetail = ({ editArticle }: any) => {
           }
         }}
       />
-    </Page>
+    </div>
   );
 };
 export default ArticleDetail;

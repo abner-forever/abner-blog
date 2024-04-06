@@ -1,25 +1,27 @@
 .header-container {
   background-color: #fff;
-  width: 100%;
+  width: 100vw;
   box-shadow: 0 2px 8px rgba(0, 0, 0, .03);
   position: sticky;
   left: 0;
   top: 0;
   z-index: 999;
-
+  overflow: hidden;
   .banner {
     display: flex;
     justify-content: space-between;
     align-items: center;
     height: 56px;
-    min-width: 60%;
-    max-width: 920px;
+    width: 1280px;
+    max-width: 100%;
     margin: 0 auto;
     position: relative;
+
     .banner-left {
       display: flex;
       word-break: keep-all;
     }
+
     .banner-logo {
       font-size: 18px;
       padding: 0 16px;
@@ -31,7 +33,7 @@
       color: @primary-color;
       font-weight: 600;
     }
-    
+
     .tab-item {
       margin: 0 5px;
       padding: 12px 16px;
@@ -43,7 +45,7 @@
       position: relative;
 
       &.active {
-        a{
+        a {
           color: #009a61;
         }
       }
@@ -56,6 +58,7 @@
 
       &:hover {
         opacity: 0.8;
+
         &::after {
           content: '';
           width: 100%;
@@ -72,28 +75,33 @@
 
     .login-item {
       padding: 0 8px;
-      a{
+
+      a {
         color: #757575;
         font-weight: bold;
         cursor: pointer;
       }
-      .avator-container{
+
+      .avator-container {
         display: flex;
         flex-wrap: nowrap;
         align-items: center;
+
         .user-avator {
           width: 30px;
           height: 30px;
           border-radius: 50%;
           margin-right: 12px;
+          border: 1px solid #ccc;
         }
       }
-      
-      .menu-wrap{
+
+      .menu-wrap {
         white-space: nowrap;
       }
     }
-    .gpt-entry{
+
+    .gpt-entry {
       position: absolute;
       right: -80px;
       top: 0;
@@ -108,25 +116,19 @@
       height: 40px;
       background-color: #e7f8ff;
       border-radius: 8px;
-      transition:all .2s linear;
-      &:active{
+      transition: all .2s linear;
+
+      &:active {
         transform: scale(.9);
-      }
-    }
-    @media (max-width: 530px) {
-      .gpt-entry{
-        position: fixed;
-        right: -35px;
-        top: auto;
-        bottom: 10px;
-        margin: 0;
-        transition: all 0.5s ease-in-out;
-        &:active{
-          // transform:translateX(90);
-          right: 10px;
-        }
       }
     }
   }
 }
 
+@media screen and (max-width: @mobile-max-width) {
+  .header-container {
+    .banner {
+      width: 100vw;
+    }
+  }
+}

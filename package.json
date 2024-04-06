@@ -27,6 +27,7 @@
     "antd-img-crop": "^4.12.2",
     "braft-editor": "^2.3.9",
     "braft-extensions": "^0.1.1",
+    "classnames": "^2.5.1",
     "customize-cra": "^0.2.11",
     "dayjs": "^1.11.5",
     "easymde": "^2.15.0",
