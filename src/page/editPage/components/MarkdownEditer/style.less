@@ -5,8 +5,9 @@
   width: 100vw;
   height: calc(100vh - 120px);
   z-index: 999;
+  transform: translateZ(0);
 
-  .markdown-title {
+  &-title {
     height: 60px;
     background-color: #fff;
     line-height: 40px;
@@ -15,6 +16,7 @@
     padding: 12px 32px;
     border: none;
     width: 100%;
+    display: flex;
 
     &:focus-visible {
       border: none;
@@ -22,19 +24,20 @@
     }
   }
 
-  .title-container {
-    position: relative;
-
-    .markdown-back {
-      position: absolute;
-      right: 20px;
-      top: 0;
-      bottom: 0;
-      margin: auto;
-      line-height: 60px;
-      cursor: pointer;
-    }
+  &-back {
+    position: absolute;
+    right: 20px;
+    top: 0;
+    bottom: 0;
+    margin: auto;
+    line-height: 60px;
+    cursor: pointer;
   }
+
+  &-title-wrap {
+    position: relative;
+  }
+
 
   .for-container {
     width: 100%;
@@ -46,12 +49,11 @@
     }
   }
 }
-@media screen {
-  
-}
+
 @media screen and (max-width: @mobile-max-width) {
-  .markdown-container{
+  .markdown-container {
     height: 100vh;
+
     .for-container {
       padding-bottom: 20px;
     }

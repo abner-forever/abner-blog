@@ -1,7 +1,7 @@
 import React, { FC, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
-import { Dropdown } from "antd";
+import { Dropdown } from "antd-mobile";
 import useStore from "@/hooks/useStore";
 import { observer } from "mobx-react";
 import { DEFAULT_HEAD } from "@/constant";
@@ -18,35 +18,6 @@ const Header: FC<HeaderProps> = ({ routerConfig }) => {
   const location = useLocation();
   const [activeTab, setActiveTab] = useState(location.pathname);
   const navigate = useNavigate();
-
-  const loginout = () => {
-    let currentCookieSetting = {
-      expires: -1,
-    };
-    Object.assign(currentCookieSetting, {});
-    Cookies.set("user-token", "", currentCookieSetting);
-    Cookies.set("user-id", "", currentCookieSetting);
-    navigate("/login", {
-      replace: true,
-    });
-    global.isLogin = false;
-    global.userInfo = undefined;
-  };
-
-  const items = [
-    {
-      key: "1",
-      label: (
-        <a href="https://github.com/abner-forever" target="_blank">
-          About me
-        </a>
-      ),
-    },
-    {
-      key: "2",
-      label: <span onClick={loginout}>退出登录</span>,
-    },
-  ];
 
   return (
     <header className="header-container">
@@ -77,25 +48,18 @@ const Header: FC<HeaderProps> = ({ routerConfig }) => {
         </li>
         <li className="login-item">
           {global.isLogin && (
-            <Dropdown
-              overlayClassName="menu-wrap"
-              menu={{ items: isMobile() ? [] : items }}
-              placement="bottom"
-              arrow
+            <Link
+              className="avator-container"
+              onClick={() => setActiveTab("admin")}
+              to="/userCenter"
             >
-              <Link
-                className="avator-container"
-                onClick={() => setActiveTab("admin")}
-                to="admin"
-              >
-                <img
-                  className="user-avator"
-                  src={global.userInfo?.avator || DEFAULT_HEAD}
-                  alt=""
-                />
-                {!isMobile() && <span>{global.userInfo?.username}</span>}
-              </Link>
-            </Dropdown>
+              <img
+                className="user-avator"
+                src={global.userInfo?.avator || DEFAULT_HEAD}
+                alt=""
+              />
+              {!isMobile() && <span>{global.userInfo?.username}</span>}
+            </Link>
           )}
         </li>
         {/* <a

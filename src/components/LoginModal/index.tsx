@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import ApiBlog from '@/services/apiBlog'
 import Cookies from "js-cookie"
-import { Button, message, Form, Modal, Upload, Input } from 'antd';
+import { Button, Toast, Form, Modal, Input } from 'antd-mobile';
 import { LoadingOutlined, PlusOutlined, UserOutlined, EyeTwoTone, EyeInvisibleOutlined, LockOutlined } from '@ant-design/icons';
 import { useLocation, useNavigate } from "react-router-dom";
 import './styles.less'
@@ -42,12 +42,12 @@ const LoginModal = (props: any) => {
       Object.assign(currentCookieSetting, {})
       Cookies.set('user-token', res.token, currentCookieSetting)
       Cookies.set('userId', res.userId, currentCookieSetting)
-      message.success("登录成功");
+      Toast.show("登录成功");
       onClose();
       // navigate('admin')
     }
    } catch (error:any) {
-    message.error(error.message)
+    Toast.show(error.message)
    }
   }
   const getImgBase64Data = (file: any, callback: Function) => {
@@ -81,7 +81,7 @@ const LoginModal = (props: any) => {
         setLoading(false)
         resolve(res.url)
       }).catch((err) => {
-        message.error(`上传失败：${err}`)
+        Toast.show(`上传失败：${err}`)
       })
     })
   }
@@ -92,7 +92,7 @@ const LoginModal = (props: any) => {
     setCheckPassword(newPassword)
     if (newPassword.length === password.length && password !== newPassword) {
       setButtonDisable(true)
-      message.warning('密码不一致')
+      Toast.show('密码不一致')
     } else {
       if (username !== '' && password === newPassword) {
         setButtonDisable(false)
@@ -118,20 +118,20 @@ const LoginModal = (props: any) => {
               type="text"
               name='username'
               value={username}
-              prefix={<UserOutlined />}
-              size='large'
+              // prefix={<UserOutlined />}
+              // size='large'
             />
           </Form.Item>
           <Form.Item
             name="password"
             rules={[{ required: true, message: '请输入密码' }]}
           >
-            <Input.Password
-              iconRender={visible => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
+            <Input
+              // iconRender={visible => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
               placeholder='请输入密码'
               name='passWord'
-              size='large'
-              prefix={<LockOutlined />}
+              // size='large'
+              // prefix={<LockOutlined />}
               value={password} />
           </Form.Item>
 
@@ -139,9 +139,10 @@ const LoginModal = (props: any) => {
         <Form.Item shouldUpdate>
         {() => (
           <Button
-            type="primary"
+            color="primary"
             className='submit-button'
-            htmlType="submit"
+            // htmlType="submit"
+            type="submit"
             disabled={
               !form.isFieldsTouched(true) ||
               !!form.getFieldsError().filter(({ errors }:any) => errors.length).length
@@ -156,15 +157,12 @@ const LoginModal = (props: any) => {
   }
   return (
     <Modal
-      open
-      onCancel={onClose}
-      centered
+      visible
+      onClose={onClose}
       title="登录"
-      footer={null}
       className='login-modal'
-    >
-      <LoginForm />
-    </Modal>
+      content={<LoginForm />}
+    />
 
   )
 }

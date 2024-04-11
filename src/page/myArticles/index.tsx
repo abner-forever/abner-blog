@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Empty, ArticleCard, Page } from "@/components";
 import ApiBlog from "@/services/apiBlog";
-import "./styles.less";
 
 const MyArticle = (props: any) => {
   const [articleList, setArticleList] = useState([]);

@@ -38,7 +38,7 @@ const MarkdownEditer = ({ id, content }: MarkdownEditerProps) => {
   const [titleAndDescription, setTitleAndDescription] = useState<DditorParams>({
     title: "未命名文章标题",
   });
-  const navigate  = useNavigate()
+  const navigate = useNavigate();
 
   useEffect(() => {
     const initData = () => {
@@ -90,8 +90,8 @@ const MarkdownEditer = ({ id, content }: MarkdownEditerProps) => {
       const formData = new FormData();
       formData.append("file", file);
       const { url } = await apiBlog.uploadMarkdownImage(formData);
-      let str = markdown + `![alt](${configs.imageServer}`+url+')'
-      setMarkdown(str)
+      let str = markdown + `![alt](${configs.imageServer}` + url + ")";
+      setMarkdown(str);
       const { title, description } = matchTitleAndDesc(str);
       onSaveThrottled(title, description, str);
     } catch (error) {
@@ -99,16 +99,17 @@ const MarkdownEditer = ({ id, content }: MarkdownEditerProps) => {
     }
   };
 
-
   return (
     <div className="markdown-container">
-      <div className="title-container">
-      <input
-        className="markdown-title"
-        value={titleAndDescription?.title}
-        onChange={onChangeTitle}
-      />
-      <div className="markdown-back" onClick={()=>navigate(-1)}>返回</div>
+      <div className="markdown-container-title-wrap">
+        <input
+          className="markdown-container-title"
+          value={titleAndDescription?.title}
+          onChange={onChangeTitle}
+        />
+        <div className="markdown-container-back" onClick={() => navigate(-1)}>
+          返回
+        </div>
       </div>
       <Editor
         subfield={true}

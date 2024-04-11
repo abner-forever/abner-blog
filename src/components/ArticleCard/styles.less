@@ -10,22 +10,23 @@
   display: flex;
   overflow: hidden;
   transition: all .2s;
+
   &:first-of-type {
     margin-top: 0;
   }
 
   &:hover {
-    box-shadow:  9px 9px 18px #d2d6d8,
-    -9px -9px 18px #ffffff;
+    box-shadow: 9px 9px 18px #d2d6d8,
+      -9px -9px 18px #fff;
   }
 
   .item-left {
     flex: none;
     width: 120px;
     height: 120px;
-    background: url(@/assets/img/default.png) center no-repeat;
+    background: url("@/assets/img/default.png") center no-repeat;
     background-size: contain;
-    opacity: 0.6;
+    opacity: 60%;
 
     img {
       width: 100%;
@@ -43,17 +44,20 @@
 
     .title {
       color: #333;
-      display: inherit;
       font-size: 18px;
       font-weight: 700;
       line-height: 1.5;
       overflow: hidden;
+
       /* 隐藏溢出的文本 */
       display: -webkit-box;
+
       /* 设置为弹性盒子布局 */
       -webkit-box-orient: vertical;
+
       /* 设置弹性盒子的方向为垂直 */
       -webkit-line-clamp: 2;
+
       /* 设置显示的行数 */
       word-wrap: break-word;
     }
@@ -62,12 +66,16 @@
       margin-bottom: 12px;
       margin-top: 12px;
       overflow: hidden;
+
       /* 隐藏溢出的文本 */
       display: -webkit-box;
+
       /* 设置为弹性盒子布局 */
       -webkit-box-orient: vertical;
+
       /* 设置弹性盒子的方向为垂直 */
       -webkit-line-clamp: 2;
+
       /* 设置显示的行数 */
       word-wrap: break-word;
     }
@@ -87,15 +95,16 @@
           margin-left: 8px;
         }
       }
-      .edit-options{
+
+      .edit-options {
         display: flex;
       }
+
       .edit-icon {
         padding: 4px;
 
         &:hover {
           color: #333;
-          // background: rgba(@color: #fff, $alpha: 0.8);
           border-radius: 4px;
         }
       }
@@ -107,11 +116,13 @@
 @media screen and (max-width: @mobile-max-width) {
   .article-card {
     width: 350px;
+
     .item-right {
       .meta {
         flex-direction: column;
         align-items: flex-start;
-        .update-time{
+
+        .update-time {
           margin-left: 0;
         }
       }

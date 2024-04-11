@@ -6,7 +6,7 @@ import './styles.less'
 
 const Loading = () => {
     return (
-        <div className='loading-cont'>
+        <div className='loading-container'>
             <Lottie animationData={loadingJson} />
         </div>
     )

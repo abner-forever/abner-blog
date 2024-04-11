@@ -1,11 +1,10 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { ConfigProvider } from "antd";
+// import { ConfigProvider } from "antd-mobile";
 import { Provider } from "mobx-react";
 import AppRouter from "./routes";
 import store from "./store";
 import "./lib/setRem";
-import "antd/dist/reset.css";
 
 const antdTheme = {
   token: {
@@ -19,11 +18,9 @@ const antdTheme = {
 
 const App = () => {
   return (
-    <ConfigProvider theme={antdTheme}>
       <Provider {...store}>
         <AppRouter />
       </Provider>
-    </ConfigProvider>
   );
 };
 

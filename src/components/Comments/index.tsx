@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import ApiBlog from '@/services/apiBlog'
-import { Button, Input, message } from 'antd'
+import { Button, Input, Toast } from 'antd-mobile'
 import Cookies from "js-cookie";
 import './styles.less'
 import { DEFAULT_HEAD } from '@/constant';
@@ -25,7 +25,7 @@ const Comments = ({id}:any) => {
     const addComment = async () => {
 
         if (!userId) {
-            message.warning('请登录后再评论');
+            Toast.show('请登录后再评论');
             return;
         }
         let params = {
@@ -49,8 +49,8 @@ const Comments = ({id}:any) => {
                     <img src="" alt="" />
                 </div>
                 <div className='input-box'>
-                    <Input placeholder='输入评论...' type="text" value={comment} onChange={(e) => { setComment(e.target.value) }} />
-                    <Button type={'primary'} disabled={!comment} onClick={addComment}>评论</Button>
+                    <Input placeholder='输入评论...' type="text" value={comment} onChange={(value) => { setComment(value) }} />
+                    <Button color={'primary'} disabled={!comment} onClick={addComment}>评论</Button>
                 </div>
             </div>
             <div className='comment-list'>

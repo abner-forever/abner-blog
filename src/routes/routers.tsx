@@ -1,17 +1,8 @@
 import React, { ComponentType, Suspense, lazy } from "react";
 import { Navigate } from "react-router-dom";
 import { Loading, PageNotFound } from "@/components";
-import HomePage from "../page/homePage";
-import About from "../page/About";
-import ArticleDetail from "../page/detailPage";
-import MyArticle from "@/page/myArticles";
-import Login from "../page/auth/login/Login";
-import AddMD from "../page/AddMD";
+import HomePage from "@/page/homePage";
 import { ViteEnv } from "@/config";
-import EditorPage from "@/page/editPage";
-import UserCenter from "@/page/userCenter";
-import Video from "@/page/video";
-
 // 自定义懒加载函数
 const lazyLoad = (factory: () => Promise<{ default: ComponentType }>) => {
   const Module = lazy(factory);
@@ -21,8 +12,6 @@ const lazyLoad = (factory: () => Promise<{ default: ComponentType }>) => {
     </Suspense>
   );
 };
-
-console.log("env", ViteEnv);
 
 // 路由表配置
 const routerList = [
@@ -60,8 +49,8 @@ const routerList = [
     isShowHeader: false,
   },
   {
-    path: "/admin",
-    element: <UserCenter />,
+    path: "/userCenter",
+    element: lazyLoad(() => import("@/page/userCenter")),
     title: "我的",
     exact: true,
     isShowHeader: false,
@@ -69,8 +58,29 @@ const routerList = [
   },
   {
     path: "/myArticle",
-    element: <MyArticle />,
+    element: lazyLoad(() => import("@/page/myArticles")),
     title: "我的文章",
+    exact: true,
+    isShowHeader: false,
+  },
+  {
+    path: "/christmas",
+    element: lazyLoad(() => import("@/page/Christmas")),
+    title: "圣诞节",
+    exact: true,
+    isShowHeader: false,
+  },
+  {
+    path: "/login",
+    element: lazyLoad(() => import("@/page/auth/login/Login")),
+    title: "登录",
+    exact: true,
+    isShowHeader: ViteEnv !== "online",
+  },
+  {
+    path: "/add",
+    element: lazyLoad(() => import("@/page/AddMD")),
+    title: "markdown",
     exact: true,
     isShowHeader: false,
   },
@@ -78,29 +88,6 @@ const routerList = [
     path: "/404",
     element: <PageNotFound />,
   },
-  {
-    path: "/about",
-    element: <About />,
-    title: "日志",
-    exact: true,
-    isShowHeader: false,
-    authCheck: true, // 登录验证
-  },
-  {
-    path: "/login",
-    element: <Login />,
-    title: "登录",
-    exact: true,
-    isShowHeader: ViteEnv !== "online",
-  },
-  {
-    path: "/add",
-    element: <AddMD />,
-    title: "markdown",
-    exact: true,
-    isShowHeader: false,
-  },
-
   {
     path: "*",
     element: <Navigate to="/404" />,

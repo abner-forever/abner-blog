@@ -1,6 +1,6 @@
 import React from 'react'
 import ApiBlog from '@/services/apiBlog'
-import { message } from 'antd';
+import { Toast } from 'antd-mobile';
 import { useNavigate } from 'react-router-dom';
 import PasswordForm from '@/components/AuthForm/PasswordForm';
 import useStore from '@/hooks/useStore';
@@ -21,14 +21,14 @@ const Login = () => {
         password
       })
       if (res && res.token) {
-        message.success("登录成功");
+        Toast.show("登录成功");
         global.isLogin = true;
-        navigate('/admin', {
+        navigate('/userCenter', {
           replace: true
         });
       }
     } catch (error: any) {
-      message.error(error.message)
+      Toast.show(error.message)
     }
   }
   return (

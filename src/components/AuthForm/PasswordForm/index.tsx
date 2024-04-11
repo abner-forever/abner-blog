@@ -1,5 +1,5 @@
 import React, { FC, useState } from "react";
-import { Button, Form, Input } from "antd";
+import { Button, Form, Input } from "antd-mobile";
 import { LockOutlined, UserOutlined } from "@ant-design/icons";
 import { validateNickName, validatePassword } from "@/utils/validator";
 import "./style.less";
@@ -49,17 +49,16 @@ const PasswordForm: FC<PasswordFormProps> = ({ onSubmit }) => {
       return Promise.reject(error);
     }
   };
-  const onFinish = (e: any) => {
+  const onFinish = () => {
     const { username, password } = form.getFieldsValue();
+    console.log("onFinish", username);
     onSubmit({ username, password });
   };
   return (
     <Form
-      wrapperCol={{ span: 24 }}
       style={{ maxWidth: 600 }}
       initialValues={{ remember: true }}
       onFinish={onFinish}
-      autoComplete="off"
       className="login-form"
       form={form}
     >
@@ -67,30 +66,22 @@ const PasswordForm: FC<PasswordFormProps> = ({ onSubmit }) => {
         name="username"
         rules={[{ required: true, validator: checkAccount }]}
       >
-        <Input
-          prefix={<UserOutlined />}
-          placeholder="请输入账号"
-          className="input-item"
-        />
+        <Input placeholder="请输入账号" className="input-item" />
       </Form.Item>
       <Form.Item
         name="password"
         rules={[{ required: true, validator: checkPassword }]}
       >
-        <Input
-          prefix={<LockOutlined />}
-          placeholder="请输入密码"
-          className="input-item"
-        />
+        <Input placeholder="请输入密码" className="input-item" />
       </Form.Item>
       <Button
-        type="primary"
+        color="primary"
         disabled={Object.keys(formPassed).some(
           key => formPassed[key] === false
         )}
         size="large"
         className="button"
-        htmlType="submit"
+        type="submit"
       >
         登录
       </Button>

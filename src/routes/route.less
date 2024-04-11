@@ -1,6 +1,7 @@
 .content-wrap {
   background-color: #f4f5f5;
   min-height: calc(100vh - 88px);
+
   >div {
     min-height: calc(100vh - 88px);
   }
@@ -9,68 +10,64 @@
 
 .base-layout {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   z-index: 1;
 }
 
 /* 路由前进时的入场/离场动画 */
 .forward-enter {
   .base-layout;
-  opacity: 0;
-  // transform: translate3d(100vw, 0, 0);
+
+  opacity: 0%;
   z-index: 2;
 }
 
 .forward-enter-active {
   .base-layout;
-  opacity: 1;
-  // transform: translate3d(0, 0, 0);
+
+  opacity: 100%;
   transition: all 300ms;
   z-index: 2;
 }
 
 .forward-exit {
   .base-layout;
-  opacity: 1;
-  // transform: translate3d(0, 0, 0);
+
+  opacity: 100%;
   z-index: 1;
 }
 
 .forward-exit-active {
   .base-layout;
-  opacity: 0;
-  // transform: translate3d(-20vw, 0, 0);
+
+  opacity: 0%;
   transition: all 300ms;
   z-index: 1;
 }
 
 /* 路由后退时的入场/离场动画 */
 .back-enter {
-  opacity: 1;
-  // transform: translate3d(-20vw, 0, 0);
+  opacity: 100%;
   z-index: 1;
 }
 
 .back-enter-active {
   .base-layout;
-  opacity: 1;
-  // transform: translate3d(0, 0, 0);
+
+  opacity: 100%;
   transition: all 300ms ease-out;
   z-index: 1;
 }
 
 .back-exit {
   .base-layout;
-  // transform: translate3d(0, 0, 0);
+
   z-index: 2;
 }
 
 .back-exit-active {
   .base-layout;
-  // transform: translate3d(100vw, 0, 0);
+
   transition: all 300ms ease-out;
   z-index: 2;
 }
@@ -80,21 +77,25 @@
     background-color: #f4f5f5;
     width: 100vw;
     overflow: hidden;
+
     >div {
       min-height: calc(100vh - 88px);
     }
   }
+
   /* 路由前进时的入场/离场动画 */
   .forward-enter {
     .base-layout;
-    opacity: 0;
+
+    opacity: 0%;
     transform: translate3d(100vw, 0, 0);
     z-index: 2;
   }
 
   .forward-enter-active {
     .base-layout;
-    opacity: 1;
+
+    opacity: 100%;
     transform: translate3d(0, 0, 0);
     transition: all 300ms;
     z-index: 2;
@@ -102,14 +103,16 @@
 
   .forward-exit {
     .base-layout;
-    opacity: 1;
+
+    opacity: 100%;
     transform: translate3d(0, 0, 0);
     z-index: 1;
   }
 
   .forward-exit-active {
     .base-layout;
-    opacity: 0;
+
+    opacity: 0%;
     transform: translate3d(-20vw, 0, 0);
     transition: all 300ms;
     z-index: 1;
@@ -117,14 +120,15 @@
 
   /* 路由后退时的入场/离场动画 */
   .back-enter {
-    opacity: 0;
+    opacity: 0%;
     transform: translate3d(-20vw, 0, 0);
     z-index: 1;
   }
 
   .back-enter-active {
     .base-layout;
-    opacity: 1;
+
+    opacity: 100%;
     transform: translate3d(0, 0, 0);
     transition: all 300ms ease-out;
     z-index: 1;
@@ -132,12 +136,14 @@
 
   .back-exit {
     .base-layout;
+
     transform: translate3d(0, 0, 0);
     z-index: 2;
   }
 
   .back-exit-active {
     .base-layout;
+
     transform: translate3d(100vw, 0, 0);
     transition: all 300ms ease-out;
     z-index: 2;

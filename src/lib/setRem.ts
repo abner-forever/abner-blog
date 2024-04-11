@@ -1,4 +1,4 @@
-import { isMobile, isPad } from "../utils/userAgent";
+import { isMobile } from "../utils/userAgent";
 (function () {
   /**  设置 rem 的 fontSize 值 */
   function setRem() {

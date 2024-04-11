@@ -4,11 +4,22 @@
 > vite版本构建
 
 ## 启动
+> Node 环境 Node16+
 
 1. 前端本地调试开发
-    yarn start
+    pnpm start
 2. 前后端联调开发
-    yarn dev
+    pnpm dev
+
+## 包分析方法
+
+```
+npx vite-bundle-visualizer -c vite.config.ts
+```
+
+## 项目结构
+    - .stylelintrc style配置校验规则
+    - postcss.config.cjs postcss 配置平台
 
 ## TODO
 1. 动态路由

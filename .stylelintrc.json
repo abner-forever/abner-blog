@@ -1,0 +1,21 @@
+{
+  "extends": "stylelint-config-standard-less",
+  "rules": {
+    "media-query-no-invalid": null,
+    "selector-class-pattern": null,
+    "no-descending-specificity": null,
+    "import-notation": "url"
+  },
+  "overrides": [
+    {
+      "files": ["*.less", "**/*.less"],
+      "customSyntax": "postcss-less"
+    },
+    {
+      "files": ["src/**/*.less"],
+      "rules": {
+        "alpha-value-notation": "percentage"
+      }
+    }
+  ]
+}

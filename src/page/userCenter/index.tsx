@@ -5,11 +5,12 @@ import { DEFAULT_HEAD } from "@/constant";
 import GithubIcon from "@img/github.svg";
 import { observer } from "mobx-react";
 import useStore from "@/hooks/useStore";
-import "./styles.less";
 import { Page } from "@/components";
 import apiBlog from "@/services/apiBlog";
 import config from "@/config";
-import { message } from "antd";
+import { Toast, Button } from "antd-mobile";
+
+import "./styles.less";
 
 const MinePage = ({}: any) => {
   const navigate = useNavigate();
@@ -37,11 +38,24 @@ const MinePage = ({}: any) => {
     global.updateUserInfo({
       avator: urls,
     });
-    message.success("头像更新成功");
+    Toast.show("头像更新成功");
+  };
+  const logOut = () => {
+    let currentCookieSetting = {
+      expires: -1,
+    };
+    Object.assign(currentCookieSetting, {});
+    Cookies.set("user-token", "", currentCookieSetting);
+    Cookies.set("user-id", "", currentCookieSetting);
+    navigate("/login", {
+      replace: true,
+    });
+    global.isLogin = false;
+    global.userInfo = undefined;
   };
 
   return (
-    <Page className="user-content">
+    <Page className="user-content" title="个人中心">
       <div className="avator-container">
         <img className="avator" src={userInfo?.avator || DEFAULT_HEAD} alt="" />
         <input type="file" onChange={handleAvatorChange} />
@@ -72,6 +86,7 @@ const MinePage = ({}: any) => {
           <img src={GithubIcon} alt="" />
         </a>
       </div>
+      <Button onClick={logOut}>退出登录</Button>
     </Page>
   );
 };

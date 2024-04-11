@@ -68,11 +68,6 @@ export default defineConfig(({}) => {
           assetFileNames: "static/[ext]/[name]-[hash].[ext]",
         },
       },
-      rollupOutput:{
-        manualChunks: {
-          lodash: ['lodash']
-        }
-      }
     },
     esbuild: {
       define: {
