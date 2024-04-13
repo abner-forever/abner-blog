@@ -1,6 +1,7 @@
 .phone_input {
   display: flex;
   padding-left: 32px;
+
   .country_code {
     max-width: 125px;
     min-width: 60px;
@@ -16,12 +17,14 @@
     cursor: pointer;
     flex: none;
     padding: 0 20px;
+
     .arrow_down{
       margin-left: 12px;
       margin-right: 10px;
       flex: none;
       color: var(--adm-color-input-text);
     }
+
     &::after {
       content: '';
       position: absolute;
@@ -32,10 +35,11 @@
       width: 2px;
       height: 16px;
       border-radius: 100px;
-      opacity: 0.15;
+      opacity: 15%;
       background: var(--adm-color-input-text);
     }
   }
+
   :global {
     .adm-input {
       &-clear {
@@ -44,6 +48,7 @@
         background: url("@/assets/images/userCenter/input-close.svg") center no-repeat;
         background-size: cover;
         margin-right: 24px;
+
         svg {
           display: none;
         }
@@ -51,9 +56,11 @@
     }
   }
 }
+
 @media screen and (max-width: @mobile-max-width) {
   .phone_input {
     padding-left: 28px;
+
     .country_code {
       padding: 0;
     }

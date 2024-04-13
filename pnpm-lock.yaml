@@ -11,6 +11,9 @@ dependencies:
   '@uiw/react-markdown-preview':
     specifier: ^5.1.1
     version: 5.1.1(@types/react@18.2.73)(react-dom@18.2.0)(react@18.2.0)
+  ahooks:
+    specifier: ^3.7.11
+    version: 3.7.11(react@18.2.0)
   antd-mobile:
     specifier: ^5.35.0
     version: 5.35.0(react-dom@18.2.0)(react@18.2.0)

@@ -1,13 +1,9 @@
 .markdown-container {
-  // position: fixed !important;
-  // top: 0;
-  // left: 0;
   width: 100%;
   height: calc(100vh - 120px);
-  // z-index: 999;
-  // transform: translateZ(0);
   background-color: #fff;
   border-radius: 8px;
+
   &-title {
     height: 40px;
     line-height: 40px;
@@ -21,7 +17,9 @@
       border: none;
       outline: none;
     }
-    &-wrap{
+
+    &-wrap {
+      position: relative;
       background-color: #fff;
       width: 100%;
       padding: 12px 32px;
@@ -40,23 +38,21 @@
     cursor: pointer;
   }
 
-  &-title-wrap {
-    position: relative;
-  }
-
-
   .for-container {
     width: 100%;
     height: 100%;
     border-radius: 0;
-    > div:first-child{
+
+    >div:first-child {
       border-radius: 0;
     }
-    .for-toolbar{
+
+    .for-toolbar {
       max-width: 100vw;
       overflow: hidden;
       overflow-x: auto;
     }
+
     .cm-line {
       font-size: 18px;
       font-family: 'Courier New', Courier, monospace;
