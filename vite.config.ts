@@ -3,6 +3,9 @@ import react from "@vitejs/plugin-react";
 import path from "path";
 import { ViteEjsPlugin } from "vite-plugin-ejs";
 import babel from "vite-plugin-babel";
+import autoprefixer from 'autoprefixer';
+import stylelint from 'stylelint';
+import pxtorem from 'postcss-pxtorem';
 
 // https://vitejs.dev/config/
 export default defineConfig(({}) => {
@@ -38,6 +41,17 @@ export default defineConfig(({}) => {
           )}";`,
         },
       },
+      postcss: {
+        plugins: [
+          stylelint({ fix: true }), // Include stylelint plugin
+          pxtorem({ propList: ['*'] }), // Include postcss-pxtorem plugin
+          process.env.NODE_ENV === 'production' && autoprefixer({
+            overrideBrowserslist: [
+              "last 5 versions"
+            ]
+          })
+        ].filter(Boolean)
+      }
     },
     server: {
       port: 3000,

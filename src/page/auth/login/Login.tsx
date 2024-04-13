@@ -33,7 +33,7 @@ const Login = () => {
   }
   return (
     <Page className='login-page'>
-      <p className='title' >用户登录</p>
+      <p className='title' >登录</p>
       <PasswordForm onSubmit={onLogin}/>
     </Page>
   )

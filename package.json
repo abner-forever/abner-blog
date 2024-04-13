@@ -22,6 +22,7 @@
     "@ant-design/icons": "^5.0.1",
     "@uiw/react-markdown-preview": "^5.1.1",
     "antd-mobile": "^5.35.0",
+    "antd-mobile-icons": "^0.3.0",
     "classnames": "^2.5.1",
     "dayjs": "^1.11.5",
     "for-editor": "^0.3.5",

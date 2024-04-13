@@ -1,13 +1,11 @@
 import React, { FC, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import Cookies from "js-cookie";
-import { Dropdown } from "antd-mobile";
 import useStore from "@/hooks/useStore";
 import { observer } from "mobx-react";
 import { DEFAULT_HEAD } from "@/constant";
+import { isMobile } from "@/utils/userAgent";
 
 import "./styles.less";
-import { isMobile } from "@/utils/userAgent";
 
 interface HeaderProps {
   routerConfig: any[];

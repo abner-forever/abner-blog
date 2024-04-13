@@ -1,16 +1,20 @@
-import React, { Suspense, useState } from "react";
+import React, { Suspense } from "react";
 import {
   BrowserRouter,
+  useNavigationType,
+  Route,
+  Routes,
   useRoutes,
   useLocation,
-  useNavigationType,
 } from "react-router-dom";
-import { Footer, LoginModal, Loading } from "@/components";
-import routerConfig from "./routers";
+import { Loading } from "@/components";
+import routerList, { RouteConfig } from "./routers";
 import { TransitionGroup, CSSTransition } from "react-transition-group";
 import "@/assets/styles/app.less";
 import "./route.less";
-import { isMobile } from "@/utils/userAgent";
+
+import Container from "@/layout/Container";
+import AuthRoute from "./AuthRouter";
 const ANIMATION_MAP = {
   PUSH: "forward",
   POP: "back",
@@ -19,35 +23,54 @@ const ANIMATION_MAP = {
 
 const App = () => {
   const { pathname } = useLocation();
-  let routes = useRoutes(routerConfig, pathname);
+  let routes = useRoutes(routerList, pathname);
   const navigateType = useNavigationType();
   //@ts-ignore
   const { nodeRef } =
-    routerConfig.find(route => route.path === location.pathname) ?? {};
+    routerList.find(route => route.path === location.pathname) ?? {};
+  // 处理我们的routers
+  const RouteAuthFun = (routeList: RouteConfig[]) => {
+    return routeList.map((item: RouteConfig) => {
+      return (
+        <Route
+          path={item.path}
+          element={
+            <AuthRoute auth={item.auth} key={item.path}>
+              {item.element}
+            </AuthRoute>
+          }
+          key={item.path}
+        >
+          {/* 递归调用，因为可能存在多级的路由 */}
+          {item?.children && RouteAuthFun(item.children)}
+        </Route>
+      );
+    });
+  };
+
   return (
-    <>
-      <div className="content-wrap">
-        <Suspense fallback={<Loading />}>
-          <TransitionGroup
-            childFactory={child =>
-              React.cloneElement(child, {
-                classNames: ANIMATION_MAP[navigateType],
-              })
-            }
+    <Container>
+      <Suspense fallback={<Loading />}>
+        <TransitionGroup
+          childFactory={child =>
+            React.cloneElement(child, {
+              classNames: ANIMATION_MAP[navigateType],
+            })
+          }
+        >
+          <CSSTransition
+            key={location.pathname}
+            nodeRef={nodeRef}
+            timeout={300}
+            unmountOnExit
           >
-            <CSSTransition
-              key={location.pathname}
-              nodeRef={nodeRef}
-              timeout={300}
-              unmountOnExit
-            >
-              {routes}
-            </CSSTransition>
-          </TransitionGroup>
-        </Suspense>
-      </div>
-      {!isMobile() && <Footer />}
-    </>
+            {/* TODO: 路由动画有问题 */}
+            {/* <Routes>{RouteAuthFun(routerList)}</Routes> */}
+            {routes}
+          </CSSTransition>
+        </TransitionGroup>
+      </Suspense>
+    </Container>
   );
 };
 const Routers = () => {

@@ -1,0 +1,16 @@
+.content-wrap {
+  background-color: #f4f5f5;
+  min-height: calc(100vh - 88px);
+
+  >div {
+    &:first-child {
+      min-height: calc(100vh - 88px);
+    }
+  }
+}
+
+@media screen and (max-width: @mobile-max-width) {
+  .content-wrap {
+    width: 100vw;
+  }
+}

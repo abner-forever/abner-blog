@@ -1,13 +1,3 @@
-.content-wrap {
-  background-color: #f4f5f5;
-  min-height: calc(100vh - 88px);
-
-  >div {
-    min-height: calc(100vh - 88px);
-  }
-}
-
-
 .base-layout {
   position: fixed;
   inset: 0;
@@ -73,15 +63,6 @@
 }
 
 @media screen and (max-width: @mobile-max-width) {
-  .content-wrap {
-    background-color: #f4f5f5;
-    width: 100vw;
-    overflow: hidden;
-
-    >div {
-      min-height: calc(100vh - 88px);
-    }
-  }
 
   /* 路由前进时的入场/离场动画 */
   .forward-enter {

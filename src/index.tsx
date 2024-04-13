@@ -6,16 +6,6 @@ import AppRouter from "./routes";
 import store from "./store";
 import "./lib/setRem";
 
-const antdTheme = {
-  token: {
-    colorPrimary: "#009a61",
-    colorInfo: "#009a61",
-    fontSize: 16,
-    borderRadius: 8,
-  },
-};
-
-
 const App = () => {
   return (
       <Provider {...store}>
@@ -26,6 +16,6 @@ const App = () => {
 
 const rootEl = document.getElementById("root");
 if (rootEl) {
-  rootEl.classList.remove("root-loading");
+  rootEl.attributes.removeNamedItem("class")
   ReactDOM.createRoot(rootEl).render(<App />);
 }

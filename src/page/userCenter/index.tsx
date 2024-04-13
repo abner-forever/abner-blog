@@ -8,22 +8,18 @@ import useStore from "@/hooks/useStore";
 import { Page } from "@/components";
 import apiBlog from "@/services/apiBlog";
 import config from "@/config";
-import { Toast, Button } from "antd-mobile";
-
+import { Toast, Button, List } from "antd-mobile";
 import "./styles.less";
 
-const MinePage = ({}: any) => {
+/**
+ * 个人中心
+ */
+const UserCenter = () => {
   const navigate = useNavigate();
   const { global } = useStore();
+
   const { userInfo, isLogin } = global;
   useEffect(() => {
-    let userToken = Cookies.get("user-token");
-    if (!userToken) {
-      navigate("/login", {
-        replace: true,
-      });
-      return;
-    }
     if (isLogin && !userInfo) global.getUserInfo();
   }, [isLogin]);
   const handleAvatorChange = async (event: any) => {
@@ -55,7 +51,7 @@ const MinePage = ({}: any) => {
   };
 
   return (
-    <Page className="user-content" title="个人中心">
+    <Page hideHeader className="user-content" title="个人中心">
       <div className="avator-container">
         <img className="avator" src={userInfo?.avator || DEFAULT_HEAD} alt="" />
         <input type="file" onChange={handleAvatorChange} />
@@ -70,14 +66,14 @@ const MinePage = ({}: any) => {
               navigate("/addArticle");
             }}
           >
-            去写文章
+            去写笔记
           </p>
           <p
             onClick={() => {
               navigate("/myArticle");
             }}
           >
-            我的文章
+            我的笔记
           </p>
         </div>
       </div>
@@ -91,4 +87,4 @@ const MinePage = ({}: any) => {
   );
 };
 
-export default observer(MinePage);
+export default observer(UserCenter);

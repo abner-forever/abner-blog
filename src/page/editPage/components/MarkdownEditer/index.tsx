@@ -6,6 +6,7 @@ import { throttle } from "lodash";
 import configs from "@/config";
 import "./style.less";
 import { isMobile } from "@/utils/userAgent";
+import { Page } from "@/components";
 
 interface MarkdownEditerProps {
   id?: number;
@@ -100,16 +101,21 @@ const MarkdownEditer = ({ id, content }: MarkdownEditerProps) => {
   };
 
   return (
-    <div className="markdown-container">
+    <Page title="编辑文档" bodyClassName="markdown-container">
       <div className="markdown-container-title-wrap">
         <input
-          className="markdown-container-title"
+         className="markdown-container-title"
           value={titleAndDescription?.title}
           onChange={onChangeTitle}
+          placeholder="请在正文以# 开头输入标题"
+          disabled
         />
-        <div className="markdown-container-back" onClick={() => navigate(-1)}>
-          返回
-        </div>
+        {/* <p className="markdown-container-title">{titleAndDescription?.title}</p> */}
+        {!isMobile() && (
+          <div className="markdown-container-back" onClick={() => navigate(-1)}>
+            返回
+          </div>
+        )}
       </div>
       <Editor
         subfield={true}
@@ -118,7 +124,7 @@ const MarkdownEditer = ({ id, content }: MarkdownEditerProps) => {
         value={markdown}
         onChange={updateMarkdown}
       />
-    </div>
+    </Page>
   );
 };
 

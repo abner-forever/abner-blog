@@ -105,7 +105,7 @@ class Http {
       }
     });
   }
-  async get(url: string, params?: any, options?: any) {
+  async get(url: string, params?: any, options?: any): Promise<any> {
     let { headers = {} } = options || {};
     headers = { ...this.headers, ...headers };
     let res = await this.commonFetch(url, headers, params, options);

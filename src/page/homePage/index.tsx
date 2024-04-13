@@ -1,8 +1,7 @@
 import React, { Component } from "react";
-import { Empty, ArticleCard, Page, Header } from "@/components";
+import { Empty, ArticleCard, Page } from "@/components";
 import withRouter from "@/components/WithRouter";
 import ApiBlog from "@/services/apiBlog";
-import routerConfig from "@/routes/routers";
 import "./style.less";
 
 interface P {
@@ -46,15 +45,14 @@ class Home extends Component<P, S> {
   render() {
     const { articleList = [] } = this.state;
     return (
-      <div className="home-content">
-        <Header routerConfig={routerConfig} />
+      <Page hideHeader title="首页" className="home-content">
         <div className="article-list">
           {articleList.map((item: IArticleItemtype, index: number) => (
             <ArticleCard key={index} item={item} />
           ))}
         </div>
-        {articleList.length === 0 && <Empty title="暂无文章" />}
-      </div>
+        {articleList.length === 0 && <Empty title="暂无笔记" />}
+      </Page>
     );
   }
 }

@@ -1,6 +1,5 @@
 import React, { FC, useState } from "react";
 import { Button, Form, Input } from "antd-mobile";
-import { LockOutlined, UserOutlined } from "@ant-design/icons";
 import { validateNickName, validatePassword } from "@/utils/validator";
 import "./style.less";
 
@@ -65,14 +64,16 @@ const PasswordForm: FC<PasswordFormProps> = ({ onSubmit }) => {
       <Form.Item
         name="username"
         rules={[{ required: true, validator: checkAccount }]}
+        className="input-item"
       >
-        <Input placeholder="请输入账号" className="input-item" />
+        <Input placeholder="请输入账号" clearable />
       </Form.Item>
       <Form.Item
         name="password"
+        className="input-item"
         rules={[{ required: true, validator: checkPassword }]}
       >
-        <Input placeholder="请输入密码" className="input-item" />
+        <Input placeholder="请输入密码" clearable />
       </Form.Item>
       <Button
         color="primary"

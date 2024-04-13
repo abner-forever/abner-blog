@@ -25,7 +25,7 @@ const MyArticle = (props: any) => {
     setArticleList(newlist);
   };
   return (
-    <Page className="content-item">
+    <Page title="我的笔记" className="content-item">
       {articleList.length > 0 &&
         articleList.map((item, index) => (
           <ArticleCard
@@ -35,7 +35,7 @@ const MyArticle = (props: any) => {
             deleteArticle={deleteArticle}
           />
         ))}
-      {!articleList.length && <Empty title="暂无文章" />}
+      {!articleList.length && <Empty title="暂无笔记" />}
     </Page>
   );
 };

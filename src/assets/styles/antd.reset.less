@@ -1,5 +1,6 @@
 :root {
-  --adm-color-primary: #a062d4;
+  --adm-color-primary: #009a61;
+  --adm-color-disable: #cccccc;
   --adm-color-success: #00b578;
   --adm-color-warning: #ff8f1f;
   --adm-color-danger: #ff3141;
@@ -18,6 +19,7 @@
 }
 
 .adm-input {
+  height: 40px;
   border: 1px solid #ccc;
   padding: 0 12px;
   border-radius: 8px;
@@ -25,9 +27,14 @@
 
 .adm-form {
   --border-inner: none;
-
   .adm-list.adm-list {
     --border-inner: none;
+    --border-top: none;
+    --border-bottom: none;
     --padding-left: 0;
+    --padding-right: 0;
   }
+}
+.adm-button{
+  --border-radius: 8px;
 }

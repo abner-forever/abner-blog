@@ -3,6 +3,9 @@ import { Navigate } from "react-router-dom";
 import { Loading, PageNotFound } from "@/components";
 import HomePage from "@/page/homePage";
 import { ViteEnv } from "@/config";
+import UserCenter from "@/page/userCenter";
+import Todo from "@/page/todo";
+import Container from "@/layout/Container";
 // 自定义懒加载函数
 const lazyLoad = (factory: () => Promise<{ default: ComponentType }>) => {
   const Module = lazy(factory);
@@ -13,12 +16,21 @@ const lazyLoad = (factory: () => Promise<{ default: ComponentType }>) => {
   );
 };
 
+export interface RouteConfig {
+  path: string;
+  element: React.ReactNode;
+  auth?: boolean;
+  children?: RouteConfig[];
+  redirect?:string
+  isShowHeader?: boolean;
+  title?: string;
+}
+
 // 路由表配置
-const routerList = [
+const routerList: RouteConfig[] = [
   {
     path: "/",
     element: <HomePage />,
-    exact: true,
     title: "首页",
     isShowHeader: false,
   },
@@ -33,55 +45,57 @@ const routerList = [
     element: lazyLoad(() => import("@/page/editPage")),
     title: "编辑",
     isShowHeader: false,
-    authCheck: true, // 登录验证
+    auth: true, // 登录验证
   },
   {
     path: "/addArticle",
     element: lazyLoad(() => import("@/page/editPage")),
-    title: "新增文章",
+    title: "新增笔记",
     isShowHeader: false,
-    authCheck: true, // 登录验证
+    auth: true, // 登录验证
   },
   {
     path: "/articleDetail/:id",
     element: lazyLoad(() => import("@/page/detailPage")),
-    title: "文章详情",
+    title: "笔记详情",
     isShowHeader: false,
   },
   {
     path: "/userCenter",
-    element: lazyLoad(() => import("@/page/userCenter")),
+    element: <UserCenter />,
     title: "我的",
-    exact: true,
+    isShowHeader: true,
+    auth: true, // 登录验证
+  },
+  {
+    path: "/todo",
+    element: <Todo />,
+    title: "待办",
     isShowHeader: false,
-    authCheck: true, // 登录验证
+    auth: true, // 登录验证
   },
   {
     path: "/myArticle",
     element: lazyLoad(() => import("@/page/myArticles")),
-    title: "我的文章",
-    exact: true,
+    title: "我的笔记",
     isShowHeader: false,
   },
   {
     path: "/christmas",
     element: lazyLoad(() => import("@/page/Christmas")),
     title: "圣诞节",
-    exact: true,
     isShowHeader: false,
   },
   {
     path: "/login",
     element: lazyLoad(() => import("@/page/auth/login/Login")),
     title: "登录",
-    exact: true,
     isShowHeader: ViteEnv !== "online",
   },
   {
     path: "/add",
     element: lazyLoad(() => import("@/page/AddMD")),
     title: "markdown",
-    exact: true,
     isShowHeader: false,
   },
   {

@@ -1,0 +1,37 @@
+.todolist {
+  display: flex;
+  flex-direction: column;
+
+  .todo_item {
+    width: 360px;
+    min-height: 48px;
+    border-radius: 4px;
+    background-color: #fff;
+    margin-top: 12px;
+    display: flex;
+    align-items: center;
+    padding: 12px 24px;
+
+    .item_right {
+      margin-left: 16px;
+
+      p {
+        font-size: 18px;
+        color: #222;
+      }
+
+      span {
+        font-size: 14px;
+        color: #333;
+      }
+    }
+  }
+
+  :global {
+    .adm-input {
+      width: 280px;
+      border: none;
+      padding: 0;
+    }
+  }
+}

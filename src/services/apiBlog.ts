@@ -79,7 +79,15 @@ class ApiBlog {
   logList = (params?: any) => {
     return Fetch.get("/logs/list", params);
   };
+  getTodoList = () => {
+    return Fetch.get("/task/todolist");
+  };
+
+  updateTaskTodo = (params: any) => {
+    return Fetch.post("/task/update", params);
+  };
 }
 
 const apiBlog = new ApiBlog();
+
 export default apiBlog;
