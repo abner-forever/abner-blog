@@ -16,6 +16,7 @@
     "build": "tsc && vite build --mode online",
     "serve": "vite preview",
     "release": "npm run semantic-release",
+    "semantic-release": "semantic-release",
     "lint": "stylelint \"src/**/*{css,less}\" --fix"
   },
   "dependencies": {
