@@ -1,9 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { Empty, ArticleCard, Page } from "@/components";
 import ApiBlog from "@/services/apiBlog";
+import styles from "./style.module.less";
+import { useNavigate } from "@/hooks";
 
-const MyArticle = (props: any) => {
+/**
+ * 我的笔记
+ */
+const MyArticle = () => {
   const [articleList, setArticleList] = useState([]);
+  const navigate = useNavigate();
+
   useEffect(() => {
     init();
   }, []);
@@ -24,8 +31,14 @@ const MyArticle = (props: any) => {
     });
     setArticleList(newlist);
   };
+  const onClickNewArticle = () => {
+    navigate("/addArticle");
+  };
   return (
     <Page title="我的笔记" className="content-item">
+      <p onClick={onClickNewArticle} className={styles.add_new_article}>
+        新增笔记
+      </p>
       {articleList.length > 0 &&
         articleList.map((item, index) => (
           <ArticleCard

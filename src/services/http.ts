@@ -47,9 +47,9 @@ class Http {
       ...headers,
       Authorization: `Bearer ${Cookies.get("user-token")}`,
     };
-    const requestUrl = prependDomainIfNeeded(path, this.domain);
+     let requestUrl = prependDomainIfNeeded(path, this.domain);
     if (method === "GET") {
-      path = Common.buildRequestUrl(path, body);
+      requestUrl = Common.buildRequestUrl(requestUrl, body);
       initParams = {
         ...initParams,
         headers: _headers,

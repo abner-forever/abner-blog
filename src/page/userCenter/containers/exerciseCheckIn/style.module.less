@@ -1,0 +1,57 @@
+.exercise_checkin {
+  margin-top: 12px;
+}
+
+.title {
+  width: 100%;
+  text-align: center;
+  padding: 24px 0;
+  font-weight: 600;
+  color: #222;
+  font-size: 24px;
+  background-color: #fff;
+}
+
+.exercise_form {
+  background-color: #fff;
+  width: 100%;
+  padding: 24px;
+  box-sizing: border-box;
+
+  :global {
+    .adm-list-body{
+      overflow: visible;
+    }
+    .adm-form-item-child-inner {
+      .adm-radio {
+        margin-top: 12px;
+        margin-right: 16px;
+      }
+      .adm-text-area{
+        border: 1px solid #ccc;
+        height: 90px;
+        border-radius: 4px;
+        padding: 12px;
+      }
+    }
+  }
+  .submit_btn{
+    display: flex;
+    justify-content: center;
+    margin-top: 18px;
+    button{
+      width: 280px;
+    }
+  }
+}
+
+@media screen and (max-width: @mobile-max-width) {
+  .title {
+    width: 360px;
+
+  }
+
+  .exercise_form {
+    width: 360px;
+  }
+}

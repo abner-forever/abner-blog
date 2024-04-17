@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "@/hooks";
 import "./styles.less";
 import Iconfont from "../Iconfont";
 interface IProps {
@@ -25,7 +25,7 @@ function ArticleCard({ item, isEdit, deleteArticle = () => {} }: IProps) {
           <p className="desc">{item.description}</p>
         </div>
         <div className="meta">
-          <span>{item.author}</span>
+          {!isEdit && <span>{item.author}</span>}
           <span className="update-time">
             <Iconfont type="icon-clock" size={20} color="#b4b4b4" />
             <span>
@@ -36,24 +36,24 @@ function ArticleCard({ item, isEdit, deleteArticle = () => {} }: IProps) {
           </span>
           {isEdit && (
             <div className="edit-options">
-              <div
-                onClick={event => {
+              <Iconfont
+                onClick={(event: any) => {
                   event.stopPropagation();
                   navigate(`/edit/${item.id}`);
                 }}
-                className="edit-icon"
-              >
-                编辑
-              </div>
-              <div
-                onClick={event => {
+                type="icon-edit"
+                size={20}
+                color="#222"
+              />
+              <Iconfont
+                onClick={(event: any) => {
                   event.stopPropagation();
                   deleteArticle(item.id);
                 }}
-                className="edit-icon"
-              >
-                删除
-              </div>
+                type="icon-delete"
+                size={20}
+                color="#222"
+              />
             </div>
           )}
         </div>

@@ -1,7 +1,8 @@
 import React from "react";
 import type { FC } from "react";
 import { NavBar, TabBar } from "antd-mobile";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
+import { useNavigate } from "@/hooks";
 import {
   AppOutline,
   UnorderedListOutline,

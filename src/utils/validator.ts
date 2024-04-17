@@ -42,3 +42,13 @@ export const validateNickName = (value: string) => {
   }
   return Promise.reject(new Error("请输入账号"));
 };
+
+export const validateEmail = (value: string) => {
+  if (value) {
+    if (!/^[\w\.-]+@[a-zA-Z\d\.-]+\.[a-zA-Z]{2,}$/.test(value)) {
+      return Promise.reject(new Error("邮箱格式不正确"));
+    }
+    return Promise.resolve();
+  }
+  return Promise.reject(new Error("请输入账号"));
+};

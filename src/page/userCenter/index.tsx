@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import Cookies from "js-cookie";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "@/hooks";
 import { DEFAULT_HEAD } from "@/constant";
 import GithubIcon from "@img/github.svg";
 import { observer } from "mobx-react";
@@ -9,7 +9,20 @@ import { Page } from "@/components";
 import apiBlog from "@/services/apiBlog";
 import config from "@/config";
 import { Toast, Button, List } from "antd-mobile";
-import "./styles.less";
+import styles from "./styles.module.less";
+
+const userConfig = [
+  {
+    title: "我的笔记",
+    path: "/myArticle",
+    action: "navigate",
+  },
+  {
+    title: "运动",
+    path: "/exercise",
+    action: "navigate",
+  },
+];
 
 /**
  * 个人中心
@@ -51,38 +64,41 @@ const UserCenter = () => {
   };
 
   return (
-    <Page hideHeader className="user-content" title="个人中心">
-      <div className="avator-container">
-        <img className="avator" src={userInfo?.avator || DEFAULT_HEAD} alt="" />
-        <input type="file" onChange={handleAvatorChange} />
-      </div>
-      <div className="userinfo-wrap">
-        <div className="userinfo">
-          <p className="user-name">{userInfo?.username}</p>
+    <Page hideHeader className={styles["user-content"]} title="个人中心">
+      <div className={styles.userinfo}>
+        <div className={styles["avator-container"]}>
+          <img
+            className={styles.avator}
+            src={userInfo?.avator || DEFAULT_HEAD}
+            alt=""
+          />
+          <input type="file" onChange={handleAvatorChange} />
         </div>
-        <div className="write-article">
-          <p
-            onClick={() => {
-              navigate("/addArticle");
-            }}
-          >
-            去写笔记
-          </p>
-          <p
-            onClick={() => {
-              navigate("/myArticle");
-            }}
-          >
-            我的笔记
-          </p>
+        <p className={styles["user-name"]}>{userInfo?.username}</p>
+        <div className={styles["social-content"]}>
+          <a href="https://github.com/abner-forever" target="_blank">
+            <img src={GithubIcon} alt="" />
+          </a>
         </div>
       </div>
-      <div className="social-content">
-        <a href="https://github.com/abner-forever" target="_blank">
-          <img src={GithubIcon} alt="" />
-        </a>
+      <div className={styles.user_config}>
+        <List>
+          {userConfig.map((item, index) => (
+            <List.Item
+              key={index}
+              onClick={() => {
+                navigate(item.path);
+              }}
+            >
+              {item.title}
+            </List.Item>
+          ))}
+        </List>
       </div>
-      <Button onClick={logOut}>退出登录</Button>
+
+      <Button className={styles.logout_btn} onClick={logOut}>
+        退出登录
+      </Button>
     </Page>
   );
 };

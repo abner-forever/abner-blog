@@ -1,29 +1,23 @@
-import React, { ComponentType, Suspense, lazy } from "react";
+import React, { MutableRefObject } from "react";
 import { Navigate } from "react-router-dom";
-import { Loading, PageNotFound } from "@/components";
-import HomePage from "@/page/homePage";
+import { PageNotFound } from "@/components";
 import { ViteEnv } from "@/config";
-import UserCenter from "@/page/userCenter";
-import Todo from "@/page/todo";
-import Container from "@/layout/Container";
-// 自定义懒加载函数
-const lazyLoad = (factory: () => Promise<{ default: ComponentType }>) => {
-  const Module = lazy(factory);
-  return (
-    <Suspense fallback={<Loading />}>
-      <Module />
-    </Suspense>
-  );
-};
+import { lazyLoad } from "@/utils/lazyLoad";
 
+import HomePage from "@/page/homePage";
+import UserCenter from "@/page/userCenter";
+import Login from "@/page/auth/login";
+import Todo from "@/page/todo";
+import userRouters from "@/page/userCenter/router";
 export interface RouteConfig {
   path: string;
   element: React.ReactNode;
   auth?: boolean;
   children?: RouteConfig[];
-  redirect?:string
+  redirect?: string;
   isShowHeader?: boolean;
   title?: string;
+  nodeRef?: MutableRefObject<null>;
 }
 
 // 路由表配置
@@ -64,8 +58,14 @@ const routerList: RouteConfig[] = [
     path: "/userCenter",
     element: <UserCenter />,
     title: "我的",
-    isShowHeader: true,
+    isShowHeader: false,
     auth: true, // 登录验证
+  },
+  {
+    path: "/christmas",
+    element: lazyLoad(() => import("@/page/Christmas")),
+    title: "圣诞节",
+    isShowHeader: false,
   },
   {
     path: "/todo",
@@ -75,20 +75,8 @@ const routerList: RouteConfig[] = [
     auth: true, // 登录验证
   },
   {
-    path: "/myArticle",
-    element: lazyLoad(() => import("@/page/myArticles")),
-    title: "我的笔记",
-    isShowHeader: false,
-  },
-  {
-    path: "/christmas",
-    element: lazyLoad(() => import("@/page/Christmas")),
-    title: "圣诞节",
-    isShowHeader: false,
-  },
-  {
     path: "/login",
-    element: lazyLoad(() => import("@/page/auth/login/Login")),
+    element: <Login />,
     title: "登录",
     isShowHeader: ViteEnv !== "online",
   },
@@ -98,6 +86,7 @@ const routerList: RouteConfig[] = [
     title: "markdown",
     isShowHeader: false,
   },
+  ...userRouters,
   {
     path: "/404",
     element: <PageNotFound />,

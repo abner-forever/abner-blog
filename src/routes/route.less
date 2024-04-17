@@ -1,6 +1,9 @@
 .base-layout {
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   z-index: 1;
 }
 
@@ -8,44 +11,44 @@
 .forward-enter {
   .base-layout;
 
-  opacity: 0%;
+  opacity: 0;
   z-index: 2;
 }
 
 .forward-enter-active {
   .base-layout;
 
-  opacity: 100%;
-  transition: all 300ms;
+  opacity: 1;
+  transition: all .3s ease-in;
   z-index: 2;
 }
 
 .forward-exit {
   .base-layout;
 
-  opacity: 100%;
+  opacity: 1;
   z-index: 1;
 }
 
 .forward-exit-active {
   .base-layout;
 
-  opacity: 0%;
-  transition: all 300ms;
+  opacity: 0;
+  transition: all .3s ease-in;
   z-index: 1;
 }
 
 /* 路由后退时的入场/离场动画 */
 .back-enter {
-  opacity: 100%;
+  opacity: 1;
   z-index: 1;
 }
 
 .back-enter-active {
   .base-layout;
 
-  opacity: 100%;
-  transition: all 300ms ease-out;
+  opacity: 1;
+  transition: all .3s ease-out;
   z-index: 1;
 }
 
@@ -58,11 +61,12 @@
 .back-exit-active {
   .base-layout;
 
-  transition: all 300ms ease-out;
+  transition: all .3s ease-out;
   z-index: 2;
 }
 
 @media screen and (max-width: @mobile-max-width) {
+
   /* 路由前进时的入场/离场动画 */
   .forward-enter {
     .base-layout;

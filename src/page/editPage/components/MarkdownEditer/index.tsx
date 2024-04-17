@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate } from '@/hooks';
 import apiBlog from "@/services/apiBlog";
 import Editor from "for-editor";
 import { throttle } from "lodash";

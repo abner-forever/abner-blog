@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-
+  position: relative;
   .page-body {
     background-color: #fff;
     padding: 40px;
@@ -12,7 +12,7 @@
 
   .avator-container {
     position: relative;
-
+    width: fit-content;
     .avator {
       width: 50px;
       height: 50px;
@@ -32,24 +32,17 @@
 
   }
 
-  .userinfo-wrap {
-    flex: 1;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
   .userinfo {
     padding-left: 20px;
-
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     .user-name {
       font-size: 24px;
       color: #333;
     }
 
   }
-
-
 
   .write-article {
     display: flex;
@@ -78,37 +71,21 @@
 @media screen and (max-width: @mobile-max-width) {
   .user-content {
     position: relative;
-
-    .page-body {
-      width: 360px;
-    }
-
-    .userinfo-wrap {
-      width: 375px;
-      display: flex;
-      flex-direction: column;
-      align-items: baseline;
-      padding: 0 24px;
-
-      >div {
-        width: 100%;
-      }
-    }
-
     .userinfo {
-      padding-left: 0;
+      width: 100%;
       text-align: center;
+      background-color: #fff;
+      padding: 24px 0;
     }
-
-    .write-article {
-      flex-direction: column;
-
-      p {
-        font-size: 16px;
-        height: 44px;
-        line-height: 44px;
-        margin-bottom: 0;
-      }
+    .user_config{
+      width: 100%;
+      margin-top: 20px;
+    }
+    .logout_btn{
+      width: 180px;
+      position: fixed;
+      bottom: 90px;
+      margin: auto;
     }
   }
 

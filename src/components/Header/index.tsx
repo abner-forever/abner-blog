@@ -1,10 +1,10 @@
 import React, { FC, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import useStore from "@/hooks/useStore";
 import { observer } from "mobx-react";
 import { DEFAULT_HEAD } from "@/constant";
 import { isMobile } from "@/utils/userAgent";
-
+import { useNavigate } from "@/hooks";
 import "./styles.less";
 
 interface HeaderProps {

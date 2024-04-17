@@ -1,4 +1,5 @@
 import Http from "@/services/http";
+import { Toast } from "antd-mobile";
 const request = new Http({
   headers: {
     "Content-Type": "application/json",
@@ -19,7 +20,13 @@ const request = new Http({
           if (response.success) {
             resolve(response.data);
           } else {
-            reject(new Error(response.message));
+            const { showToast } = options || {};
+            if (showToast) {
+              Toast.show(response.message);
+              resolve(null)
+            }else{
+              reject(new Error(response.message));
+            }
           }
         } catch (error: any) {
           reject(error);

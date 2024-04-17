@@ -3,7 +3,7 @@ import Loading from "../Loading";
 import classNames from "classnames";
 import Iconfont from "../Iconfont";
 import { isMobile } from "@/utils/userAgent";
-import { useNavigate } from "react-router";
+import { useNavigate } from "@/hooks";
 import Header from "../Header";
 import routerList from "@/routes/routers";
 
@@ -17,6 +17,7 @@ interface PageProps {
   hideBack?: boolean;
   hideHeader?: boolean;
   bodyClassName?: string;
+  onBack?: () => void;
 }
 
 const Page: FC<PageProps> = ({
@@ -27,10 +28,15 @@ const Page: FC<PageProps> = ({
   hideBack = false,
   hideHeader = false,
   bodyClassName,
+  onBack,
 }) => {
   const navigate = useNavigate();
-  const onBack = () => {
-    navigate(-1);
+  const onClickBack = () => {
+    if (onBack && typeof onBack === "function") {
+      onBack();
+    } else {
+      navigate(-1);
+    }
   };
   return (
     <div className={classNames("page-container", className)}>
@@ -39,7 +45,7 @@ const Page: FC<PageProps> = ({
           {!hideHeader && (
             <header className="page-header">
               {!hideBack && (
-                <div onClick={onBack} className="page-back">
+                <div onClick={onClickBack} className="page-back">
                   <Iconfont type="icon-back" color="#222" size={20} />
                 </div>
               )}

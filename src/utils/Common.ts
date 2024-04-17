@@ -11,6 +11,7 @@ class Common {
     return timeForat;
   }
   static buildRequestUrl(url: string, params: Record<string, string>) {
+    console.log("params", params);
     if (!params) return url;
     let param = [];
     for (let key in params) {

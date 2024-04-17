@@ -1,11 +1,12 @@
 import React, { FC, useState } from "react";
 import { Button, Form, Input } from "antd-mobile";
-import { validateNickName, validatePassword } from "@/utils/validator";
+import { validateEmail, validatePassword } from "@/utils/validator";
 import "./style.less";
 
 interface PasswordSubmitParams {
-  username: string;
+  email: string;
   password: string;
+  loginType: number;
 }
 interface PasswordFormProps {
   onSubmit: (params: PasswordSubmitParams) => void;
@@ -14,21 +15,21 @@ interface PasswordFormProps {
 const PasswordForm: FC<PasswordFormProps> = ({ onSubmit }) => {
   const [form] = Form.useForm();
   const [formPassed, setFormPassed] = useState<Record<string, boolean>>({
-    username: false,
+    email: false,
     password: false,
   });
 
-  const checkAccount = async (_: any, value: string) => {
+  const checkEmail = async (_: any, value: string) => {
     try {
-      await validateNickName(value);
+      await validateEmail(value);
       setFormPassed({
         ...formPassed,
-        username: true,
+        email: true,
       });
     } catch (error) {
       setFormPassed({
         ...formPassed,
-        username: false,
+        email: false,
       });
       return Promise.reject(error);
     }
@@ -49,9 +50,8 @@ const PasswordForm: FC<PasswordFormProps> = ({ onSubmit }) => {
     }
   };
   const onFinish = () => {
-    const { username, password } = form.getFieldsValue();
-    console.log("onFinish", username);
-    onSubmit({ username, password });
+    const { email, password } = form.getFieldsValue();
+    onSubmit({ email, password, loginType: 2 });
   };
   return (
     <Form
@@ -62,11 +62,11 @@ const PasswordForm: FC<PasswordFormProps> = ({ onSubmit }) => {
       form={form}
     >
       <Form.Item
-        name="username"
-        rules={[{ required: true, validator: checkAccount }]}
+        name="email"
+        rules={[{ required: true, validator: checkEmail }]}
         className="input-item"
       >
-        <Input placeholder="请输入账号" clearable />
+        <Input placeholder="请输入账号邮箱" clearable />
       </Form.Item>
       <Form.Item
         name="password"

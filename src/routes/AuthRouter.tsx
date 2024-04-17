@@ -1,36 +1,31 @@
-import { memo, useEffect } from "react";
-import Cookies from "js-cookie";
-import routers from "./routers";
-import useStore from "@/hooks/useStore";
-import { matchRoutes, useNavigate } from "react-router-dom";
-import { Toast } from "antd-mobile";
+import { useEffect } from "react";
+import routes, { RouteConfig } from "./routers";
+import { useLocation, useNavigate } from "react-router-dom";
+import { getToken } from "@/utils/authentication";
 
-const AuthRoute = ({ children, auth }: any) => {
-  const navigate = useNavigate();
-  const token = Cookies.get("user-token");
-  const { global } = useStore();
-  const { isLogin } = global;
-  const mathchs = matchRoutes(routers, location);
-  const isExist = mathchs?.some(item => item.pathname == location.pathname);
-
-  useEffect(() => {
-    if (!token && auth && location.pathname !== "/login") {
-      console.log("token 过期，请重新登录!", isLogin, token, location.pathname);
-      Toast.show("token 过期，请重新登录!");
-      navigate("/login");
+const getCurrentRouterMap = (
+  routers: RouteConfig[],
+  path: string
+): RouteConfig => {
+  for (let router of routers) {
+    if (router.path == path) return router;
+    if (router.children) {
+      const childRouter = getCurrentRouterMap(router.children, path);
+      if (childRouter) return childRouter;
     }
-    // 这里判断条件是：token 存在并且是匹配到路由并且是已经登录的状态
-    if (isExist && token) {
-      // 如果你已经登录了，但是你通过浏览器里直接访问login的话不允许直接跳转到login路由，必须通过logout来控制退出登录或者是token过期返回登录界面
-      if (location.pathname == "/" || location.pathname == "/login") {
-        navigate("/");
-      } else {
-        // 如果是其他路由就跳到其他的路由
-        navigate(location.pathname);
-      }
+  }
+  return routes[routes.length - 1];
+};
+
+export const AuthRouter = ({ children }: any) => {
+  const location = useLocation();
+  const navigator = useNavigate();
+  const isLogin = getToken();
+  useEffect(() => {
+    let router = getCurrentRouterMap(routes, location.pathname);
+    if (!isLogin && router.auth) {
+      navigator("/login");
     }
   }, [location.pathname]);
-
   return children;
 };
-export default memo(AuthRoute);

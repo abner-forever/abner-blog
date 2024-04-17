@@ -14,14 +14,12 @@ const Todo = () => {
     init();
   }, []);
   const onChangeStatus = async (id: number, value: boolean) => {
-    console.log("value", value);
     await apiBlog.updateTaskTodo({
       id,
       status: value ? 1 : 0,
     });
   };
   const onChangeTitle = async (id: number, value: string) => {
-    console.log("value", value);
     await apiBlog.updateTaskTodo({
       id,
       title: value,
@@ -30,29 +28,46 @@ const Todo = () => {
   return (
     <Page hideHeader>
       <div className={styles.todolist}>
-        {list.map(item => {
-          return (
-            <div className={styles.todo_item} key={item.id}>
-              <Checkbox
-                onChange={value => onChangeStatus(item.id, value)}
-                defaultChecked={item.status}
-              />
-              <div className={styles.item_right}>
-                <Input
-                  placeholder="请输入内容"
-                  defaultValue={item.title}
-                  onChange={val => {
-                    onChangeTitle(item.id, val);
-                  }}
-                />
-                <span>{item.description}</span>
-              </div>
-            </div>
-          );
-        })}
+        {list.map(item => (
+          <TodoItem key={item.id} item={item} />
+        ))}
       </div>
     </Page>
   );
 };
 
+const TodoItem = ({ item }: any) => {
+  const [value, setValue] = useState(item.status);
+  const { id } = item;
+  const onChangeStatus = async () => {
+    setValue(!value);
+    await apiBlog.updateTaskTodo({
+      id,
+      status: value ? 0 : 1,
+    });
+  };
+
+  const onChangeTitle = async (value: string) => {
+    await apiBlog.updateTaskTodo({
+      id,
+      title: value,
+    });
+  };
+
+  return (
+    <div className={styles.todo_item}>
+      <Checkbox onChange={onChangeStatus} defaultChecked={item.status} />
+      <div className={styles.item_right}>
+        <Input
+          placeholder="请输入内容"
+          defaultValue={item.title}
+          className={styles.title}
+          onChange={onChangeTitle}
+        />
+         <span>{item.description}</span>
+      </div>
+      {/* <div className={styles.title}>{item.title}</div> */}
+    </div>
+  );
+};
 export default Todo;
