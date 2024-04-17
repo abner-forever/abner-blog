@@ -1,3 +1,10 @@
+## [1.3.1](https://github.com/abner-forever/abner-blog/compare/v1.3.0...v1.3.1) (2024-04-17)
+
+
+### Bug Fixes
+
+* 添加打卡页面 ([889f688](https://github.com/abner-forever/abner-blog/commit/889f6886a38fe6a605baa7199ce6623520a9fce9))
+
 # [1.3.0](https://github.com/abner-forever/abner-blog/compare/v1.2.2...v1.3.0) (2024-04-13)
 
 
