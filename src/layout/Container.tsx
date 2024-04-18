@@ -1,5 +1,4 @@
 import React from "react";
-import { Footer } from "@/components";
 import { isMobile } from "@/utils/userAgent";
 import MobileNavigation from "@/components/MobileNavigation";
 import "./container.less";
@@ -14,7 +13,6 @@ const Container = ({ children }: ContainerProps) => {
   return (
     <div className="content-wrap">
       {children}
-      <Footer />
     </div>
   );
 };

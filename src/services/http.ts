@@ -1,5 +1,5 @@
 import configs from "@/config";
-import Common from "@/utils/Common";
+import { buildRequestUrl } from "@/utils/tools";
 import Cookies from "js-cookie";
 
 function prependDomainIfNeeded(url: string, domain: string) {
@@ -47,9 +47,9 @@ class Http {
       ...headers,
       Authorization: `Bearer ${Cookies.get("user-token")}`,
     };
-     let requestUrl = prependDomainIfNeeded(path, this.domain);
+    let requestUrl = prependDomainIfNeeded(path, this.domain);
     if (method === "GET") {
-      requestUrl = Common.buildRequestUrl(requestUrl, body);
+      requestUrl = buildRequestUrl(requestUrl, body);
       initParams = {
         ...initParams,
         headers: _headers,

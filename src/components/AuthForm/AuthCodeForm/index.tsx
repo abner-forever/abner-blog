@@ -51,7 +51,7 @@ const AuthCodeForm: FC<AuthCodeFormProps> = ({ onSubmit }) => {
         rules={[{ required: true, validator: checkEmail }]}
         className="input-item"
       >
-        <Input placeholder="请输入账号邮箱" clearable />
+        <Input autoFocus placeholder="请输入邮箱账号" clearable />
       </Form.Item>
       <AuthCodeInput
         className={styles.form_input}

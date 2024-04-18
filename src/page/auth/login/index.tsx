@@ -39,7 +39,7 @@ const Login = () => {
     navigate("/", { replace: true });
   };
   return (
-    <Page onBack={handleBack} className="login-page">
+    <Page onBack={handleBack} title="登录" bodyClassName="login-page">
       <Tabs>
         <Tabs.Tab title="验证码登录" key="authCode">
           <AuthCodeForm onSubmit={onLogin} />
