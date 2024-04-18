@@ -18,7 +18,7 @@ export default defineConfig(({}) => {
           root: viteConfig.root,
           title: "Abner的笔记",
           env: viteConfig.mode,
-          __APP_VERSION__: process.env.npm_package_version,
+          __APP_VERSION__: process.env.PKM_VERSION || process.env.npm_package_version,
         };
       }),
     ],
