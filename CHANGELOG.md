@@ -1,3 +1,10 @@
+## [1.3.2](https://github.com/abner-forever/abner-blog/compare/v1.3.1...v1.3.2) (2024-04-18)
+
+
+### Bug Fixes
+
+* ci test ([e73e826](https://github.com/abner-forever/abner-blog/commit/e73e826ebe2339b84ddde20f761523e1a07a0c51))
+
 ## [1.3.1](https://github.com/abner-forever/abner-blog/compare/v1.3.0...v1.3.1) (2024-04-17)
 
 
