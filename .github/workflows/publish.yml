@@ -27,14 +27,16 @@ jobs:
         run: npx pnpm i
 
       - name: 生成版本号
-        run: 
+        run: |
           export PKM_VERSION_DEFAULT=$(node -pe "require('./package.json').version")
           export SEMANTIC_VERSION=`npm run semantic-release --dry-run --registry=https://registry.npmmirror.com | grep -oP 'Published release \K.*? ' | sed s/[[:space:]]//g`
           export PKM_VERSION=${SEMANTIC_VERSION:-${PKM_VERSION_DEFAULT}}-build${GITHUB_RUN_ID}
 
       # 打包
       - name: 打包
-        run: npx pnpm build
+        run: |
+          echo "当前版本号：$PKM_VERSION"
+          npx pnpm build
 
       # 构建release
       - name: release
