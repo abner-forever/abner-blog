@@ -29,8 +29,8 @@ jobs:
       - name: 生成版本号
         run: 
           export PKM_VERSION_DEFAULT=$(node -pe "require('./package.json').version")
-          export SEMANTIC_VERSION=`yarn semantic-release --dry-run --registry=https://registry.npmmirror.com | grep -oP 'Published release \K.*? ' | sed s/[[:space:]]//g`
-          export PKM_VERSION=${SEMANTIC_VERSION:-${PKM_VERSION_DEFAULT}}-build${GITHUB_TUN_ID}
+          export SEMANTIC_VERSION=`npm run semantic-release --dry-run --registry=https://registry.npmmirror.com | grep -oP 'Published release \K.*? ' | sed s/[[:space:]]//g`
+          export PKM_VERSION=${SEMANTIC_VERSION:-${PKM_VERSION_DEFAULT}}-build${GITHUB_RUN_ID}
 
       # 打包
       - name: 打包
