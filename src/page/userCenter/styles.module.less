@@ -18,6 +18,7 @@
       height: 50px;
       border-radius: 50%;
       overflow: hidden;
+      object-fit: cover;
     }
 
     input {
@@ -43,17 +44,8 @@
     }
 
   }
-
-  .write-article {
-    display: flex;
-
-    p {
-      margin-right: 10px;
-
-      &:hover {
-        color: #009a61;
-      }
-    }
+  .user_config{
+    margin-top: 20px;
   }
 
   .social-content {
@@ -65,6 +57,14 @@
       width: 20px;
       height: 20px;
     }
+  }
+  .logout_btn{
+    width: 180px;
+    position: fixed;
+    bottom: 90px;
+    margin: auto;
+    left: 0;
+    right: 0;
   }
 }
 
@@ -79,13 +79,6 @@
     }
     .user_config{
       width: 100%;
-      margin-top: 20px;
-    }
-    .logout_btn{
-      width: 180px;
-      position: fixed;
-      bottom: 90px;
-      margin: auto;
     }
   }
 

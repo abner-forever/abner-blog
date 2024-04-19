@@ -1,6 +1,6 @@
 :root {
   --adm-color-primary: #009a61;
-  --adm-color-disable: #ccc;
+  --adm-color-disable: #c3c2c2;
   --adm-color-success: #00b578;
   --adm-color-warning: #ff8f1f;
   --adm-color-danger: #ff3141;
@@ -37,9 +37,25 @@
   }
 }
 
-.adm-button{
-  --border-radius: 8px;
+.adm-list {
+  &-body {
+    // background-color: transparent;
+  }
+
+  &-item {
+    background-color: transparent;
+  }
 }
-.adm-checkbox .adm-checkbox-icon{
+
+.adm-button {
+  --border-radius: 8px;
+
+  &-disabled {
+    --color: var(--adm-color-disable);
+    opacity: .6;
+  }
+}
+
+.adm-checkbox .adm-checkbox-icon {
   border-radius: 8px;
 }

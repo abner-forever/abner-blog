@@ -66,14 +66,14 @@ const PasswordForm: FC<PasswordFormProps> = ({ onSubmit }) => {
         rules={[{ required: true, validator: checkEmail }]}
         className="input-item"
       >
-        <Input placeholder="请输入账号邮箱" clearable />
+        <Input autoFocus placeholder="请输入邮箱账号" clearable />
       </Form.Item>
       <Form.Item
         name="password"
         className="input-item"
         rules={[{ required: true, validator: checkPassword }]}
       >
-        <Input placeholder="请输入密码" clearable />
+        <Input type="password" placeholder="请输入密码" clearable />
       </Form.Item>
       <Button
         color="primary"

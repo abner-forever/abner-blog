@@ -1,4 +1,4 @@
-import React, { FC } from "react";
+import React, { FC, useEffect, useRef } from "react";
 import Loading from "../Loading";
 import classNames from "classnames";
 import Iconfont from "../Iconfont";
@@ -6,7 +6,7 @@ import { isMobile } from "@/utils/userAgent";
 import { useNavigate } from "@/hooks";
 import Header from "../Header";
 import routerList from "@/routes/routers";
-
+import { Footer } from "@/components";
 import "./style.less";
 
 interface PageProps {
@@ -31,6 +31,7 @@ const Page: FC<PageProps> = ({
   onBack,
 }) => {
   const navigate = useNavigate();
+  const pageRef = useRef<HTMLDivElement>(null);
   const onClickBack = () => {
     if (onBack && typeof onBack === "function") {
       onBack();
@@ -38,8 +39,16 @@ const Page: FC<PageProps> = ({
       navigate(-1);
     }
   };
+  useEffect(() => {
+    document.body?.addEventListener("scroll", () => {
+      console.log("pageRef.current?.scrollTop", pageRef.current?.scrollTop);
+    });
+  }, []);
+  const handelScroll = () => {
+    console.log("pageRef.current?.scrollTop", pageRef.current?.scrollTop);
+  };
   return (
-    <div className={classNames("page-container", className)}>
+    <div className={classNames("page", className)}>
       {isMobile() ? (
         <>
           {!hideHeader && (
@@ -56,9 +65,14 @@ const Page: FC<PageProps> = ({
       ) : (
         <Header routerConfig={routerList} />
       )}
-      <main className={classNames("page-body", bodyClassName)}>
+      <main
+        ref={pageRef}
+        onScroll={handelScroll}
+        className={classNames("page-body", bodyClassName)}
+      >
         {loading ? <Loading /> : children}
       </main>
+      {!isMobile() && <Footer />}
     </div>
   );
 };

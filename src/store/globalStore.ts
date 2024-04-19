@@ -6,6 +6,7 @@ interface UserInfo {
   id: number;
   username?: string;
   avator?: string;
+  email: string;
 }
 
 

@@ -67,19 +67,24 @@ const UserCenter = () => {
     <Page hideHeader className={styles["user-content"]} title="个人中心">
       <div className={styles.userinfo}>
         <div className={styles["avator-container"]}>
-          <img
-            className={styles.avator}
-            src={userInfo?.avator || DEFAULT_HEAD}
-            alt=""
-          />
+          {userInfo?.avator && (
+            <img
+              className={styles.avator}
+              src={userInfo.avator}
+              alt="avator"
+            />
+          )}
           <input type="file" onChange={handleAvatorChange} />
         </div>
         <p className={styles["user-name"]}>{userInfo?.username}</p>
-        <div className={styles["social-content"]}>
-          <a href="https://github.com/abner-forever" target="_blank">
-            <img src={GithubIcon} alt="" />
-          </a>
-        </div>
+        <p className={styles.email}>{userInfo?.email}</p>
+        {userInfo?.id === 1 && (
+          <div className={styles["social-content"]}>
+            <a href="https://github.com/abner-forever" target="_blank">
+              <img src={GithubIcon} alt="" />
+            </a>
+          </div>
+        )}
       </div>
       <div className={styles.user_config}>
         <List>
@@ -95,7 +100,6 @@ const UserCenter = () => {
           ))}
         </List>
       </div>
-
       <Button className={styles.logout_btn} onClick={logOut}>
         退出登录
       </Button>

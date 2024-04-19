@@ -6,7 +6,7 @@ import { lazyLoad } from "@/utils/lazyLoad";
 const routes =[
   {
     path: "/exercise",
-    element: <Exercise />,
+    element: lazyLoad(() => import("@/page/userCenter/containers/exercise")),
     title: "运动",
     isShowHeader: false,
     auth: true, // 登录验证
