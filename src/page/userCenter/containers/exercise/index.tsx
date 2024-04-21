@@ -79,6 +79,7 @@ const ExerciseItem = ({ item }: any) => {
       <div className={styles.exercise_item_right}>
         <div className={styles.title}>{item.title}</div>
         <div className={styles.desc}>{item.description}</div>
+        <div className={styles.time}>打卡时间：{dayjs(item.createTime).format('YYYY-MM-DD HH:mm:ss')}</div>
       </div>
     </div>
   );

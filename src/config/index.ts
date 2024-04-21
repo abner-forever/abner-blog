@@ -16,7 +16,7 @@ interface Config {
 const config: Config = {
   dev: {
     api: HOST + PROXY_ENV,
-    imageServer: HOST,
+    imageServer: "http://localhost:8080",
   },
   online: {
     api: HOST + PROXY_ENV,

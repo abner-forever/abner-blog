@@ -34,7 +34,6 @@ const ExerciseCheckIn = () => {
   });
   const onSubmit = async () => {
     const value = form.getFieldsValue();
-    console.log("value", value);
     const params = {
       ...value,
       type: "exercise",
@@ -46,9 +45,9 @@ const ExerciseCheckIn = () => {
   const onFieldsChange = () => {
     const { status, spendTime, rate } = form.getFieldsValue();
     setFormPassword({
-      address: !!status,
-      receiveName: !!spendTime,
-      receivePhone: !!rate,
+      status: status !== undefined,
+      spendTime: spendTime !== undefined,
+      rate: rate !== undefined,
     });
   };
 

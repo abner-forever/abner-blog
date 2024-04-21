@@ -14,12 +14,12 @@ import styles from "./styles.module.less";
 const userConfig = [
   {
     title: "我的笔记",
-    path: "/myArticle",
+    path: "/user/myArticle",
     action: "navigate",
   },
   {
     title: "运动",
-    path: "/exercise",
+    path: "/user/exercise",
     action: "navigate",
   },
 ];
@@ -35,20 +35,6 @@ const UserCenter = () => {
   useEffect(() => {
     if (isLogin && !userInfo) global.getUserInfo();
   }, [isLogin]);
-  const handleAvatorChange = async (event: any) => {
-    const file = event.target.files[0];
-    const formData = new FormData();
-    formData.append("file", file);
-    const { url } = await apiBlog.uploadAvator(formData);
-    const urls = config.imageServer + url;
-    await apiBlog.updateUserInfo({
-      avator: urls,
-    });
-    global.updateUserInfo({
-      avator: urls,
-    });
-    Toast.show("头像更新成功");
-  };
   const logOut = () => {
     let currentCookieSetting = {
       expires: -1,
@@ -65,17 +51,15 @@ const UserCenter = () => {
 
   return (
     <Page hideHeader className={styles["user-content"]} title="个人中心">
-      <div className={styles.userinfo}>
-        <div className={styles["avator-container"]}>
-          {userInfo?.avator && (
-            <img
-              className={styles.avator}
-              src={userInfo.avator}
-              alt="avator"
-            />
-          )}
-          <input type="file" onChange={handleAvatorChange} />
-        </div>
+      <div
+        className={styles.userinfo}
+        onClick={() => navigate("/user/account")}
+      >
+        <img
+          className={styles.avator}
+          src={userInfo?.avator || DEFAULT_HEAD}
+          alt="avator"
+        />
         <p className={styles["user-name"]}>{userInfo?.username}</p>
         <p className={styles.email}>{userInfo?.email}</p>
         {userInfo?.id === 1 && (

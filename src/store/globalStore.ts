@@ -7,6 +7,8 @@ interface UserInfo {
   username?: string;
   avator?: string;
   email: string;
+  phone: string;
+  sign: string;
 }
 
 
