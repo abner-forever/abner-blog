@@ -83,13 +83,13 @@ class Http {
     return Promise.race([request, timeOut]);
   }
   async post(url: string, body: any, options?: any): Promise<any> {
-    let { headers = {} } = options || {};
+    let { headers = {}, method } = options || {};
     headers = { ...this.headers, ...headers };
     let res = await this.commonFetch(
       url,
       headers,
       this.interceptorsRequest(body),
-      "POST"
+      method || "POST"
     );
     return new Promise((resolve, reject) => {
       try {

@@ -7,41 +7,36 @@ on:
 
 jobs:
   build:
-    # runs-on 指定job任务运行所需要的虚拟机环境(必填字段)
+    # runs-on 指定job任务运行所需要的虚拟机环境
     runs-on: ubuntu-latest
     steps:
       # 获取源码
       - name: 迁出代码
-        # 使用action库  actions/checkout获取源码
         uses: actions/checkout@master
 
-      # 安装Node18
+      # 安装Node
       - name: 安装node.js
-        # 使用action库  actions/setup-node安装node
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
-          node-version: 18.16.1
+          node-version: 18
 
-      # 安装依赖
-      - name: 安装依赖
-        run: npx pnpm i
-
-      - name: 打包
+      # 构建项目
+      - name: build
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: |
+          npx pnpm i
           export PKM_VERSION_DEFAULT=$(node -pe "require('./package.json').version")
           export SEMANTIC_VERSION=`npm run semantic-release --dry-run --registry=https://registry.npmmirror.com | grep -oP 'Published release \K.*? ' | sed s/[[:space:]]//g`
           export PKM_VERSION=${SEMANTIC_VERSION:-${PKM_VERSION_DEFAULT}}-build${GITHUB_RUN_ID}
-          echo "当前版本号：$PKM_VERSION"
           npx pnpm build
           npm run release
 
-      # 上传
-      - name: upload
-        uses: easingthemes/ssh-deploy@v2.1.1
-        env:
+      # 上传服务器
+      - name: Deploy to Server
+        uses: easingthemes/ssh-deploy@main
+        with:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           # scp参数
           ARGS: "-avzr --delete"

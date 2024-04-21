@@ -25,7 +25,7 @@ function ArticleCard({ item, isEdit, deleteArticle = () => {} }: IProps) {
           <p className="desc">{item.description}</p>
         </div>
         <div className="meta">
-          {!isEdit && <span>{item.author}</span>}
+          {!isEdit && <span className='author'>{item.author}</span>}
           <span className="update-time">
             <Iconfont type="icon-clock" size={20} color="#b4b4b4" />
             <span>

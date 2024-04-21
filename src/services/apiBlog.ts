@@ -5,16 +5,19 @@ class ApiBlog {
    * 博客列表数据
    */
   apiArticleList = (params?: any) => {
-    return Fetch.get("/article/list", params);
+    return Fetch.get("/articles", params);
   };
   getMyArticleList = () => {
-    return Fetch.get("/article/myarticleList");
+    return Fetch.get("/articles/my");
+  };
+  removeArticle = (params: any) => {
+    return Fetch.post("/articles", params, { method: "delete" });
   };
   /**
    * 博客详情页
    */
   getArticleDetail = ({ id }: any) => {
-    return Fetch.get(`/article/deatil/${id}`);
+    return Fetch.get(`/articles/detail/${id}`);
   };
   /**
    * 添加文章评论
@@ -50,9 +53,6 @@ class ApiBlog {
     return Fetch.post("/article/add", params);
   };
 
-  removeArticle = (params: any) => {
-    return Fetch.post("/article/delete", params);
-  };
   //登录
   login = (params: any) => {
     return Fetch.post("/login", params);
@@ -62,7 +62,7 @@ class ApiBlog {
     return upLoad.post("/files/upload/avator", params);
   };
   updateUserInfo = (params: any) => {
-    return Fetch.post("/user/updateUserInfo", params);
+    return Fetch.post("/user/update", params);
   };
   uploadMarkdownImage = (params: any) => {
     return upLoad.post("/files/upload/markdown", params);
@@ -89,9 +89,9 @@ class ApiBlog {
   addTask = (params: any) => {
     return Fetch.post("/task/add", params, { showToast: true });
   };
-  authCode = (params: any) =>{
-    return Fetch.post("/authCode", params );
-  }
+  authCode = (params: any) => {
+    return Fetch.post("/authCode", params);
+  };
 }
 
 const apiBlog = new ApiBlog();
