@@ -1,3 +1,10 @@
+## [1.3.4](https://github.com/abner-forever/abner-blog/compare/v1.3.3...v1.3.4) (2024-04-21)
+
+
+### Bug Fixes
+
+* 修改个人信息更改 ([e7c5e79](https://github.com/abner-forever/abner-blog/commit/e7c5e7940d821d12bc7359342b41ac2d91186f19))
+
 ## [1.3.3](https://github.com/abner-forever/abner-blog/compare/v1.3.2...v1.3.3) (2024-04-19)
 
 
