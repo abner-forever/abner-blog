@@ -52,14 +52,16 @@ const ExerciseCheckIn = () => {
   };
 
   return (
-    <Page className={styles.exercise_checkin}>
-      <p className={styles.title}>你今天运动了吗</p>
+    <Page title="运动打卡" bodyClassName={styles.exercise_checkin}>
       <Form
         form={form}
         onFinish={onSubmit}
         onFieldsChange={onFieldsChange}
         className={styles.exercise_form}
       >
+        <Form.Header>
+          <p className={styles.title}>你今天运动了吗</p>
+        </Form.Header>
         <Form.Item
           name="status"
           rules={[{ required: true }]}

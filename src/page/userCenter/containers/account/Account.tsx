@@ -6,10 +6,10 @@ import { DEFAULT_HEAD } from "@/constant";
 import apiBlog from "@/services/apiBlog";
 import config from "@/config";
 import { Button, Form, Input, Toast } from "antd-mobile";
+import { observer } from "mobx-react";
 
 const Account = () => {
   const { global } = useStore();
-  const { userInfo } = global;
   const [form] = Form.useForm();
 
   const handleAvatorChange = async (event: any) => {
@@ -34,18 +34,19 @@ const Account = () => {
     const data = await apiBlog.updateUserInfo(params);
     if (data) {
       global.updateUserInfo({
-        ...userInfo,
+        ...global?.userInfo,
         ...params,
       });
       Toast.show("信息更新成功");
     }
   };
+
   return (
     <Page title="账号信息" bodyClassName={styles.account}>
       <div className={styles["avator-container"]}>
         <img
           className={styles.avator}
-          src={userInfo?.avator || DEFAULT_HEAD}
+          src={global?.userInfo?.avator || DEFAULT_HEAD}
           alt="avator"
         />
         <input type="file" onChange={handleAvatorChange} />
@@ -57,8 +58,8 @@ const Account = () => {
         form={form}
         onFinish={onSubmit}
         initialValues={{
-          username: userInfo?.username,
-          sign: userInfo?.sign,
+          username: global?.userInfo?.username || "",
+          sign: global?.userInfo?.sign || "",
         }}
         footer={
           <Button block type="submit" color="primary" size="large">
@@ -69,7 +70,7 @@ const Account = () => {
         <Form.Item name="username" label="昵称" rules={[{ required: true }]}>
           <Input placeholder="请输入昵称" />
         </Form.Item>
-        <Form.Item name="sign" label="签名" rules={[{ required: true }]}>
+        <Form.Item name="sign" label="签名" >
           <Input placeholder="请输入个性签名" />
         </Form.Item>
       </Form>
@@ -77,4 +78,4 @@ const Account = () => {
   );
 };
 
-export default Account;
+export default observer(Account);

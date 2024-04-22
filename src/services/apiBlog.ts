@@ -83,9 +83,16 @@ class ApiBlog {
     return Fetch.get("/task/todolist", params);
   };
 
+  getTodoListByMonth =(params?: {year: number, month: number }) => {
+    return Fetch.get("/task/todolistByMonth", params);
+  };
+
   updateTaskTodo = (params: any) => {
     return Fetch.post("/task/update", params);
   };
+  removeTodo = (params: any)=>{
+    return Fetch.post("/task/delete", params, { method: "delete" });
+  }
   addTask = (params: any) => {
     return Fetch.post("/task/add", params, { showToast: true });
   };
