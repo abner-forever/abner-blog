@@ -3,7 +3,8 @@
   height: calc(100vh - 120px);
   background-color: #fff;
   border-radius: 8px;
-
+  display: flex;
+  flex-direction: column;
   &-title {
     height: 40px;
     line-height: 40px;
@@ -40,17 +41,15 @@
 
   .for-container {
     width: 100%;
-    height: 100%;
     border-radius: 0;
-
+    flex: 1;
     >div:first-child {
       border-radius: 0;
     }
 
     .for-toolbar {
       max-width: 100vw;
-      overflow: hidden;
-      overflow-x: auto;
+      overflow: visible;
     }
 
     .cm-line {

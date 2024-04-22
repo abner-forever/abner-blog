@@ -1,5 +1,4 @@
 import defaultHeader from "@img/defaultHeader.png";
-// const host = 'https://foreverheart.top'
 // const isDev = import.meta.env.DEV
 const host = location.origin;
 // console.log('isDev',isDev);

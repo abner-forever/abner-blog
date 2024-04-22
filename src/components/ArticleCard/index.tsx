@@ -25,8 +25,8 @@ function ArticleCard({ item, isEdit, deleteArticle = () => {} }: IProps) {
           <p className="desc">{item.description}</p>
         </div>
         <div className="meta">
-          {!isEdit && <span className='author'>{item.author}</span>}
           <span className="update-time">
+          {!isEdit && <span className='author'>{item.author}</span>}
             <Iconfont type="icon-clock" size={20} color="#b4b4b4" />
             <span>
               {dayjs(item.updateTime || item.createTime).format(
