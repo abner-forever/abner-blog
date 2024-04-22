@@ -1,3 +1,10 @@
+## [1.3.5](https://github.com/abner-forever/abner-blog/compare/v1.3.4...v1.3.5) (2024-04-22)
+
+
+### Bug Fixes
+
+* 晚上运动打卡 ([8224f7a](https://github.com/abner-forever/abner-blog/commit/8224f7ae9fa694e56f9295f32af19bed3e01c4a7))
+
 ## [1.3.4](https://github.com/abner-forever/abner-blog/compare/v1.3.3...v1.3.4) (2024-04-21)
 
 
