@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { useNavigate } from '@/hooks';
+import { useNavigate } from "@/hooks";
 import apiBlog from "@/services/apiBlog";
 import Editor from "for-editor";
 import { throttle } from "lodash";
@@ -40,7 +40,6 @@ const MarkdownEditer = ({ id, content }: MarkdownEditerProps) => {
     title: "未命名文章标题",
   });
   const navigate = useNavigate();
-
   useEffect(() => {
     const initData = () => {
       if (markdown) {
@@ -104,7 +103,7 @@ const MarkdownEditer = ({ id, content }: MarkdownEditerProps) => {
     <Page title="编辑文档" bodyClassName="markdown-container">
       <div className="markdown-container-title-wrap">
         <input
-         className="markdown-container-title"
+          className="markdown-container-title"
           value={titleAndDescription?.title}
           onChange={onChangeTitle}
           placeholder="请在正文以# 开头输入标题"
