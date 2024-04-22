@@ -61,7 +61,7 @@ const UserCenter = () => {
           alt="avator"
         />
         <p className={styles["user-name"]}>{userInfo?.username}</p>
-        <p className={styles.email}>{userInfo?.email}</p>
+        <p className={styles.sign}>{userInfo?.sign}</p>
         {userInfo?.id === 1 && (
           <div className={styles["social-content"]}>
             <a href="https://github.com/abner-forever" target="_blank">

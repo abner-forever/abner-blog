@@ -1,15 +1,22 @@
 .todolist {
   display: flex;
   flex-direction: column;
-
+  width: 100%;
+  flex: 1;
+  align-items: center;
+  &.no_data{
+    justify-content: center;
+  }
+  .nodata{
+    font-size: 20px;
+  }
   .todo_item {
     min-height: 48px;
     border-radius: 4px;
     background-color: #fff;
-    margin-top: 12px;
     display: flex;
     align-items: center;
-    padding: 12px 24px;
+    padding: 0 12px;
 
     .item_right {
       margin-left: 16px;
@@ -32,5 +39,10 @@
       border: none;
       padding: 0;
     }
+  }
+}
+@media screen and (max-width: @mobile-max-width) {
+  .todo_page{
+    padding-bottom: 80px;
   }
 }

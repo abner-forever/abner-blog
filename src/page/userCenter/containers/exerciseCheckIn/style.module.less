@@ -1,5 +1,7 @@
+.exercise_checkin{
+  background-image: linear-gradient(120deg, #84fab0 0%, #8fd3f4 100%);
+}
 .title {
-  width: 100%;
   text-align: center;
   padding: 24px 0;
   font-weight: 600;
@@ -13,7 +15,7 @@
   width: 100%;
   padding: 24px;
   box-sizing: border-box;
-
+  border-radius: 8px;
   :global {
     .adm-list-body{
       overflow: visible;
@@ -42,11 +44,6 @@
 }
 
 @media screen and (max-width: @mobile-max-width) {
-  .title {
-    width: 360px;
-
-  }
-
   .exercise_form {
     width: 360px;
   }

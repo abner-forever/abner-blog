@@ -62,6 +62,7 @@
     "postcss-less": "^6.0.0",
     "postcss-pxtorem": "^6.1.0",
     "prettier": "^2.4.1",
+    "prop-types": "^15.8.1",
     "semantic-release": "^21.0.0",
     "shelljs": "^0.8.4",
     "simple-git": "^2.48.0",
