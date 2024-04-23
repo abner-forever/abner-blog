@@ -17,8 +17,11 @@ const exerCiseTime = [
   [
     { label: "0", value: 0 },
     { label: "10分钟", value: 10 },
+    { label: "15分钟", value: 15 },
     { label: "20分钟", value: 20 },
+    { label: "25分钟", value: 25 },
     { label: "30分钟", value: 30 },
+    { label: "35分钟", value: 35 },
     { label: "40分钟", value: 40 },
     { label: "一小时", value: 60 },
   ],
@@ -27,6 +30,7 @@ const exerCiseTime = [
 const ExerciseCheckIn = () => {
   const [form] = Form.useForm();
   const [pickerVisible, setPickerVisible] = useState(false);
+  const [exerciseTime, setExerciseTime] = useState<any>();
   const [formPassword, setFormPassword] = useState<Record<string, boolean>>({
     status: false,
     spendTime: false,
@@ -83,7 +87,9 @@ const ExerciseCheckIn = () => {
                 setPickerVisible(true);
               }}
             >
-              请选择
+              {exerciseTime !== undefined
+                ? `已选择${exerciseTime}分钟`
+                : "请选择"}
             </Button>
             <Picker
               columns={exerCiseTime}
@@ -93,6 +99,9 @@ const ExerciseCheckIn = () => {
               }}
               onConfirm={val => {
                 form.setFieldValue("spendTime", val[0]);
+                console.log("(val[0]", val[0]);
+
+                setExerciseTime(val[0]);
               }}
             />
           </div>
@@ -105,7 +114,7 @@ const ExerciseCheckIn = () => {
           <Rate allowHalf allowClear={true} defaultValue={0} />
         </Form.Item>
         <Form.Item name="description" label="4. 今天的状态分享">
-          <TextArea placeholder="请输入内容" />
+          <TextArea placeholder="分享下今天锻炼的效果吧~" />
         </Form.Item>
         <div className={styles.submit_btn}>
           <Button

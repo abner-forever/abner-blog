@@ -3,7 +3,7 @@
   border-radius: 4px;
   padding: 24px;
   width: 100%;
-
+  min-height: calc(100vh - 180px);
   .detail-title {
     width: 80%;
     margin: 0 auto;
@@ -17,35 +17,48 @@
 
   .title-desc {
     font-size: 18px;
-    margin: .2rem auto;
+    margin-top: 18px;
     text-align: center;
     display: flex;
     align-items: center;
     justify-content: center;
 
-    >span {
+    >div {
       display: inline-flex;
       align-items: center;
-
+      display: flex;
+      align-items: center;
       span {
         margin-left: 8px;
+      }
+      .eye-icon{
+        font-size: 18px;
       }
     }
 
     .update-time {
-      margin-left: 40px;
+      margin: 0 20px;
     }
   }
 
   .article-content {
     flex: 1;
     word-wrap: break-word;
-
+    margin-top: 20px;
     code {
       .code-line {
         color: #333;
       }
     }
 
+  }
+}
+
+@media screen and (max-width: @mobile-max-width) {
+  .detail-content  {
+    padding: 12px;
+    .title-desc{
+      font-size: 14px;
+    }
   }
 }

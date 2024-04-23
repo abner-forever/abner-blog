@@ -6,10 +6,9 @@ import GithubIcon from "@img/github.svg";
 import { observer } from "mobx-react";
 import useStore from "@/hooks/useStore";
 import { Page } from "@/components";
-import apiBlog from "@/services/apiBlog";
-import config from "@/config";
-import { Toast, Button, List } from "antd-mobile";
+import { Button, List, Footer } from "antd-mobile";
 import styles from "./styles.module.less";
+import { isMobile } from "@/utils/userAgent";
 
 const userConfig = [
   {
@@ -84,9 +83,21 @@ const UserCenter = () => {
           ))}
         </List>
       </div>
-      <Button className={styles.logout_btn} onClick={logOut}>
-        退出登录
-      </Button>
+      <div className={styles.bottom_wrap}>
+        {isMobile() && (
+          <Footer
+            links={[
+              {
+                text: "蜀ICP备18037467号",
+                href: "https://beian.miit.gov.cn/",
+              },
+            ]}
+          />
+        )}
+        <Button className={styles.logout_btn} onClick={logOut}>
+          退出登录
+        </Button>
+      </div>
     </Page>
   );
 };

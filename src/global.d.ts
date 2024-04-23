@@ -29,6 +29,7 @@ interface IArticleItemtype {
   updateTime: string;
   createTime: string;
   cover: string;
+  viewCount: number;
 }
 
 interface FetchReponse {

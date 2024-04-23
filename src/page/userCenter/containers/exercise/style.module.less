@@ -3,19 +3,18 @@
   background-image: linear-gradient(to right, #a8edea 0%, #fed6e3 100%);
   background-size: cover;
 }
-.exercise_header{
+
+.exercise_header {
   width: 100%;
   display: flex;
-  padding: 8px 18px;
-  .tody_exercise{
+  .tody_exercise {
     flex: 1;
     padding: 12px;
-    border-radius: 8px;
     backdrop-filter: blur(6px);
     font-weight: 600;
     color: #fff;
     background-color: #f38181;
-    box-shadow: 0 0 8px 0 rgba(232,237,250,.6),0 2px 4px 0 rgba(232,237,250,.5);
+    box-shadow: 0 0 8px 0 rgba(232, 237, 250, .6), 0 2px 4px 0 rgba(232, 237, 250, .5);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -23,29 +22,51 @@
   }
 }
 
-.calendar{
+.calendar {
   background-color: #fff;
-  .cell{
+
+  .cell {
     width: 28px;
     height: 28px;
     border-radius: 50%;
     display: flex;
     justify-content: center;
     align-items: center;
-    &_active{
-      background-color: #00b8a9;
-      color: #fff;
-      border-radius: 4px;
+  }
+
+  :global {
+    .adm-calendar {
+      &-cell {
+        &-today {
+          background-color: #00b8a9;
+          color: #fff;
+          border-radius: 50%;
+        }
+
+        &-selected {
+          border-radius: 50% !important;
+        }
+      }
     }
   }
+
+  .dot {
+    display: inline-block;
+    background-color: @primary-color;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
 }
+
 .exercise_list {
   width: 100%;
   margin-top: 12px;
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 0 18px;
+  padding: 0 16px;
+
   .exercise_item {
     display: flex;
     align-items: center;
@@ -55,6 +76,7 @@
     color: #fff;
     background-color: #a8d8ea;
     box-shadow: 0 0 30px 10px rgba(175, 175, 175, 0.3);
+
     &:not(:first-child) {
       margin-top: 12px;
     }
@@ -67,25 +89,46 @@
     }
 
     .title {
-      font-size: 16px;
-      font-weight: 500;
+      font-size: 18px;
+      font-weight: 600;
     }
 
     .desc {
       font-size: 14px;
-      margin-top: 8px;
+      margin-top: 4px;
+      font-weight: 400;
+      opacity: .9;
+    }
+
+    .time {
+      display: flex;
+      align-items: center;
+      font-size: 16px;
+      margin-top: 12px;
+      >span {
+        margin-right: 18px;
+        display: flex;
+        align-items: center;
+      }
+    }
+
+    .time_icon {
+      margin-right: 8px;
     }
   }
-  &.no_data{
+
+  &.no_data {
     align-items: center;
     justify-content: center;
   }
-  .no_task{
+
+  .no_task {
     color: #fff;
-    font-size: 36px
+    font-size: 28px
   }
 }
-.today{
+
+.today {
   width: 50px;
   height: 50px;
   border-radius: 50%;
@@ -98,6 +141,7 @@
   justify-content: center;
   font-size: 22px;
 }
+
 .go_exercise_btn {
   width: 60px;
   height: 60px;
@@ -108,7 +152,7 @@
   right: 20px;
   color: #fff;
   background-color: #a8d8ea;
-  box-shadow: 0 1px 2px 0 rgba(101,129,156,.08);
+  box-shadow: 0 1px 2px 0 rgba(101, 129, 156, .08);
   border: none;
   display: flex;
   align-items: center;
