@@ -1,25 +1,26 @@
 import React, { useState, useEffect } from "react";
-import ArticleDetail from "@/components/ArticleDetail";
+import ArticleDetail from "@/page/detailPage/ArticleDetail";
 import { Comments, Page } from "@/components";
 import { useParams } from "react-router-dom";
 import ApiBlog from "@/services/apiBlog";
-import Cookies from "js-cookie";
 
 const DetailPage = () => {
   const { id } = useParams();
   const [articleDetail, setArticleDetail] = useState<any>();
+  const [loading, setLoading] = useState(true);
   useEffect(() => {
-    getArticleDetail();
+    const init = async () => {
+      let res: any = await ApiBlog.getArticleDetail({ id });
+      setArticleDetail(res);
+      setLoading(false);
+    };
+    init();
   }, []);
-  let userId = Cookies.get("userId");
-  const getArticleDetail = async () => {
-    let res: any = await ApiBlog.getArticleDetail({ id });
-    setArticleDetail(res);
-  };
+
   return (
-    <Page title={articleDetail?.title}>
+    <Page title={articleDetail?.title} loading={loading}>
       <ArticleDetail editArticle={articleDetail} />
-      {!!userId && <Comments id={id} />}
+      {/* <Comments id={id} /> */}
     </Page>
   );
 };

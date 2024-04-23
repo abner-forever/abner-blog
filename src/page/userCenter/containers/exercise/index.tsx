@@ -8,6 +8,11 @@ import { useNavigate } from "@/hooks";
 import Iconfont from "@/components/Iconfont";
 import dayjs from "dayjs";
 import classNames from "classnames";
+import {
+  CarryOutFilled,
+  CarryOutOutlined,
+  ClockCircleOutlined,
+} from "@ant-design/icons";
 
 /** 我的运动 */
 const Exercise = () => {
@@ -97,7 +102,7 @@ const Exercise = () => {
         onPageChange={onPageChange}
         renderLabel={date => {
           if (dateList.includes(dayjs(date).format("YYYY-MM-DD"))) {
-            return <span>已打卡</span>;
+            return <span className={styles.dot} />;
           }
         }}
       />
@@ -133,7 +138,21 @@ const ExerciseItem = ({ item }: any) => {
         <div className={styles.title}>{item.title}</div>
         <div className={styles.desc}>{item.description}</div>
         <div className={styles.time}>
-          打卡时间：{dayjs(item.createTime).format("YYYY-MM-DD HH:mm:ss")}
+          <span>
+            <ClockCircleOutlined
+              style={{ fontSize: 20 }}
+              className={styles.time_icon}
+            />
+            {item.spendTime}分钟
+          </span>
+          <span>
+            <CarryOutFilled
+              className={styles.time_icon}
+              style={{ fontSize: 20 }}
+              color="#fff"
+            />
+            {dayjs(item.createTime).format("YYYY-MM-DD HH:mm")}
+          </span>
         </div>
       </div>
     </div>

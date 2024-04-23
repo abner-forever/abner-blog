@@ -3,6 +3,7 @@ import { Empty, ArticleCard, Page } from "@/components";
 import ApiBlog from "@/services/apiBlog";
 import styles from "./style.module.less";
 import { useNavigate } from "@/hooks";
+import Iconfont from "@/components/Iconfont";
 
 /**
  * 我的笔记
@@ -35,10 +36,7 @@ const MyArticle = () => {
     navigate("/addArticle");
   };
   return (
-    <Page title="我的笔记" className="content-item">
-      <p onClick={onClickNewArticle} className={styles.add_new_article}>
-        新增笔记
-      </p>
+    <Page title="我的笔记" bodyClassName={styles.my_articles}>
       {articleList.length > 0 &&
         articleList.map((item, index) => (
           <ArticleCard
@@ -49,6 +47,9 @@ const MyArticle = () => {
           />
         ))}
       {!articleList.length && <Empty title="暂无笔记" />}
+      <p onClick={onClickNewArticle} className={styles.add_new_article}>
+        <Iconfont type="icon-jiahao" size={28} color="#333" />
+      </p>
     </Page>
   );
 };

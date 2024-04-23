@@ -4,9 +4,10 @@ import apiBlog from "@/services/apiBlog";
 import Editor from "for-editor";
 import { throttle } from "lodash";
 import configs from "@/config";
-import "./style.less";
 import { isMobile } from "@/utils/userAgent";
 import { Page } from "@/components";
+import "./style.less";
+import { BackwardFilled } from "@ant-design/icons";
 
 interface MarkdownEditerProps {
   id?: number;
@@ -31,6 +32,24 @@ const matchTitleAndDesc = (markdown: string): DditorParams => {
     title,
     description: description.split(">")[1],
   };
+};
+
+const toolbar = {
+  h1: true, // h1
+  h2: true, // h2
+  h3: true, // h3
+  h4: true, // h4
+  img: true, // 图片
+  link: true, // 链接
+  code: true, // 代码块
+  preview: !isMobile(), // 预览
+  expand: !isMobile(), // 全屏
+  /* v0.0.9 */
+  undo: true, // 撤销
+  redo: true, // 重做
+  save: true, // 保存
+  /* v0.2.3 */
+  subfield: !isMobile(), // 单双栏模式
 };
 
 const MarkdownEditer = ({ id, content }: MarkdownEditerProps) => {
@@ -109,19 +128,20 @@ const MarkdownEditer = ({ id, content }: MarkdownEditerProps) => {
           placeholder="请在正文以# 开头输入标题"
           disabled
         />
-        {/* <p className="markdown-container-title">{titleAndDescription?.title}</p> */}
         {!isMobile() && (
           <div className="markdown-container-back" onClick={() => navigate(-1)}>
             返回
+            <BackwardFilled />
           </div>
         )}
       </div>
       <Editor
         subfield={true}
-        preview={!isMobile()}
+        preview={false}
         addImg={uploadHandler}
         value={markdown}
         onChange={updateMarkdown}
+        toolbar={toolbar}
       />
     </Page>
   );

@@ -43,23 +43,23 @@ class Http {
     let initParams: any = {
       signal: abortController.signal,
     };
-    const _headers = {
-      ...headers,
-      Authorization: `Bearer ${Cookies.get("user-token")}`,
-    };
+    const userToken = Cookies.get("user-token");
+    if(userToken){
+      headers.Authorization = `Bearer ${userToken}`;
+    }
     let requestUrl = prependDomainIfNeeded(path, this.domain);
     if (method === "GET") {
       requestUrl = buildRequestUrl(requestUrl, body);
       initParams = {
         ...initParams,
-        headers: _headers,
+        headers,
         method,
       };
     } else {
       initParams = {
         ...initParams,
         method,
-        headers: _headers,
+        headers,
         body: body,
       };
     }

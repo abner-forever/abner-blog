@@ -3,6 +3,7 @@ import React from "react";
 import { useNavigate } from "@/hooks";
 import "./styles.less";
 import Iconfont from "../Iconfont";
+import { EyeOutlined } from "@ant-design/icons";
 interface IProps {
   item: IArticleItemtype;
   isEdit?: boolean;
@@ -26,12 +27,16 @@ function ArticleCard({ item, isEdit, deleteArticle = () => {} }: IProps) {
         </div>
         <div className="meta">
           <span className="update-time">
-          {!isEdit && <span className='author'>{item.author}</span>}
-            <Iconfont type="icon-clock" size={20} color="#b4b4b4" />
+            {!isEdit && <span className="author">{item.author}</span>}
+            <Iconfont type="icon-clock" size={16} color="#b4b4b4" />
             <span>
               {dayjs(item.updateTime || item.createTime).format(
                 "YYYY-MM-DD HH:MM"
               )}
+            </span>
+            <span>
+              <EyeOutlined style={{marginRight: 6}} />
+              {item.viewCount}
             </span>
           </span>
           {isEdit && (

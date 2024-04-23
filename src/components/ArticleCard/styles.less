@@ -16,8 +16,9 @@
   }
 
   &:hover {
-    box-shadow: 9px 9px 18px #d2d6d8,
-      -9px -9px 18px #fff;
+    box-shadow: 0 15px 30px rgba(0,0,0,.1);
+    transform: translate3d(0,-2px,0);
+    transition: all .2s;
   }
 
   .item-left {
@@ -44,27 +45,22 @@
     flex: 1;
     .title {
       color: #333;
-      font-size: 18px;
-      font-weight: 700;
+      font-size: 22px;
+      font-weight: 600;
       line-height: 1.5;
       overflow: hidden;
-
       /* 隐藏溢出的文本 */
       display: -webkit-box;
-
       /* 设置为弹性盒子布局 */
       -webkit-box-orient: vertical;
-
       /* 设置弹性盒子的方向为垂直 */
       -webkit-line-clamp: 2;
-
       /* 设置显示的行数 */
       word-wrap: break-word;
     }
 
     .desc {
-      margin-bottom: 12px;
-      margin-top: 12px;
+      margin: 12px 0;
       overflow: hidden;
 
       /* 隐藏溢出的文本 */
@@ -125,12 +121,19 @@
     padding: 12px 16px;
     border-radius: 8px;
     min-height: 120px;
-
+    .item-left{
+      width: 80px;
+      height: 80px;
+    }
     .item-right {
       margin-left: 16px;
       flex: 1;
       .title {
+        font-size: 18px;
         -webkit-line-clamp: 1;
+      }
+      .desc{
+        margin: 4px 0;
       }
 
       .meta {
