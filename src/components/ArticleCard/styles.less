@@ -82,17 +82,17 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      .author {
-        margin-right: 8px;
-      }
 
       .update-time {
-
         display: flex;
         align-items: center;
-
-        span {
-          margin-left: 8px;
+        >span {
+          margin-right: 8px;
+          display: flex;
+          align-items: center;
+          &:last-child{
+            margin-right: 0;
+          }
         }
       }
 

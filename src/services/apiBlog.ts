@@ -72,6 +72,9 @@ class ApiBlog {
   addTask = (params: any) => {
     return Fetch.post("/task/add", params, { showToast: true });
   };
+  getWeekends = (params: any)=>{
+    return Fetch.get(`/calendar/weekends/${params.year}`);
+  }
 }
 
 const apiBlog = new ApiBlog();

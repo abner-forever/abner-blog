@@ -17,19 +17,19 @@ const Iconfont: FC<IProps> = props => {
   const { type, color, size, style, className, ...rest } = props;
 
   return (
-    <svg
-      className={classNames(
-        "iconfont",
-        size && `iconfont-size-${size}`,
-        className
-      )}
-      aria-hidden="true"
-      fill={color}
-      style={style}
-      {...rest}
-    >
-      <use xlinkHref={`#${type}`}></use>
-    </svg>
+    <span className="anticon" style={style} {...rest}>
+      <svg
+        className={classNames(
+          "iconfont",
+          size && `iconfont-size-${size}`,
+          className
+        )}
+        aria-hidden="true"
+        fill={color}
+      >
+        <use xlinkHref={`#${type}`}></use>
+      </svg>
+    </span>
   );
 };
 

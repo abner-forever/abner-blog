@@ -43,13 +43,26 @@ const AuthCodeForm: FC<AuthCodeFormProps> = ({ onSubmit }) => {
     <Form
       form={form}
       layout="vertical"
-      className={classNames(styles.auth_code_form, "auth-form")}
+      className={styles.form}
       onFinish={debounce(onFinish, 200)}
+      footer={
+        <Button
+          size="large"
+          disabled={Object.keys(formPassed).some(
+            key => formPassed[key] === false
+          )}
+          color="primary"
+          className={styles.submit}
+          type="submit"
+        >
+          登录
+        </Button>
+      }
     >
       <Form.Item
         name="email"
         rules={[{ required: true, validator: checkEmail }]}
-        className="input-item"
+        className={styles.item}
       >
         <Input autoFocus placeholder="请输入邮箱账号" clearable />
       </Form.Item>
@@ -64,18 +77,6 @@ const AuthCodeForm: FC<AuthCodeFormProps> = ({ onSubmit }) => {
           });
         }}
       />
-      <div className={styles.submit_login}>
-        <Button
-          size="large"
-          disabled={Object.keys(formPassed).some(
-            key => formPassed[key] === false
-          )}
-          color="primary"
-          type="submit"
-        >
-          登录
-        </Button>
-      </div>
       <div className={styles.login_tips}>未注册邮箱登录将自动注册</div>
     </Form>
   );
