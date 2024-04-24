@@ -1,3 +1,10 @@
+# [1.4.0](https://github.com/abner-forever/abner-blog/compare/v1.3.6...v1.4.0) (2024-04-24)
+
+
+### Features
+
+* 添加周六日 ([daea2db](https://github.com/abner-forever/abner-blog/commit/daea2dbfdcc94ee21d7c9638db783c986f7d04ce))
+
 ## [1.3.6](https://github.com/abner-forever/abner-blog/compare/v1.3.5...v1.3.6) (2024-04-22)
 
 
