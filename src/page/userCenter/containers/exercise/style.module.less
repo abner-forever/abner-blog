@@ -7,6 +7,7 @@
 .exercise_header {
   width: 100%;
   display: flex;
+
   .tody_exercise {
     flex: 1;
     padding: 12px;
@@ -37,14 +38,42 @@
   :global {
     .adm-calendar {
       &-cell {
-        &-today {
-          background-color: #00b8a9;
-          color: #fff;
+        position: relative;
+        z-index: 1;
+        --bg-color: @primary-color;
+        --weekend-color: #666;
+        &::before {
+          position: absolute;
+          top: 2px;
+          content: '';
           border-radius: 50%;
+          width: 48px;
+          height: 48px;
+          z-index: -1;
+        }
+
+        &-today {
+          color: #fff;
+          --bg-color: #fff;
+          --weekend-color: #fff;
+          &::before {
+            background-color: #00b8a9;
+          }
         }
 
         &-selected {
+          &::before {
+            background-color: #00b8a9;
+          }
+          background-color: transparent !important;
           border-radius: 50% !important;
+          --bg-color: #fff;
+          --weekend-color: #fff;
+          &-bottom{
+            background-color: #fff;
+          }
+        }
+        &-bottom{
         }
       }
     }
@@ -52,10 +81,14 @@
 
   .dot {
     display: inline-block;
-    background-color: @primary-color;
+    background-color: var(--bg-color);
     width: 8px;
     height: 8px;
     border-radius: 50%;
+  }
+  .weekend{
+    color: var(--weekend-color);
+    font-size: 10px;
   }
 }
 
@@ -81,11 +114,12 @@
       margin-top: 12px;
     }
 
-    &_right {
+    &_left {
       display: flex;
       flex-direction: column;
-      margin-left: 12px;
+      margin-right: 12px;
       font-weight: 600;
+      flex: 1;
     }
 
     .title {
@@ -105,10 +139,15 @@
       align-items: center;
       font-size: 16px;
       margin-top: 12px;
+
       >span {
         margin-right: 18px;
         display: flex;
         align-items: center;
+
+        &:last-child {
+          margin-right: 0;
+        }
       }
     }
 

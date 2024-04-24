@@ -18,11 +18,7 @@
     helvetica, segoe ui, arial, roboto, 'PingFang SC', 'miui',
     'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;
 }
-.adm-button{
-  &-default{
-    --border-color: rgba(0, 184, 168, 0.356);
-  }
-}
+
 .adm-input {
   height: 40px;
   border: 1px solid #ccc;
@@ -39,6 +35,14 @@
     --border-bottom: none;
     --padding-left: 0;
     --padding-right: 0;
+  }
+
+  .adm-list {
+    &-item {
+      &-description {
+        display: none;
+      }
+    }
   }
 }
 

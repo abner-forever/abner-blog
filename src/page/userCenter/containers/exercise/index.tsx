@@ -21,6 +21,7 @@ const Exercise = () => {
   const [currentList, setCurrentList] = useState<any[]>();
   const [hasToday, setHasTody] = useState(false);
   const [isShowToday, setIshowToday] = useState(false);
+  const [weekends, setWeekends] = useState({});
   const [date, setDate] = useState({
     year: dayjs().year(),
     month: dayjs().month() + 1,
@@ -36,7 +37,9 @@ const Exercise = () => {
       const _hasToday = data.find((item: any) => {
         return dayjs().isSame(item.createTime, "day");
       });
-      setHasTody(!!_hasToday);
+      if(!isShowToday){
+        setHasTody(!!_hasToday);
+      }
       const newdate = data.map((item: any) => {
         return dayjs(item.createTime).format("YYYY-MM-DD");
       });
@@ -49,6 +52,14 @@ const Exercise = () => {
     };
     init();
   }, [date]);
+
+  useEffect(()=>{
+    const init =async ()=>{
+      const _weekends = await apiBlog.getWeekends(date);
+      setWeekends(_weekends)
+    }
+    init();
+  },[date.year])
 
   const onClickExercise = () => {
     navigate("/user/exercise/checkIn");
@@ -104,6 +115,9 @@ const Exercise = () => {
           if (dateList.includes(dayjs(date).format("YYYY-MM-DD"))) {
             return <span className={styles.dot} />;
           }
+          if (Object.keys(weekends).includes(dayjs(date).format("YYYY-MM-DD"))) {
+            return <span className={styles.weekend} >{dayjs(date).format("ddd")}</span>;
+          }
         }}
       />
       <div
@@ -133,8 +147,7 @@ const Exercise = () => {
 const ExerciseItem = ({ item }: any) => {
   return (
     <div className={styles.exercise_item}>
-      <Checkbox checked={!!item.status} />
-      <div className={styles.exercise_item_right}>
+      <div className={styles.exercise_item_left}>
         <div className={styles.title}>{item.title}</div>
         <div className={styles.desc}>{item.description}</div>
         <div className={styles.time}>
@@ -155,6 +168,7 @@ const ExerciseItem = ({ item }: any) => {
           </span>
         </div>
       </div>
+      {!!item.status && <Checkbox checked={true} />}
     </div>
   );
 };

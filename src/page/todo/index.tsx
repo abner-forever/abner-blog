@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Page } from "@/components";
+import { Empty, Page } from "@/components";
 import apiBlog from "@/services/apiBlog";
 import { Checkbox, Dialog, Input, List, SwipeAction, Toast } from "antd-mobile";
 import { Action, SwipeActionRef } from "antd-mobile/es/components/swipe-action";
@@ -84,7 +84,7 @@ const Todo = () => {
             ))}
           </List>
         )}
-        {list?.length === 0 && <div className={styles.nodata}>暂无待办</div>}
+        {list?.length === 0 && <Empty title="暂无待办" />}
       </div>
     </Page>
   );

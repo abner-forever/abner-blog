@@ -26,19 +26,19 @@ function ArticleCard({ item, isEdit, deleteArticle = () => {} }: IProps) {
           <p className="desc">{item.description}</p>
         </div>
         <div className="meta">
-          <span className="update-time">
+          <div className="update-time">
             {!isEdit && <span className="author">{item.author}</span>}
-            <Iconfont type="icon-clock" size={16} color="#b4b4b4" />
             <span>
+              <Iconfont style={{ marginRight: 6 }} type="icon-clock" size={16} color="#b4b4b4" />
               {dayjs(item.updateTime || item.createTime).format(
                 "YYYY-MM-DD HH:MM"
               )}
             </span>
             <span>
-              <EyeOutlined style={{marginRight: 6}} />
+              <EyeOutlined style={{ fontSize:16, marginRight: 6 }} />
               {item.viewCount}
             </span>
-          </span>
+          </div>
           {isEdit && (
             <div className="edit-options">
               <Iconfont

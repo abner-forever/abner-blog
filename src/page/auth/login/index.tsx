@@ -5,8 +5,8 @@ import { useNavigate } from "@/hooks";
 import PasswordForm from "@/components/AuthForm/PasswordForm";
 import useStore from "@/hooks/useStore";
 import { Page } from "@/components";
-import "./styles.less";
 import AuthCodeForm from "@/components/AuthForm/AuthCodeForm";
+import styles from "./styles.module.less";
 
 /**
  * 登录页面
@@ -39,8 +39,8 @@ const Login = () => {
     navigate("/", { replace: true });
   };
   return (
-    <Page onBack={handleBack} title="登录" bodyClassName="login-page">
-      <Tabs>
+    <Page onBack={handleBack} title="登录" bodyClassName={styles.login_page}>
+      <Tabs className={styles.login_container}>
         <Tabs.Tab title="验证码登录" key="authCode">
           <AuthCodeForm onSubmit={onLogin} />
         </Tabs.Tab>
