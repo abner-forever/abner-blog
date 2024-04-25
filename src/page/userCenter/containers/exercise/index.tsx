@@ -2,7 +2,12 @@ import React, { useEffect, useRef, useState } from "react";
 import { Page } from "@/components";
 import apiBlog from "@/services/apiBlog";
 import { useMount } from "ahooks";
-import { Calendar, CalendarRef, Checkbox } from "antd-mobile";
+import {
+  Calendar,
+  CalendarRef,
+  CalendarPickerViewRef,
+  Checkbox,
+} from "antd-mobile";
 import styles from "./style.module.less";
 import { useNavigate } from "@/hooks";
 import Iconfont from "@/components/Iconfont";
@@ -21,7 +26,8 @@ const Exercise = () => {
   const [currentList, setCurrentList] = useState<any[]>();
   const [hasToday, setHasTody] = useState(false);
   const [isShowToday, setIshowToday] = useState(false);
-  const [weekends, setWeekends] = useState({});
+  const [workdays, setWorkdays] = useState<any>({});
+  const [holidays, setHolidays] = useState<any>({});
   const [date, setDate] = useState({
     year: dayjs().year(),
     month: dayjs().month() + 1,
@@ -33,11 +39,14 @@ const Exercise = () => {
 
   useEffect(() => {
     const init = async () => {
-      const data = await apiBlog.getTodoListByMonth(date);
+      const data = await apiBlog.getTaskListByMonth({
+        ...date,
+        type: "exercise",
+      });
       const _hasToday = data.find((item: any) => {
         return dayjs().isSame(item.createTime, "day");
       });
-      if(!isShowToday){
+      if (!isShowToday) {
         setHasTody(!!_hasToday);
       }
       const newdate = data.map((item: any) => {
@@ -53,13 +62,15 @@ const Exercise = () => {
     init();
   }, [date]);
 
-  useEffect(()=>{
-    const init =async ()=>{
-      const _weekends = await apiBlog.getWeekends(date);
-      setWeekends(_weekends)
-    }
+  useEffect(() => {
+    const init = async () => {
+      const _workdays = await apiBlog.getWorkdays(date);
+      const _holidays = await apiBlog.getHolidays(date);
+      setWorkdays(_workdays);
+      setHolidays(_holidays);
+    };
     init();
-  },[date.year])
+  }, [date.year]);
 
   const onClickExercise = () => {
     navigate("/user/exercise/checkIn");
@@ -72,11 +83,6 @@ const Exercise = () => {
     setCurrentList(_currentList);
   };
   const onPageChange = (year: number, month: number) => {
-    console.log(
-      "dayjs().format('YYYY-MM')",
-      dayjs(`${year}-${month}`).format("YYYY-MM")
-    );
-
     setIshowToday(
       dayjs(`${year}-${month}`).format("YYYY-MM") !== dayjs().format("YYYY-MM")
     );
@@ -87,36 +93,47 @@ const Exercise = () => {
   };
   return (
     <Page title="我的运动记录" className={styles.exercise_page}>
-      {hasToday && (
-        <div className={styles.exercise_header}>
-          <div className={styles.tody_exercise}>今日已打卡</div>
+      <div className={styles.exercise_header}>
+        <div className={styles.tody_exercise}>
+          {hasToday ? "今日已打卡" : "今日未打卡"}
         </div>
-      )}
+      </div>
       <Calendar
         ref={calendarRef}
         selectionMode="single"
         onChange={onDayChange}
         className={styles.calendar}
+        onPageChange={onPageChange}
         renderDate={date => {
           return (
             <div
               className={classNames(styles.cell, {
-                [styles.cell_active]: dateList.includes(
-                  dayjs(date).format("YYYY-MM-DD")
-                ),
+                [styles.weekends]: [0, 6].includes(dayjs(date).day()),
               })}
             >
               {dayjs(date).date()}
+              {Object.keys(holidays).includes(
+                dayjs(date).format("YYYY-MM-DD")
+              ) && (
+                <>
+                  <span className={styles.holidays}>
+                    {holidays[dayjs(date).format("YYYY-MM-DD")].name}
+                  </span>
+                  {holidays[dayjs(date).format("YYYY-MM-DD")].isOffDay ? (
+                    <span className={styles.offday}>休</span>
+                  ) : (
+                    <span className={classNames(styles.offday, styles.work)}>
+                      班
+                    </span>
+                  )}
+                </>
+              )}
             </div>
           );
         }}
-        onPageChange={onPageChange}
         renderLabel={date => {
           if (dateList.includes(dayjs(date).format("YYYY-MM-DD"))) {
             return <span className={styles.dot} />;
-          }
-          if (Object.keys(weekends).includes(dayjs(date).format("YYYY-MM-DD"))) {
-            return <span className={styles.weekend} >{dayjs(date).format("ddd")}</span>;
           }
         }}
       />
@@ -128,15 +145,15 @@ const Exercise = () => {
         {currentList?.map(item => (
           <ExerciseItem key={item.id} item={item} />
         ))}
-        {currentList?.length === 0 && (
-          <div className={styles.no_task}>未打卡</div>
-        )}
       </div>
-      {isShowToday && (
-        <div onClick={backToday} className={styles.today}>
-          今
-        </div>
-      )}
+      <div
+        onClick={backToday}
+        className={classNames(styles.today, {
+          [styles.show]: isShowToday,
+        })}
+      >
+        今
+      </div>
       <div className={styles.go_exercise_btn} onClick={onClickExercise}>
         <Iconfont type="icon-jiahao" size={28} color="#fff" />
       </div>

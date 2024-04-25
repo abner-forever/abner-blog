@@ -57,11 +57,11 @@ class ApiBlog {
   };
 
   /** 任务列表 */
-  getTodoList = (params?: { type: string }) => {
-    return Fetch.get("/task/todolist", params);
+  getTaskList = (params?: { type: string }) => {
+    return Fetch.get("/task/list", params);
   };
-  getTodoListByMonth = (params?: { year: number; month: number }) => {
-    return Fetch.get("/task/todolistByMonth", params);
+  getTaskListByMonth = (params?: { type: string, year: number; month: number }) => {
+    return Fetch.get("/task/listByMonth", params);
   };
   updateTaskTodo = (params: any) => {
     return Fetch.post("/task/update", params);
@@ -72,8 +72,11 @@ class ApiBlog {
   addTask = (params: any) => {
     return Fetch.post("/task/add", params, { showToast: true });
   };
-  getWeekends = (params: any)=>{
-    return Fetch.get(`/calendar/weekends/${params.year}`);
+  getWorkdays = (params: any)=>{
+    return Fetch.get(`/calendar/workdays/${params.year}`);
+  }
+  getHolidays = (params: any)=>{
+    return Fetch.get(`/calendar/holidays/${params.year}`);
   }
 }
 

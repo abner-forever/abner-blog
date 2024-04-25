@@ -8,7 +8,9 @@ import Footer from "./Footer";
 import WallPaper from "./WallPaper";
 import LoginModal from "./LoginModal";
 import Header from "./Header";
-import Page from "./Page";
+
+export { default as Page } from "./Page";
+export { default as Iconfont } from "./Iconfont";
 
 export {
   Empty,
@@ -21,5 +23,4 @@ export {
   WallPaper,
   LoginModal,
   Header,
-  Page,
 };

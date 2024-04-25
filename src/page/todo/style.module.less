@@ -34,6 +34,9 @@
   }
 
   :global {
+    .adm-list{
+      width: 100%;
+    }
     .adm-input {
       width: 280px;
       border: none;
@@ -41,8 +44,25 @@
     }
   }
 }
+.add_todo{
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  backdrop-filter: blur(6px);
+  position: fixed;
+  bottom: 68px;
+  right: 20px;
+  color: #fff;
+  background-color: #7cceed;
+  box-shadow: 0 1px 2px 0 rgba(101, 129, 156, .08);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 @media screen and (max-width: @mobile-max-width) {
   .todo_page{
-    padding-bottom: 80px;
+    padding-bottom: 48px;
+    padding-top: 12px;
   }
 }

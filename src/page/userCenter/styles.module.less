@@ -4,13 +4,6 @@
   height: 100%;
   position: relative;
 
-  .avator {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    overflow: hidden;
-    object-fit: cover;
-  }
 
   .userinfo {
     padding-left: 20px;
@@ -18,8 +11,16 @@
     flex-direction: column;
     align-items: center;
     position: relative;
+    .avator {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      overflow: hidden;
+      object-fit: cover;
+      border: 1px solid #222;
+    }
     .user-name {
-      font-size: 24px;
+      font-size: 18px;
       color: #333;
     }
 
@@ -66,7 +67,7 @@
 @media screen and (max-width: @mobile-max-width) {
   .user-content {
     position: relative;
-
+    background-color: #f5f5f5;
     .userinfo {
       width: 100%;
       text-align: center;

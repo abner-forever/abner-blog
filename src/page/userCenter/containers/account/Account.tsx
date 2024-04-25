@@ -68,10 +68,10 @@ const Account = () => {
         }
       >
         <Form.Item name="username" label="昵称" rules={[{ required: true }]}>
-          <Input placeholder="请输入昵称" />
+          <Input maxLength={20} minLength={2} placeholder="请输入昵称" clearable />
         </Form.Item>
-        <Form.Item name="sign" label="签名" >
-          <Input placeholder="请输入个性签名" />
+        <Form.Item name="sign" label="签名">
+          <Input placeholder="请输入个性签名" clearable />
         </Form.Item>
       </Form>
     </Page>
