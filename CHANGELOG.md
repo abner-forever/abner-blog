@@ -1,3 +1,10 @@
+# [1.5.0](https://github.com/abner-forever/abner-blog/compare/v1.4.0...v1.5.0) (2024-04-25)
+
+
+### Features
+
+* 添加待办 ([0618d27](https://github.com/abner-forever/abner-blog/commit/0618d278348670206a257ae420af87dcd388fc89))
+
 # [1.4.0](https://github.com/abner-forever/abner-blog/compare/v1.3.6...v1.4.0) (2024-04-24)
 
 
