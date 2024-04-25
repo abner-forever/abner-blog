@@ -49,7 +49,7 @@ const UserCenter = () => {
   };
 
   return (
-    <Page hideHeader className={styles["user-content"]} title="个人中心">
+    <Page hideHeader bodyClassName={styles["user-content"]} title="个人中心">
       <div
         className={styles.userinfo}
         onClick={() => navigate("/user/account")}

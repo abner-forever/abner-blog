@@ -33,6 +33,32 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    position: relative;
+    .holidays{
+      position: absolute;
+      font-size: 8px;
+      bottom: -4px;
+    }
+    .offday{
+      width: 12px;
+      height: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: absolute;
+      font-size: 8px;
+      right: 0;
+      top: 0;
+      border-radius: 50%;
+      color: #00b8a9;
+      &.work{
+        background-color: rgba(0, 184, 169, 0.3);
+      }
+    }
+  }
+
+  .weekends {
+    opacity: .6;
   }
 
   :global {
@@ -42,38 +68,42 @@
         z-index: 1;
         --bg-color: @primary-color;
         --weekend-color: #666;
+        color: #222;
         &::before {
           position: absolute;
           top: 2px;
           content: '';
           border-radius: 50%;
-          width: 48px;
-          height: 48px;
+          width: 36px;
+          height: 36px;
           z-index: -1;
         }
 
-        &-today {
-          color: #fff;
-          --bg-color: #fff;
-          --weekend-color: #fff;
-          &::before {
-            background-color: #00b8a9;
-          }
+        &-bottom {
+          margin-top: 2px;
         }
-
         &-selected {
-          &::before {
-            background-color: #00b8a9;
-          }
+          color: #fff;
           background-color: transparent !important;
           border-radius: 50% !important;
-          --bg-color: #fff;
+          // --bg-color: #fff;
           --weekend-color: #fff;
-          &-bottom{
+          &::before {
+            background-color: #00b8a9;
+          }
+          &-bottom {
             background-color: #fff;
           }
         }
-        &-bottom{
+        &-today {
+          color: #00b8a9;
+          --bg-color: #fff;
+          --weekend-color: #fff;
+          &.adm-calendar-cell-selected{
+            &::before {
+              background-color: red;
+            }
+          }
         }
       }
     }
@@ -82,11 +112,12 @@
   .dot {
     display: inline-block;
     background-color: var(--bg-color);
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
     border-radius: 50%;
   }
-  .weekend{
+
+  .weekend {
     color: var(--weekend-color);
     font-size: 10px;
   }
@@ -179,6 +210,11 @@
   align-items: center;
   justify-content: center;
   font-size: 22px;
+  opacity: 0;
+  &.show{
+    opacity: 1;
+    animation: today-show 0.3s ease-out;
+  }
 }
 
 .go_exercise_btn {
@@ -201,5 +237,16 @@
 @media screen and (max-width: @mobile-max-width) {
   .exercise_page {
     align-items: flex-start;
+  }
+}
+@keyframes today-show {
+  0% {
+    transform: scale(1);
+  }
+  70% {
+    transform: scale(1.05);
+  }
+  0% {
+    transform: scale(1);
   }
 }

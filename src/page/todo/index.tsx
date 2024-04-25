@@ -1,21 +1,32 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Empty, Page } from "@/components";
+import classNames from "classnames";
+import { Empty, Page, Iconfont } from "@/components";
 import apiBlog from "@/services/apiBlog";
-import { Checkbox, Dialog, Input, List, SwipeAction, Toast } from "antd-mobile";
+import {
+  Popup,
+  Checkbox,
+  Dialog,
+  Input,
+  List,
+  SwipeAction,
+  Toast,
+} from "antd-mobile";
 import { Action, SwipeActionRef } from "antd-mobile/es/components/swipe-action";
 
 import styles from "./style.module.less";
-import classNames from "classnames";
+import AddTodoForm from "./AddTodoForm";
 
 const Todo = () => {
   const [list, setList] = useState<any[]>();
+  const [popVisible, setPopVisible] = useState(false);
   useEffect(() => {
     const init = async () => {
-      const data = await apiBlog.getTodoList();
+      const data = await apiBlog.getTaskList({ type: "todo" });
       setList(data.list);
     };
+    if(popVisible) return;
     init();
-  }, []);
+  }, [popVisible]);
   const ref = useRef<SwipeActionRef>(null);
 
   const onChangeStatus = async (id: number, value: boolean) => {
@@ -60,8 +71,11 @@ const Todo = () => {
         });
     }
   };
+  const togglePopVisible = () => {
+    setPopVisible(!popVisible);
+  };
   return (
-    <Page hideHeader className={styles.todo_page}>
+    <Page hideHeader bodyClassName={styles.todo_page}>
       <div
         className={classNames(styles.todolist, {
           [styles.no_data]: list?.length === 0,
@@ -86,6 +100,19 @@ const Todo = () => {
         )}
         {list?.length === 0 && <Empty title="暂无待办" />}
       </div>
+      <div className={styles.add_todo} onClick={togglePopVisible}>
+        <Iconfont type="icon-jiahao" size={28} color="#fff" />
+      </div>
+      <Popup
+        visible={popVisible}
+        onMaskClick={togglePopVisible}
+        onClose={togglePopVisible}
+        position="bottom"
+        showCloseButton
+        bodyStyle={{ height: "100wvh" }}
+      >
+        <AddTodoForm onClose={togglePopVisible} />
+      </Popup>
     </Page>
   );
 };
