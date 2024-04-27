@@ -15,6 +15,7 @@ import { Action, SwipeActionRef } from "antd-mobile/es/components/swipe-action";
 
 import styles from "./style.module.less";
 import AddTodoForm from "./AddTodoForm";
+import AddTodoPop from "./AddTodoForm";
 
 const Todo = () => {
   const [list, setList] = useState<any[]>();
@@ -24,7 +25,7 @@ const Todo = () => {
       const data = await apiBlog.getTaskList({ type: "todo" });
       setList(data.list);
     };
-    if(popVisible) return;
+    if (popVisible) return;
     init();
   }, [popVisible]);
   const ref = useRef<SwipeActionRef>(null);
@@ -103,16 +104,7 @@ const Todo = () => {
       <div className={styles.add_todo} onClick={togglePopVisible}>
         <Iconfont type="icon-jiahao" size={28} color="#fff" />
       </div>
-      <Popup
-        visible={popVisible}
-        onMaskClick={togglePopVisible}
-        onClose={togglePopVisible}
-        position="bottom"
-        showCloseButton
-        bodyStyle={{ height: "100wvh" }}
-      >
-        <AddTodoForm onClose={togglePopVisible} />
-      </Popup>
+      <AddTodoPop popVisible={popVisible} onClose={togglePopVisible} />
     </Page>
   );
 };
@@ -146,7 +138,6 @@ const TodoItem = ({ item }: any) => {
           onChange={onChangeTitle}
         />
         <span>{item.description}</span>
-        <span>{item.id}</span>
       </div>
       {/* <div className={styles.title}>{item.title}</div> */}
     </div>

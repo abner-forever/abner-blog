@@ -50,7 +50,7 @@
       right: 0;
       top: 0;
       border-radius: 50%;
-      color: #00b8a9;
+      color: var(--offday-color);
       &.work{
         background-color: rgba(0, 184, 169, 0.3);
       }
@@ -58,7 +58,7 @@
   }
 
   .weekends {
-    opacity: .6;
+    opacity: .5;
   }
 
   :global {
@@ -68,7 +68,9 @@
         z-index: 1;
         --bg-color: @primary-color;
         --weekend-color: #666;
-        color: #222;
+        --offday-color: #00b8a9;
+        --text-color: #222;
+        color: var(--text-color);
         &::before {
           position: absolute;
           top: 2px;
@@ -86,7 +88,7 @@
           color: #fff;
           background-color: transparent !important;
           border-radius: 50% !important;
-          // --bg-color: #fff;
+          --offday-color: #fff;
           --weekend-color: #fff;
           &::before {
             background-color: #00b8a9;
@@ -96,12 +98,14 @@
           }
         }
         &-today {
-          color: #00b8a9;
+          --text-color: #00b8a9;
+          --offday-color: #fff;
           --bg-color: #fff;
           --weekend-color: #fff;
           &.adm-calendar-cell-selected{
+            font-weight: 600;
             &::before {
-              background-color: red;
+              background-color: rgb(224, 88, 88);
             }
           }
         }
@@ -246,7 +250,7 @@
   70% {
     transform: scale(1.05);
   }
-  0% {
+  100% {
     transform: scale(1);
   }
 }
