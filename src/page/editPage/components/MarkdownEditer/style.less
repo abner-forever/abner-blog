@@ -5,6 +5,7 @@
   border-radius: 8px;
   display: flex;
   flex-direction: column;
+
   &-title {
     height: 40px;
     line-height: 40px;
@@ -13,7 +14,7 @@
     border: none;
     width: 100%;
     display: flex;
-
+    background-color: #fff;
     &:focus-visible {
       border: none;
       outline: none;
@@ -21,7 +22,6 @@
 
     &-wrap {
       position: relative;
-      background-color: #fff;
       width: 100%;
       padding: 12px 32px;
       border-top-right-radius: 8px;
@@ -49,6 +49,7 @@
 
     .for-toolbar {
       max-width: 100vw;
+      flex: 1;
       overflow: visible;
     }
 
@@ -65,7 +66,29 @@
 
     .for-container {
       padding-bottom: 20px;
-      flex: 1;
+
+      .for-editor {
+        &-edit {
+          .for-line-num {
+            position: absolute;
+            left: 0;
+            min-width: 30px;
+            width: 30px;
+          }
+
+          .for-editor-content {
+            padding-left: 30px;
+            width: 375px;
+            margin-left: 0;
+
+            textarea {
+              width: calc(100vw - 30px);
+              word-break: break-all;
+            }
+          }
+        }
+
+      }
 
       .for-editor .for-editor-edit .for-line-num {
         background-color: #fff;

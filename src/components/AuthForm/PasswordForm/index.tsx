@@ -1,5 +1,5 @@
-import React, { FC, useState } from "react";
-import { Button, Form, Input } from "antd-mobile";
+import React, { FC, useEffect, useRef, useState } from "react";
+import { Button, Form, Input, InputRef } from "antd-mobile";
 import { validateEmail, validatePassword } from "@/utils/validator";
 import styles from "./style.module.less";
 
@@ -14,6 +14,15 @@ interface PasswordFormProps {
 
 const PasswordForm: FC<PasswordFormProps> = ({ onSubmit }) => {
   const [form] = Form.useForm();
+  const ref = useRef<InputRef>(null);
+  useEffect(() => {
+    ref.current?.nativeElement?.addEventListener("blur", () => {
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+    });
+  }, []);
   const [formPassed, setFormPassed] = useState<Record<string, boolean>>({
     email: false,
     password: false,
@@ -86,7 +95,7 @@ const PasswordForm: FC<PasswordFormProps> = ({ onSubmit }) => {
         className={styles.item}
         rules={[{ required: true, validator: checkPassword }]}
       >
-        <Input type="password" placeholder="请输入密码" clearable />
+        <Input ref={ref} type="password" placeholder="请输入密码" clearable />
       </Form.Item>
     </Form>
   );

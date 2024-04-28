@@ -54,7 +54,7 @@ const AddTodoPop = ({ popVisible, onClose }: AddTodoFormProps) => {
       onClose={togglePopVisible}
       position="bottom"
       showCloseButton
-      bodyStyle={{ height: "100wvh" }}
+      className={styles.pop_modal}
     >
       <div className={styles.add_todo_container}>
         <Form

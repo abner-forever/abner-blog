@@ -56,7 +56,6 @@ interface Iprops {
   children: React.ReactNode;
 }
 export default ({ children }: Iprops) => {
-  const navigate = useNavigate();
   const { pathname } = location;
   const currentTab = tabs.find(item => item.key === pathname);
   return (

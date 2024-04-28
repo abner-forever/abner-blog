@@ -1,7 +1,7 @@
-import React, { FC, useState } from "react";
+import React, { FC, useEffect, useRef, useState } from "react";
 import classNames from "classnames";
 import { useInterval } from "ahooks";
-import { Input, Button, Form, Toast } from "antd-mobile";
+import { Input, Button, Form, Toast, InputRef } from "antd-mobile";
 import styles from "./style.module.less";
 import apiBlog from "@/services/apiBlog";
 
@@ -21,7 +21,7 @@ const AuthCodeInput: FC<AuthCodeInputProps> = ({
   const [isShowCutDownTime, setIsShowCutDownTime] = useState(false);
   const [btnLoading, setBtnLoading] = useState(false);
   const [cutDownTime, setCutDownTime] = useState(0);
-
+  const ref = useRef<InputRef>(null);
   useInterval(
     () => {
       const _cutDownTime = cutDownTime - 1;
@@ -36,7 +36,14 @@ const AuthCodeInput: FC<AuthCodeInputProps> = ({
       immediate: isShowCutDownTime,
     }
   );
-
+  useEffect(()=>{
+    ref.current?.nativeElement?.addEventListener('blur',()=>{
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+    })
+  },[])
   const checkAuthCode = (_: unknown, value: string) => {
     if (value.length === 6) {
       onAuthCodePassed(true);
@@ -84,7 +91,7 @@ const AuthCodeInput: FC<AuthCodeInputProps> = ({
         </Button>
       }
     >
-      <Input type="text" placeholder="请输入验证码" maxLength={6} />
+      <Input ref={ref} type="text" placeholder="请输入验证码" maxLength={6} />
     </Form.Item>
   );
 };
