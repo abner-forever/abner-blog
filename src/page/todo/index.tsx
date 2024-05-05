@@ -12,10 +12,9 @@ import {
   Toast,
 } from "antd-mobile";
 import { Action, SwipeActionRef } from "antd-mobile/es/components/swipe-action";
-
-import styles from "./style.module.less";
-import AddTodoForm from "./AddTodoForm";
 import AddTodoPop from "./AddTodoForm";
+import dayjs from "dayjs";
+import styles from "./style.module.less";
 
 const Todo = () => {
   const [list, setList] = useState<any[]>();
@@ -43,11 +42,11 @@ const Todo = () => {
     });
   };
   const rightActions: Action[] = [
-    {
-      key: "pin",
-      text: "置顶",
-      color: "primary",
-    },
+    // {
+    //   key: "pin",
+    //   text: "置顶",
+    //   color: "primary",
+    // },
     {
       key: "delete",
       text: "删除",
@@ -58,7 +57,7 @@ const Todo = () => {
     switch (action.key) {
       case "delete":
         Dialog.confirm({
-          content: "确定删除吗",
+          title: "确定删除吗",
           onConfirm: async () => {
             const data = await apiBlog.removeTodo({
               id,
@@ -138,8 +137,12 @@ const TodoItem = ({ item }: any) => {
           onChange={onChangeTitle}
         />
         <span>{item.description}</span>
+        {item.notificationTime && (
+        <div className={styles.notification}>
+          截止时间：{dayjs(+item.notificationTime).format("YYYY-MM-DD HH:MM")}
+        </div>
+      )}
       </div>
-      {/* <div className={styles.title}>{item.title}</div> */}
     </div>
   );
 };

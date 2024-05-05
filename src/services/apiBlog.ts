@@ -60,7 +60,7 @@ class ApiBlog {
   getTaskList = (params?: { type: string }) => {
     return Fetch.get("/task/list", params);
   };
-  getTaskListByMonth = (params?: { type: string, year: number; month: number }) => {
+  getTaskListByMonth = (params?: { type?: string, year: number; month: number }) => {
     return Fetch.get("/task/listByMonth", params);
   };
   updateTaskTodo = (params: any) => {

@@ -19,6 +19,13 @@ import {
   ClockCircleOutlined,
 } from "@ant-design/icons";
 
+const isSameday = (
+  timeA: string | number | Date | dayjs.Dayjs | null | undefined,
+  timeB: string | number | Date | dayjs.Dayjs | null | undefined
+) => {
+  return dayjs(timeA).isSame(timeB, "day");
+};
+
 /** 我的运动 */
 const Exercise = () => {
   const [dateList, setdateList] = useState<any[]>([]);
@@ -39,10 +46,7 @@ const Exercise = () => {
 
   useEffect(() => {
     const init = async () => {
-      const data = await apiBlog.getTaskListByMonth({
-        ...date,
-        type: "exercise",
-      });
+      const data = await apiBlog.getTaskListByMonth(date);
       const _hasToday = data.find((item: any) => {
         return dayjs().isSame(item.createTime, "day");
       });
@@ -50,11 +54,20 @@ const Exercise = () => {
         setHasTody(!!_hasToday);
       }
       const newdate = data.map((item: any) => {
-        return dayjs(item.createTime).format("YYYY-MM-DD");
+        if (item.type === "exercise") {
+          return dayjs(item.createTime).format("YYYY-MM-DD");
+        } else if (item.type === "todo") {
+          return dayjs(+item.notificationTime).format("YYYY-MM-DD");
+        }
+        return;
       });
-      const _currentList = data.filter((item: any) =>
-        dayjs(item.createTime).isSame(new Date(), "day")
-      );
+      const _currentList = data.filter((item: any) => {
+        if (item.type === "exercise") {
+          return isSameday(item.createTime, new Date());
+        } else if (item.type === "todo") {
+          return isSameday(new Date(+item.notificationTime), new Date());
+        }
+      });
       setCurrentList(_currentList);
       setdateList(newdate);
       setExerciseList(data);
@@ -76,9 +89,18 @@ const Exercise = () => {
     navigate("/user/exercise/checkIn");
   };
   const onDayChange = (val: any) => {
-    const _currentList = exerciseList.filter(item =>
-      dayjs(item.createTime).isSame(val, "day")
-    );
+    const _currentList = exerciseList.filter(item => {
+      if (item.type === "exercise") {
+        return isSameday(item.createTime, val);
+      } else if (item.type === "todo") {
+        console.log(
+          "+item.notificationTime",
+          new Date(+item.notificationTime),
+          val
+        );
+        return isSameday(new Date(+item.notificationTime), val);
+      }
+    });
     setIshowToday(!dayjs().isSame(val, "day"));
     setCurrentList(_currentList);
   };
@@ -91,6 +113,8 @@ const Exercise = () => {
   const backToday = () => {
     calendarRef.current?.jumpToToday();
   };
+  console.log("dateList", dateList);
+
   return (
     <Page title="我的运动记录" className={styles.exercise_page}>
       <div className={styles.exercise_header}>
@@ -167,23 +191,40 @@ const ExerciseItem = ({ item }: any) => {
       <div className={styles.exercise_item_left}>
         <div className={styles.title}>{item.title}</div>
         <div className={styles.desc}>{item.description}</div>
-        <div className={styles.time}>
-          <span>
-            <ClockCircleOutlined
-              style={{ fontSize: 20 }}
-              className={styles.time_icon}
-            />
-            {item.spendTime}分钟
-          </span>
-          <span>
-            <CarryOutFilled
-              className={styles.time_icon}
-              style={{ fontSize: 20 }}
-              color="#fff"
-            />
-            {dayjs(item.createTime).format("YYYY-MM-DD HH:mm")}
-          </span>
-        </div>
+        {item.type === "exercise" && (
+          <div className={styles.time}>
+            <span>
+              <ClockCircleOutlined
+                style={{ fontSize: 20 }}
+                className={styles.time_icon}
+              />
+              {item.spendTime}分钟
+            </span>
+            <span>
+              <CarryOutFilled
+                className={styles.time_icon}
+                style={{ fontSize: 20 }}
+                color="#fff"
+              />
+              {dayjs(item.createTime).format("YYYY-MM-DD HH:mm")}
+            </span>
+          </div>
+        )}
+        {item.type === "todo" && (
+          <div className={styles.time}>
+            <span>
+              截止时间
+            </span>
+            <span>
+              <CarryOutFilled
+                className={styles.time_icon}
+                style={{ fontSize: 20 }}
+                color="#fff"
+              />
+              {dayjs(+item.notificationTime).format("YYYY-MM-DD HH:mm")}
+            </span>
+          </div>
+        )}
       </div>
       {!!item.status && <Checkbox checked={true} />}
     </div>
