@@ -10,43 +10,37 @@ import {
   List,
   SwipeAction,
   Toast,
+  Collapse,
 } from "antd-mobile";
 import { Action, SwipeActionRef } from "antd-mobile/es/components/swipe-action";
 import AddTodoPop from "./AddTodoForm";
 import dayjs from "dayjs";
 import styles from "./style.module.less";
 
+interface TodoData {
+  undoneList?: any[];
+  doneList?: any[];
+}
+
 const Todo = () => {
-  const [list, setList] = useState<any[]>();
+  const [todoData, setTodoData] = useState<TodoData>();
   const [popVisible, setPopVisible] = useState(false);
   useEffect(() => {
     const init = async () => {
       const data = await apiBlog.getTaskList({ type: "todo" });
-      setList(data.list);
+      const undoneList = data.list.filter((item: any) => item.status === 0);
+      const doneList = data.list.filter((item: any) => item.status === 1);
+      setTodoData({
+        undoneList,
+        doneList,
+      });
     };
     if (popVisible) return;
     init();
   }, [popVisible]);
   const ref = useRef<SwipeActionRef>(null);
 
-  const onChangeStatus = async (id: number, value: boolean) => {
-    await apiBlog.updateTaskTodo({
-      id,
-      status: value ? 1 : 0,
-    });
-  };
-  const onChangeTitle = async (id: number, value: string) => {
-    await apiBlog.updateTaskTodo({
-      id,
-      title: value,
-    });
-  };
   const rightActions: Action[] = [
-    // {
-    //   key: "pin",
-    //   text: "置顶",
-    //   color: "primary",
-    // },
     {
       key: "delete",
       text: "删除",
@@ -63,8 +57,9 @@ const Todo = () => {
               id,
             });
             if (data) {
-              const _newList = list?.filter(item => item.id !== id);
-              setList(_newList);
+              setTodoData({
+                doneList: todoData?.doneList?.filter(item => item.id !== id),
+              });
               Toast.show("删除成功");
             }
           },
@@ -74,16 +69,54 @@ const Todo = () => {
   const togglePopVisible = () => {
     setPopVisible(!popVisible);
   };
+  const onChangeStatus = async (current: any) => {
+    await apiBlog.updateTaskTodo({
+      id: current.id,
+      status: current.status ? 0 : 1,
+    });
+    if (current.status === 0) {
+      setTodoData({
+        undoneList: todoData?.undoneList?.filter(
+          item => item.id !== current.id
+        ),
+        doneList: todoData?.doneList?.concat([
+          {
+            ...current,
+            status: 1,
+          },
+        ]),
+      });
+    } else {
+      setTodoData({
+        undoneList: todoData?.undoneList?.concat([
+          {
+            ...current,
+            status: 0,
+          },
+        ]),
+        doneList: todoData?.doneList?.filter(item => item.id !== current.id),
+      });
+    }
+  };
+
   return (
     <Page hideHeader bodyClassName={styles.todo_page}>
-      <div
-        className={classNames(styles.todolist, {
-          [styles.no_data]: list?.length === 0,
-        })}
-      >
-        {!!list?.length && (
+      <Collapse defaultActiveKey={["1"]}>
+        <Collapse.Panel key="1" title="未完成">
           <List>
-            {list.map(item => (
+            {todoData?.undoneList?.map(item => (
+              <List.Item>
+                <TodoItem item={item} onChangeStatus={onChangeStatus} />
+              </List.Item>
+            ))}
+            {todoData?.undoneList?.length === 0 && (
+              <Empty title="暂无未完成待办，快去添加吧" />
+            )}
+          </List>
+        </Collapse.Panel>
+        <Collapse.Panel key="2" title="已完成">
+          <List>
+            {todoData?.doneList?.map(item => (
               <SwipeAction
                 ref={ref}
                 key={item.id}
@@ -92,14 +125,16 @@ const Todo = () => {
                 onAction={action => onAction(action, item.id)}
               >
                 <List.Item>
-                  <TodoItem item={item} />
+                  <TodoItem item={item} onChangeStatus={onChangeStatus} />
                 </List.Item>
               </SwipeAction>
             ))}
+            {todoData?.doneList?.length === 0 && (
+              <Empty title="暂无完成待办，快去完成吧" />
+            )}
           </List>
-        )}
-        {list?.length === 0 && <Empty title="暂无待办" />}
-      </div>
+        </Collapse.Panel>
+      </Collapse>
       <div className={styles.add_todo} onClick={togglePopVisible}>
         <Iconfont type="icon-jiahao" size={28} color="#fff" />
       </div>
@@ -108,16 +143,8 @@ const Todo = () => {
   );
 };
 
-const TodoItem = ({ item }: any) => {
-  const [value, setValue] = useState(item.status);
+const TodoItem = ({ item, onChangeStatus }: any) => {
   const { id } = item;
-  const onChangeStatus = async () => {
-    setValue(!value);
-    await apiBlog.updateTaskTodo({
-      id,
-      status: value ? 0 : 1,
-    });
-  };
 
   const onChangeTitle = async (value: string) => {
     await apiBlog.updateTaskTodo({
@@ -128,7 +155,10 @@ const TodoItem = ({ item }: any) => {
 
   return (
     <div className={styles.todo_item}>
-      <Checkbox onChange={onChangeStatus} defaultChecked={item.status} />
+      <Checkbox
+        onChange={() => onChangeStatus(item)}
+        defaultChecked={item.status}
+      />
       <div className={styles.item_right}>
         <Input
           placeholder="请输入内容"
@@ -138,10 +168,10 @@ const TodoItem = ({ item }: any) => {
         />
         <span>{item.description}</span>
         {item.notificationTime && (
-        <div className={styles.notification}>
-          截止时间：{dayjs(+item.notificationTime).format("YYYY-MM-DD HH:MM")}
-        </div>
-      )}
+          <div className={styles.notification}>
+            截止时间：{dayjs(+item.notificationTime).format("YYYY-MM-DD HH:MM")}
+          </div>
+        )}
       </div>
     </div>
   );

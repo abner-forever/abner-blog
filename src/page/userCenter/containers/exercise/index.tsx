@@ -48,7 +48,7 @@ const Exercise = () => {
     const init = async () => {
       const data = await apiBlog.getTaskListByMonth(date);
       const _hasToday = data.find((item: any) => {
-        return dayjs().isSame(item.createTime, "day");
+        return item.type==='exercise' && dayjs().isSame(item.createTime, "day");
       });
       if (!isShowToday) {
         setHasTody(!!_hasToday);
@@ -57,7 +57,7 @@ const Exercise = () => {
         if (item.type === "exercise") {
           return dayjs(item.createTime).format("YYYY-MM-DD");
         } else if (item.type === "todo") {
-          return dayjs(+item.notificationTime).format("YYYY-MM-DD");
+          return dayjs(item.notificationTime).format("YYYY-MM-DD");
         }
         return;
       });
@@ -65,7 +65,7 @@ const Exercise = () => {
         if (item.type === "exercise") {
           return isSameday(item.createTime, new Date());
         } else if (item.type === "todo") {
-          return isSameday(new Date(+item.notificationTime), new Date());
+          return isSameday(new Date(item.notificationTime), new Date());
         }
       });
       setCurrentList(_currentList);
@@ -93,12 +93,7 @@ const Exercise = () => {
       if (item.type === "exercise") {
         return isSameday(item.createTime, val);
       } else if (item.type === "todo") {
-        console.log(
-          "+item.notificationTime",
-          new Date(+item.notificationTime),
-          val
-        );
-        return isSameday(new Date(+item.notificationTime), val);
+        return isSameday(new Date(item.notificationTime), val);
       }
     });
     setIshowToday(!dayjs().isSame(val, "day"));
@@ -116,7 +111,7 @@ const Exercise = () => {
   console.log("dateList", dateList);
 
   return (
-    <Page title="我的运动记录" className={styles.exercise_page}>
+    <Page title="打卡九零" className={styles.exercise_page}>
       <div className={styles.exercise_header}>
         <div className={styles.tody_exercise}>
           {hasToday ? "今日已打卡" : "今日未打卡"}
@@ -212,16 +207,14 @@ const ExerciseItem = ({ item }: any) => {
         )}
         {item.type === "todo" && (
           <div className={styles.time}>
-            <span>
-              截止时间
-            </span>
+            <span>截止时间</span>
             <span>
               <CarryOutFilled
                 className={styles.time_icon}
                 style={{ fontSize: 20 }}
                 color="#fff"
               />
-              {dayjs(+item.notificationTime).format("YYYY-MM-DD HH:mm")}
+              {dayjs(item.notificationTime).format("YYYY-MM-DD HH:mm")}
             </span>
           </div>
         )}

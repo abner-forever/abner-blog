@@ -90,6 +90,9 @@
           border-radius: 50% !important;
           --offday-color: #fff;
           --weekend-color: #fff;
+          div{
+            opacity: 1 !important;
+          }
           &::before {
             background-color: #00b8a9;
           }
@@ -104,6 +107,9 @@
           --weekend-color: #fff;
           &.adm-calendar-cell-selected{
             font-weight: 600;
+            div{
+              opacity: 1 !important;
+            }
             &::before {
               background-color: rgb(224, 88, 88);
             }
@@ -142,7 +148,7 @@
     border-radius: 8px;
     backdrop-filter: blur(6px);
     color: #fff;
-    background-color: #a8d8ea;
+    background-color: #75c1c4;
     box-shadow: 0 0 30px 10px rgba(175, 175, 175, 0.3);
 
     &:not(:first-child) {
@@ -230,7 +236,7 @@
   bottom: 20px;
   right: 20px;
   color: #fff;
-  background-color: #a8d8ea;
+  background-color: #00b8a9;
   box-shadow: 0 1px 2px 0 rgba(101, 129, 156, .08);
   border: none;
   display: flex;
