@@ -1,3 +1,10 @@
+## [1.5.3](https://github.com/abner-forever/abner-blog/compare/v1.5.2...v1.5.3) (2024-07-06)
+
+
+### Bug Fixes
+
+* 移除报错文件 ([47c6fb0](https://github.com/abner-forever/abner-blog/commit/47c6fb0d2295d6b9be06b532a4e34e25668ea013))
+
 ## [1.5.2](https://github.com/abner-forever/abner-blog/compare/v1.5.1...v1.5.2) (2024-07-06)
 
 
