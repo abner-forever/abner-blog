@@ -3,6 +3,7 @@ import ApiBlog from "@/services/apiBlog";
 import { useLocation, useParams } from "react-router-dom";
 import { Loading } from "@/components";
 import MarkdownEditer from "./components/MarkdownEditer";
+import LexicalEditor from "./components/LexicalEditor";
 
 interface ArticleType {
   title?: string;
@@ -47,6 +48,13 @@ const EditorPage = () => {
           id={~~id}
         />
       )}
+       {/* {(editArticle.content !== undefined || isAdd) && (
+        <LexicalEditor
+          // title={editArticle.title}
+          // content={editArticle.content}
+          // id={~~id}
+        />
+      )} */}
     </Suspense>
   );
 };

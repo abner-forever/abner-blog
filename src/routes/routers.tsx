@@ -32,7 +32,7 @@ const routerList: RouteConfig[] = [
     path: "/video",
     element: lazyLoad(() => import("@/page/video")),
     title: "视频",
-    isShowHeader: true,
+    isShowHeader: false,
   },
   {
     path: "/edit/:id",

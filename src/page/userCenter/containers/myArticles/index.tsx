@@ -4,6 +4,7 @@ import ApiBlog from "@/services/apiBlog";
 import styles from "./style.module.less";
 import { useNavigate } from "@/hooks";
 import Iconfont from "@/components/Iconfont";
+import { Toast } from "antd-mobile";
 
 /**
  * 我的笔记
@@ -24,6 +25,7 @@ const MyArticle = () => {
     await ApiBlog.removeArticle({
       id,
     });
+    Toast.show("删除成功")
     let newlist: any = [];
     articleList.forEach((item: any) => {
       if (item.id !== id) {

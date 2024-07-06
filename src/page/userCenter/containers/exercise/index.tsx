@@ -111,7 +111,7 @@ const Exercise = () => {
   console.log("dateList", dateList);
 
   return (
-    <Page title="打卡九零" className={styles.exercise_page}>
+    <Page title="我的日程" className={styles.exercise_page}>
       <div className={styles.exercise_header}>
         <div className={styles.tody_exercise}>
           {hasToday ? "今日已打卡" : "今日未打卡"}

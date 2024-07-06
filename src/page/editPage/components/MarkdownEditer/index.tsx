@@ -142,6 +142,7 @@ const MarkdownEditer = ({ id, content }: MarkdownEditerProps) => {
         value={markdown}
         onChange={updateMarkdown}
         toolbar={toolbar}
+        placeholder="请开始你的创作吧..."
       />
     </Page>
   );
