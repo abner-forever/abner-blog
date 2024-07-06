@@ -1,3 +1,10 @@
+## [1.5.2](https://github.com/abner-forever/abner-blog/compare/v1.5.1...v1.5.2) (2024-07-06)
+
+
+### Bug Fixes
+
+* add lexical 富文本编辑器 ([1ba1ad7](https://github.com/abner-forever/abner-blog/commit/1ba1ad7852bf3b5ae745c0361cb8f0bbbe53f19f))
+
 ## [1.5.1](https://github.com/abner-forever/abner-blog/compare/v1.5.0...v1.5.1) (2024-05-09)
 
 
