@@ -1,3 +1,10 @@
+## [1.5.1](https://github.com/abner-forever/abner-blog/compare/v1.5.0...v1.5.1) (2024-05-09)
+
+
+### Bug Fixes
+
+* 优化待办列表 ([035e2c4](https://github.com/abner-forever/abner-blog/commit/035e2c49939502f07463b5701f52e86738fb0dd5))
+
 # [1.5.0](https://github.com/abner-forever/abner-blog/compare/v1.4.0...v1.5.0) (2024-04-25)
 
 
