@@ -14,7 +14,6 @@ import {
   UNDO_COMMAND,
 } from "lexical";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { INSERT_IMAGE_COMMAND } from "./ImagesPlugin";
 
 const LowPriority = 1;
 
@@ -181,18 +180,6 @@ export default function ToolbarPlugin() {
         aria-label="Justify Align"
       >
         <i className="format justify-align" />
-      </button>
-      
-      <button
-        onClick={() => {
-          editor.dispatchCommand(INSERT_IMAGE_COMMAND, {
-            altText: "123",
-            src: "https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/0f3ed75339ec4c02ae48e69869527fd3~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp?",
-          });
-        }}
-        className="toolbar-item"
-      >
-        插入图片
       </button>
     </div>
   );
