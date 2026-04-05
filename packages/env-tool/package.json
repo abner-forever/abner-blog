@@ -1,0 +1,33 @@
+{
+  "name": "@abner-blog/env-tool",
+  "version": "1.2.0",
+  "description": "测试环境切换工具：通过 sessionStorage 记录环境标识，供业务注入 api-env 等请求头",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./browser": "./dist/envtool.iife.js"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "build": "pnpm run build:types && pnpm run build:iife",
+    "build:types": "tsc -p tsconfig.build.json",
+    "build:iife": "esbuild src/browser.ts --bundle --format=iife --global-name=AbnerEnvTool --outfile=dist/envtool.iife.js --loader:.css=text --minify --footer:js=\"AbnerEnvTool=AbnerEnvTool.default;\"",
+    "build:iife:dev": "esbuild src/browser.ts --bundle --format=iife --global-name=AbnerEnvTool --outfile=dist/envtool.iife.js --loader:.css=text --footer:js=\"AbnerEnvTool=AbnerEnvTool.default;\"",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0",
+    "typescript": "^5.9.3"
+  },
+  "author": "Abner",
+  "license": "ISC"
+}

@@ -1,0 +1,443 @@
+// ──────────────────────────────────────────────────────────────
+// 掘金风格创作页面 - 全屏单页布局
+// ──────────────────────────────────────────────────────────────
+.juejin-editor {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 110px);
+  overflow: hidden;
+  background: var(--bg-color);
+
+  // ── 顶部导航栏（返回 + 标题 + 操作按钮同一行）─────────────
+  &__header {
+    display: flex;
+    align-items: center;
+    height: 52px;
+    padding: 0 16px;
+    background: var(--card-bg);
+    border-bottom: 1px solid var(--border-color);
+    flex-shrink: 0;
+    z-index: 100;
+    gap: 12px;
+
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      color: var(--text-secondary);
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all 0.2s;
+      flex-shrink: 0;
+
+      &:hover {
+        color: var(--text-main);
+        background: var(--bg-color);
+      }
+    }
+
+    // 标题输入框（header 内联）
+    .header-title-input {
+      flex: 1;
+      height: 36px;
+      padding: 0 12px;
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--text-main);
+      background: var(--bg-color);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      outline: none;
+      transition: border-color 0.2s;
+
+      &::placeholder {
+        color: var(--text-muted);
+        font-weight: 400;
+      }
+
+      &:focus {
+        border-color: var(--primary-color);
+      }
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .settings-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      color: var(--text-secondary);
+      border: 1px solid var(--border-color);
+      background: transparent;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all 0.2s;
+
+      &:hover {
+        color: var(--primary-color);
+        border-color: var(--primary-color);
+      }
+
+      &.active {
+        color: var(--primary-color);
+        border-color: var(--primary-color);
+        background: var(--bg-color);
+      }
+    }
+
+    .import-btn-header {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      color: var(--text-secondary);
+      border: 1px solid var(--border-color);
+      background: transparent;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all 0.2s;
+
+      &:hover {
+        color: var(--primary-color);
+        border-color: var(--primary-color);
+      }
+    }
+
+    .publish-btn-header {
+      display: inline-flex;
+      align-items: center;
+      height: 32px;
+      padding: 0 16px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #fff;
+      background: var(--primary-color);
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: opacity 0.2s;
+
+      &:hover {
+        opacity: 0.9;
+      }
+    }
+  }
+
+  // ── 主体区域（仅 MD 编辑器）───────────────────────────────
+  &__body {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    min-height: 0;
+  }
+
+  // ── 编辑区 ────────────────────────────────────────────────
+  &__main {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  // ── 编辑器区域 ───────────────────────────────────────────
+  &__editor-wrap {
+    flex: 1;
+    padding: 16px 0;
+    overflow: hidden;
+
+    .markdown-editor-wrapper {
+      height: 100%;
+      border: 1px solid var(--border-color);
+      border-radius: @border-radius-base;
+      overflow: hidden;
+
+      &:focus-within {
+        border-color: var(--primary-color);
+      }
+
+      .md-editor {
+        border: none;
+      }
+    }
+  }
+}
+
+// ── 抽屉样式 ─────────────────────────────────────────────────
+.juejin-editor-drawer {
+  .ant-drawer-header {
+    background: var(--card-bg);
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .ant-drawer-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-main);
+  }
+
+  .ant-drawer-close {
+    color: var(--text-secondary);
+  }
+
+  .ant-drawer-body {
+    background: var(--card-bg);
+    padding: 16px;
+    overflow-y: auto;
+  }
+
+  .ant-drawer-footer {
+    border-top: 1px solid var(--border-color);
+    padding: 12px 16px;
+    background: var(--card-bg);
+  }
+}
+
+.drawer-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.drawer-form {
+  .sidebar-section {
+    margin-bottom: 18px;
+  }
+}
+
+// ── 侧边栏分区（抽屉内）─────────────────────────────────────
+.sidebar-section {
+  margin-bottom: 18px;
+
+  &__label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .section-label-hint {
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--text-muted);
+  }
+
+  .sidebar-select {
+    width: 100%;
+  }
+
+  .summary-item {
+    margin-bottom: 0;
+
+    .ant-input-textarea-show-border {
+      background: var(--bg-color);
+      border-color: var(--border-color);
+      border-radius: @border-radius-sm;
+
+      &:hover,
+      &:focus-within {
+        border-color: var(--primary-color);
+      }
+    }
+
+    textarea {
+      font-size: 13px;
+      color: var(--text-main);
+      resize: none;
+    }
+  }
+}
+
+// 摘要输入框 - 覆盖 antd 全局样式
+.summary-textarea {
+  background: var(--bg-color) !important;
+
+  &.ant-input-textarea {
+    background: var(--bg-color) !important;
+  }
+
+  textarea {
+    background: transparent !important;
+    color: var(--text-main) !important;
+  }
+}
+
+// ── 主题选择 ──────────────────────────────────────────────────
+.theme-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.theme-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid var(--border-color);
+  background: var(--bg-color);
+  color: var(--text-secondary);
+  transition: all 0.18s;
+
+  &:hover {
+    border-color: var(--chip-color, var(--primary-color));
+    color: var(--chip-color, var(--primary-color));
+  }
+
+  &.active {
+    background: var(--chip-color, var(--primary-color));
+    border-color: var(--chip-color, var(--primary-color));
+    color: #fff;
+  }
+}
+
+// ── 标签 ─────────────────────────────────────────────────────
+.blog-tags-container {
+  .add-tag-btn {
+    background: var(--bg-color);
+    border-style: dashed;
+    border-color: var(--border-color);
+    color: var(--text-secondary);
+    cursor: pointer;
+    border-radius: @border-radius-sm;
+    font-size: 12px;
+
+    &:hover {
+      border-color: @primary-color;
+      color: @primary-color;
+    }
+  }
+
+  .tag-item {
+    font-size: 12px;
+    border-radius: 4px;
+  }
+
+  .tag-input {
+    width: 80px;
+    font-size: 12px;
+  }
+}
+
+// ── 暗色模式 ─────────────────────────────────────────────────
+[data-theme='dark'] {
+  .juejin-editor {
+    &__header {
+      background: #1e293b;
+      border-bottom-color: #334155;
+
+      .back-btn:hover,
+      .settings-btn:hover,
+      .import-btn-header:hover {
+        background: #0f172a;
+      }
+
+      .header-title-input {
+        background: #0f172a;
+        border-color: #334155;
+        color: #e2e8f0;
+
+        &::placeholder {
+          color: #64748b;
+        }
+
+        &:focus {
+          border-color: var(--primary-color);
+        }
+      }
+
+      .settings-btn {
+        border-color: #334155;
+        color: #94a3b8;
+
+        &.active {
+          background: #0f172a;
+        }
+      }
+
+      .import-btn-header {
+        border-color: #334155;
+        color: #94a3b8;
+      }
+    }
+  }
+
+  .juejin-editor-drawer {
+    .ant-drawer-header {
+      background: #1e293b;
+      border-bottom-color: #334155;
+    }
+
+    .ant-drawer-title {
+      color: #e2e8f0;
+    }
+
+    .ant-drawer-body {
+      background: #1e293b;
+    }
+
+    .ant-drawer-footer {
+      background: #1e293b;
+      border-top-color: #334155;
+    }
+  }
+
+  .blog-tags-container .add-tag-btn {
+    background: #0f172a;
+    border-color: #334155;
+  }
+
+  .sidebar-section .add-tag-btn {
+    background: #0f172a;
+    border-color: #334155;
+  }
+}
+
+// ── 响应式 ────────────────────────────────────────────────────
+@media (max-width: @screen-md) {
+  .juejin-editor {
+    height: auto;
+    overflow: auto;
+
+    &__header {
+      height: 48px;
+      padding: 0 12px;
+      gap: 8px;
+
+      .header-title-input {
+        font-size: 14px;
+        height: 32px;
+      }
+    }
+
+    &__body {
+      flex-direction: column;
+      min-height: calc(100vh - 48px);
+    }
+
+    &__main {
+      min-height: calc(100vh - 48px);
+    }
+
+    &__editor-wrap {
+    }
+  }
+}

@@ -1,0 +1,125 @@
+name: Deploy web (Vercel)
+
+on:
+  push:
+    branches:
+      - qa
+      - main
+    paths:
+      - 'apps/web/**'
+      - 'apps/admin/**'
+      - '.github/workflows/deploy-web.yml'
+  workflow_dispatch:
+    inputs:
+      app:
+        type: choice
+        options:
+          - all
+          - web
+          - admin
+      env:
+        type: choice
+        options:
+          - qa
+          - online
+
+jobs:
+  deploy-web-qa:
+    name: Deploy web to QA
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/qa' || (github.event_name == 'workflow_dispatch' && inputs.env == 'qa')
+    environment: qa
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel
+
+      - name: Deploy web to Vercel
+        working-directory: apps/web
+        run: |
+          npx vercel --prod \
+            --token=${{ secrets.VERCEL_TOKEN }} \
+            --yes
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_web_QA }}
+          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL_QA }}
+          VITE_APP_TITLE: Modern Blog (QA)
+
+  deploy-admin-qa:
+    name: Deploy Admin to QA
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/qa' || (github.event_name == 'workflow_dispatch' && inputs.env == 'qa')
+    environment: qa
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel
+
+      - name: Deploy Admin to Vercel
+        working-directory: apps/admin
+        run: |
+          npx vercel --prod \
+            --token=${{ secrets.VERCEL_TOKEN }} \
+            --yes
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_ADMIN_QA }}
+          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL_QA }}
+          VITE_APP_TITLE: Blog Admin (QA)
+
+  deploy-web-online:
+    name: Deploy web to Online
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || (github.event_name == 'workflow_dispatch' && inputs.env == 'online')
+    environment: production
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel
+
+      - name: Deploy web to Vercel
+        working-directory: apps/web
+        run: |
+          npx vercel --prod \
+            --token=${{ secrets.VERCEL_TOKEN }} \
+            --yes
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_web_ONLINE }}
+          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL_ONLINE }}
+          VITE_APP_TITLE: Modern Blog
+
+  deploy-admin-online:
+    name: Deploy Admin to Online
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || (github.event_name == 'workflow_dispatch' && inputs.env == 'online')
+    environment: production
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel
+
+      - name: Deploy Admin to Vercel
+        working-directory: apps/admin
+        run: |
+          npx vercel --prod \
+            --token=${{ secrets.VERCEL_TOKEN }} \
+            --yes
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_ADMIN_ONLINE }}
+          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL_ONLINE }}
+          VITE_APP_TITLE: Blog Admin

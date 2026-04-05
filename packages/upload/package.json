@@ -1,0 +1,18 @@
+{
+  "name": "@abner-blog/upload",
+  "version": "0.0.1",
+  "description": "通用文件上传工具包，支持分片上传、图片预览、视频预览",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Abner",
+  "license": "ISC",
+  "dependencies": {
+    "spark-md5": "^3.0.2"
+  }
+}

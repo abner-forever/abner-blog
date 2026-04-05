@@ -1,0 +1,667 @@
+// ── 变量 ──────────────────────────────────────────────────────
+@banner-h: 220px;
+@avatar-size: 96px;
+@avatar-border: 4px;
+@avatar-pull: (@avatar-size / 2 + @avatar-border); // 52px
+
+// 从 content-wrapper 的 padding: 24px 中"逃出"，让 banner 贴边
+@wrapper-pad: 24px;
+
+.user-home {
+  // 撑满 content-wrapper，并向上/左/右突破 24px padding
+  margin: -@wrapper-pad -@wrapper-pad 0;
+  padding-bottom: 60px;
+
+  // ── Banner ────────────────────────────────────────────────────
+  &__banner {
+    width: 100%;
+    height: @banner-h;
+    background-size: cover;
+    background-position: center;
+    border-radius: 0;
+
+    // 骨架态
+    &--skeleton {
+      background: var(--border-color);
+    }
+  }
+
+  // ── Profile Card ─────────────────────────────────────────────
+  &__profile-card {
+    background: var(--card-bg);
+    border: 1px solid @border-color;
+    border-radius: @border-radius-base;
+    // 水平方向加回 wrapper-pad，保持与正文对齐
+    margin: -@avatar-pull @wrapper-pad 0;
+    position: relative;
+    z-index: 10;
+    box-shadow: @box-shadow-md;
+    overflow: hidden;
+
+    .profile-card__inner {
+      display: flex;
+      align-items: flex-start;       // 顶对齐，让 info 从 avatar 下方开始
+      justify-content: space-between;
+      // 顶部 = avatar 一半高度 + border + 间距，使 info 不被 avatar 遮住
+      padding: (@avatar-pull + 16px) 28px 24px;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .profile-card__left {
+      display: flex;
+      align-items: flex-start;
+      gap: 20px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    // avatar 从 card 顶部上移，使其一半露出到 banner 区
+    .profile-card__avatar {
+      flex-shrink: 0;
+      border: @avatar-border solid var(--card-bg);
+      box-shadow: @box-shadow-md;
+      margin-top: -(@avatar-pull + 16px); // 与 padding-top 一致，向上顶出
+      background: var(--bg-color);
+    }
+
+    .profile-card__info {
+      min-width: 0;
+      padding-top: 4px;
+    }
+
+    .profile-card__name-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .profile-card__name {
+      font-size: 22px;
+      font-weight: 800;
+      color: @text-main;
+      line-height: 1.2;
+    }
+
+    .profile-card__tag {
+      border-radius: 10px;
+      font-size: 11px;
+    }
+
+    .profile-card__bio {
+      font-size: 14px;
+      color: @text-secondary;
+      margin: 0 0 12px;
+      line-height: 1.6;
+      .text-ellipsis-multiple(2);
+    }
+
+    .profile-card__meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      align-items: center;
+
+      .meta-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 13px;
+        color: @text-muted;
+        line-height: 1;
+
+        .anticon {
+          font-size: 13px;
+        }
+      }
+    }
+
+    .profile-card__actions {
+      flex-shrink: 0;
+      padding-top: 4px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+  }
+
+  // ── 操作按钮 ─────────────────────────────────────────────────
+  .action-btn {
+    height: 36px;
+    padding: 0 22px;
+    border-radius: 18px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.18s;
+    white-space: nowrap;
+
+    &--primary {
+      background: @primary-color;
+      color: #fff;
+
+      &:hover {
+        opacity: 0.88;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+      }
+
+      &:active {
+        transform: translateY(0);
+      }
+    }
+
+    &--ghost {
+      background: transparent;
+      color: @primary-color;
+      border: 1.5px solid @primary-color;
+
+      &:hover {
+        background: rgba(99, 102, 241, 0.06);
+      }
+    }
+  }
+
+  // ── 主体双栏 ─────────────────────────────────────────────────
+  &__body {
+    display: flex;
+    gap: 20px;
+    // 和 profile-card margin 保持一致
+    padding: 20px @wrapper-pad 0;
+    align-items: flex-start;
+  }
+
+  &__main {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__sidebar {
+    width: 260px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  // ── Tab 区域 ─────────────────────────────────────────────────
+  &__tabs {
+    background: var(--card-bg);
+    border-radius: @border-radius-base;
+    border: 1px solid @border-color;
+    box-shadow: @box-shadow-sm;
+    overflow: hidden;
+
+    // 覆盖 Ant Design Tabs 样式（普通 LESS，不用 :global）
+    .ant-tabs-nav {
+      padding: 0 24px;
+      margin-bottom: 0;
+      border-bottom: 1px solid @divider-color;
+      background: var(--card-bg);
+
+      &::before {
+        display: none;
+      }
+
+      .ant-tabs-tab {
+        padding: 16px 0;
+        margin: 0 32px 0 0;
+        font-size: 15px;
+        font-weight: 500;
+        color: @text-secondary;
+        transition: color 0.2s;
+
+        &:hover {
+          color: @primary-color;
+        }
+
+        &.ant-tabs-tab-active .ant-tabs-tab-btn {
+          font-weight: 700;
+          color: @primary-color;
+        }
+      }
+
+      .ant-tabs-ink-bar {
+        height: 3px;
+        border-radius: 3px 3px 0 0;
+        background: @primary-color;
+      }
+    }
+
+    .ant-tabs-content-holder {
+      padding: 0;
+    }
+
+    // 文章数 badge
+    .tab-count {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 20px;
+      height: 20px;
+      padding: 0 6px;
+      border-radius: 10px;
+      background: var(--bg-color);
+      border: 1px solid @border-color;
+      color: @text-muted;
+      font-size: 12px;
+      font-weight: 600;
+      margin-left: 6px;
+      vertical-align: middle;
+      line-height: 1;
+      transition: all 0.2s;
+    }
+
+    // 选中态 badge 高亮
+    .ant-tabs-tab-active .tab-count {
+      background: @primary-color;
+      border-color: @primary-color;
+      color: #fff;
+    }
+
+    .list-empty {
+      padding: 72px 0;
+    }
+  }
+
+  // ── 文章列表 ─────────────────────────────────────────────────
+  .article-list {
+    .article-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 20px;
+      padding: 22px 24px;
+      border-bottom: 1px solid @divider-color;
+      text-decoration: none;
+      color: inherit;
+      transition: background 0.15s;
+      cursor: pointer;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      &:hover {
+        background: rgba(99, 102, 241, 0.02);
+
+        .article-item__title {
+          color: @primary-color;
+        }
+      }
+
+      &--skeleton {
+        padding: 22px 24px;
+      }
+
+      &__body {
+        flex: 1;
+        min-width: 0;
+      }
+
+      &__tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 10px;
+      }
+
+      &__title {
+        font-size: 17px;
+        font-weight: 700;
+        color: @text-main;
+        margin: 0 0 8px;
+        .text-ellipsis();
+        transition: color 0.15s;
+        line-height: 1.45;
+      }
+
+      &__summary {
+        font-size: 13px;
+        color: @text-secondary;
+        margin: 0 0 14px;
+        line-height: 1.65;
+        .text-ellipsis-multiple(2);
+      }
+
+      &__footer {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        font-size: 13px;
+        color: @text-muted;
+
+        .footer-stat {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+
+          .anticon {
+            font-size: 13px;
+          }
+        }
+
+        .footer-date {
+          margin-left: auto;
+          font-size: 12px;
+          color: @text-muted;
+        }
+      }
+
+      &__cover {
+        width: 120px;
+        height: 80px;
+        flex-shrink: 0;
+        border-radius: @border-radius-sm;
+        background-size: cover;
+        background-position: center;
+        margin-top: 2px; // 与标题顶部微对齐
+      }
+    }
+  }
+
+  // ── 文章标签 ─────────────────────────────────────────────────
+  .article-tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    background: var(--bg-color);
+    color: @text-secondary;
+    border: 1px solid @border-color;
+    line-height: 1.6;
+    transition: color 0.15s, border-color 0.15s;
+
+    &:hover {
+      color: @primary-color;
+      border-color: @primary-color;
+    }
+  }
+
+  // ── 侧边栏卡片 ───────────────────────────────────────────────
+  .sidebar-card {
+    background: var(--card-bg);
+    border: 1px solid @border-color;
+    border-radius: @border-radius-base;
+    padding: 20px;
+    box-shadow: @box-shadow-sm;
+
+    &__title {
+      font-size: 15px;
+      font-weight: 700;
+      color: @text-main;
+      margin-bottom: 18px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid @divider-color;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .title-icon {
+      font-size: 16px;
+
+      &--gold {
+        color: #ffb100;
+      }
+    }
+  }
+
+  // ── 成就列表 ─────────────────────────────────────────────────
+  .achievement-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+
+    .achievement-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 6px 0;
+      cursor: default;
+
+      &__icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        flex-shrink: 0;
+
+        &--like { background: rgba(255, 77, 79, 0.1);  color: #ff4d4f; }
+        &--view { background: rgba(22, 119, 255, 0.1); color: #1677ff; }
+        &--star { background: rgba(255, 177, 0, 0.1);  color: #ffb100; }
+      }
+
+      &__info {
+        .achievement-item__label {
+          font-size: 12px;
+          color: @text-muted;
+          margin-bottom: 3px;
+        }
+
+        .achievement-item__value {
+          font-size: 20px;
+          font-weight: 800;
+          color: @text-main;
+          line-height: 1;
+        }
+      }
+    }
+
+    // 覆盖 Divider 的多余间距
+    .ant-divider-horizontal {
+      margin: 8px 0;
+    }
+  }
+
+  // ── 最近发布列表 ─────────────────────────────────────────────
+  .recent-list {
+    display: flex;
+    flex-direction: column;
+
+    .recent-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 9px 0;
+      border-bottom: 1px solid @divider-color;
+      text-decoration: none;
+      transition: all 0.15s;
+      gap: 8px;
+
+      &:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+      }
+
+      &:first-child {
+        padding-top: 0;
+      }
+
+      &:hover .recent-item__title {
+        color: @primary-color;
+      }
+
+      &__title {
+        font-size: 13px;
+        color: @text-secondary;
+        flex: 1;
+        min-width: 0;
+        .text-ellipsis();
+        transition: color 0.15s;
+      }
+
+      &__views {
+        font-size: 12px;
+        color: @text-muted;
+        flex-shrink: 0;
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+      }
+    }
+  }
+}
+
+// ── 响应式 ───────────────────────────────────────────────────
+@media (max-width: 1024px) {
+  .user-home__sidebar {
+    display: none;
+  }
+}
+
+@media (max-width: @screen-md) {
+  .user-home {
+    &__sidebar {
+      display: none;
+    }
+  }
+}
+
+@media (max-width: @screen-sm) {
+  .user-home {
+    margin: 0;
+
+    &__banner {
+      height: 150px;
+    }
+
+    &__profile-card {
+      margin: 0;
+      border-radius: 0;
+      border-left: none;
+      border-right: none;
+
+      .profile-card__inner {
+        padding: 16px;
+      }
+    }
+
+    &__body {
+      padding: 12px 0 0;
+    }
+
+    &__tabs {
+      border-radius: 0;
+      border-left: none;
+      border-right: none;
+    }
+
+    .article-list .article-item {
+      padding: 12px;
+
+      &__cover {
+        width: 90px;
+        height: 64px;
+      }
+    }
+  }
+}
+
+// ── dark 模式 ────────────────────────────────────────────────
+[data-theme='dark'] {
+  .user-home {
+    &__profile-card {
+      background: #1e293b;
+      border-color: #334155;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.45);
+
+      .profile-card__avatar {
+        border-color: #1e293b;
+        background: #0f172a;
+      }
+
+      .profile-card__name {
+        color: #f1f5f9;
+      }
+    }
+
+    &__tabs {
+      background: #1e293b;
+      border-color: #334155;
+
+      .ant-tabs-nav {
+        background: #1e293b !important;
+        border-color: #334155 !important;
+
+        .ant-tabs-tab {
+          color: #64748b;
+
+          &.ant-tabs-tab-active .ant-tabs-tab-btn {
+            color: #818cf8;
+          }
+        }
+
+        .ant-tabs-ink-bar {
+          background: #818cf8;
+        }
+      }
+
+      .tab-count {
+        background: #0f172a;
+        border-color: #334155;
+        color: #64748b;
+      }
+
+      .ant-tabs-tab-active .tab-count {
+        background: #818cf8;
+        border-color: #818cf8;
+        color: #fff;
+      }
+    }
+
+    .article-list .article-item {
+      border-color: #334155;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.025);
+      }
+
+      &__title {
+        color: #f1f5f9;
+      }
+    }
+
+    .article-tag {
+      background: #0f172a;
+      border-color: #334155;
+      color: #94a3b8;
+
+      &:hover {
+        color: #818cf8;
+        border-color: #818cf8;
+      }
+    }
+
+    .sidebar-card {
+      background: #1e293b;
+      border-color: #334155;
+
+      &__title {
+        border-color: #334155;
+      }
+    }
+
+    .recent-list .recent-item {
+      border-color: #334155;
+
+      &__title {
+        color: #94a3b8;
+      }
+    }
+
+    .achievement-list .achievement-item {
+      &__icon--like { background: rgba(255, 77, 79, 0.15); }
+      &__icon--view { background: rgba(22, 119, 255, 0.15); }
+      &__icon--star { background: rgba(255, 177, 0, 0.15); }
+    }
+  }
+}

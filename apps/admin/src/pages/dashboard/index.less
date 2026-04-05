@@ -1,0 +1,87 @@
+@import '@/styles/variables.less';
+
+.dashboard {
+  &__header {
+    margin-bottom: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+    color: @text-main;
+  }
+
+  &__section {
+    margin-bottom: 16px;
+  }
+
+  &__section-title {
+    margin-bottom: 12px;
+    font-size: 16px;
+    font-weight: 500;
+
+    &--blue {
+      color: @chart-color-1;
+    }
+
+    &--purple {
+      color: @chart-color-4;
+    }
+  }
+
+  &__stat-card {
+    border-radius: @border-radius-base;
+
+    .ant-statistic-title {
+      color: @text-secondary;
+    }
+  }
+
+  &__stat-icon {
+    &--blue {
+      color: @chart-color-1;
+    }
+
+    &--green {
+      color: @chart-color-2;
+    }
+
+    &--yellow {
+      color: @chart-color-3;
+    }
+
+    &--purple {
+      color: @chart-color-4;
+    }
+
+    &--pink {
+      color: @chart-color-5;
+    }
+  }
+
+  &__charts {
+    margin-top: 24px;
+  }
+
+  &__chart-card {
+    border-radius: @border-radius-base;
+  }
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+}
+
+.dashboard-error {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+}

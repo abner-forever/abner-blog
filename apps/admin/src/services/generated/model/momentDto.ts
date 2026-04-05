@@ -1,0 +1,31 @@
+import type { MomentAuthorDto } from "./momentAuthorDto";
+import type { MomentTopicDto } from "./momentTopicDto";
+
+export interface MomentDto {
+  /** 沸点 ID */
+  id: number;
+  /** 沸点内容 */
+  content: string;
+  /** 图片 URL 列表 */
+  images: string[];
+  /** 点赞数 */
+  likeCount: number;
+  /** 收藏数 */
+  favoriteCount: number;
+  /** 评论数 */
+  commentCount: number;
+  /** 浏览量 */
+  viewCount: number;
+  /** 当前用户是否已点赞 */
+  isLiked?: boolean;
+  /** 当前用户是否已收藏 */
+  isFavorited?: boolean;
+  /** 作者信息 */
+  author: MomentAuthorDto;
+  /** 话题信息 */
+  topic?: MomentTopicDto | null;
+  /** 创建时间 */
+  createdAt: string;
+  /** 更新时间 */
+  updatedAt: string;
+}

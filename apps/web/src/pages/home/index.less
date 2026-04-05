@@ -1,0 +1,625 @@
+.home-page {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+// Hero Banner - 沉浸式设计
+.hero-banner {
+  background: var(--skin-gradient);
+  border-radius: 20px;
+  padding: 0;
+  margin: 0 0 48px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  min-height: 300px;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 600px;
+    height: 600px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -30%;
+    left: 30%;
+    width: 400px;
+    height: 400px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 1;
+    max-width: 580px;
+    padding: 48px 56px; // 左右安全距离
+
+    .greeting {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 12px;
+
+      .greeting-text {
+        font-size: 17px;
+        color: rgba(255, 255, 255, 0.95);
+        font-weight: 500;
+      }
+
+      .current-time {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 14px;
+        background: rgba(255, 255, 255, 0.1);
+        padding: 4px 10px;
+        border-radius: 12px;
+      }
+    }
+
+    .hero-title {
+      color: #fff !important;
+      font-size: 38px !important;
+      margin-bottom: 14px !important;
+      line-height: 1.25 !important;
+
+      .highlight {
+        background: linear-gradient(120deg, #ffd700, #ff8c00);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+    }
+
+    .hero-desc {
+      color: rgba(255, 255, 255, 0.85) !important;
+      font-size: 16px !important;
+      margin-bottom: 24px !important;
+      line-height: 1.6 !important;
+    }
+
+    .hero-actions {
+      .ant-btn {
+        border-radius: 8px;
+        height: 40px;
+        padding: 0 24px;
+
+        &.ant-btn-primary {
+          background: #fff;
+          color: var(--skin-primary);
+          border-color: #fff;
+          font-weight: 500;
+
+          &:hover {
+            background: rgba(255, 255, 255, 0.92);
+            border-color: rgba(255, 255, 255, 0.92);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+          }
+        }
+
+        &:not(.ant-btn-primary) {
+          background: rgba(255, 255, 255, 0.15);
+          border-color: rgba(255, 255, 255, 0.4);
+          color: #fff;
+
+          &:hover {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.6);
+            color: #fff;
+          }
+        }
+      }
+    }
+  }
+
+  .hero-visual {
+    position: relative;
+    width: 320px;
+    height: 220px;
+    flex-shrink: 0;
+    padding-right: 56px; // 右侧安全距离
+
+    .floating-card {
+      position: absolute;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 16px;
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+      font-weight: 500;
+      color: #333;
+      animation: float 3s ease-in-out infinite;
+      min-width: 150px;
+      max-width: 200px;
+      backdrop-filter: blur(12px);
+
+      &.card-1 {
+        top: 0;
+        right: 24px;
+        animation-delay: 0s;
+      }
+
+      &.card-2 {
+        top: 72px;
+        right: 88px;
+        animation-delay: 0.5s;
+        min-width: 175px;
+      }
+
+      &.card-3 {
+        top: 144px;
+        right: 16px;
+        animation-delay: 1s;
+      }
+
+      // 信息卡片图标
+      .info-card-icon {
+        font-size: 20px;
+        color: var(--skin-primary);
+        flex-shrink: 0;
+
+        &.schedule {
+          color: #10b981;
+        }
+      }
+
+      .weather-emoji {
+        font-size: 32px;
+        flex-shrink: 0;
+        line-height: 1;
+      }
+
+      .weather-content {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        gap: 8px;
+      }
+
+      .weather-left {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .weather-temp {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.25;
+
+        .temp-current {
+          font-size: 18px;
+          font-weight: 700;
+          color: #1a1a2e;
+        }
+
+        .temp-range {
+          font-size: 11px;
+          color: #888;
+        }
+      }
+
+      .weather-right {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 2px;
+
+        .weather-status {
+          font-size: 13px;
+          font-weight: 500;
+          color: #1a1a2e;
+        }
+
+        .weather-city {
+          font-size: 11px;
+          color: #888;
+          display: flex;
+          align-items: center;
+          gap: 2px;
+        }
+      }
+
+      .info-card-content {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        min-width: 0;
+        flex: 1;
+
+        .info-card-title {
+          font-size: 13px;
+          font-weight: 600;
+          color: #1a1a2e;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          line-height: 1.3;
+        }
+
+        .info-card-sub {
+          font-size: 12px;
+          color: #888;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          line-height: 1.3;
+
+          &.schedule-login {
+            color: var(--skin-primary);
+            cursor: pointer;
+
+            &:hover {
+              opacity: 0.8;
+            }
+          }
+        }
+      }
+
+      // ant Spin 居中
+      .ant-spin {
+        margin: 0 auto;
+      }
+    }
+  }
+}
+
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+// Section
+.section {
+  margin-bottom: 48px;
+  &:last-child {
+    margin-bottom: 0;
+  }
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+
+    .section-title {
+      margin-bottom: 0 !important;
+      position: relative;
+      padding-left: 12px;
+
+      &::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 4px;
+        height: 24px;
+        background: var(--skin-gradient);
+        border-radius: 2px;
+      }
+    }
+  }
+}
+
+// Quick Links
+.quick-links {
+  .quick-link-card {
+    border-radius: 16px;
+    text-align: center;
+    padding: 24px 16px;
+    transition: all 0.3s;
+    height: 100%;
+    border: 1px solid var(--border-color);
+
+    &:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+
+      .link-icon {
+        transform: scale(1.1);
+      }
+    }
+
+    .link-icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+      font-size: 28px;
+      color: #fff;
+      transition: transform 0.3s;
+    }
+
+    .link-info {
+      .link-desc {
+        display: block;
+        font-size: 12px;
+        margin-top: 4px;
+      }
+    }
+  }
+}
+
+// Stats
+.stats-row {
+  .stat-card {
+    border-radius: 16px;
+    text-align: center;
+
+    .ant-statistic-title {
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    .ant-statistic-content {
+      font-size: 28px;
+    }
+  }
+}
+
+// Activity
+.activity-card {
+  border-radius: 16px;
+  height: 100%;
+
+  .activity-list {
+    .activity-item {
+      display: flex;
+      align-items: center;
+      padding: 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s;
+      margin-bottom: 8px;
+
+      &:hover {
+        background: var(--bg-layout);
+      }
+
+      .activity-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        margin-right: 12px;
+
+        &.fire {
+          background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+      }
+
+      .activity-content {
+        flex: 1;
+
+        .activity-time {
+          display: block;
+          font-size: 12px;
+          margin-top: 2px;
+        }
+      }
+    }
+  }
+}
+
+// 暗色模式适配
+[data-theme='dark'] {
+  .hero-banner {
+    .hero-visual {
+      .floating-card {
+        background: var(--card-bg);
+        color: var(--text-main);
+
+        .weather-temp {
+          .temp-current {
+            color: var(--text-main);
+          }
+
+          .temp-range {
+            color: var(--text-muted);
+          }
+        }
+
+        .weather-right {
+          .weather-status {
+            color: var(--text-main);
+          }
+
+          .weather-city {
+            color: var(--text-muted);
+          }
+        }
+
+        .info-card-title {
+          color: var(--text-main);
+        }
+
+        .info-card-sub {
+          color: var(--text-muted);
+        }
+      }
+    }
+  }
+}
+
+// 响应式
+@media (max-width: 768px) {
+  .home-page {
+    padding: 12px;
+  }
+
+  .hero-banner {
+    padding: 0;
+    flex-direction: column;
+    text-align: center;
+    border-radius: 0;
+    min-height: auto;
+    margin: 0 0 24px;
+    margin-left: -16px;
+    margin-right: -16px;
+
+    .hero-content {
+      padding: 32px 24px;
+      max-width: 100%;
+
+      .greeting {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+
+        .greeting-text {
+          font-size: 14px;
+        }
+
+        .current-time {
+          font-size: 12px;
+          padding: 2px 8px;
+        }
+      }
+
+      .hero-title {
+        font-size: 26px !important;
+        margin-bottom: 12px !important;
+      }
+
+      .hero-desc {
+        font-size: 14px !important;
+        margin-bottom: 20px !important;
+        line-height: 1.5 !important;
+      }
+
+      .hero-actions {
+        flex-direction: column;
+        gap: 10px;
+        width: 100%;
+
+        .ant-btn {
+          width: 100%;
+          height: 38px;
+          padding: 0 16px;
+          font-size: 13px;
+        }
+      }
+    }
+
+    .hero-visual {
+      display: none;
+    }
+  }
+
+  .section {
+    margin-bottom: 24px;
+
+    .section-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 16px;
+
+      .section-title {
+        font-size: 16px;
+        padding-left: 10px;
+
+        &::before {
+          height: 18px;
+        }
+      }
+    }
+  }
+
+  .quick-links {
+    .quick-link-card {
+      padding: 16px 12px;
+
+      .link-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        font-size: 22px;
+        margin-bottom: 12px;
+      }
+
+      .link-info {
+        .link-title {
+          font-size: 13px;
+        }
+
+        .link-desc {
+          font-size: 11px;
+        }
+      }
+    }
+  }
+
+  .stats-row {
+    .stat-card {
+      padding: 12px 8px;
+
+      .ant-statistic-title {
+        font-size: 12px;
+        margin-bottom: 4px;
+      }
+
+      .ant-statistic-content {
+        font-size: 22px;
+      }
+    }
+  }
+
+  .activity-card {
+    .activity-list {
+      .activity-item {
+        padding: 10px;
+
+        .activity-icon {
+          width: 32px;
+          height: 32px;
+          border-radius: 8px;
+          margin-right: 10px;
+
+          .anticon {
+            font-size: 14px;
+          }
+        }
+
+        .activity-content {
+          .activity-title {
+            font-size: 13px;
+          }
+
+          .activity-time {
+            font-size: 11px;
+          }
+        }
+      }
+    }
+  }
+}

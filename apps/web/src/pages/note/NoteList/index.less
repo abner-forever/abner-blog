@@ -1,0 +1,101 @@
+.noteList {
+  padding-top: 24px;
+  min-height: 100vh;
+  background: var(--bg-color);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--card-bg);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(10px);
+  border-radius: @border-radius-base;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin: 0;
+  flex-shrink: 0;
+  line-height: 1.2;
+}
+
+.headerSearch {
+  flex: 1;
+  min-width: 0;
+}
+
+.createBtn {
+  flex-shrink: 0;
+  background: #ff2442;
+  border-color: #ff2442;
+
+  &:hover {
+    background: #ff4d4f;
+    border-color: #ff4d4f;
+  }
+}
+
+.searchInput {
+  width: 100%;
+  border-radius: 20px;
+
+  &:focus {
+    border-color: #ff2442;
+    box-shadow: 0 0 0 2px rgba(255, 36, 66, 0.1);
+  }
+}
+
+@media (max-width: 576px) {
+  .header {
+    gap: 8px;
+    padding: 10px 12px;
+  }
+
+  .title {
+    font-size: 17px;
+  }
+}
+
+.container {
+  padding: 8px 0;
+}
+
+.waterfall {
+  column-count: 5;
+  column-gap: 12px;
+  column-fill: balance;
+
+  @media (max-width: 768px) {
+    column-count: 2;
+    padding-bottom: 70px;
+  }
+}
+
+.infiniteLoadTrigger {
+  width: 100%;
+  height: 1px;
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 20px;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.noMore {
+  text-align: center;
+  padding: 20px;
+  color: var(--text-muted);
+  font-size: 14px;
+}

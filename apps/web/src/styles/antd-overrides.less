@@ -1,0 +1,305 @@
+/**
+ * Ant Design 全局覆盖（不含移动端，见 mobile.less）
+ * 顺序：组件外观 → CSS 变量与背景对齐（后者覆盖前者中的 background 等属性）
+ */
+
+.ant-layout {
+  background: transparent !important;
+}
+
+.ant-card {
+  background: var(--card-bg) !important;
+  border-radius: 16px !important;
+  border: 1px solid var(--border-color) !important;
+  box-shadow: var(--shadow-sm) !important;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+
+  &:hover {
+    box-shadow: var(--shadow-sm) !important;
+    border-color: var(--skin-border-color) !important;
+  }
+}
+
+.ant-card-head {
+  border-bottom: 1px solid var(--divider-color) !important;
+  padding: 0 24px !important;
+  background: transparent !important;
+
+  .ant-card-head-title {
+    color: var(--text-main) !important;
+    font-weight: 600 !important;
+  }
+}
+
+.ant-card-body {
+  padding: 24px !important;
+  color: var(--text-secondary) !important;
+}
+
+.ant-btn {
+  border-radius: 10px !important;
+  font-weight: 500 !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Link 按钮全局去边框（hover / focus / active） */
+.ant-btn-link,
+.ant-btn-link:hover,
+.ant-btn-link:focus,
+.ant-btn-link:focus-visible,
+.ant-btn-link:active {
+  border-color: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+.ant-btn-primary {
+  background: var(--skin-primary) !important;
+  border-color: var(--skin-primary) !important;
+  color: #fff !important;
+  box-shadow: none !important;
+
+  &:hover,
+  &:focus {
+    background: var(--skin-primary-hover) !important;
+    border-color: var(--skin-primary-hover) !important;
+    box-shadow: none !important;
+  }
+
+  &:active {
+    transform: none;
+  }
+
+  &.ant-btn-background-ghost {
+    background: transparent !important;
+    color: var(--skin-primary) !important;
+    border-color: var(--skin-primary) !important;
+    box-shadow: none !important;
+
+    &:hover {
+      background: var(--skin-gradient-bg) !important;
+    }
+  }
+}
+
+.ant-input,
+.ant-input-affix-wrapper {
+  border-radius: @border-radius-sm !important;
+  border-color: var(--border-color) !important;
+  background: var(--card-bg) !important;
+  color: var(--text-main) !important;
+  transition: all 0.3s ease !important;
+
+  &:hover,
+  &:focus,
+  &:focus-within {
+    border-color: var(--skin-primary) !important;
+    box-shadow: 0 0 0 3px var(--skin-gradient-bg) !important;
+  }
+
+  /* 勿对 autofill 强制透明，否则与 UA 填充层冲突；单独规则见 input-autofill.less */
+  input:not(:-webkit-autofill):not(:autofill) {
+    background: transparent !important;
+    color: inherit !important;
+  }
+}
+
+/* 优化按钮 hover 效果 */
+.ant-btn:not(.ant-btn-primary):not(.ant-btn-link):hover {
+  border-color: var(--skin-primary) !important;
+  color: var(--skin-primary) !important;
+}
+
+/* ======================= Ant Design CSS 变量与组件背景对齐 ======================= */
+
+:root {
+  --ant-modal-content-padding: 0 !important;
+  --antd-colorBgContainer: #ffffff;
+  --antd-colorBgElevated: #ffffff;
+  --antd-colorBgLayout: #f8fafc;
+  --antd-colorBgSpotlight: #f8fafc;
+  --antd-colorBorder: #e2e8f0;
+  --antd-colorBorderSecondary: #f1f5f9;
+  --antd-colorText: #0f172a;
+  --antd-colorTextSecondary: #475569;
+  --antd-colorTextTertiary: #94a3b8;
+  --antd-colorTextQuaternary: #cbd5e1;
+  --antd-colorFill: #f1f5f9;
+  --antd-colorFillSecondary: #f8fafc;
+  --antd-colorFillTertiary: #f1f5f9;
+  --antd-colorFillQuaternary: #e2e8f0;
+}
+
+[data-theme='dark'] {
+  --antd-colorBgContainer: #1e293b;
+  --antd-colorBgElevated: #1e293b;
+  --antd-colorBgLayout: #0f172a;
+  --antd-colorBgSpotlight: #1e293b;
+  --antd-colorBorder: #334155;
+  --antd-colorBorderSecondary: #1e293b;
+  --antd-colorText: #f1f5f9;
+  --antd-colorTextSecondary: #cbd5e1;
+  --antd-colorTextTertiary: #64748b;
+  --antd-colorTextQuaternary: #475569;
+  --antd-colorFill: #1e293b;
+  --antd-colorFillSecondary: #0f172a;
+  --antd-colorFillTertiary: #1e293b;
+  --antd-colorFillQuaternary: #334155;
+}
+
+.ant-layout-header {
+  background: var(--antd-colorBgContainer) !important;
+}
+
+.ant-layout-footer {
+  background: transparent !important;
+}
+
+.ant-layout-sider {
+  background: var(--antd-colorBgContainer) !important;
+}
+
+.ant-card {
+  background: var(--antd-colorBgContainer) !important;
+}
+
+.ant-modal-content {
+  background: var(--antd-colorBgContainer) !important;
+}
+
+.ant-modal-header {
+  background: var(--antd-colorBgContainer) !important;
+}
+
+.ant-drawer-content {
+  background: var(--antd-colorBgContainer) !important;
+}
+
+.ant-popover-inner {
+  background: var(--antd-colorBgElevated) !important;
+}
+
+.ant-select-dropdown {
+  background: var(--antd-colorBgElevated) !important;
+}
+
+.ant-dropdown-menu {
+  background: var(--antd-colorBgElevated) !important;
+}
+
+.ant-tooltip-inner {
+  background: var(--antd-colorBgSpotlight) !important;
+}
+
+/* 静态 message/notification 挂在 body 上，易与 ConfigProvider 主题脱节；文字与背景统一走 --antd-*，随 data-theme 切换 */
+.ant-message {
+  color: var(--antd-colorText) !important;
+}
+
+.ant-message-notice-content {
+  background: var(--antd-colorBgElevated) !important;
+  color: var(--antd-colorText) !important;
+}
+
+.ant-notification-notice {
+  background: var(--antd-colorBgElevated) !important;
+  color: var(--antd-colorText) !important;
+}
+
+.ant-notification-notice-message {
+  color: var(--antd-colorText) !important;
+}
+
+.ant-notification-notice-description {
+  color: var(--antd-colorTextSecondary) !important;
+}
+
+.ant-input {
+  background: var(--antd-colorBgContainer) !important;
+}
+
+.ant-input-affix-wrapper {
+  background: var(--antd-colorBgContainer) !important;
+}
+
+.ant-select-selector {
+  background: var(--antd-colorBgContainer) !important;
+}
+
+.ant-picker {
+  background: var(--antd-colorBgContainer) !important;
+}
+
+.ant-picker-dropdown {
+  background: var(--antd-colorBgElevated) !important;
+}
+
+.ant-picker-panel-container {
+  background: var(--antd-colorBgElevated) !important;
+}
+
+.ant-picker-header {
+  background: var(--antd-colorBgContainer) !important;
+}
+
+.ant-picker-content th,
+.ant-picker-content td {
+  background: var(--antd-colorBgContainer) !important;
+}
+
+.ant-picker-cell {
+  background: var(--antd-colorBgContainer) !important;
+}
+
+.ant-picker-cell-in-view .ant-picker-cell-inner {
+  background: var(--antd-colorBgContainer) !important;
+}
+
+.ant-tabs-card > .ant-tabs-nav .ant-tabs-tab {
+  background: var(--antd-colorFillSecondary) !important;
+}
+
+.ant-tabs-card > .ant-tabs-nav .ant-tabs-tab-active {
+  background: var(--antd-colorBgContainer) !important;
+}
+
+.ant-menu {
+  background: transparent !important;
+}
+
+.ant-menu-dark {
+  background: transparent !important;
+}
+
+.ant-list {
+  background: var(--antd-colorBgContainer) !important;
+}
+
+.ant-list-item {
+  background: var(--antd-colorBgContainer) !important;
+}
+
+.ant-table {
+  background: var(--antd-colorBgContainer) !important;
+}
+
+.ant-table-thead > tr > th {
+  background: var(--antd-colorFillSecondary) !important;
+}
+
+.ant-table-tbody > tr > td {
+  background: var(--antd-colorBgContainer) !important;
+}
+
+.ant-drawer-header {
+  background: var(--antd-colorBgContainer) !important;
+}
+
+.ant-drawer-footer {
+  background: var(--antd-colorBgContainer) !important;
+}
+
+.ant-form-item {
+  background: transparent !important;
+}

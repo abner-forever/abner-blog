@@ -1,0 +1,102 @@
+.avatar-crop-modal {
+  .ant-modal-content {
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  .ant-modal-header {
+    border-bottom: 1px solid @divider-color;
+    padding-bottom: 16px;
+  }
+
+  // ─── 裁剪画布区域 ──────────────────────────────────────────────────────────
+  .crop-canvas-wrap {
+    position: relative;
+    width: 100%;
+    height: 360px;
+    background: #111;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 20px;
+
+    // react-easy-crop 容器
+    .reactEasyCrop_Container {
+      border-radius: 10px;
+    }
+
+    // 裁剪选区边框
+    .reactEasyCrop_CropArea {
+      border: 2px solid rgba(255, 255, 255, 0.85) !important;
+      box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.55);
+
+      &::after,
+      &::before {
+        border-color: rgba(255, 255, 255, 0.5) !important;
+      }
+    }
+  }
+
+  // ─── 控制区 ────────────────────────────────────────────────────────────────
+  .crop-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 12px;
+
+    .control-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+
+      .control-label {
+        width: 52px;
+        flex-shrink: 0;
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        gap: 3px;
+      }
+
+      .control-slider {
+        flex: 1;
+        margin: 0;
+      }
+
+      .control-suffix {
+        width: 36px;
+        flex-shrink: 0;
+        text-align: right;
+        font-size: 13px;
+        color: @text-muted;
+      }
+    }
+  }
+
+  // ─── 提示文字 ──────────────────────────────────────────────────────────────
+  .crop-hint {
+    text-align: center;
+    margin-bottom: 20px;
+
+    .ant-typography {
+      font-size: 12px;
+    }
+  }
+
+  // ─── 底部按钮 ──────────────────────────────────────────────────────────────
+  .crop-footer {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 4px;
+    border-top: 1px solid @divider-color;
+
+    .ant-btn {
+      border-radius: 8px;
+      min-width: 80px;
+    }
+
+    .ant-btn-primary {
+      background: var(--skin-primary);
+      border-color: var(--skin-primary);
+    }
+  }
+}

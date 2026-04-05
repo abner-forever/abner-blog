@@ -1,0 +1,1578 @@
+// ─── Todo Page ───────────────────────────────────────────────────────────────
+
+.todo-page-container {
+  width: 100%;
+  max-width: @layout-max-width;
+  margin: 0 auto;
+  padding: @content-margin-top 0 0;
+  min-height: calc(100vh - 64px - 60px);
+  display: flex;
+  flex-direction: column;
+}
+
+// ─── Tab Bar ─────────────────────────────────────────────────────────────────
+
+.todo-tab-bar {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 24px;
+  padding: 4px;
+  background: var(--card-bg);
+  border: 1px solid @border-color;
+  border-radius: 12px;
+  width: fit-content;
+
+  .tab-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    color: @text-secondary;
+    background: transparent;
+    transition: all 0.2s ease;
+
+    .anticon {
+      font-size: 15px;
+    }
+
+    &:hover {
+      color: var(--skin-primary);
+      background: color-mix(in srgb, var(--skin-primary) 8%, transparent);
+    }
+
+    &.active {
+      background: var(--skin-primary);
+      color: #fff;
+      box-shadow: 0 2px 8px color-mix(in srgb, var(--skin-primary) 35%, transparent);
+    }
+  }
+}
+
+// ─── Stats Bar ───────────────────────────────────────────────────────────────
+
+.todo-list-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.todo-stats-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 20px;
+  background: var(--card-bg);
+  border: 1px solid @border-color;
+  border-radius: 12px;
+  box-shadow: @box-shadow-sm;
+
+  .stats-numbers {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .stat-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    .stat-icon {
+      font-size: 16px;
+
+      &.total { color: @text-secondary; }
+      &.active { color: #f59e0b; }
+      &.done { color: #10b981; }
+    }
+
+    .stat-value {
+      font-size: 18px;
+      font-weight: 700;
+      color: @text-main;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: @text-muted;
+    }
+  }
+
+  .stat-divider {
+    width: 1px;
+    height: 24px;
+    background: @divider-color;
+  }
+
+  .stats-progress {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+
+    .progress-bar {
+      width: 120px;
+      height: 6px;
+      background: rgba(0, 0, 0, 0.06);
+      border-radius: 3px;
+      overflow: hidden;
+
+      .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--skin-primary), #10b981);
+        border-radius: 3px;
+        transition: width 0.4s ease;
+      }
+    }
+
+    .progress-text {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--skin-primary);
+      min-width: 36px;
+    }
+  }
+}
+
+// ─── Add Card ─────────────────────────────────────────────────────────────────
+
+.todo-add-card {
+  background: var(--card-bg);
+  border: 1.5px solid @border-color;
+  border-radius: 12px;
+  padding: 4px 16px;
+  box-shadow: @box-shadow-sm;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+
+  &.expanded,
+  &:focus-within {
+    border-color: var(--skin-primary);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--skin-primary) 10%, transparent);
+  }
+
+  .add-input-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 52px;
+
+    .add-icon {
+      font-size: 16px;
+      color: var(--skin-primary);
+      flex-shrink: 0;
+    }
+
+    .add-main-input {
+      flex: 1;
+      border: none;
+      outline: none;
+      background: transparent;
+      font-size: 15px;
+      color: @text-main;
+      padding: 0;
+      transition: all 0.2s ease;
+
+      &:focus {
+        transform: scale(1.01);
+      }
+
+      &::placeholder {
+        color: @text-muted;
+      }
+    }
+
+    .add-quick-btn {
+      flex-shrink: 0;
+      padding: 6px 16px;
+      background: var(--skin-primary);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+
+      &:hover {
+        opacity: 0.85;
+      }
+    }
+  }
+
+  .add-expanded {
+    padding: 0 0 12px 26px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    &.visible {
+      max-height: 200px;
+      opacity: 1;
+      padding: 0 0 12px 26px;
+    }
+
+    .add-desc-input {
+      width: 100%;
+      border: none;
+      outline: none;
+      background: transparent;
+      font-size: 13px;
+      color: @text-secondary;
+      resize: none;
+      font-family: inherit;
+      line-height: 1.5;
+      padding: 0;
+
+      &::placeholder {
+        color: @text-muted;
+      }
+    }
+
+    .add-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+
+      .btn-cancel {
+        padding: 6px 16px;
+        background: transparent;
+        color: @text-secondary;
+        border: 1px solid @border-color;
+        border-radius: 8px;
+        font-size: 13px;
+        cursor: pointer;
+        transition: all 0.2s;
+
+        &:hover {
+          border-color: @text-secondary;
+        }
+      }
+
+      .btn-confirm {
+        padding: 6px 20px;
+        background: var(--skin-primary);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: opacity 0.2s;
+
+        &:hover {
+          opacity: 0.85;
+        }
+
+        &:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+      }
+    }
+  }
+}
+
+// ─── Filter Bar ──────────────────────────────────────────────────────────────
+
+.todo-filter-bar {
+  display: flex;
+  gap: 4px;
+
+  .filter-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border: 1px solid @border-color;
+    border-radius: 8px;
+    background: var(--card-bg);
+    color: @text-secondary;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    .filter-count {
+      background: rgba(0, 0, 0, 0.05);
+      color: @text-secondary;
+      border: none;
+      font-size: 11px;
+      padding: 0 6px;
+      height: 18px;
+      line-height: 18px;
+      border-radius: 9px;
+    }
+
+    &:hover {
+      border-color: var(--skin-primary);
+      color: var(--skin-primary);
+    }
+
+    &.active {
+      background: color-mix(in srgb, var(--skin-primary) 8%, transparent);
+      border-color: var(--skin-primary);
+      color: var(--skin-primary);
+      font-weight: 600;
+
+      .filter-count {
+        background: var(--skin-primary);
+        color: #fff;
+      }
+    }
+  }
+}
+
+// ─── Todo List ────────────────────────────────────────────────────────────────
+
+.todo-list-wrapper {
+  background: var(--card-bg);
+  border: 1px solid @border-color;
+  border-radius: 12px;
+  box-shadow: @box-shadow-sm;
+  overflow: hidden;
+  flex: 1;
+
+  .todo-empty {
+    padding: 24px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .todo-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 16px 20px;
+    border-bottom: 1px solid @divider-color;
+    transition: background 0.15s ease;
+    cursor: default;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &:hover {
+      background: color-mix(in srgb, var(--skin-primary) 2%, transparent);
+
+      .todo-actions {
+        opacity: 1;
+      }
+    }
+
+    &.is-completed {
+      .todo-title {
+        text-decoration: line-through;
+        color: @text-muted;
+        opacity: 0.6;
+      }
+      .todo-desc {
+        text-decoration: line-through;
+        opacity: 0.5;
+      }
+    }
+
+    .todo-checkbox {
+      margin-top: 2px;
+      flex-shrink: 0;
+
+      .ant-checkbox-inner {
+        border-radius: 50%;
+        width: 18px;
+        height: 18px;
+      }
+    }
+
+    .todo-body {
+      flex: 1;
+      min-width: 0;
+
+      .todo-title {
+        font-size: 15px;
+        font-weight: 500;
+        color: @text-main;
+        line-height: 1.5;
+        word-break: break-word;
+        transition: all 0.25s ease;
+      }
+
+      .todo-desc {
+        font-size: 13px;
+        color: @text-secondary;
+        margin-top: 4px;
+        line-height: 1.5;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+
+      .todo-meta {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 6px;
+
+        .todo-time {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          font-size: 11px;
+          color: @text-muted;
+
+          .anticon {
+            font-size: 11px;
+          }
+        }
+      }
+    }
+
+    .todo-actions {
+      display: flex;
+      gap: 4px;
+      opacity: 0;
+      transition: opacity 0.2s;
+      flex-shrink: 0;
+
+      .action-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 30px;
+        height: 30px;
+        border: none;
+        border-radius: 6px;
+        background: transparent;
+        cursor: pointer;
+        color: @text-muted;
+        font-size: 14px;
+        transition: all 0.15s;
+
+        &:hover {
+          background: rgba(0, 0, 0, 0.06);
+          color: @text-secondary;
+        }
+
+        &.delete:hover {
+          background: rgba(239, 68, 68, 0.1);
+          color: #ef4444;
+        }
+
+        &.edit:hover {
+          background: color-mix(in srgb, var(--skin-primary) 10%, transparent);
+          color: var(--skin-primary);
+        }
+      }
+    }
+  }
+}
+
+// ─── Calendar Section ─────────────────────────────────────────────────────────
+
+.calendar-section {
+  flex: 1;
+}
+
+.calendar-card {
+  background: var(--card-bg);
+  border-radius: 14px;
+  border: 1px solid @border-color;
+  overflow: hidden;
+  box-shadow: @box-shadow-sm;
+  padding: 8px;
+
+  .ant-picker-calendar {
+    background: transparent;
+
+    .ant-picker-panel {
+      border: none;
+      background: transparent;
+    }
+
+    // ── 头部导航 ──────────────────────────────────────────────
+    .ant-picker-header {
+      border-bottom: 1px solid @divider-color;
+      padding: 8px 12px;
+
+      button {
+        border: none;
+        background: transparent;
+        border-radius: 6px;
+        width: 28px;
+        height: 28px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.15s;
+
+        &:hover {
+          background: rgba(0, 0, 0, 0.06);
+        }
+      }
+
+      .ant-picker-header-view {
+        font-weight: 600;
+        font-size: 14px;
+        color: @text-main;
+
+        // 年月切换按钮使用主题色
+        button {
+          color: @text-main;
+          font-weight: 600;
+          font-size: 14px;
+          width: auto;
+          height: auto;
+          padding: 0 4px;
+
+          &:hover {
+            color: var(--skin-primary);
+            background: transparent;
+          }
+        }
+      }
+    }
+
+    .calendar-custom-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      width: 100%;
+
+      .calendar-nav-actions {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .calendar-nav-btn,
+      .calendar-today-btn {
+        border: 1px solid @border-color;
+        background: var(--card-bg);
+        color: @text-main;
+        border-radius: 6px;
+        height: 28px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.15s;
+        font-size: 12px;
+        padding: 0 8px;
+
+        &:hover {
+          border-color: var(--skin-primary);
+          color: var(--skin-primary);
+        }
+      }
+
+      .calendar-nav-btn {
+        width: 28px;
+        padding: 0;
+      }
+
+      .calendar-today-btn {
+        padding: 0 12px;
+        font-size: 13px;
+        font-weight: 500;
+      }
+
+      .calendar-header-selects {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+
+        .ant-select-selector {
+          border-radius: 6px !important;
+          height: 28px !important;
+          font-size: 13px;
+        }
+      }
+
+      .calendar-mode-switch {
+        border: 1px solid @border-color;
+        border-radius: 8px;
+        overflow: hidden;
+        display: flex;
+
+        .mode-btn {
+          border: none;
+          background: transparent;
+          color: @text-secondary;
+          height: 34px;
+          min-width: 34px;
+          padding: 0 10px;
+          cursor: pointer;
+          transition: all 0.15s;
+
+          &.active {
+            background: color-mix(in srgb, var(--skin-primary) 14%, transparent);
+            color: var(--skin-primary);
+            font-weight: 600;
+          }
+        }
+      }
+    }
+
+    // ── 日期面板（日视图）列头 ────────────────────────────────
+    .ant-picker-content {
+      padding: 12px 16px;
+
+      th {
+        padding: 12px 0;
+        font-weight: 500;
+        color: @text-muted;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+    }
+
+    // ── 日期单元格（日视图：高度加大，可显示更多事件）────────────
+    .ant-picker-date-panel .ant-picker-cell,
+    &:not(.ant-picker-month-panel):not(.ant-picker-year-panel):not(.ant-picker-decade-panel) .ant-picker-cell {
+      padding: 4px;
+
+      .ant-picker-cell-inner {
+        border-radius: @border-radius-sm;
+        width: 100%;
+        height: 85px;
+        line-height: 1;
+        font-size: 15px;
+        background: var(--card-bg);
+        transition: all 0.2s ease;
+        color: @text-main;
+        display: flex !important;
+        flex-direction: column;
+        align-items: stretch;
+        justify-content: flex-start;
+        padding-top: 4px;
+        overflow: hidden;
+        border: 1px solid @border-color;
+
+        .ant-picker-calendar-date-value {
+          position: relative;
+          z-index: 1;
+          width: 100%;
+          font-weight: 600;
+        }
+
+        .ant-picker-calendar-date-content {
+          width: 100%;
+          min-width: 0;
+        }
+      }
+
+      &:hover .ant-picker-cell-inner {
+        border-color: var(--skin-primary);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      }
+    }
+
+    // 日视图 hover
+    .ant-picker-date-panel .ant-picker-cell:hover:not(.ant-picker-cell-selected) .ant-picker-cell-inner {
+      background: color-mix(in srgb, var(--skin-primary) 8%, transparent);
+    }
+
+    // 通用 hover（兜底）
+    .ant-picker-cell:hover:not(.ant-picker-cell-selected):not(.ant-picker-cell-in-view) .ant-picker-cell-inner {
+      background: color-mix(in srgb, var(--skin-primary) 8%, transparent);
+    }
+
+    // ── 年视图：月格（参考 macOS 日历风格）
+    .ant-picker-year-panel {
+      .ant-picker-body {
+        padding: 20px 24px 24px;
+      }
+
+      .ant-picker-cell {
+        padding: 5px;
+
+        .ant-picker-cell-inner {
+          display: flex !important;
+          flex-direction: column !important;
+          align-items: flex-start !important;
+          justify-content: flex-start !important;
+          height: 110px !important;
+          width: 100%;
+          line-height: 1 !important;
+          border-radius: @border-radius-sm;
+          padding: 16px 18px !important;
+          background: transparent;
+          color: @text-main;
+          transition: background 0.2s ease;
+          overflow: hidden;
+
+          // 隐藏多余内容区，只显示月份值
+          .ant-picker-calendar-date-content {
+            display: none !important;
+          }
+
+          .ant-picker-calendar-date-value {
+            font-size: 15px;
+            font-weight: 500;
+            color: inherit;
+            margin-bottom: 6px;
+          }
+        }
+
+        &:hover:not(.ant-picker-cell-selected) .ant-picker-cell-inner {
+          background: rgba(0, 0, 0, 0.04) !important;
+        }
+
+        &.ant-picker-cell-in-view:not(.ant-picker-cell-selected):hover .ant-picker-cell-inner {
+          background: rgba(0, 0, 0, 0.06) !important;
+        }
+      }
+
+      .ant-picker-cell-selected .ant-picker-cell-inner,
+      .ant-picker-cell-in-view.ant-picker-cell-selected .ant-picker-cell-inner {
+        background: var(--skin-primary) !important;
+        color: #fff !important;
+        font-weight: 600;
+        box-shadow: none;
+
+        .ant-picker-calendar-date-value {
+          color: #fff !important;
+        }
+      }
+
+      .ant-picker-cell-in-view.ant-picker-cell-today .ant-picker-cell-inner {
+        border: none !important;
+        color: var(--skin-primary) !important;
+        background: transparent !important;
+        font-weight: 500;
+
+        .ant-picker-calendar-date-value::after {
+          content: '';
+          display: inline-block;
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background: var(--skin-primary);
+          margin-left: 6px;
+          vertical-align: middle;
+        }
+      }
+
+      .ant-picker-cell-in-view.ant-picker-cell-today.ant-picker-cell-selected .ant-picker-cell-inner {
+        .ant-picker-calendar-date-value::after {
+          background: #fff !important;
+        }
+      }
+    }
+
+    // ── 十年/年份弹出面板（头部 "2026年" 下拉选择器）────────────
+    .ant-picker-decade-panel,
+    .ant-picker-month-panel {
+      .ant-picker-body {
+        padding: 16px 20px 20px;
+      }
+
+      .ant-picker-cell {
+        padding: 4px;
+
+        .ant-picker-cell-inner {
+          display: flex !important;
+          flex-direction: row;
+          align-items: center;
+          justify-content: center;
+          height: 48px !important;
+          width: 100%;
+          line-height: 1 !important;
+          font-size: 15px !important;
+          border-radius: 12px;
+          padding: 0 !important;
+          background: transparent;
+          color: @text-main;
+          transition: background 0.2s ease;
+        }
+
+        &:hover:not(.ant-picker-cell-selected) .ant-picker-cell-inner {
+          background: rgba(0, 0, 0, 0.04) !important;
+        }
+
+        &.ant-picker-cell-in-view:not(.ant-picker-cell-selected):hover .ant-picker-cell-inner {
+          background: rgba(0, 0, 0, 0.08) !important;
+        }
+      }
+
+      .ant-picker-cell-selected .ant-picker-cell-inner,
+      .ant-picker-cell-in-view.ant-picker-cell-selected .ant-picker-cell-inner {
+        background: var(--skin-primary) !important;
+        color: #fff !important;
+        font-weight: 600;
+        box-shadow: none;
+      }
+
+      .ant-picker-cell-in-view.ant-picker-cell-today .ant-picker-cell-inner {
+        border: none !important;
+        color: var(--skin-primary) !important;
+        background: transparent !important;
+        font-weight: 500;
+
+        &::before {
+          display: none !important;
+        }
+
+        &::after {
+          content: '';
+          display: inline-block;
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background: var(--skin-primary);
+          margin-left: 6px;
+          vertical-align: middle;
+        }
+      }
+
+      .ant-picker-cell-in-view.ant-picker-cell-today.ant-picker-cell-selected .ant-picker-cell-inner::after {
+        background: #fff !important;
+      }
+    }
+
+    // ── 日视图选中 / 今天（全局兜底）────────────────────────────
+    .ant-picker-cell-selected .ant-picker-cell-inner,
+    .ant-picker-cell-in-view.ant-picker-cell-selected .ant-picker-cell-inner {
+      background: var(--skin-primary) !important;
+      color: #fff !important;
+      font-weight: 700;
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.35);
+
+      .ant-picker-calendar-date-value {
+        color: #fff !important;
+        position: relative;
+        z-index: 2;
+        text-shadow: none;
+      }
+    }
+
+    .ant-picker-cell-in-view.ant-picker-cell-today .ant-picker-cell-inner {
+      border: 2px solid var(--skin-primary) !important;
+      color: var(--skin-primary) !important;
+      font-weight: 700;
+      background: color-mix(in srgb, var(--skin-primary) 6%, var(--card-bg)) !important;
+      border-radius: 10px !important;
+
+      .ant-picker-calendar-date-value {
+        color: var(--skin-primary) !important;
+        font-weight: 700;
+      }
+
+      &::before {
+        display: none !important;
+      }
+    }
+
+    // 今天且选中：保持白色文字
+    .ant-picker-cell-in-view.ant-picker-cell-today.ant-picker-cell-selected .ant-picker-cell-inner,
+    .ant-picker-cell-in-view.ant-picker-cell-today.ant-picker-cell-range-start .ant-picker-cell-inner,
+    .ant-picker-cell-in-view.ant-picker-cell-today.ant-picker-cell-range-end .ant-picker-cell-inner {
+      .ant-picker-calendar-date-value {
+        color: #fff !important;
+      }
+    }
+
+    .ant-picker-cell-out-view .ant-picker-cell-inner {
+      opacity: 0.25;
+    }
+  }
+
+  // ── 日期格内的事件条（仅日视图）────────────────────────────────
+  .calendar-event-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    padding: 0;
+    margin-top: 2px;
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+
+    .event-text-item {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      font-size: 12px;
+      padding: 0;
+      border-radius: 3px;
+      color: #fff;
+      font-weight: 500;
+      text-indent: 0;
+      text-align: left;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      line-height: 1.3;
+      transition: transform 0.15s, box-shadow 0.15s;
+
+      &:hover {
+        transform: translateY(-1px);
+      }
+    }
+
+    .more-events {
+      font-size: 11px;
+      color: @text-muted;
+      padding-left: 6px;
+      font-weight: 500;
+    }
+  }
+}
+
+// ─── Events Panel ─────────────────────────────────────────────────────────────
+
+.events-panel {
+  background: var(--card-bg);
+  border-radius: 14px;
+  border: 1px solid @border-color;
+  box-shadow: @box-shadow-sm;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+
+  .events-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 20px 16px;
+    border-bottom: 1px solid @divider-color;
+
+    .events-date-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      .events-date {
+        font-size: 40px;
+        font-weight: 700;
+        color: @text-main;
+        line-height: 1;
+      }
+
+      .events-date-meta {
+        .events-month-year {
+          font-size: 14px;
+          font-weight: 500;
+          color: @text-main;
+        }
+        .events-weekday {
+          font-size: 12px;
+          color: @text-muted;
+          margin-top: 2px;
+        }
+      }
+    }
+
+    .btn-add-event {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      background: var(--skin-primary);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: opacity 0.2s;
+      white-space: nowrap;
+
+      &:hover {
+        opacity: 0.85;
+      }
+    }
+  }
+
+  .events-list {
+    flex: 1;
+    padding: 12px 16px;
+    min-height: 200px;
+    max-height: 532px;
+    overflow-y: auto;
+  }
+
+  .events-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    text-align: center;
+
+    .events-empty-icon {
+      font-size: 36px;
+      margin-bottom: 8px;
+      opacity: 0.5;
+    }
+
+    .events-empty-text {
+      font-size: 14px;
+      color: @text-muted;
+      margin-bottom: 16px;
+    }
+
+    .events-empty-add {
+      padding: 6px 16px;
+      background: transparent;
+      border: 1.5px dashed @border-color;
+      border-radius: 8px;
+      color: @text-muted;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+
+      &:hover {
+        border-color: var(--skin-primary);
+        color: var(--skin-primary);
+      }
+    }
+  }
+
+  .event-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    margin-bottom: 8px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    border: 1px solid @border-color;
+    background: var(--card-bg);
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    &:hover {
+      border-color: var(--skin-primary);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      transform: translateY(-2px);
+
+      .event-item-actions {
+        opacity: 1;
+      }
+    }
+
+    .event-stripe {
+      width: 5px;
+      height: 100%;
+      min-height: 44px;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+
+    .event-content {
+      flex: 1;
+      min-width: 0;
+
+      .event-title {
+        font-size: 15px;
+        font-weight: 600;
+        color: @text-main;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .event-desc {
+        font-size: 13px;
+        color: @text-secondary;
+        margin-top: 4px;
+        line-height: 1.4;
+      }
+
+      .event-range {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        color: @text-muted;
+        margin-top: 6px;
+
+        .anticon {
+          font-size: 12px;
+        }
+      }
+    }
+
+    .event-item-actions {
+      display: flex;
+      gap: 4px;
+      opacity: 0;
+      transition: opacity 0.2s;
+      flex-shrink: 0;
+
+      .event-action-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 30px;
+        height: 30px;
+        border: none;
+        border-radius: 8px;
+        background: transparent;
+        cursor: pointer;
+        color: @text-muted;
+        font-size: 14px;
+        transition: all 0.15s;
+
+        &:hover {
+          background: rgba(0, 0, 0, 0.06);
+          color: @text-secondary;
+        }
+
+        &.danger:hover {
+          background: rgba(239, 68, 68, 0.1);
+          color: #ef4444;
+        }
+      }
+    }
+  }
+
+  .month-summary {
+    padding: 12px 16px;
+    border-top: 1px solid @divider-color;
+
+    .month-summary-title {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: @text-muted;
+    }
+  }
+}
+
+// ─── Event Form Modal ─────────────────────────────────────────────────────────
+
+.modal-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+}
+
+.event-form {
+  margin-top: 8px;
+}
+
+// ─── Color Picker Field ───────────────────────────────────────────────────────
+
+.color-picker-field {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 4px 0;
+
+  .color-option {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.15s, box-shadow 0.15s;
+    border: 2px solid transparent;
+
+    &:hover {
+      transform: scale(1.12);
+    }
+
+    &.selected {
+      border-color: #fff;
+      box-shadow: 0 0 0 3px currentColor;
+      transform: scale(1.1);
+
+      .check-icon {
+        color: #fff;
+        font-size: 14px;
+        font-weight: 700;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+      }
+    }
+  }
+}
+
+// ─── Responsive ───────────────────────────────────────────────────────────────
+
+@media (max-width: 992px) {
+  .events-panel {
+    margin-top: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .todo-page-container {
+    padding: 8px 0 40px;
+  }
+
+  .todo-tab-bar {
+    margin-bottom: 16px;
+    padding: 4px;
+
+    .tab-btn {
+      padding: 6px 14px;
+      font-size: 13px;
+    }
+  }
+
+  .todo-stats-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 16px;
+
+    .stats-numbers {
+      gap: 16px;
+    }
+
+    .stat-item {
+      .stat-value {
+        font-size: 16px;
+      }
+
+      .stat-label {
+        font-size: 11px;
+      }
+    }
+
+    .stat-divider {
+      height: 20px;
+    }
+
+    .stats-progress {
+      width: 100%;
+
+      .progress-bar {
+        flex: 1;
+        width: auto;
+        height: 5px;
+      }
+
+      .progress-text {
+        font-size: 12px;
+        min-width: 32px;
+      }
+    }
+  }
+
+  .todo-add-card {
+    padding: 4px 12px;
+    margin-bottom: 16px;
+
+    .add-input-row {
+      min-height: 44px;
+
+      .add-main-input {
+        font-size: 14px;
+      }
+
+      .add-quick-btn {
+        padding: 4px 12px;
+        font-size: 12px;
+      }
+    }
+  }
+
+  .todo-filter-bar {
+    flex-wrap: wrap;
+    gap: 8px;
+
+    .filter-btn {
+      padding: 4px 10px;
+      font-size: 12px;
+    }
+  }
+
+  .todo-list-wrapper {
+    .todo-item {
+      padding: 12px 16px;
+      gap: 10px;
+
+      .todo-body {
+        .todo-title {
+          font-size: 14px;
+        }
+
+        .todo-desc {
+          font-size: 12px;
+        }
+
+        .todo-meta {
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+      }
+
+      .todo-actions {
+        opacity: 1;
+      }
+    }
+  }
+
+  .calendar-card {
+    padding: 12px;
+    border-radius: @border-radius-sm;
+
+    .ant-picker-calendar {
+      .ant-picker-header {
+        padding: 8px;
+
+        .ant-picker-header-view {
+          font-size: 14px;
+        }
+      }
+
+      .calendar-custom-header {
+        flex-wrap: wrap;
+        gap: 6px;
+
+        .calendar-nav-actions {
+          gap: 2px;
+        }
+
+        .calendar-nav-btn {
+          width: 24px;
+          height: 24px;
+        }
+
+        .calendar-today-btn {
+          height: 24px;
+          font-size: 12px;
+          padding: 0 8px;
+        }
+
+        .calendar-mode-switch {
+          .mode-btn {
+            height: 28px;
+            min-width: 28px;
+            padding: 0 8px;
+            font-size: 12px;
+          }
+        }
+
+        .calendar-header-selects {
+          width: 100%;
+          justify-content: space-between;
+
+          .ant-select {
+            flex: 1;
+            min-width: 0;
+          }
+        }
+      }
+
+      .ant-picker-content {
+        padding: 6px 6px 10px;
+
+        th {
+          padding: 6px 0;
+          font-size: 10px;
+        }
+      }
+
+      // 日视图小屏高度缩减
+      .ant-picker-date-panel .ant-picker-cell .ant-picker-cell-inner {
+        height: 54px !important;
+        line-height: 1;
+        font-size: 13px;
+        border-radius: 8px;
+      }
+
+      // 年视图小屏
+      .ant-picker-year-panel .ant-picker-cell .ant-picker-cell-inner {
+        height: 80px !important;
+        padding: 10px 12px !important;
+        border-radius: 10px;
+
+        .ant-picker-calendar-date-value {
+          font-size: 13px !important;
+          margin-bottom: 4px;
+        }
+      }
+
+      // 十年/月份弹出面板小屏
+      .ant-picker-decade-panel,
+      .ant-picker-month-panel {
+        .ant-picker-cell .ant-picker-cell-inner {
+          height: 40px !important;
+          font-size: 13px !important;
+          border-radius: 10px;
+        }
+      }
+    }
+  }
+
+  .events-panel {
+    border-radius: 10px;
+
+    .events-panel-header {
+      padding: 12px 16px;
+
+      .events-date-info {
+        .events-date {
+          font-size: 32px;
+        }
+
+        .events-date-meta {
+          .events-month-year {
+            font-size: 13px;
+          }
+
+          .events-weekday {
+            font-size: 11px;
+          }
+        }
+
+        .btn-add-event {
+          padding: 6px 12px;
+          font-size: 12px;
+        }
+      }
+    }
+
+    .events-list {
+      padding: 10px 12px;
+      min-height: 150px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .event-item {
+      padding: 10px 12px;
+      margin-bottom: 6px;
+      gap: 10px;
+      border-radius: 8px;
+
+      .event-stripe {
+        width: 4px;
+        min-height: 36px;
+      }
+
+      .event-content {
+        .event-title {
+          font-size: 14px;
+        }
+
+        .event-desc {
+          font-size: 12px;
+          margin-top: 2px;
+        }
+
+        .event-range {
+          font-size: 11px;
+          margin-top: 4px;
+        }
+      }
+
+      .event-item-actions {
+        opacity: 1;
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .todo-tab-bar {
+    width: 100%;
+    justify-content: center;
+
+    .tab-btn {
+      flex: 1;
+      justify-content: center;
+    }
+  }
+
+  .todo-filter-bar {
+    .filter-btn {
+      padding: 5px 10px;
+      font-size: 12px;
+    }
+  }
+}
+
+// ─── Dark Mode ────────────────────────────────────────────────────────────────
+
+[data-theme='dark'] {
+  .todo-add-card {
+    &.expanded,
+    &:focus-within {
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--skin-primary) 20%, transparent);
+    }
+  }
+
+  .calendar-card .ant-picker-calendar {
+    .calendar-custom-header {
+      .calendar-nav-btn,
+      .calendar-today-btn,
+      .calendar-mode-switch {
+        border-color: rgba(255, 255, 255, 0.14);
+      }
+    }
+
+    .ant-picker-cell:hover:not(.ant-picker-cell-selected) .ant-picker-cell-inner {
+      background: color-mix(in srgb, var(--skin-primary) 12%, transparent) !important;
+    }
+
+    // 年视图暗色模式
+    .ant-picker-year-panel {
+      .ant-picker-cell {
+        &:hover:not(.ant-picker-cell-selected) .ant-picker-cell-inner {
+          background: rgba(255, 255, 255, 0.08) !important;
+        }
+
+        &.ant-picker-cell-in-view:not(.ant-picker-cell-selected):hover .ant-picker-cell-inner {
+          background: rgba(255, 255, 255, 0.12) !important;
+        }
+      }
+
+      .ant-picker-cell-in-view.ant-picker-cell-today .ant-picker-cell-inner {
+        .ant-picker-calendar-date-value::after {
+          background: var(--skin-primary);
+        }
+      }
+    }
+
+    // 十年/月份面板暗色模式
+    .ant-picker-decade-panel,
+    .ant-picker-month-panel {
+      .ant-picker-cell {
+        &:hover:not(.ant-picker-cell-selected) .ant-picker-cell-inner {
+          background: rgba(255, 255, 255, 0.08) !important;
+        }
+
+        &.ant-picker-cell-in-view:not(.ant-picker-cell-selected):hover .ant-picker-cell-inner {
+          background: rgba(255, 255, 255, 0.12) !important;
+        }
+      }
+
+      .ant-picker-cell-in-view.ant-picker-cell-today .ant-picker-cell-inner::after {
+        background: var(--skin-primary);
+      }
+    }
+  }
+
+  .events-panel .event-item:hover {
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  .todo-list-wrapper .todo-item:hover {
+    background: rgba(255, 255, 255, 0.02);
+  }
+}

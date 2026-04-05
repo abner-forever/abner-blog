@@ -1,0 +1,299 @@
+.loading-container {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  padding: 24px;
+  width: 100%;
+  min-height: 100px;
+  box-sizing: border-box;
+  transition: opacity 0.3s ease;
+
+  &.page-loading {
+    min-height: calc(100vh - 64px - 60px);
+    width: 100% !important;
+    align-self: stretch;
+  }
+
+  &.full-screen {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    z-index: 1000;
+    background: rgba(var(--bg-rgb, 255, 255, 255), 0.9);
+    backdrop-filter: blur(10px);
+  }
+
+  &.no-tip {
+    padding: 4px;
+    min-height: 400px;
+    width: auto;
+    display: inline-flex;
+  }
+
+  .loading-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+  }
+
+  .hamster-ball {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &.default { width: 80px; height: 80px; }
+    &.small { width: 50px; height: 50px; }
+    &.large { width: 120px; height: 120px; }
+
+    .ball-shell {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: linear-gradient(135deg, 
+        rgba(200, 220, 255, 0.25) 0%, 
+        rgba(150, 180, 220, 0.15) 50%,
+        rgba(100, 140, 200, 0.25) 100%);
+      border: 2px solid rgba(150, 180, 220, 0.4);
+      box-shadow: 
+        0 0 15px rgba(150, 180, 220, 0.25),
+        inset 0 0 20px rgba(255, 255, 255, 0.15);
+      animation: ball-rotate 1.5s linear infinite;
+      overflow: hidden;
+
+      &::before {
+        content: '';
+        position: absolute;
+        top: 8%;
+        left: 12%;
+        width: 20%;
+        height: 12%;
+        background: rgba(255, 255, 255, 0.35);
+        border-radius: 50%;
+        filter: blur(2px);
+      }
+    }
+
+    .ball-reflection {
+      position: absolute;
+      top: 10%;
+      left: 18%;
+      width: 15%;
+      height: 10%;
+      background: rgba(255, 255, 255, 0.4);
+      border-radius: 50%;
+      filter: blur(1px);
+    }
+
+    .hamster-runner {
+      position: absolute;
+      width: 60%;
+      height: 60%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .hamster {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      animation: hamster-run 0.25s linear infinite;
+    }
+
+    .hamster-body {
+      width: 32px;
+      height: 20px;
+      background: linear-gradient(180deg, #f5a623 0%, #e8912a 100%);
+      border-radius: 45% 45% 40% 40%;
+      position: relative;
+      box-shadow: 0 2px 8px rgba(245, 166, 35, 0.4);
+      z-index: 2;
+
+      &.default { width: 32px; height: 20px; }
+      &.small { width: 20px; height: 12px; }
+      &.large { width: 50px; height: 32px; }
+    }
+
+    .hamster-ear {
+      position: absolute;
+      width: 8px;
+      height: 10px;
+      background: linear-gradient(180deg, #f5a623 0%, #d8841f 100%);
+      border-radius: 50% 50% 30% 30%;
+      top: -4px;
+      z-index: 1;
+      
+      &.ear-left {
+        left: 4px;
+        transform: rotate(-25deg);
+      }
+      &.ear-right {
+        right: 4px;
+        transform: rotate(25deg);
+      }
+    }
+
+    .hamster-face {
+      position: absolute;
+      top: 6px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 18px;
+      height: 12px;
+
+      .hamster-eye {
+        position: absolute;
+        width: 5px;
+        height: 6px;
+        background: #2c2c2c;
+        border-radius: 50%;
+        top: 2px;
+        animation: blink 4s infinite;
+
+        &.eye-left {
+          left: 2px;
+        }
+        &.eye-right {
+          right: 2px;
+        }
+      }
+
+      .nose {
+        position: absolute;
+        width: 4px;
+        height: 3px;
+        background: #ff9999;
+        border-radius: 50%;
+        top: 6px;
+        left: 50%;
+        transform: translateX(-50%);
+      }
+
+      .mouth {
+        position: absolute;
+        width: 6px;
+        height: 3px;
+        border-bottom: 2px solid #ff8888;
+        border-radius: 0 0 50% 50%;
+        top: 8px;
+        left: 50%;
+        transform: translateX(-50%);
+      }
+    }
+
+    .cheek {
+      position: absolute;
+      width: 6px;
+      height: 4px;
+      background: rgba(255, 150, 150, 0.5);
+      border-radius: 50%;
+      top: 10px;
+      
+      &.cheek-left { left: 2px; }
+      &.cheek-right { right: 2px; }
+    }
+
+    .hamster-legs {
+      display: flex;
+      gap: 8px;
+      margin-top: -2px;
+
+      .leg {
+        width: 5px;
+        height: 8px;
+        background: #d8841f;
+        border-radius: 3px;
+        animation: leg-run 0.25s ease-in-out infinite;
+
+        &.leg-front { animation-delay: 0s; }
+        &.leg-back { animation-delay: 0.125s; }
+      }
+    }
+
+    .sparkles {
+      position: absolute;
+      width: 150%;
+      height: 150%;
+      top: -25%;
+      left: -25%;
+      
+      span {
+        position: absolute;
+        font-size: 10px;
+        animation: sparkle 1s ease-in-out infinite;
+        
+        &:nth-child(1) { top: 5%; right: 10%; animation-delay: 0s; }
+        &:nth-child(2) { top: 20%; left: 5%; animation-delay: 0.2s; }
+        &:nth-child(3) { bottom: 15%; right: 5%; animation-delay: 0.4s; }
+        &:nth-child(4) { bottom: 5%; left: 15%; animation-delay: 0.6s; }
+      }
+    }
+
+    &.small .hamster-body { width: 20px; height: 12px; }
+    &.small .hamster-face { width: 12px; height: 8px; top: 4px; }
+    &.small .hamster-eye { width: 3px; height: 4px; }
+    &.small .hamster-ear { width: 5px; height: 6px; top: -2px; }
+    &.small .hamster-legs .leg { width: 3px; height: 5px; }
+    &.small .sparkles span { font-size: 6px; }
+
+    &.large .hamster-body { width: 50px; height: 32px; }
+    &.large .hamster-face { width: 28px; height: 18px; top: 10px; }
+    &.large .hamster-eye { width: 8px; height: 10px; }
+    &.large .hamster-ear { width: 12px; height: 14px; top: -6px; }
+    &.large .hamster-legs .leg { width: 8px; height: 12px; gap: 12px; }
+    &.large .sparkles span { font-size: 14px; }
+  }
+
+  .loading-tip {
+    font-size: 14px;
+    color: var(--ant-color-text-secondary, #64748b);
+    font-weight: 500;
+    letter-spacing: 1px;
+    text-align: center;
+    white-space: nowrap;
+  }
+}
+
+@keyframes ball-rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes hamster-run {
+  0% { transform: translateX(-2px); }
+  50% { transform: translateX(2px); }
+  100% { transform: translateX(-2px); }
+}
+
+@keyframes leg-run {
+  0%, 100% { transform: translateY(0) rotate(-15deg); }
+  50% { transform: translateY(-4px) rotate(15deg); }
+}
+
+@keyframes blink {
+  0%, 45%, 55%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(0.1); }
+}
+
+@keyframes sparkle {
+  0%, 100% { opacity: 0; transform: scale(0.5); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+[data-theme='dark'] {
+  .loading-container {
+    &.full-screen {
+      background: rgba(15, 23, 42, 0.9);
+    }
+    .loading-tip {
+      color: #94a3b8;
+    }
+  }
+}

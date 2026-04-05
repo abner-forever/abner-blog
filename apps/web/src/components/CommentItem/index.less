@@ -1,0 +1,174 @@
+.comment-item {
+  padding: 16px 0;
+  border-bottom: 1px solid @divider-color;
+  
+  &:last-child {
+    border-bottom: none;
+  }
+
+  .comment-item-main {
+    display: flex;
+    gap: 12px;
+  }
+
+  .comment-avatar {
+    flex-shrink: 0;
+    
+    .ant-avatar {
+      background: linear-gradient(135deg, var(--skin-primary) 0%, #a78bfa 100%);
+      font-weight: 600;
+    }
+  }
+
+  .comment-body {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .comment-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+    flex-wrap: wrap;
+
+    .comment-author {
+      font-weight: 600;
+      color: @text-main;
+      font-size: 14px;
+    }
+
+    .comment-time {
+      font-size: 12px;
+      color: @text-muted;
+    }
+
+    .comment-edited {
+      font-size: 11px;
+      color: @text-muted;
+      font-style: italic;
+    }
+  }
+
+  .comment-content-wrapper {
+    margin-bottom: 10px;
+  }
+
+  .reply-target {
+    font-size: 13px;
+    color: @text-muted;
+    margin-bottom: 4px;
+
+    .reply-user {
+      color: var(--skin-primary);
+      font-weight: 600;
+    }
+  }
+
+  .comment-content {
+    font-size: 14px;
+    color: @text-secondary;
+    line-height: 1.7;
+    word-break: break-word;
+    white-space: pre-wrap;
+  }
+
+  .comment-actions {
+    display: flex;
+    gap: 4px;
+
+    .action-btn {
+      background: none;
+      border: none;
+      padding: 4px 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 13px;
+      color: @text-muted;
+      border-radius: 6px;
+      transition: all 0.2s;
+
+      .like-icon {
+        font-size: 14px;
+      }
+
+      .reply-icon {
+        font-size: 14px;
+      }
+
+      .action-text {
+        font-weight: 500;
+      }
+
+      &:hover {
+        background: rgba(0, 0, 0, 0.04);
+        color: @text-main;
+      }
+
+      &.active {
+        color: var(--skin-primary);
+        
+        .like-icon {
+          color: var(--skin-primary);
+        }
+      }
+
+      &.delete:hover {
+        color: #ff4d4f;
+        background: rgba(255, 77, 79, 0.08);
+      }
+    }
+  }
+
+  // 回复样式 - 嵌套在评论中
+  &.is-reply {
+    padding: 12px;
+    background: color-mix(in srgb, var(--card-bg) 60%, var(--bg-color));
+    border: 1px solid @border-color;
+    border-radius: 10px;
+    margin-top: 8px;
+
+    .comment-item-main {
+      gap: 10px;
+    }
+
+    .comment-header {
+      margin-bottom: 4px;
+
+      .comment-author {
+        font-size: 13px;
+      }
+    }
+
+    .comment-content {
+      font-size: 13px;
+    }
+
+    .comment-actions {
+      .action-btn {
+        padding: 3px 8px;
+        font-size: 12px;
+      }
+    }
+  }
+}
+
+// 暗色模式适配
+[data-theme='dark'] {
+  .comment-item {
+    &.is-reply {
+      background: color-mix(in srgb, #1e293b 60%, #0f172a);
+      border-color: #334155;
+    }
+
+    .comment-actions {
+      .action-btn {
+        &:hover {
+          background: rgba(255, 255, 255, 0.06);
+        }
+      }
+    }
+  }
+}

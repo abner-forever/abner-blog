@@ -1,0 +1,38 @@
+/**
+ * 全局 Ant Design 输入框自动填充（WebKit / Chrome internal / 标准 :autofill）
+ * 背景与字色跟主题变量走；双类 + html body 提高特异性，压过 affix 内 focus 的 box-shadow: none。
+ */
+
+.autofill-input-reset() {
+  -webkit-text-fill-color: var(--text-main) !important;
+  caret-color: var(--text-main);
+  background-color: var(--card-bg) !important;
+  background-image: none !important;
+  box-shadow: 0 0 0 1000px var(--card-bg) inset !important;
+  -webkit-box-shadow: 0 0 0 1000px var(--card-bg) inset !important;
+  transition:
+    background-color 99999s ease-out 0s,
+    color 99999s ease-out 0s !important;
+}
+
+html body {
+  input.ant-input.ant-input:is(:-webkit-autofill, :-webkit-autofill:hover, :-webkit-autofill:focus, :-webkit-autofill:active),
+  .ant-input-affix-wrapper.ant-input-affix-wrapper > input.ant-input.ant-input:is(:-webkit-autofill, :-webkit-autofill:hover, :-webkit-autofill:focus, :-webkit-autofill:active),
+  .ant-input-password .ant-input.ant-input:is(:-webkit-autofill, :-webkit-autofill:hover, :-webkit-autofill:focus, :-webkit-autofill:active),
+  textarea.ant-input.ant-input:is(:-webkit-autofill, :-webkit-autofill:hover, :-webkit-autofill:focus, :-webkit-autofill:active) {
+    .autofill-input-reset();
+  }
+
+  input.ant-input.ant-input:-internal-autofill-selected,
+  .ant-input-affix-wrapper.ant-input-affix-wrapper > input.ant-input.ant-input:-internal-autofill-selected,
+  .ant-input-password .ant-input.ant-input:-internal-autofill-selected {
+    .autofill-input-reset();
+  }
+
+  input.ant-input.ant-input:is(:autofill, :autofill:hover, :autofill:focus),
+  .ant-input-affix-wrapper.ant-input-affix-wrapper > input.ant-input.ant-input:is(:autofill, :autofill:hover, :autofill:focus),
+  .ant-input-password .ant-input.ant-input:is(:autofill, :autofill:hover, :autofill:focus),
+  textarea.ant-input.ant-input:is(:autofill, :autofill:hover, :autofill:focus) {
+    .autofill-input-reset();
+  }
+}

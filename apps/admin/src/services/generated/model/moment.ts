@@ -1,0 +1,22 @@
+import type { MomentComment } from "./momentComment";
+import type { MomentFavorite } from "./momentFavorite";
+import type { MomentLike } from "./momentLike";
+import type { Topic } from "./topic";
+import type { User } from "./user";
+
+export interface Moment {
+  id: number;
+  content: string;
+  images: string[];
+  author: User;
+  topic: Topic;
+  comments: MomentComment[];
+  likes: MomentLike[];
+  favorites: MomentFavorite[];
+  viewCount: number;
+  likeCount: number;
+  commentCount: number;
+  favoriteCount: number;
+  createdAt: string;
+  updatedAt: string;
+}

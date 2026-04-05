@@ -1,0 +1,423 @@
+/* 应用主题：皮肤 token、深浅色、MdEditor 与全局变量联动（经 global.less 最先引入） */
+
+/* ======================= 主题皮肤变量 ======================= */
+
+/* 经典主题 - 紫气东来 (默认) */
+:root {
+  --skin-primary: #8b5cf6;
+  --skin-primary-hover: #7c3aed;
+  --skin-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --skin-gradient-reverse: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+  --skin-gradient-bg: linear-gradient(135deg, #667eea20 0%, #764ba220 100%);
+  --skin-glow: 0 0 40px rgba(139, 92, 246, 0.3);
+  --skin-card-bg: linear-gradient(145deg, rgba(139, 92, 246, 0.1) 0%, rgba(118, 75, 162, 0.05) 100%);
+  --skin-border-color: rgba(139, 92, 246, 0.3);
+
+  /* 通用颜色变量 */
+  --primary-color: #8b5cf6;
+  --primary-hover: #7c3aed;
+  --bg-color: #f8fafc;
+  --card-bg: #ffffff;
+  --text-main: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  --border-color: #e2e8f0;
+  --divider-color: #f1f5f9;
+  --bg-layout: #f8fafc;
+  
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  
+  --glass-bg: rgba(255, 255, 255, 0.8);
+  --glass-border: rgba(255, 255, 255, 0.3);
+
+  /* MdEditor Theme Variables - Sync with App Theme */
+  --md-bk-color: var(--card-bg) !important;
+  --md-bk-color-out: var(--card-bg) !important;
+  --md-bk-hover-color: var(--bg-color) !important;
+  --md-color: var(--text-main) !important;
+  --md-border-color: var(--border-color) !important;
+}
+
+/* 天空之蓝 */
+:root[data-skin="blue"] {
+  --skin-primary: #0ea5e9;
+  --skin-primary-hover: #0284c7;
+  --skin-gradient: linear-gradient(135deg, #89f7fe 0%, #66a6ff 100%);
+  --skin-gradient-reverse: linear-gradient(135deg, #66a6ff 0%, #89f7fe 100%);
+  --skin-gradient-bg: linear-gradient(135deg, #0ea5e920 0%, #0284c720 100%);
+  --skin-glow: 0 0 40px rgba(14, 165, 233, 0.3);
+  --skin-card-bg: linear-gradient(145deg, rgba(14, 165, 233, 0.1) 0%, rgba(2, 132, 199, 0.05) 100%);
+  --skin-border-color: rgba(14, 165, 233, 0.3);
+  --primary-color: #0ea5e9;
+  --primary-hover: #0284c7;
+}
+
+/* 青山绿水 */
+:root[data-skin="green"] {
+  --skin-primary: #10b981;
+  --skin-primary-hover: #059669;
+  --skin-gradient: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+  --skin-gradient-reverse: linear-gradient(135deg, #8fd3f4 0%, #84fab0 100%);
+  --skin-gradient-bg: linear-gradient(135deg, #10b98120 0%, #05966920 100%);
+  --skin-glow: 0 0 40px rgba(16, 185, 129, 0.3);
+  --skin-card-bg: linear-gradient(145deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.05) 100%);
+  --skin-border-color: rgba(16, 185, 129, 0.3);
+  --primary-color: #10b981;
+  --primary-hover: #059669;
+}
+
+/* 橙意满满 */
+:root[data-skin="orange"] {
+  --skin-primary: #f97316;
+  --skin-primary-hover: #ea580c;
+  --skin-gradient: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+  --skin-gradient-reverse: linear-gradient(135deg, #fda085 0%, #f6d365 100%);
+  --skin-gradient-bg: linear-gradient(135deg, #f9731620 0%, #ea580c20 100%);
+  --skin-glow: 0 0 40px rgba(249, 115, 22, 0.3);
+  --skin-card-bg: linear-gradient(145deg, rgba(249, 115, 22, 0.1) 0%, rgba(234, 88, 12, 0.05) 100%);
+  --skin-border-color: rgba(249, 115, 22, 0.3);
+  --primary-color: #f97316;
+  --primary-hover: #ea580c;
+}
+
+/* 粉粉嫩嫩 */
+:root[data-skin="pink"] {
+  --skin-primary: #ec4899;
+  --skin-primary-hover: #db2777;
+  --skin-gradient: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
+  --skin-gradient-reverse: linear-gradient(135deg, #fbc2eb 0%, #a18cd1 100%);
+  --skin-gradient-bg: linear-gradient(135deg, #ec489920 0%, #db277720 100%);
+  --skin-glow: 0 0 40px rgba(236, 72, 153, 0.3);
+  --skin-card-bg: linear-gradient(145deg, rgba(236, 72, 153, 0.1) 0%, rgba(219, 39, 119, 0.05) 100%);
+  --skin-border-color: rgba(236, 72, 153, 0.3);
+  --primary-color: #ec4899;
+  --primary-hover: #db2777;
+}
+
+/* 红红火火（主色对齐小红书品牌红 #FF2442） */
+:root[data-skin="red"] {
+  --skin-primary: #ff2442;
+  --skin-primary-hover: #e0203a;
+  --skin-gradient: linear-gradient(135deg, #ff2442 0%, #ff6b81 100%);
+  --skin-gradient-reverse: linear-gradient(135deg, #ff8fa3 0%, #ff2442 100%);
+  --skin-gradient-bg: linear-gradient(135deg, #ff244220 0%, #e0203a20 100%);
+  --skin-glow: 0 0 40px rgba(255, 36, 66, 0.3);
+  --skin-card-bg: linear-gradient(145deg, rgba(255, 36, 66, 0.1) 0%, rgba(224, 32, 58, 0.05) 100%);
+  --skin-border-color: rgba(255, 36, 66, 0.3);
+  --primary-color: #ff2442;
+  --primary-hover: #e0203a;
+}
+
+/* 碧海蓝天 */
+:root[data-skin="cyan"] {
+  --skin-primary: #06b6d4;
+  --skin-primary-hover: #0891b2;
+  --skin-gradient: linear-gradient(135deg, #22d3ee 0%, #818cf8 100%);
+  --skin-gradient-reverse: linear-gradient(135deg, #818cf8 0%, #22d3ee 100%);
+  --skin-gradient-bg: linear-gradient(135deg, #06b6d420 0%, #0891b220 100%);
+  --skin-glow: 0 0 40px rgba(6, 182, 212, 0.3);
+  --skin-card-bg: linear-gradient(145deg, rgba(6, 182, 212, 0.1) 0%, rgba(8, 145, 178, 0.05) 100%);
+  --skin-border-color: rgba(6, 182, 212, 0.3);
+  --primary-color: #06b6d4;
+  --primary-hover: #0891b2;
+}
+
+/* 金光闪闪 */
+:root[data-skin="gold"] {
+  --skin-primary: #eab308;
+  --skin-primary-hover: #ca8a04;
+  --skin-gradient: linear-gradient(135deg, #fde68a 0%, #fbbf24 100%);
+  --skin-gradient-reverse: linear-gradient(135deg, #fbbf24 0%, #fde68a 100%);
+  --skin-gradient-bg: linear-gradient(135deg, #eab30820 0%, #ca8a0420 100%);
+  --skin-glow: 0 0 40px rgba(234, 179, 8, 0.3);
+  --skin-card-bg: linear-gradient(145deg, rgba(234, 179, 8, 0.1) 0%, rgba(202, 138, 4, 0.05) 100%);
+  --skin-border-color: rgba(234, 179, 8, 0.3);
+  --primary-color: #eab308;
+  --primary-hover: #ca8a04;
+}
+
+/* ======================= 酷炫主题 ======================= */
+
+/* 赛博朋克 - 霓虹渐变 */
+:root[data-skin="cyberpunk"] {
+  --skin-primary: #00f5ff;
+  --skin-primary-hover: #00d4e6;
+  --skin-gradient: linear-gradient(135deg, #00f5ff 0%, #ff00ff 50%, #00f5ff 100%);
+  --skin-gradient-reverse: linear-gradient(135deg, #ff00ff 0%, #00f5ff 100%);
+  --skin-gradient-bg: linear-gradient(135deg, #00f5ff15 0%, #ff00ff15 100%);
+  --skin-glow: 0 0 40px rgba(0, 245, 255, 0.5), 0 0 80px rgba(255, 0, 255, 0.3);
+  --skin-card-bg: linear-gradient(145deg, rgba(0, 245, 255, 0.08) 0%, rgba(255, 0, 255, 0.04) 100%);
+  --skin-border-color: rgba(0, 245, 255, 0.4);
+  --primary-color: #00f5ff;
+  --primary-hover: #00d4e6;
+  --bg-color: #0a0a0f;
+  --card-bg: #12121a;
+  --text-main: #e0e0e0;
+  --text-secondary: #a0a0a0;
+  --text-muted: #606060;
+  --border-color: #2a2a3a;
+  --divider-color: #1a1a2a;
+  --bg-layout: #0a0a0f;
+  --shadow-sm: 0 1px 3px 0 rgba(0, 245, 255, 0.1);
+  --shadow-md: 0 4px 6px -1px rgba(0, 245, 255, 0.15);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 245, 255, 0.2);
+  --glass-bg: rgba(18, 18, 26, 0.9);
+  --glass-border: rgba(0, 245, 255, 0.2);
+}
+
+/* 极光之夜 - 动态渐变 */
+:root[data-skin="aurora"] {
+  --skin-primary: #00ff87;
+  --skin-primary-hover: #00e676;
+  --skin-gradient: linear-gradient(135deg, #00ff87 0%, #60efff 50%, #ff00ff 100%);
+  --skin-gradient-reverse: linear-gradient(135deg, #ff00ff 0%, #00ff87 100%);
+  --skin-gradient-bg: linear-gradient(135deg, #00ff8720 0%, #60efff20 0%, #ff00ff20 100%);
+  --skin-glow: 0 0 40px rgba(0, 255, 135, 0.4), 0 0 80px rgba(96, 239, 255, 0.2);
+  --skin-card-bg: linear-gradient(145deg, rgba(0, 255, 135, 0.06) 0%, rgba(96, 239, 255, 0.03) 50%, rgba(255, 0, 255, 0.03) 100%);
+  --skin-border-color: rgba(0, 255, 135, 0.3);
+  --primary-color: #00ff87;
+  --primary-hover: #00e676;
+  --bg-color: #0a0f0a;
+  --card-bg: #0f1a0f;
+  --text-main: #e0ffe0;
+  --text-secondary: #a0ffa0;
+  --text-muted: #60a060;
+  --border-color: #1a2a1a;
+  --divider-color: #0f1a0f;
+  --bg-layout: #0a0f0a;
+  --glass-bg: rgba(15, 26, 15, 0.9);
+  --glass-border: rgba(0, 255, 135, 0.2);
+}
+
+/* 星辰大海 - 星空效果 */
+:root[data-skin="star"] {
+  --skin-primary: #ffd700;
+  --skin-primary-hover: #ffb700;
+  --skin-gradient: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  --skin-gradient-reverse: linear-gradient(135deg, #0f3460 0%, #1a1a2e 100%);
+  --skin-gradient-bg: linear-gradient(135deg, #ffd70010 0%, #ffffff10 100%);
+  --skin-glow: 0 0 40px rgba(255, 215, 0, 0.3);
+  --skin-card-bg: linear-gradient(145deg, rgba(255, 215, 0, 0.05) 0%, rgba(26, 26, 46, 0.1) 100%);
+  --skin-border-color: rgba(255, 215, 0, 0.2);
+  --primary-color: #ffd700;
+  --primary-hover: #ffb700;
+  --bg-color: #0a0a1a;
+  --card-bg: #12122a;
+  --text-main: #e0e0ff;
+  --text-secondary: #a0a0ff;
+  --text-muted: #6060a0;
+  --border-color: #1a1a3a;
+  --divider-color: #12122a;
+  --bg-layout: #0a0a1a;
+  --glass-bg: rgba(18, 18, 42, 0.9);
+  --glass-border: rgba(255, 215, 0, 0.15);
+}
+
+/* 浓郁巧克力 - 温暖色调 */
+:root[data-skin="chocolate"] {
+  --skin-primary: #8B4513;
+  --skin-primary-hover: #6d3710;
+  --skin-gradient: linear-gradient(135deg, #8B4513 0%, #D2691E 50%, #F4A460 100%);
+  --skin-gradient-reverse: linear-gradient(135deg, #F4A460 0%, #8B4513 100%);
+  --skin-gradient-bg: linear-gradient(135deg, #8B451320 0%, #D2691E20 100%);
+  --skin-glow: 0 0 40px rgba(139, 69, 19, 0.3);
+  --skin-card-bg: linear-gradient(145deg, rgba(139, 69, 19, 0.08) 0%, rgba(210, 105, 30, 0.04) 100%);
+  --skin-border-color: rgba(139, 69, 19, 0.3);
+  --primary-color: #8B4513;
+  --primary-hover: #6d3710;
+  --bg-color: #faf6f0;
+  --card-bg: #fffaf5;
+  --text-main: #3d2314;
+  --text-secondary: #6d4c3d;
+  --text-muted: #a08070;
+  --border-color: #e8dcd0;
+  --divider-color: #f5ede5;
+  --bg-layout: #faf6f0;
+  --glass-bg: rgba(255, 250, 245, 0.9);
+  --glass-border: rgba(139, 69, 19, 0.15);
+}
+
+/* 清新薄荷 - 清新感 */
+:root[data-skin="mint"] {
+  --skin-primary: #00d9a5;
+  --skin-primary-hover: #00b890;
+  --skin-gradient: linear-gradient(135deg, #00d9a5 0%, #7bed9f 50%, #70a1ff 100%);
+  --skin-gradient-reverse: linear-gradient(135deg, #70a1ff 0%, #00d9a5 100%);
+  --skin-gradient-bg: linear-gradient(135deg, #00d9a520 0%, #7bed9f20 100%);
+  --skin-glow: 0 0 40px rgba(0, 217, 165, 0.3);
+  --skin-card-bg: linear-gradient(145deg, rgba(0, 217, 165, 0.08) 0%, rgba(123, 237, 159, 0.04) 100%);
+  --skin-border-color: rgba(0, 217, 165, 0.3);
+  --primary-color: #00d9a5;
+  --primary-hover: #00b890;
+  --bg-color: #f0fff8;
+  --card-bg: #ffffff;
+  --text-main: #0d3328;
+  --text-secondary: #2d5d4b;
+  --text-muted: #70a08a;
+  --border-color: #d0f0e5;
+  --divider-color: #e8f5f0;
+  --bg-layout: #f0fff8;
+  --glass-bg: rgba(255, 255, 255, 0.9);
+  --glass-border: rgba(0, 217, 165, 0.2);
+}
+
+/* 浪漫薰衣草 - 浪漫紫 */
+:root[data-skin="lavender"] {
+  --skin-primary: #a855f7;
+  --skin-primary-hover: #9333ea;
+  --skin-gradient: linear-gradient(135deg, #a855f7 0%, #c084fc 50%, #e879f9 100%);
+  --skin-gradient-reverse: linear-gradient(135deg, #e879f9 0%, #a855f7 100%);
+  --skin-gradient-bg: linear-gradient(135deg, #a855f720 0%, #c084fc20 100%);
+  --skin-glow: 0 0 40px rgba(168, 85, 247, 0.3);
+  --skin-card-bg: linear-gradient(145deg, rgba(168, 85, 247, 0.08) 0%, rgba(192, 132, 252, 0.04) 100%);
+  --skin-border-color: rgba(168, 85, 247, 0.3);
+  --primary-color: #a855f7;
+  --primary-hover: #9333ea;
+  --bg-color: #faf5ff;
+  --card-bg: #ffffff;
+  --text-main: #2d1a3d;
+  --text-secondary: #5d3d6b;
+  --text-muted: #9070a0;
+  --border-color: #e8ddf0;
+  --divider-color: #f3ebf5;
+  --bg-layout: #faf5ff;
+  --glass-bg: rgba(255, 255, 255, 0.9);
+  --glass-border: rgba(168, 85, 247, 0.2);
+}
+
+/* ======================= Dark Mode ======================= */
+
+/* 确保 dark 模式变量在 html[data-theme='dark'] 下生效 */
+html[data-theme='dark'],
+[data-theme='dark'] {
+  --bg-color: #0f172a;
+  --card-bg: #1e293b;
+  --text-main: #f1f5f9;
+  --text-secondary: #cbd5e1;
+  --text-muted: #64748b;
+  --border-color: #334155;
+  --divider-color: #1e293b;
+  --bg-layout: #0f172a;
+  
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+  
+  --glass-bg: rgba(30, 41, 59, 0.8);
+  --glass-border: rgba(255, 255, 255, 0.1);
+}
+
+/* ======================= Dark Mode 下的酷炫主题适配 ======================= */
+
+/* 赛博朋克 - 暗黑模式 */
+html[data-theme='dark'][data-skin="cyberpunk"],
+[data-theme='dark'][data-skin="cyberpunk"] {
+  --skin-primary: #00f5ff;
+  --skin-primary-hover: #00d4e6;
+  --skin-glow: 0 0 30px rgba(0, 245, 255, 0.4), 0 0 60px rgba(255, 0, 255, 0.2);
+  --skin-card-bg: linear-gradient(145deg, rgba(0, 245, 255, 0.1) 0%, rgba(255, 0, 255, 0.05) 100%);
+  --skin-border-color: rgba(0, 245, 255, 0.5);
+  --text-main: #e2e8f0;
+  --text-secondary: #94a3b8;
+}
+
+/* 极光之夜 - 暗黑模式 */
+html[data-theme='dark'][data-skin="aurora"],
+[data-theme='dark'][data-skin="aurora"] {
+  --skin-primary: #00ff87;
+  --skin-glow: 0 0 30px rgba(0, 255, 135, 0.3), 0 0 60px rgba(96, 239, 255, 0.2);
+  --skin-card-bg: linear-gradient(145deg, rgba(0, 255, 135, 0.1) 0%, rgba(96, 239, 255, 0.05) 100%);
+  --skin-border-color: rgba(0, 255, 135, 0.4);
+}
+
+/* 星辰大海 - 暗黑模式（更适合） */
+html[data-theme='dark'][data-skin="star"],
+[data-theme='dark'][data-skin="star"] {
+  --skin-primary: #ffd700;
+  --skin-glow: 0 0 30px rgba(255, 215, 0, 0.4);
+  --skin-card-bg: linear-gradient(145deg, rgba(255, 215, 0, 0.08) 0%, rgba(15, 52, 96, 0.15) 100%);
+  --skin-border-color: rgba(255, 215, 0, 0.3);
+  --bg-color: #0a0a1a;
+  --card-bg: #12122a;
+}
+
+/* 浓郁巧克力 - 暗黑模式 */
+html[data-theme='dark'][data-skin="chocolate"],
+[data-theme='dark'][data-skin="chocolate"] {
+  --skin-primary: #d4a574;
+  --skin-glow: 0 0 30px rgba(212, 165, 116, 0.3);
+  --skin-card-bg: linear-gradient(145deg, rgba(212, 165, 116, 0.1) 0%, rgba(139, 69, 19, 0.08) 100%);
+  --skin-border-color: rgba(212, 165, 116, 0.4);
+}
+
+/* 清新薄荷 - 暗黑模式 */
+html[data-theme='dark'][data-skin="mint"],
+[data-theme='dark'][data-skin="mint"] {
+  --skin-primary: #00d9a5;
+  --skin-glow: 0 0 30px rgba(0, 217, 165, 0.3);
+  --skin-card-bg: linear-gradient(145deg, rgba(0, 217, 165, 0.1) 0%, rgba(112, 161, 255, 0.05) 100%);
+  --skin-border-color: rgba(0, 217, 165, 0.4);
+}
+
+/* 浪漫薰衣草 - 暗黑模式 */
+html[data-theme='dark'][data-skin="lavender"],
+[data-theme='dark'][data-skin="lavender"] {
+  --skin-primary: #a78bfa;
+  --skin-glow: 0 0 30px rgba(167, 139, 250, 0.3);
+  --skin-card-bg: linear-gradient(145deg, rgba(167, 139, 250, 0.1) 0%, rgba(139, 92, 246, 0.05) 100%);
+  --skin-border-color: rgba(167, 139, 250, 0.4);
+}
+
+/* 酷炫主题在 light 模式下的适配 - 使用浅色文字 */
+:root[data-skin="cyberpunk"],
+:root[data-skin="aurora"],
+:root[data-skin="star"],
+:root[data-skin="chocolate"],
+:root[data-skin="mint"],
+:root[data-skin="lavender"] {
+  --text-main: #1e293b;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+  --border-color: #e2e8f0;
+  --divider-color: #f1f5f9;
+}
+
+/* 酷炫主题在 dark 模式下的适配 */
+html[data-theme='dark'][data-skin="cyberpunk"],
+html[data-theme='dark'][data-skin="aurora"],
+html[data-theme='dark'][data-skin="star"],
+html[data-theme='dark'][data-skin="chocolate"],
+html[data-theme='dark'][data-skin="mint"],
+html[data-theme='dark'][data-skin="lavender"] {
+  --bg-color: #0a0a0f;
+  --card-bg: #12121a;
+  --text-main: #e0e0e0;
+  --text-secondary: #a0a0a0;
+  --text-muted: #606060;
+  --border-color: #2a2a3a;
+  --divider-color: #1a1a2a;
+  --bg-layout: #0a0a0f;
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+  --glass-bg: rgba(18, 18, 26, 0.9);
+  --glass-border: rgba(255, 255, 255, 0.1);
+}
+
+.md-editor {
+  background-color: var(--card-bg) !important;
+  
+  .md-editor-toolbar-wrapper,
+  .md-editor-content,
+  .md-editor-footer,
+  .md-editor-input-wrapper,
+  .md-editor-preview-wrapper,
+  .md-editor-preview,
+  .md-editor-textarea,
+  .cm-editor,
+  .cm-scroller {
+    background-color: transparent !important;
+  }
+}

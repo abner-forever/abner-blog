@@ -1,0 +1,112 @@
+name: Deploy server
+
+on:
+  push:
+    branches:
+      - qa
+      - main
+    paths:
+      - 'apps/server/**'
+      - '.github/workflows/deploy-server.yml'
+  workflow_dispatch:
+
+jobs:
+  deploy-qa:
+    name: Deploy server to QA
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/qa'
+    environment: qa
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8.15.4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build server
+        run: pnpm --filter @abner-blog/server build
+        env:
+          NODE_ENV: qa
+          JWT_SECRET: ${{ secrets.JWT_SECRET_QA }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD_QA }}
+          DB_HOST: ${{ secrets.DB_HOST_QA }}
+          DB_DATABASE: ${{ secrets.DB_DATABASE_QA }}
+          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD_QA }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS_QA }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY_QA }}
+          CORS_ORIGINS: ${{ secrets.CORS_ORIGINS_QA }}
+
+      - name: Deploy to Alibaba Cloud (QA)
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DEPLOY_HOST_QA }}
+          username: ${{ secrets.DEPLOY_USER_QA }}
+          key: ${{ secrets.DEPLOY_KEY_QA }}
+          script: |
+            set -e
+            cd /opt/blog-server-qa
+            pnpm install --prod --frozen-lockfile
+            pm2 restart blog-server-qa || pm2 start dist/main.js --name blog-server-qa
+            pm2 save
+
+  deploy-online:
+    name: Deploy server to Online
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    environment: production
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8.15.4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build server
+        run: pnpm --filter @abner-blog/server build
+        env:
+          NODE_ENV: production
+          JWT_SECRET: ${{ secrets.JWT_SECRET_ONLINE }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD_ONLINE }}
+          DB_HOST: ${{ secrets.DB_HOST_ONLINE }}
+          DB_DATABASE: ${{ secrets.DB_DATABASE_ONLINE }}
+          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD_ONLINE }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS_ONLINE }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY_ONLINE }}
+          CORS_ORIGINS: ${{ secrets.CORS_ORIGINS_ONLINE }}
+
+      - name: Deploy to Alibaba Cloud (Online)
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DEPLOY_HOST_ONLINE }}
+          username: ${{ secrets.DEPLOY_USER_ONLINE }}
+          key: ${{ secrets.DEPLOY_KEY_ONLINE }}
+          script: |
+            set -e
+            cd /opt/blog-server-online
+            pnpm install --prod --frozen-lockfile
+            pm2 restart blog-server-online || pm2 start dist/main.js --name blog-server-online
+            pm2 save

@@ -1,0 +1,72 @@
+// ======================= 掘金风格全局响应式样式 =======================
+
+/* 页面容器通用样式 */
+.page-container {
+  min-height: 100vh;
+  padding: 12px;
+
+  @media (min-width: @screen-md) {
+    padding: 20px;
+  }
+}
+
+/* 文本省略号工具类 */
+.text-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.text-ellipsis-2 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+/* 响应式隐藏工具类 */
+.hide-mobile {
+  @media (max-width: @screen-md) {
+    display: none !important;
+  }
+}
+
+.show-mobile {
+  @media (min-width: @screen-md) {
+    display: none !important;
+  }
+}
+
+/* 响应式显示工具类 */
+.show-mobile-block {
+  display: none;
+
+  @media (max-width: @screen-md) {
+    display: block !important;
+  }
+}
+
+.show-mobile-flex {
+  display: none;
+
+  @media (max-width: @screen-md) {
+    display: flex !important;
+  }
+}
+
+/* 响应式间距 */
+.p-mobile {
+  padding: 12px !important;
+
+  @media (min-width: @screen-md) {
+    padding: 24px !important;
+  }
+}
+
+.m-mobile {
+  margin: 12px !important;
+
+  @media (min-width: @screen-md) {
+    margin: 24px !important;
+  }
+}

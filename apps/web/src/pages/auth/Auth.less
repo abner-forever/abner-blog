@@ -1,0 +1,253 @@
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-color);
+  
+  .auth-main {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px 20px;
+    
+    .auth-card {
+      width: 100%;
+      max-width: 400px;
+      background: var(--card-bg);
+      border-radius: @border-radius-base;
+      padding: 40px;
+      box-shadow: @box-shadow-lg;
+      border: 1px solid var(--border-color);
+      transition: all 0.3s ease;
+
+      .auth-logo {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 24px;
+
+        .logo-badge {
+          width: 48px;
+          height: 48px;
+          background: linear-gradient(135deg, @primary-color 0%, #7c3aed 100%);
+          border-radius: 14px;
+          position: relative;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 6px 16px rgba(79, 70, 229, 0.25);
+          
+          .logo-letter {
+            color: #fff;
+            font-weight: 900;
+            font-size: 28px;
+            line-height: 1;
+            z-index: 2;
+          }
+          
+          .logo-accent {
+            position: absolute;
+            bottom: -3px;
+            right: -3px;
+            width: 16px;
+            height: 16px;
+            background: #10b981;
+            border: 3px solid var(--card-bg);
+            border-radius: 50%;
+            z-index: 3;
+          }
+        }
+      }
+      
+      .auth-card-header {
+        margin-bottom: 32px;
+        
+        .auth-title {
+          font-size: 24px;
+          font-weight: 700;
+          color: @text-main;
+          margin-bottom: 8px !important;
+          text-align: left;
+        }
+        
+        .auth-subtitle {
+          font-size: 14px;
+          color: @text-muted;
+          text-align: left;
+          display: block;
+        }
+      }
+
+      .ant-tabs {
+        .ant-tabs-nav {
+          margin-bottom: 24px;
+          &::before {
+            border-bottom-color: var(--divider-color);
+          }
+        }
+        .ant-tabs-tab {
+          padding: 12px 0;
+          font-size: 16px;
+          &.ant-tabs-tab-active .ant-tabs-tab-btn {
+            color: @primary-color;
+            font-weight: 600;
+          }
+        }
+        .ant-tabs-ink-bar {
+          background: @primary-color;
+          height: 3px;
+          border-radius: 3px 3px 0 0;
+        }
+      }
+      
+      .auth-form {
+        .code-input-group {
+          display: flex;
+          gap: 12px; // 固定间隙
+
+          .ant-input-affix-wrapper {
+            flex: 1;
+            height: 44px;
+          }
+
+          .send-code-btn {
+            width: 120px;
+            height: 44px !important;
+            flex-shrink: 0;
+            border-radius: @border-radius-sm !important;
+            font-weight: 500;
+            font-size: 14px;
+            box-shadow: none; // 取消验证码按钮的特殊阴影，保持简洁
+            margin-top: 0; // 覆盖默认的 .submit-btn 可能有的 margin
+            
+            &:hover {
+              transform: none; // 取消验证码按钮的悬浮跳动
+            }
+          }
+        }
+
+        .ant-form-item-label {
+          display: none;
+        }
+        
+        .ant-input-affix-wrapper,
+        .ant-input {
+          height: 44px;
+          border-radius: @border-radius-sm;
+          border: 1px solid var(--border-color);
+          /* 与全局 input-autofill（--card-bg）一致，避免自动填充与底错位 */
+          background: var(--card-bg);
+          padding: 0 12px;
+          transition: all 0.2s;
+          color: var(--text-main);
+          
+          &:hover, &-focused, &:focus {
+            border-color: @primary-color;
+            box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1);
+          }
+
+          .ant-input {
+            height: 100%;
+            background: transparent !important;
+            border: none;
+            padding: 0;
+            color: inherit;
+            
+            &:focus {
+              box-shadow: none;
+            }
+          }
+          
+          .ant-input-prefix {
+            color: var(--text-muted);
+            margin-right: 8px;
+          }
+        }
+        
+        .submit-btn {
+          height: 48px; // Increased height
+          border-radius: 24px; // Round button
+          font-size: 16px;
+          font-weight: 700;
+          margin-top: 16px;
+          width: 100%;
+          box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+          
+          &:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(79, 70, 229, 0.4);
+          }
+        }
+        
+        .auth-footer {
+          margin-top: 24px;
+          text-align: center;
+          font-size: 14px;
+          color: @text-secondary;
+          
+          .footer-link {
+            color: @primary-color;
+            margin-left: 8px;
+            &:hover {
+              text-decoration: underline;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .auth-bottom {
+    padding: 24px;
+    text-align: center;
+    color: @text-muted;
+    font-size: 13px;
+  }
+}
+
+/* 显式暗色模式适配 */
+[data-theme='dark'] {
+  .auth-page {
+    .auth-main .auth-card {
+      background: #1e293b;
+      border-color: #334155;
+      
+      .auth-form {
+        .ant-input-affix-wrapper, .ant-input {
+          background: var(--card-bg);
+          border-color: #334155;
+        }
+      }
+    }
+  }
+}
+
+// 移动端优化
+@media (max-width: 576px) {
+  .auth-page {
+    .auth-main {
+      padding: 20px 16px;
+      
+      .auth-card {
+        padding: 32px 24px;
+        box-shadow: none; // 移动端可以减弱阴影
+        border-radius: 0; // 或者保持小圆角
+        
+        .auth-card-header {
+          margin-bottom: 24px;
+          .auth-title {
+            font-size: 22px;
+          }
+        }
+      }
+    }
+    
+    .auth-bottom {
+      padding: 16px;
+    }
+  }
+}
+
+.auth-header {
+  display: none;
+}

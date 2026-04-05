@@ -1,0 +1,241 @@
+.comment-section-container {
+  .comment-title {
+    font-size: 20px;
+    font-weight: 800;
+    margin-bottom: 24px;
+    color: @text-main;
+    letter-spacing: -0.01em;
+  }
+
+  .comment-form-wrapper {
+    margin-bottom: 40px;
+    padding: 0;
+
+    .login-tip {
+      text-align: center;
+      padding: 40px;
+      color: @text-muted;
+      background: var(--bg-color);
+      border: 2px dashed @border-color;
+      border-radius: @border-radius-base;
+      font-size: 15px;
+      
+      a {
+        color: @primary-color;
+        font-weight: 600;
+        margin: 0 4px;
+        
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+    }
+  }
+
+  .comment-list {
+    margin-top: 32px;
+  }
+
+  .comment-section-loading {
+    padding: 60px 0;
+    text-align: center;
+  }
+}
+
+.comment-section {
+  .comment-list {
+    margin-top: 16px;
+  }
+
+  .comment-thread {
+    padding: 8px 0;
+    border-bottom: 1px solid @divider-color;
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  // 内联回复表单 - 掘金风格
+  .inline-reply-form {
+    margin: 12px 0 12px 48px;
+    padding: 12px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+
+    .comment-form-container {
+      border: none;
+      padding: 0;
+      background: transparent;
+      box-shadow: none;
+
+      &:hover {
+        border-color: transparent;
+      }
+
+      &.focused {
+        box-shadow: none;
+      }
+    }
+  }
+
+  .comment-replies-block {
+    margin-left: 48px;
+    margin-top: 8px;
+    padding: 12px;
+    background: color-mix(in srgb, var(--card-bg) 50%, var(--bg-color));
+    border: 1px solid @border-color;
+    border-radius: 10px;
+
+    .reply-toggle-btn {
+      background: transparent;
+      border: none;
+      padding: 0;
+      margin-bottom: 10px;
+      color: var(--skin-primary);
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+
+    .comment-replies-list {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+
+      .reply-item-wrapper {
+        .inline-reply-form {
+          margin: 8px 0 8px 40px;
+          padding: 10px;
+        }
+      }
+    }
+  }
+}
+
+.comment-section.compact {
+  .comment-title {
+    font-size: 16px;
+    margin-bottom: 12px;
+  }
+
+  .comment-form-container {
+    padding: 10px 12px;
+    border-radius: 10px;
+
+    .form-main {
+      .comment-textarea {
+        font-size: 13px;
+        line-height: 1.5;
+      }
+
+      .form-actions-row {
+        margin-top: 8px;
+        padding-top: 8px;
+
+        .form-tips {
+          font-size: 12px;
+        }
+      }
+    }
+  }
+
+  .comment-list {
+    margin-top: 10px;
+  }
+
+  .comment-thread {
+    padding: 6px 0;
+  }
+
+  .inline-reply-form {
+    margin: 8px 0 8px 44px;
+    padding: 10px;
+  }
+
+  .comment-replies-block {
+    margin-left: 44px;
+    margin-top: 6px;
+    padding: 8px 10px;
+  }
+}
+
+/* 覆盖 CommentItem 的样式以适应详情页 */
+.comment-item {
+  padding: 12px 0;
+  border-bottom: none;
+  transition: all 0.2s;
+
+  &.is-reply {
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    padding: 8px 0;
+    margin-top: 0;
+
+    .comment-item-main {
+      gap: 10px;
+    }
+
+    .comment-body {
+      .comment-header {
+        margin-bottom: 2px;
+      }
+    }
+  }
+
+  .comment-item-header {
+    display: none; // 使用新的布局
+  }
+
+  .comment-item-content {
+    display: none; // 使用新的布局
+  }
+
+  .comment-item-reply {
+    display: none;
+  }
+}
+
+// 响应式适配
+@media (max-width: 640px) {
+  .comment-section {
+    .inline-reply-form {
+      margin-left: 0;
+    }
+
+    .comment-replies-block {
+      margin-left: 0;
+      padding: 10px 8px;
+    }
+  }
+
+  .comment-item {
+    &.is-reply {
+      .inline-reply-form {
+        margin-left: 0;
+      }
+    }
+  }
+}
+
+/* 暗色模式适配 */
+[data-theme='dark'] {
+  .comment-section {
+    .inline-reply-form {
+      background: #1e293b;
+      border-color: #334155;
+    }
+
+    .comment-replies-block {
+      background: color-mix(in srgb, #1e293b 50%, #0f172a);
+      border-color: #334155;
+    }
+  }
+}

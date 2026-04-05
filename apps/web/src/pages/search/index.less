@@ -1,0 +1,397 @@
+.search-page {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 32px 16px 60px;
+
+  // ─── 顶部搜索栏 ────────────────────────────────────────────────────────────
+  .search-page-header {
+    margin-bottom: 24px;
+
+    .search-input-wrap {
+      .search-input {
+        border-radius: 12px;
+        font-size: 16px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+
+        .ant-input-prefix {
+          font-size: 18px;
+          color: var(--skin-primary);
+          margin-right: 8px;
+        }
+
+        &:hover,
+        &:focus-within {
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+        }
+      }
+    }
+
+    .search-summary {
+      margin-top: 12px;
+      font-size: 14px;
+      color: @text-secondary;
+
+      .keyword {
+        color: @text-main;
+        font-weight: 600;
+      }
+
+      .count {
+        color: var(--skin-primary);
+        font-weight: 700;
+      }
+    }
+  }
+
+  // ─── 空状态 ────────────────────────────────────────────────────────────────
+  .search-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 0;
+    color: @text-muted;
+
+    .empty-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+      opacity: 0.3;
+    }
+
+    p {
+      font-size: 16px;
+      margin: 0;
+    }
+  }
+
+  // ─── 搜索内容区 ────────────────────────────────────────────────────────────
+  .search-content {
+    .search-tabs {
+      .ant-tabs-nav {
+        margin-bottom: 20px;
+        background: var(--card-bg);
+        border-radius: 10px;
+        padding: 0 16px;
+        border: 1px solid @border-color;
+        box-shadow: @box-shadow-sm;
+      }
+
+      .ant-tabs-tab {
+        font-size: 14px;
+        padding: 14px 8px;
+      }
+
+      .ant-tabs-tab-active .ant-tabs-tab-btn {
+        font-weight: 600;
+      }
+    }
+  }
+
+  // tab 计数徽章
+  .tab-count {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 0 6px;
+    height: 18px;
+    line-height: 18px;
+    font-size: 11px;
+    border-radius: 9px;
+    background: color-mix(in srgb, var(--skin-primary) 12%, transparent);
+    color: var(--skin-primary);
+    font-weight: 700;
+    vertical-align: middle;
+  }
+
+  // ─── 全部 tab 分区标题 ──────────────────────────────────────────────────────
+  .tab-section {
+    margin-bottom: 32px;
+
+    .tab-section-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      color: @text-main;
+      margin-bottom: 12px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--skin-primary);
+      width: fit-content;
+
+      .anticon {
+        color: var(--skin-primary);
+      }
+
+      .section-count {
+        font-size: 12px;
+        color: @text-secondary;
+        font-weight: 400;
+        margin-left: 4px;
+      }
+    }
+  }
+
+  // ─── 结果列表容器 ──────────────────────────────────────────────────────────
+  .result-section {
+    background: var(--card-bg);
+    border-radius: 12px;
+    border: 1px solid @border-color;
+    box-shadow: @box-shadow-sm;
+    overflow: hidden;
+  }
+
+  .result-skeleton {
+    padding: 20px 24px;
+    border-bottom: 1px solid @divider-color;
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  // ─── 文章结果条目 ──────────────────────────────────────────────────────────
+  .blog-result-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 20px 24px;
+    border-bottom: 1px solid @divider-color;
+    text-decoration: none;
+    transition: background 0.15s;
+    cursor: pointer;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &:hover {
+      background: color-mix(in srgb, var(--skin-primary) 4%, var(--card-bg));
+
+      .result-title {
+        color: var(--skin-primary);
+      }
+    }
+
+    .result-main {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .result-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: @text-main;
+      margin-bottom: 6px;
+      line-height: 1.5;
+      transition: color 0.15s;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .result-summary {
+      font-size: 13px;
+      color: @text-secondary;
+      line-height: 1.6;
+      margin-bottom: 10px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .result-meta {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      font-size: 12px;
+      color: @text-muted;
+
+      .meta-author {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .meta-divider {
+        width: 1px;
+        height: 12px;
+        background: @divider-color;
+      }
+
+      .meta-time {
+        display: flex;
+        align-items: center;
+        gap: 3px;
+      }
+
+      .meta-stat {
+        display: flex;
+        align-items: center;
+        gap: 3px;
+      }
+
+      .result-tag {
+        font-size: 11px;
+        padding: 0 6px;
+        height: 18px;
+        line-height: 18px;
+        border-radius: 4px;
+        border: none;
+        background: color-mix(in srgb, var(--skin-primary) 8%, transparent);
+        color: var(--skin-primary);
+        margin: 0;
+      }
+    }
+
+    .result-cover {
+      flex-shrink: 0;
+      width: 100px;
+      height: 70px;
+      border-radius: 8px;
+      overflow: hidden;
+
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+    }
+  }
+
+  // ─── 动态结果条目 ──────────────────────────────────────────────────────────
+  .moment-result-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px 24px;
+    border-bottom: 1px solid @divider-color;
+    text-decoration: none;
+    transition: background 0.15s;
+    cursor: pointer;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &:hover {
+      background: color-mix(in srgb, var(--skin-primary) 4%, var(--card-bg));
+    }
+
+    .moment-avatar {
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .moment-body {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .moment-author-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+      flex-wrap: wrap;
+
+      .moment-author {
+        font-size: 13px;
+        font-weight: 600;
+        color: @text-main;
+      }
+
+      .moment-topic-tag {
+        font-size: 11px;
+        padding: 0 6px;
+        height: 18px;
+        line-height: 18px;
+        border-radius: 4px;
+        border: none;
+        background: color-mix(in srgb, #f59e0b 10%, transparent);
+        color: #d97706;
+        margin: 0;
+      }
+
+      .moment-time {
+        font-size: 12px;
+        color: @text-muted;
+        margin-left: auto;
+      }
+    }
+
+    .moment-content {
+      font-size: 14px;
+      color: @text-main;
+      line-height: 1.7;
+      margin-bottom: 10px;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .moment-images {
+      display: grid;
+      gap: 4px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      overflow: hidden;
+      max-width: 320px;
+
+      &.count-1 {
+        grid-template-columns: 1fr;
+        max-width: 240px;
+        img { height: 160px; }
+      }
+
+      &.count-2 {
+        grid-template-columns: 1fr 1fr;
+        img { height: 120px; }
+      }
+
+      &.count-3 {
+        grid-template-columns: 1fr 1fr 1fr;
+        img { height: 100px; }
+      }
+
+      img {
+        width: 100%;
+        object-fit: cover;
+        border-radius: 4px;
+      }
+    }
+
+    .moment-stats {
+      display: flex;
+      gap: 16px;
+      font-size: 12px;
+      color: @text-muted;
+
+      span {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+    }
+  }
+
+  // ─── 搜索高亮 ──────────────────────────────────────────────────────────────
+  .search-highlight {
+    background: color-mix(in srgb, var(--skin-primary) 15%, transparent);
+    color: var(--skin-primary);
+    font-weight: 600;
+    padding: 0 1px;
+    border-radius: 2px;
+  }
+
+  // ─── 分页 ──────────────────────────────────────────────────────────────────
+  .result-pagination {
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+    border-top: 1px solid @divider-color;
+  }
+}

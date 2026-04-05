@@ -1,0 +1,142 @@
+.custom-empty {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 60px 20px;
+  width: 100%;
+
+  .empty-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .empty-illustration {
+    position: relative;
+    width: 100px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .empty-hamster {
+      .hamster-body {
+        width: 50px;
+        height: 42px;
+        background: linear-gradient(180deg, #f5a623 0%, #e8912a 100%);
+        border-radius: 50% 50% 45% 45%;
+        position: relative;
+        box-shadow: 0 4px 15px rgba(245, 166, 35, 0.3);
+      }
+
+      .hamster-ear {
+        position: absolute;
+        width: 12px;
+        height: 14px;
+        background: linear-gradient(180deg, #f5a623 0%, #d8841f 100%);
+        border-radius: 50% 50% 30% 30%;
+        top: -6px;
+        z-index: 1;
+        
+        &.ear-left { left: 6px; transform: rotate(-20deg); }
+        &.ear-right { right: 6px; transform: rotate(20deg); }
+      }
+
+      .hamster-face {
+        position: absolute;
+        top: 14px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 38px;
+        height: 24px;
+
+        .eye-wrapper {
+          display: flex;
+          justify-content: space-around;
+          margin-bottom: 4px;
+        }
+
+        .hamster-eye {
+          width: 8px;
+          height: 10px;
+          background: #2c2c2c;
+          border-radius: 50%;
+        }
+
+        .nose {
+          width: 6px;
+          height: 5px;
+          background: #ff9999;
+          border-radius: 50%;
+          margin: 0 auto;
+        }
+
+        .mouth {
+          width: 10px;
+          height: 5px;
+          border-bottom: 2px solid #ff8888;
+          border-radius: 0 0 50% 50%;
+          margin: 2px auto 0;
+        }
+
+        .cheek {
+          position: absolute;
+          width: 10px;
+          height: 6px;
+          background: rgba(255, 150, 150, 0.5);
+          border-radius: 50%;
+          top: 16px;
+          
+          &.cheek-left { left: 0; }
+          &.cheek-right { right: 0; }
+        }
+      }
+    }
+
+    .empty-stars {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      
+      span {
+        position: absolute;
+        font-size: 14px;
+        animation: sparkle 2s ease-in-out infinite;
+        
+        &:nth-child(1) {
+          top: 0;
+          right: 0;
+          animation-delay: 0s;
+        }
+        &:nth-child(2) {
+          top: 10px;
+          left: -5px;
+          animation-delay: 0.4s;
+        }
+        &:nth-child(3) {
+          bottom: 5px;
+          right: 10px;
+          animation-delay: 0.8s;
+        }
+      }
+    }
+  }
+
+  .empty-tip {
+    font-size: 14px;
+    color: var(--text-muted, #999);
+    text-align: center;
+  }
+}
+
+@keyframes sparkle {
+  0%, 100% { 
+    opacity: 0; 
+    transform: scale(0.5); 
+  }
+  50% { 
+    opacity: 1; 
+    transform: scale(1); 
+  }
+}

@@ -1,0 +1,118 @@
+.cover-uploader {
+  &__drop {
+    border-radius: 8px !important;
+    background: var(--bg-color) !important;
+    border-color: var(--border-color) !important;
+    transition: border-color 0.2s, background 0.2s;
+
+    &:hover {
+      border-color: var(--primary-color) !important;
+    }
+
+    .ant-upload {
+      padding: 24px 0 !important;
+    }
+  }
+
+  &__placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-muted);
+
+    .placeholder-icon {
+      font-size: 36px;
+      color: var(--text-muted);
+    }
+
+    .placeholder-title {
+      margin: 0;
+      font-size: 14px;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .placeholder-hint {
+      margin: 0;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+  }
+
+  &__preview {
+    position: relative;
+    width: 100%;
+    height: 180px;
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+  }
+
+  &__overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    opacity: 0;
+    transition: opacity 0.2s;
+
+    .cover-uploader__preview:hover & {
+      opacity: 1;
+    }
+
+    .overlay-btn {
+      background: rgba(255, 255, 255, 0.9);
+      border: none;
+      font-size: 13px;
+      color: #1d1d1d;
+
+      [data-theme='dark'] & {
+        background: rgba(40, 40, 56, 0.92);
+        color: var(--text-main);
+      }
+
+      &--danger {
+        color: #ff4d4f;
+
+        [data-theme='dark'] & {
+          color: #ff7875;
+        }
+
+        &:hover {
+          background: rgba(255, 77, 79, 0.12) !important;
+        }
+      }
+    }
+  }
+
+  &__url-row {
+    margin-top: 8px;
+
+    .url-input-group {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+
+      .ant-input-affix-wrapper {
+        flex: 1;
+      }
+    }
+
+    .url-toggle-btn {
+      padding: 0;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+  }
+}

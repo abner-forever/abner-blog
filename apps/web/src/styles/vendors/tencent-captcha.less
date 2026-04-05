@@ -1,0 +1,37 @@
+// 腾讯云验证码 2.0（TJCaptcha）弹窗外层（类名为腾讯云注入，勿改成自定义 BEM）
+// 官方文档：可在 class=tcaptcha-transform 上使用 transform:scale；勿对其 display:none / 移出视口。
+// https://cloud.tencent.com/document/product/1110/36841
+// --tencent-captcha-scale 由 showTencentCaptcha 在需要时写入 documentElement
+.tencent-captcha__transform {
+  border-radius: @border-radius-sm;
+  overflow: hidden;
+  box-shadow: @box-shadow-lg;
+  transform: scale(var(--tencent-captcha-scale, 1));
+  transform-origin: center center;
+  background-color: var(--card-bg) !important;
+}
+
+.tencent-captcha__transform.tencent-captcha__dark-mode {
+  background-color: var(--card-bg) !important;
+}
+.tencent-captcha-dy__verify-slider-area {
+  border-radius: @border-radius-sm;
+}
+.tencent-captcha-dy__opera-area {
+  .tencent-captcha-dy__slider-block {
+    &--normal:hover {
+      background-color: var(--primary-color) !important;
+    }
+    &--active {
+      background-color: var(--primary-color) !important;
+    }
+  }
+  .tencent-captcha-dy__slider-groove {
+    border-bottom-left-radius: @border-radius-sm;
+    border-top-left-radius: @border-radius-sm;
+    &--active {
+      border: 1px solid var(--primary-color) !important;
+      background-color: var(--skin-card-bg) !important;
+    }
+  }
+}

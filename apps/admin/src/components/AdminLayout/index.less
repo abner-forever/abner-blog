@@ -1,0 +1,52 @@
+.admin-layout {
+  min-height: 100vh;
+
+  &__sider {
+    border-right: 1px solid @divider-color;
+  }
+
+  &__logo {
+    height: @header-height;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-bottom: 1px solid @divider-color;
+    font-size: 18px;
+    font-weight: 600;
+    color: @primary-color;
+  }
+
+  &__menu {
+    border-right: 0;
+  }
+
+  &__header {
+    background: @card-bg;
+    padding: 0 24px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    border-bottom: 1px solid @divider-color;
+  }
+
+  &__user {
+    cursor: pointer;
+  }
+
+  &__avatar {
+    background-color: @primary-color;
+  }
+
+  &__content {
+    padding: 24px;
+    background: @bg-color;
+    min-height: calc(100vh - @header-height);
+  }
+
+  &__content-inner {
+    background: @card-bg;
+    border-radius: @border-radius-base;
+    padding: 24px;
+    min-height: 100%;
+  }
+}

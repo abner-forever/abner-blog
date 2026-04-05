@@ -1,0 +1,26 @@
+
+.topic-selector {
+  padding: 16px;
+  background: var(--card-bg);
+  border-radius: 8px;
+  margin-bottom: 20px;
+
+  .topic-tag {
+    cursor: pointer;
+    transition: all 0.3s;
+    border: 1px solid var(--border-color);
+    background: var(--bg-color);
+    color: var(--text-color);
+
+    &:hover {
+      border-color: var(--primary-color);
+      color: var(--primary-color);
+    }
+
+    &.active {
+      background: var(--primary-color);
+      border-color: var(--primary-color);
+      color: #fff;
+    }
+  }
+}

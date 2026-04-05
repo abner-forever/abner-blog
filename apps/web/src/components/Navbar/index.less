@@ -1,0 +1,441 @@
+.navbar-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: @header-height;
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid @border-color;
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.navbar-content {
+  width: 100%;
+  max-width: @layout-max-width;
+  height: 100%;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+  gap: 8px;
+}
+
+.navbar-left {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  min-width: 0;
+  flex: 1 1 auto;
+
+  .navbar__menu-trigger {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    margin-right: 4px;
+    color: @text-secondary;
+
+    &:hover {
+      color: var(--skin-primary, @primary-color);
+    }
+  }
+
+  .logo {
+    margin-right: 24px;
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    flex-shrink: 0;
+    gap: 10px;
+    
+    .logo-badge {
+      width: 34px;
+      height: 34px;
+      background: linear-gradient(135deg, @primary-color 0%, #7c3aed 100%);
+      border-radius: 10px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+      transition: all 0.3s ease;
+      
+      .logo-letter {
+        color: #fff;
+        font-weight: 900;
+        font-size: 20px;
+        line-height: 1;
+        z-index: 2;
+      }
+      
+      .logo-accent {
+        position: absolute;
+        bottom: -2px;
+        right: -2px;
+        width: 12px;
+        height: 12px;
+        background: #10b981; // 鲜艳的绿色点缀
+        border: 2px solid var(--card-bg);
+        border-radius: 50%;
+        z-index: 3;
+      }
+    }
+    
+    &:hover .logo-badge {
+      transform: rotate(-5deg) scale(1.05);
+      box-shadow: 0 6px 16px rgba(79, 70, 229, 0.4);
+    }
+    
+    .logo-text {
+      font-size: 20px;
+      font-weight: 800;
+      color: @text-main;
+      letter-spacing: -0.5px;
+      white-space: nowrap;
+    }
+  }
+
+  .nav-menu {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    gap: 2px;
+    min-width: 0;
+    /* 占满 logo 右侧剩余宽度，避免整条 nav 按内容撑开与搜索区重叠 */
+    flex: 1 1 0%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+
+    .nav-item {
+      padding: 0 10px;
+      height: 40px;
+      line-height: 40px;
+      color: @text-secondary;
+      font-size: 14px;
+      font-weight: 500;
+      border-radius: 8px;
+      transition: all 0.2s;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+
+      .nav-item-icon {
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+      }
+
+      &:hover {
+        color: var(--skin-primary, @primary-color);
+        background: rgba(79, 70, 229, 0.05);
+      }
+
+      &.active {
+        color: var(--skin-primary, @primary-color);
+        background: rgba(79, 70, 229, 0.12);
+        font-weight: 600;
+        position: relative;
+        
+        &::after {
+          content: '';
+          position: absolute;
+          bottom: -2px;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 24px;
+          height: 3px;
+          background: var(--skin-primary, @primary-color);
+          border-radius: 2px;
+        }
+      }
+    }
+  }
+}
+
+.navbar-right {
+  display: flex;
+  align-items: center;
+  flex: 0 1 auto;
+  min-width: 0;
+  gap: 4px;
+
+  .search-box {
+    margin-right: 16px;
+    flex-shrink: 1;
+    min-width: 0;
+
+    .navbar-search {
+      width: 240px;
+      margin-left: 0;
+      background: @bg-color;
+      border: 1px solid transparent;
+      border-radius: @border-radius-sm;
+      transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+        margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+        background 0.2s,
+        border-color 0.2s,
+        box-shadow 0.2s;
+
+      /* 变宽时右缘与「创作」相对位置不变，多出的 60px 向左伸（不占右侧） */
+      &:hover, &:focus-within {
+        background: var(--card-bg);
+        border-color: @primary-color;
+        width: 300px;
+        margin-left: -60px;
+        box-shadow: @box-shadow-md;
+        position: relative;
+        z-index: 2;
+      }
+    }
+  }
+
+  .navbar__search-icon {
+    margin-right: 8px;
+  }
+
+  .create-btn {
+    height: 38px;
+    padding: 0 16px;
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+    flex-shrink: 0;
+
+    &.ant-btn-icon-only {
+      width: 38px;
+      padding: 0;
+    }
+  }
+
+  /* 使用伪元素铺底，避免 <a> 默认行高/基线导致 hover 背景相对图标上移、错位 */
+  button.nav-icon-btn {
+    border: none;
+    background: transparent;
+    padding: 0;
+    font: inherit;
+  }
+
+  .nav-icon-btn {
+    position: relative;
+    z-index: 0;
+    width: 38px;
+    height: 38px;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    line-height: 1;
+    color: @text-secondary;
+    cursor: pointer;
+    border-radius: 8px;
+    flex-shrink: 0;
+    text-decoration: none;
+    vertical-align: middle;
+    transition: color 0.2s;
+
+    &::before {
+      content: '';
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      z-index: 0;
+      width: 38px;
+      height: 38px;
+      border-radius: 8px;
+      background: transparent;
+      transform: translate(-50%, -50%);
+      transition: background 0.2s;
+      pointer-events: none;
+    }
+
+    .anticon {
+      position: relative;
+      z-index: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    &:hover {
+      color: @primary-color;
+
+      &::before {
+        background: rgba(0, 0, 0, 0.06);
+      }
+    }
+  }
+
+  [data-theme='dark'] & .nav-icon-btn:hover::before {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .navbar__badge-wrap {
+    display: inline-flex;
+    align-items: center;
+    line-height: 1;
+
+    .ant-badge-count {
+      box-shadow: 0 0 0 1px @card-bg;
+      min-width: 16px;
+      height: 16px;
+      line-height: 16px;
+      padding: 0 4px;
+      font-size: 11px;
+    }
+  }
+
+  .user-section {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+
+    .user-avatar {
+      width: 34px;
+      height: 34px;
+      box-shadow: @box-shadow-sm;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: border-color 0.2s, box-shadow 0.2s;
+
+      &:hover {
+        border-color: @primary-color;
+      }
+    }
+  }
+
+  .auth-btns {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    
+    .login-btn {
+      color: @text-secondary;
+      font-weight: 500;
+      
+      &:hover {
+        color: @primary-color;
+      }
+    }
+  }
+}
+
+.navbar__search-popover {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 260px;
+
+  .navbar-search {
+    width: 100%;
+  }
+}
+
+.navbar__drawer-body {
+  padding-top: 8px;
+}
+
+.navbar__drawer-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.navbar__drawer-link {
+  padding: 12px 14px;
+  border-radius: 8px;
+  color: @text-secondary;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background 0.2s, color 0.2s;
+
+  &:hover {
+    color: var(--skin-primary, @primary-color);
+    background: rgba(79, 70, 229, 0.06);
+  }
+
+  &.active {
+    color: var(--skin-primary, @primary-color);
+    background: rgba(79, 70, 229, 0.12);
+    font-weight: 600;
+  }
+}
+
+[data-theme='dark'] .navbar__drawer-link:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme='dark'] .navbar__drawer-link.active {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+// 中等宽度：再收一档间距
+@media (max-width: 1199px) {
+  .navbar-content {
+    padding: 0 16px;
+  }
+
+  .navbar-left {
+    .logo {
+      margin-right: 12px;
+    }
+
+    .nav-menu .nav-item {
+      padding: 0 8px;
+      font-size: 13px;
+    }
+  }
+}
+
+// 窄屏：与抽屉断点衔接；站点标题不截断，仅保留图标（与 lg 以下抽屉导航一致）
+@media (max-width: 991px) {
+  .navbar-content {
+    padding: 0 12px;
+  }
+
+  .navbar-left .logo {
+    margin-right: 8px;
+    gap: 0;
+
+    .logo-text {
+      display: none;
+    }
+  }
+}
+
+// 移动端适配（若 Navbar 在窄屏下渲染）
+@media (max-width: 768px) {
+  .navbar-content {
+    padding: 0 10px;
+  }
+
+  .navbar-right {
+    .user-section .user-avatar {
+      width: 32px;
+      height: 32px;
+    }
+
+    .auth-btns {
+      gap: 6px;
+
+      .login-btn,
+      .register-btn {
+        padding: 0 8px;
+        font-size: 13px;
+      }
+    }
+  }
+}

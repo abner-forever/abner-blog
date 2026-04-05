@@ -1,0 +1,153 @@
+.abner-env-tool .env-modal-content {
+  height: 100%;
+  position: relative;
+  padding: 16px;
+}
+
+.abner-env-tool .env-modal-content .env-modal-content-head {
+  height: 40px;
+}
+
+.abner-env-tool .env-modal-content .env-modal-content-head .key-panel {
+  position: absolute;
+  left: 50%;
+  top: -30px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  transform: translateX(-50%);
+}
+
+.abner-env-tool .env-modal-content .env-modal-content-head .key-panel .key-panel-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 2px solid white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  font-size: 24px;
+}
+
+.abner-env-tool .env-modal-content .env-modal-content-head .key-panel .key-panel-desc {
+  font-size: 12px;
+  color: darkgray;
+  margin-top: 4px;
+}
+
+.abner-env-tool .env-modal-content .env-modal-content-environments {
+  margin-top: 16px;
+}
+
+.abner-env-tool .env-modal-content .env-modal-content-environments .environment-panel {
+  height: 100%;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  flex-wrap: wrap;
+  overflow-x: scroll;
+  overflow-y: hidden;
+}
+
+.abner-env-tool .env-modal-content .env-modal-content-environments .environment-panel .environment-item-wrapper {
+  width: 64px;
+  height: 64px;
+}
+
+.abner-env-tool .env-modal-content .env-modal-content-environments .environment-panel .environment-item-holder {
+  width: 64px;
+}
+
+.abner-env-tool .env-modal-content .env-modal-content-environments .environment-panel .environment-item {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  color: white;
+  opacity: 0.8;
+  overflow: hidden;
+}
+
+.abner-env-tool .env-modal-content .env-modal-content-environments .environment-panel .environment-item .environment-item-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 14px;
+  transition: all 0.3s;
+}
+
+.abner-env-tool .env-modal-content .env-modal-content-environments .environment-panel .environment-item .environment-item-desc {
+  font-size: 12px;
+  color: darkgray;
+  margin-top: 2px;
+  transform: scale(0.8);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.abner-env-tool .env-modal-content .env-modal-content-environments .environment-panel .environment-item .environment-item-avatar.env-btn-active {
+  border: 2px solid red;
+}
+
+.abner-env-tool .env-modal-content .env-modal-content-key {
+  padding: 16px;
+}
+
+.abner-env-tool .env-modal-content .env-modal-content-key .env-input {
+  border: 1px solid #ddd;
+  width: 100%;
+  height: 24px;
+  border-radius: 4px;
+  outline: none;
+}
+
+.abner-env-tool .env-modal-content .env-modal-content-key .env-input.input-warn {
+  border: 1px solid #f45;
+}
+
+.abner-env-tool .env-modal-content .env-modal-content-action {
+  padding: 0 8%;
+  margin-top: 16px;
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.abner-env-tool .env-modal-content .env-modal-content-action .env-modal-content-action-btn {
+  width: 80px;
+  height: 36px;
+  background: #f45;
+  border-radius: 12px;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+.abner-env-tool .env-modal-content .env-modal-content-action .env-modal-content-action-clear {
+  width: 80px;
+  height: 36px;
+  border-radius: 12px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 14px;
+  border: 1px solid #ddd;
+  color: #ddd;
+  box-sizing: border-box;
+}
+
+.abner-env-tool .env-modal-content .env-modal-content-action .env-modal-content-action-btn:active,
+.abner-env-tool .env-modal-content .env-modal-content-action .env-modal-content-action-btn:hover {
+  opacity: 1;
+}

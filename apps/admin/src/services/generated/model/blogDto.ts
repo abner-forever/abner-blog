@@ -1,0 +1,44 @@
+import type { BlogAuthorDto } from "./blogAuthorDto";
+
+export interface BlogDto {
+  /** 博客 ID */
+  id: number;
+  /** 博客标题 */
+  title: string;
+  /** 博客正文（Markdown） */
+  content: string;
+  /** 博客摘要 */
+  summary: string;
+  /** 标签列表 */
+  tags: string[];
+  /** 是否已发布 */
+  isPublished: boolean;
+  /**
+   * 封面图片 URL
+   * @nullable
+   */
+  cover?: string | null;
+  /**
+   * Markdown 预览主题
+   * @nullable
+   */
+  mdTheme?: string | null;
+  /** 浏览量 */
+  viewCount: number;
+  /** 点赞数 */
+  likesCount: number;
+  /** 收藏数 */
+  favoritesCount: number;
+  /** 评论数 */
+  commentCount: number;
+  /** 当前用户是否已点赞 */
+  isLiked?: boolean;
+  /** 当前用户是否已收藏 */
+  isFavorited?: boolean;
+  /** 作者信息 */
+  author: BlogAuthorDto;
+  /** 创建时间 */
+  createdAt: string;
+  /** 更新时间 */
+  updatedAt: string;
+}

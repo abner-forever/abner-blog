@@ -1,0 +1,24 @@
+.favorite-button {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: @text-muted;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  transition: all 0.2s;
+
+  &:hover {
+    color: @text-secondary;
+  }
+
+  &.active {
+    color: #f59e0b; /* Modern Amber */
+  }
+
+  .icon {
+    font-size: 16px;
+  }
+}

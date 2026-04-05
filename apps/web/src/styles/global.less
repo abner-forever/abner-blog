@@ -1,0 +1,17 @@
+/**
+ * 全局样式入口（顺序敏感）
+ * 1. theme        — CSS 变量 / 皮肤 / 深浅色 / MdEditor 联动
+ * 2. base         — 重置、文档根、壳布局、页脚、滚动条
+ * 3. utilities    — 无业务工具类
+ * 4. antd-overrides — Ant Design 桌面默认与 token 对齐
+ * 5. mobile       — 窄屏覆盖（文档根字号 + .ant-*）
+ * 6. vendors/*    — 第三方组件
+ * 7. input-autofill — 输入框自动填充（全局）
+ */
+@import './theme.less';
+@import './base.less';
+@import './utilities.less';
+@import './antd-overrides.less';
+@import './mobile.less';
+@import './vendors/tencent-captcha.less';
+@import './input-autofill.less';

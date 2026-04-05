@@ -1,0 +1,113 @@
+.comment-form-container {
+  padding: 14px 16px;
+  background: var(--card-bg);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  border: 1px solid @border-color;
+  
+  &:hover {
+    border-color: var(--skin-primary);
+  }
+
+  &.focused {
+    background: var(--card-bg);
+    border-color: var(--skin-primary);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+  }
+
+  .form-main {
+    .comment-textarea {
+      padding: 4px 0;
+      border: none;
+      background: transparent !important;
+      resize: none;
+      font-size: 14px;
+      color: var(--text-main);
+      line-height: 1.6;
+      
+      &:focus, &-focused {
+        box-shadow: none;
+      }
+      
+      &::placeholder {
+        color: var(--text-muted);
+      }
+
+      // 隐藏默认的字符计数
+      .ant-input-show-count-suffix {
+        display: none;
+      }
+    }
+
+    .form-actions-row {
+      margin-top: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 12px;
+      border-top: 1px solid @divider-color;
+
+      .form-tips {
+        font-size: 13px;
+        color: @text-muted;
+
+        .reply-indicator {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+        }
+
+        .reply-user {
+          color: var(--skin-primary);
+          font-weight: 600;
+        }
+      }
+
+      .ant-btn {
+        border-radius: 6px;
+        height: 32px;
+        padding: 0 16px;
+        font-size: 13px;
+        font-weight: 500;
+      }
+
+      /* 针对禁用状态的优化 */
+      .ant-btn-primary:disabled {
+        background: var(--skin-primary) !important;
+        opacity: 0.5;
+        border-color: transparent !important;
+        color: #fff !important;
+      }
+
+      .ant-btn-text {
+        color: @text-secondary;
+        font-weight: 400;
+        &:hover {
+          background: rgba(0, 0, 0, 0.04);
+          color: @text-main;
+        }
+      }
+    }
+  }
+}
+
+// 暗色模式适配
+[data-theme='dark'] {
+  .comment-form-container {
+    &.focused {
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+    }
+
+    .form-main {
+      .form-actions-row {
+        border-top-color: #334155;
+
+        .ant-btn-text {
+          &:hover {
+            background: rgba(255, 255, 255, 0.06);
+          }
+        }
+      }
+    }
+  }
+}

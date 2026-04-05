@@ -1,0 +1,196 @@
+.moment-detail-page {
+  min-height: calc(100vh - 64px);
+  background: var(--bg-color);
+  padding: 24px;
+
+  .moment-detail-container {
+    max-width: 800px;
+    margin: 0 auto;
+
+    .back-btn {
+      margin-bottom: 16px;
+    }
+
+    .moment-card {
+      margin-bottom: 20px;
+      border: 1px solid var(--border-color);
+
+      .moment-header {
+        margin-bottom: 20px;
+
+        .author-info {
+          display: flex;
+          gap: 12px;
+
+          .author-details {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+
+            .author-name {
+              font-weight: 600;
+              font-size: 16px;
+              color: var(--text-color);
+            }
+
+            .moment-time {
+              font-size: 13px;
+              color: var(--text-secondary);
+              margin-top: 4px;
+            }
+          }
+        }
+      }
+
+      .moment-content {
+        margin-bottom: 20px;
+
+        .moment-text {
+          color: var(--text-color);
+          font-size: 16px;
+          line-height: 1.8;
+          white-space: pre-wrap;
+          word-break: break-word;
+          margin-bottom: 16px;
+        }
+
+        .moment-images {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 12px;
+
+          :global(.ant-image) {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 8px;
+          }
+        }
+      }
+
+      .moment-topic {
+        margin-bottom: 20px;
+      }
+
+      .moment-stats {
+        padding: 16px 0;
+        border-top: 1px solid var(--border-color);
+        border-bottom: 1px solid var(--border-color);
+        margin-bottom: 16px;
+
+        .stat-item {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          color: var(--text-secondary);
+          font-size: 14px;
+
+          .anticon {
+            font-size: 18px;
+          }
+        }
+      }
+
+      .moment-actions {
+        display: flex;
+        gap: 12px;
+      }
+    }
+
+    .comment-section {
+      .comment-input-area {
+        margin-bottom: 24px;
+        padding-bottom: 24px;
+        border-bottom: 1px solid var(--border-color);
+      }
+
+      .comment-list {
+        .comment-item {
+          display: flex;
+          gap: 12px;
+          padding: 16px 0;
+          border-bottom: 1px solid var(--border-color);
+          position: relative;
+
+          &:last-child {
+            border-bottom: none;
+          }
+
+          .comment-content {
+            flex: 1;
+
+            .comment-header {
+              display: flex;
+              align-items: center;
+              gap: 12px;
+              margin-bottom: 8px;
+
+              .author-name {
+                font-weight: 600;
+                color: var(--text-color);
+              }
+
+              .comment-time {
+                font-size: 12px;
+                color: var(--text-secondary);
+              }
+            }
+
+            .comment-text {
+              color: var(--text-color);
+              line-height: 1.6;
+              margin: 0;
+            }
+          }
+
+          .delete-icon {
+            font-size: 14px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: color 0.3s;
+
+            &:hover {
+              color: var(--error-color, #ff4d4f);
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+.moment-detail-loading,
+.moment-detail-empty {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(100vh - 64px);
+}
+
+@media (max-width: 768px) {
+  .moment-detail-page {
+    padding: 16px;
+
+    .moment-detail-container {
+      .moment-card {
+        .moment-content {
+          .moment-images {
+            grid-template-columns: repeat(2, 1fr);
+
+            :global(.ant-image) {
+              height: 120px;
+            }
+          }
+        }
+
+        .moment-actions {
+          flex-direction: column;
+
+          button {
+            width: 100%;
+          }
+        }
+      }
+    }
+  }
+}

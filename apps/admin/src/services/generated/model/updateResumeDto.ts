@@ -1,0 +1,38 @@
+import type { UpdateResumeDtoResumeTimelineItem } from "./updateResumeDtoResumeTimelineItem";
+
+export interface UpdateResumeDto {
+  /**
+   * 真实姓名
+   * @maxLength 50
+   */
+  resumeName?: string;
+  /**
+   * 职位
+   * @maxLength 100
+   */
+  resumeTitle?: string;
+  /** 技能栈数组 */
+  resumeSkills?: string[];
+  /** 经历数组 [{year, event}] */
+  resumeTimeline?: UpdateResumeDtoResumeTimelineItem[];
+  /**
+   * 所在地
+   * @maxLength 50
+   */
+  resumeLocation?: string;
+  /**
+   * 公司/学校
+   * @maxLength 100
+   */
+  resumeCompany?: string;
+  /** GitHub 地址 */
+  resumeGithub?: string;
+  /** 掘金主页 */
+  resumeJuejin?: string;
+  /** 个人博客 */
+  resumeBlog?: string;
+  /** 兴趣爱好数组 */
+  resumeHobbies?: string[];
+  /** 是否公开简历 */
+  isResumePublic?: boolean;
+}

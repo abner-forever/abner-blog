@@ -1,0 +1,177 @@
+/**
+ * 重置、文档根、链接、滚动条、应用壳布局、页脚
+ *（antd 组件级覆盖在 antd-overrides.less，避免重复）
+ */
+
+/* —— 盒模型 —— */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* —— 文档根 —— */
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  min-height: 100%;
+  background-color: var(--bg-color);
+  font-family:
+    'Inter',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    'Helvetica Neue',
+    Arial,
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: var(--text-main);
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
+}
+
+#root {
+  height: 100%;
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* —— 链接 —— */
+a {
+  color: inherit;
+  text-decoration: none;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+a:hover {
+  color: var(--primary-color);
+}
+
+/* —— 滚动条（WebKit） —— */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* —— 应用壳（原 App.css，.ant-layout / .ant-btn-primary 已在 antd-overrides.less）—— */
+.app-layout {
+  min-height: 100vh;
+  background-color: var(--bg-color);
+  overflow-x: hidden;
+}
+
+.app-content {
+  padding-top: 64px;
+  min-height: calc(100vh - 64px);
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+}
+
+.app-content:has(.messages-page) {
+  min-height: 0;
+  flex: 1;
+  overflow: hidden;
+}
+
+.main-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+}
+
+.main-container:has(.messages-page) {
+  min-height: 0;
+}
+
+@media (max-width: 1200px) {
+  .main-container {
+    max-width: 100%;
+    padding: 12px;
+  }
+}
+
+@media (max-width: 768px) {
+  .app-content {
+    padding-top: 0;
+  }
+
+  .app-content.no-header {
+    padding-top: 0;
+    padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .main-container {
+    padding: 0;
+  }
+
+  .app-footer {
+    display: none;
+  }
+}
+
+/* —— 页脚 —— */
+.app-footer {
+  padding: 16px 0;
+  text-align: center;
+  margin-top: auto;
+  background: transparent !important;
+}
+
+.footer-content {
+  color: var(--text-secondary);
+  font-size: 13px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.footer-divider {
+  margin: 0 4px;
+}
+
+.app-footer a {
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
+}
+
+.app-footer a:hover {
+  color: var(--skin-primary, #8b5cf6);
+}
+
+/* —— 主题切换：仅收窄到若干属性，避免拖慢动画类 —— */
+* {
+  transition-property: background-color, border-color, box-shadow, transform;
+  transition-duration: 0.3s;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}

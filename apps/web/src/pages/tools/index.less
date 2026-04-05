@@ -1,0 +1,249 @@
+.tools-page {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.tools-header {
+  text-align: center;
+  margin-bottom: 32px;
+  
+  .page-title {
+    margin-bottom: 8px !important;
+    background: var(--skin-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  .page-desc {
+    color: var(--text-muted);
+    font-size: 16px;
+  }
+}
+
+.category-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 32px;
+  justify-content: center;
+  
+  .category-tag {
+    padding: 8px 20px;
+    font-size: 14px;
+    cursor: pointer;
+    border-radius: 20px;
+    transition: all 0.3s;
+    border: 1px solid var(--border-color);
+    background: var(--card-bg);
+    color: var(--text-secondary);
+    
+    &:hover {
+      border-color: var(--skin-primary);
+      color: var(--skin-primary);
+      transform: translateY(-2px);
+    }
+    
+    &.active {
+      background: var(--skin-primary);
+      color: #fff;
+      border-color: var(--skin-primary);
+      box-shadow: 0 4px 16px var(--skin-primary);
+    }
+  }
+}
+
+.tools-grid {
+  .tool-card {
+    height: 160px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: 16px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    text-align: center;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    
+    &:hover {
+      transform: translateY(-8px);
+      box-shadow: var(--shadow-lg), var(--skin-glow);
+      border-color: var(--skin-border-color);
+      
+      .tool-icon {
+        transform: scale(1.1) rotate(5deg);
+      }
+    }
+    
+    .tool-icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      color: #fff;
+      margin-bottom: 16px;
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    }
+    
+    .tool-info {
+      .tool-name {
+        display: block;
+        font-size: 15px;
+        margin-bottom: 6px;
+        color: var(--text-main);
+      }
+      
+      .tool-desc {
+        font-size: 12px;
+        display: block;
+        line-height: 1.4;
+        color: var(--text-muted);
+      }
+    }
+  }
+}
+
+// 工具 Modal 样式
+.tool-modal {
+  .tool-modal-content {
+    .color-results {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      
+      .color-result-item {
+        padding: 12px;
+        background: var(--bg-layout);
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s;
+        
+        &:hover {
+          background: var(--skin-gradient-bg);
+          transform: translateX(4px);
+        }
+        
+        .ant-typography-code {
+          display: block;
+          margin-top: 4px;
+          padding: 4px 8px;
+          background: var(--card-bg);
+          border-radius: 4px;
+        }
+      }
+    }
+    
+    .wordcount-results {
+      .stat-card {
+        text-align: center;
+        border-radius: 12px;
+        background: var(--skin-gradient-bg);
+        
+        .ant-typography {
+          font-size: 12px;
+        }
+        
+        h3 {
+          color: var(--skin-primary);
+          margin: 0;
+        }
+      }
+    }
+  }
+}
+
+// 响应式适配
+@media (max-width: 768px) {
+  .tools-page {
+    padding: 12px;
+  }
+
+  .tools-header {
+    margin-bottom: 16px;
+
+    h1 {
+      font-size: 20px;
+    }
+
+    .tools-search {
+      margin-top: 12px;
+
+      .ant-input-affix-wrapper {
+        height: 38px;
+      }
+    }
+  }
+
+  .tools-category {
+    margin-bottom: 16px;
+
+    .category-title {
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+  }
+
+  .tools-grid {
+    gap: 12px;
+
+    .tool-card {
+      height: 100px;
+      padding: 12px;
+      border-radius: 12px;
+
+      .tool-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+        border-radius: 10px;
+        margin-bottom: 8px;
+      }
+
+      .tool-info {
+        .tool-name {
+          font-size: 13px;
+        }
+
+        .tool-desc {
+          font-size: 11px;
+          display: none;
+        }
+      }
+    }
+  }
+
+  .tool-modal .tool-modal-content {
+    .color-results {
+      grid-template-columns: 1fr;
+    }
+  }
+}
+
+// 新增工具样式
+.tool-modal {
+  .qrcode-result {
+    text-align: center;
+    padding: 24px;
+    background: var(--bg-layout);
+    border-radius: 12px;
+    
+    img {
+      max-width: 200px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+  }
+  
+  .ant-divider {
+    margin: 16px 0;
+  }
+  
+  .ant-tag {
+    margin: 4px;
+  }
+}

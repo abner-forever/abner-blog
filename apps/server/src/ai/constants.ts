@@ -1,0 +1,3 @@
+export const EVENT_LOOKUP_LOOKBACK_DAYS = 30;
+export const EVENT_LOOKUP_LOOKAHEAD_DAYS = 90;
+export const CHAT_STREAM_CHUNK_SIZE = 20;

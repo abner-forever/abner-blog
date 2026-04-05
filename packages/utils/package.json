@@ -1,0 +1,12 @@
+{
+  "name": "@abner-blog/utils",
+  "version": "0.0.1",
+  "description": "通用工具方法",
+  "main": "index.ts",
+  "types": "index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Abner",
+  "license": "ISC"
+}
