@@ -4,11 +4,11 @@ import { useDispatch } from "react-redux";
 import { Form, Input, Button, Card, message } from "antd";
 import { UserOutlined, LockOutlined } from "@ant-design/icons";
 import { useTranslation } from "react-i18next";
-import { getBlogAPI } from "@/services/generated/admin";
+import { getBlogAdminAPI } from "@/services/generated/admin";
 import { setCredentials } from "@/store/authSlice";
 import "./index.less";
 
-const api = getBlogAPI();
+const api = getBlogAdminAPI();
 
 const Login: React.FC = () => {
   const [loading, setLoading] = useState(false);
@@ -19,7 +19,7 @@ const Login: React.FC = () => {
   const onFinish = async (values: { username: string; password: string }) => {
     setLoading(true);
     try {
-      const response = await api.adminControllerLogin(values);
+      const response = await api.adminAuthControllerLogin(values);
       console.log("Login response:", response);
 
       // 由于生成的 API 类型是 void，需要从响应中提取数据

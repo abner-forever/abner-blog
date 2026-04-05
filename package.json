@@ -8,7 +8,7 @@
   ],
   "scripts": {
     "dev:web": "cd apps/web && pnpm run dev",
-    "dev:server": "cd apps/server && pnpm run start",
+    "dev:server": "cd apps/server && pnpm run start:dev",
     "dev:admin": "cd apps/admin && pnpm run dev",
     "build:web": "cd apps/web && pnpm run build",
     "build:server": "cd apps/server && pnpm run build",
@@ -23,7 +23,7 @@
     "test:unit": "pnpm --filter @abner-blog/server test && pnpm --filter @abner-blog/web test -- --run",
     "test:e2e:server": "pnpm --filter @abner-blog/server test:e2e",
     "test:e2e:web": "pnpm --filter @abner-blog/web test:e2e",
-    "generate:api": "pnpm --filter @abner-blog/web generate:api",
+    "generate:api": "pnpm --filter @abner-blog/web generate:api && pnpm --filter @abner-blog/admin generate:api",
     "check:ci": "pnpm run lint && pnpm run typecheck && pnpm run test:unit",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "semantic-release": "semantic-release",

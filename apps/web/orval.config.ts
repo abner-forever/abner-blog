@@ -8,7 +8,7 @@ import { defineConfig } from 'orval';
  *   - Axios API 请求函数（src/services/generated/<tag>.ts）
  *   - TanStack Query hooks（src/services/generated/<tag>.ts 内联）
  *
- * 前置条件：后端服务必须在 http://localhost:8080 运行
+ * 前置条件：后端服务必须在 http://localhost:8080 运行（公开 API JSON：`/api-docs-json`）
  */
 export default defineConfig({
   blogApi: {

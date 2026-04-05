@@ -13,17 +13,14 @@ import {
 } from "antd";
 import type { TableProps } from "antd";
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
-import { getBlogAPI } from "@/services/generated/admin";
+import { getBlogAdminAPI } from "@/services/generated/admin";
 import type {
-  MomentDto,
+  Moment,
   Topic,
-  MomentListResponseDto,
-  AdminControllerGetMomentsParams,
+  AdminMomentsControllerGetMomentsParams,
 } from "@/services/generated/model";
 
-const api = getBlogAPI();
-
-type Moment = MomentDto;
+const api = getBlogAdminAPI();
 
 const MomentManage: React.FC = () => {
   const navigate = useNavigate();
@@ -41,7 +38,7 @@ const MomentManage: React.FC = () => {
 
   const loadTopics = useCallback(async () => {
     try {
-      const result = await api.adminControllerGetTopics({ page: 1, size: 100 });
+      const result = await api.adminTopicsControllerGetTopics({ page: 1, size: 100 });
       const response = result as unknown as { list: Topic[] };
       setTopics(response.list || []);
     } catch {
@@ -52,15 +49,18 @@ const MomentManage: React.FC = () => {
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const params: AdminControllerGetMomentsParams = {
+      const params: AdminMomentsControllerGetMomentsParams = {
         page: pagination.current,
         pageSize: pagination.pageSize,
         search: keyword || undefined,
         topicId,
       };
-      const result = (await api.adminControllerGetMoments(
+      const result = (await api.adminMomentsControllerGetMoments(
         params,
-      )) as unknown as MomentListResponseDto;
+      )) as unknown as {
+        list: Moment[];
+        total: number;
+      };
       setData(result.list || []);
       setPagination((prev) => ({ ...prev, total: result.total || 0 }));
     } catch {
@@ -97,7 +97,7 @@ const MomentManage: React.FC = () => {
 
   const handleDelete = async (id: number) => {
     try {
-      await api.adminControllerDeleteMoment(id);
+      await api.adminMomentsControllerDeleteMoment(id);
       message.success("删除成功");
       loadData();
     } catch {

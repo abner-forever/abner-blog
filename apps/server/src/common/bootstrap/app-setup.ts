@@ -7,6 +7,10 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { HttpExceptionFilter } from '../filters/http-exception.filter';
 import { TransformInterceptor } from '../interceptors/transform.interceptor';
+import {
+  SWAGGER_ADMIN_MODULES,
+  SWAGGER_PUBLIC_MODULES,
+} from './swagger-document-modules';
 
 /**
  * Nest 对无 @HttpCode 的 POST 默认使用 201，且在拦截器之后仍会调用 adapter.reply(..., 201)，
@@ -48,18 +52,36 @@ export function setupCors(app: NestExpressApplication): void {
 }
 
 export function setupSwagger(app: NestExpressApplication): void {
-  const swaggerConfig = new DocumentBuilder()
+  const bearer = {
+    type: 'http' as const,
+    scheme: 'bearer',
+    bearerFormat: 'JWT',
+  };
+
+  const publicConfig = new DocumentBuilder()
     .setTitle('Blog API')
-    .setDescription('ABNER Blog 后端接口文档')
+    .setDescription('ABNER Blog 用户站 / 公开 REST 接口（不含管理后台）')
     .setVersion('1.0')
-    .addBearerAuth(
-      { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
-      'JWT',
-    )
+    .addBearerAuth(bearer, 'JWT')
     .build();
-  const document = SwaggerModule.createDocument(app, swaggerConfig);
-  SwaggerModule.setup('api-docs', app, document, {
+  const publicDocument = SwaggerModule.createDocument(app, publicConfig, {
+    include: SWAGGER_PUBLIC_MODULES,
+  });
+  SwaggerModule.setup('api-docs', app, publicDocument, {
     jsonDocumentUrl: 'api-docs-json',
+  });
+
+  const adminConfig = new DocumentBuilder()
+    .setTitle('Blog Admin API')
+    .setDescription('ABNER Blog 管理后台 REST 接口')
+    .setVersion('1.0')
+    .addBearerAuth(bearer, 'JWT')
+    .build();
+  const adminDocument = SwaggerModule.createDocument(app, adminConfig, {
+    include: SWAGGER_ADMIN_MODULES,
+  });
+  SwaggerModule.setup('api-admin-docs', app, adminDocument, {
+    jsonDocumentUrl: 'api-admin-docs-json',
   });
 }
 

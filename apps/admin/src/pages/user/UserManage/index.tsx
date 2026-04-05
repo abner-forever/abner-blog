@@ -19,17 +19,16 @@ import {
   CheckOutlined,
 } from "@ant-design/icons";
 import { useTranslation } from "react-i18next";
-import { getBlogAPI } from "@/services/generated/admin";
+import { getBlogAdminAPI } from "@/services/generated/admin";
 import type {
   User,
   CreateUserDto,
   UpdateUserDto,
-  AdminControllerGetUsersParams,
-  AdminControllerGetUsersStatus,
+  UpdateUserStatusDtoStatus
 } from "@/services/generated/model";
 import "./index.less";
 
-const api = getBlogAPI();
+const api = getBlogAdminAPI();
 
 const UserManage: React.FC = () => {
   const { t } = useTranslation();
@@ -48,12 +47,12 @@ const UserManage: React.FC = () => {
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const params: AdminControllerGetUsersParams = {
+      const params = {
         page: String(pagination.current),
         size: String(pagination.pageSize),
         keyword: keyword || undefined,
       };
-      const result = (await api.adminControllerGetUsers(params)) as unknown as {
+      const result = (await api.adminUsersControllerGetUsers(params)) as unknown as {
         list: User[];
         total: number;
       };
@@ -90,7 +89,7 @@ const UserManage: React.FC = () => {
 
   const handleDelete = async (id: number) => {
     try {
-      await api.adminControllerDeleteUser(id);
+      await api.adminUsersControllerDeleteUser(id);
       message.success(t("userManage.deleteSuccess"));
       loadData();
     } catch {
@@ -100,10 +99,10 @@ const UserManage: React.FC = () => {
 
   const handleStatusChange = async (
     id: number,
-    status: AdminControllerGetUsersStatus,
+    status: UpdateUserStatusDtoStatus,
   ) => {
     try {
-      await api.adminControllerUpdateUserStatus(id, { status });
+      await api.adminUsersControllerUpdateUserStatus(id, { status });
       message.success(t("userManage.statusUpdateSuccess"));
       loadData();
     } catch {
@@ -121,7 +120,7 @@ const UserManage: React.FC = () => {
           role: values.role,
           status: values.status,
         };
-        await api.adminControllerUpdateUser(editingUser.id, updateData);
+        await api.adminUsersControllerUpdateUser(editingUser.id, updateData);
         message.success(t("userManage.updateSuccess"));
       } else {
         const createData: CreateUserDto = {
@@ -132,7 +131,7 @@ const UserManage: React.FC = () => {
           role: values.role,
           status: values.status,
         };
-        await api.adminControllerCreateUser(createData);
+        await api.adminUsersControllerCreateUser(createData);
         message.success(t("userManage.createSuccess"));
       }
       setModalVisible(false);

@@ -8,8 +8,9 @@ import {
   FileTextOutlined,
   MessageOutlined,
   RightOutlined,
+  UserOutlined,
 } from '@ant-design/icons';
-import type { BlogDto, MomentDto } from '@services/generated/model';
+import type { AppStatsResponse, BlogDto, MomentDto } from '@services/generated/model';
 import type { FC, ReactNode } from 'react';
 import dayjs from 'dayjs';
 
@@ -328,11 +329,8 @@ interface StatsSectionProps {
   articlesText: string;
   momentsText: string;
   viewsText: string;
-  stats: {
-    articles: number;
-    moments: number;
-    views: number;
-  };
+  stats: AppStatsResponse;
+  usersText: string;
   loading: boolean;
 }
 
@@ -341,6 +339,7 @@ export const StatsSection: FC<StatsSectionProps> = ({
   articlesText,
   momentsText,
   viewsText,
+  usersText,
   stats,
   loading,
 }) => (
@@ -379,6 +378,17 @@ export const StatsSection: FC<StatsSectionProps> = ({
             title={viewsText}
             value={stats.views}
             prefix={<EyeOutlined />}
+            styles={{ content: { color: '#4facfe' } }}
+            loading={loading}
+          />
+        </Card>
+      </Col>
+      <Col xs={12} sm={6}>
+        <Card className="stat-card">
+          <Statistic
+            title={usersText}
+            value={stats.users}
+            prefix={<UserOutlined />}
             styles={{ content: { color: '#4facfe' } }}
             loading={loading}
           />

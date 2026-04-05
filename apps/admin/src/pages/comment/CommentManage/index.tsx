@@ -11,20 +11,10 @@ import {
 } from "antd";
 import type { TableProps } from "antd";
 import { DeleteOutlined } from "@ant-design/icons";
-import { getBlogAPI } from "@/services/generated/admin";
-import type {
-  CommentDto,
-  BatchDeleteCommentsDto,
-} from "@/services/generated/model";
+import { getBlogAdminAPI } from "@/services/generated/admin";
+import type { Comment } from "@/services/generated/model";
 
-const api = getBlogAPI();
-
-interface CommentWithRelations extends CommentDto {
-  blog?: { title?: string };
-  topic?: { name?: string };
-}
-
-type Comment = CommentWithRelations;
+const api = getBlogAdminAPI();
 
 const CommentManage: React.FC = () => {
   const [loading, setLoading] = useState(false);
@@ -54,7 +44,7 @@ const CommentManage: React.FC = () => {
   const loadBlogComments = useCallback(async () => {
     setLoading(true);
     try {
-      const result = await api.adminControllerGetBlogComments({
+      const result = await api.adminCommentsControllerGetBlogComments({
         page: String(blogPagination.current),
         size: String(blogPagination.pageSize),
         keyword: blogKeyword || undefined,
@@ -73,7 +63,7 @@ const CommentManage: React.FC = () => {
   const loadTopicComments = useCallback(async () => {
     setLoading(true);
     try {
-      const result = await api.adminControllerGetTopicComments({
+      const result = await api.adminCommentsControllerGetTopicComments({
         page: String(topicPagination.current),
         size: String(topicPagination.pageSize),
         keyword: topicKeyword || undefined,
@@ -109,7 +99,7 @@ const CommentManage: React.FC = () => {
 
   const handleDelete = async (id: number) => {
     try {
-      await api.adminControllerDeleteComment(id);
+      await api.adminCommentsControllerDeleteComment(id);
       message.success("删除成功");
       if (activeTab === "blog") {
         loadBlogComments();
@@ -124,8 +114,8 @@ const CommentManage: React.FC = () => {
   const handleBatchDelete = async () => {
     if (selectedRowKeys.length === 0) return;
     try {
-      const batchData: BatchDeleteCommentsDto = { ids: selectedRowKeys };
-      await api.adminControllerBatchDeleteComments(batchData);
+      const batchData = { ids: selectedRowKeys };
+      await api.adminCommentsControllerBatchDeleteComments(batchData);
       message.success("批量删除成功");
       setSelectedRowKeys([]);
       if (activeTab === "blog") {
@@ -183,12 +173,12 @@ const CommentManage: React.FC = () => {
     { title: "评论内容", dataIndex: "content", ellipsis: true },
     {
       title: "话题",
-      dataIndex: ["topic", "name"],
+      dataIndex: ["blog", "title"],
       ellipsis: true,
       width: 150,
       render: (_: unknown, record: Comment) =>
-        record.topic?.name ? (
-          <Tag color="purple">{record.topic.name}</Tag>
+        record.blog?.title ? (
+          <Tag color="purple">{record.blog.title}</Tag>
         ) : (
           "-"
         ),

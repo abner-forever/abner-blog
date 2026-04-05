@@ -17,15 +17,15 @@ import {
   ArrowLeftOutlined,
   DeleteOutlined,
 } from "@ant-design/icons";
-import { getBlogAPI } from "@/services/generated/admin";
+import { getBlogAdminAPI } from "@/services/generated/admin";
 import type {
-  MomentDto,
+  Moment,
   Topic,
   UpdateMomentDto,
   MomentComment,
 } from "@/services/generated/model";
 
-const api = getBlogAPI();
+const api = getBlogAdminAPI();
 
 const { TextArea } = Input;
 
@@ -49,8 +49,8 @@ const MomentEdit: React.FC = () => {
   const loadMoment = useCallback(async () => {
     if (!id) return;
     try {
-      const data = await api.adminControllerGetMomentById(Number(id));
-      const momentData = data as unknown as MomentDto;
+      const data = await api.adminMomentsControllerGetMomentById(Number(id));
+      const momentData = data as unknown as Moment;
       form.setFieldsValue({
         content: momentData.content,
         images: momentData.images?.join("\n"),
@@ -66,7 +66,7 @@ const MomentEdit: React.FC = () => {
 
   const loadTopics = useCallback(async () => {
     try {
-      const result = await api.adminControllerGetTopics({ page: 1, size: 100 });
+      const result = await api.adminTopicsControllerGetTopics({ page: 1, size: 100 });
       const response = result as unknown as { list: Topic[] };
       setTopics(response.list || []);
     } catch {
@@ -78,7 +78,7 @@ const MomentEdit: React.FC = () => {
     if (!id) return;
     setCommentsLoading(true);
     try {
-      const result = await api.adminControllerGetTopicComments({
+      const result = await api.adminCommentsControllerGetTopicComments({
         page: String(commentsPagination.current),
         size: String(commentsPagination.pageSize),
         topicId: String(id),
@@ -118,7 +118,7 @@ const MomentEdit: React.FC = () => {
         topicId: values.topicId,
       };
       await (
-        api.adminControllerUpdateMoment as unknown as (
+        api.adminMomentsControllerUpdateMoment as unknown as (
           id: number,
           data: UpdateMomentDto,
         ) => Promise<void>
@@ -133,7 +133,7 @@ const MomentEdit: React.FC = () => {
 
   const handleDeleteComment = async (commentId: number) => {
     try {
-      await api.adminControllerDeleteComment(commentId);
+      await api.adminCommentsControllerDeleteComment(commentId);
       message.success("删除成功");
       loadComments();
     } catch {

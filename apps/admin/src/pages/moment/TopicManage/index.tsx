@@ -11,15 +11,14 @@ import {
   Switch,
 } from "antd";
 import { PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
-import { getBlogAPI } from "@/services/generated/admin";
+import { getBlogAdminAPI } from "@/services/generated/admin";
 import type {
   Topic,
   AdminCreateTopicDto,
   UpdateTopicDto,
-  AdminControllerGetTopicsParams,
 } from "@/services/generated/model";
 
-const api = getBlogAPI();
+const api = getBlogAdminAPI();
 
 type TopicRow = Topic;
 
@@ -39,12 +38,12 @@ const TopicManage: React.FC = () => {
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const params: AdminControllerGetTopicsParams = {
+      const params = {
         page: pagination.current,
         size: pagination.pageSize,
         keyword: keyword || undefined,
       };
-      const result = await api.adminControllerGetTopics(params);
+      const result = await api.adminTopicsControllerGetTopics(params);
       const response = result as unknown as {
         list: TopicRow[];
         total: number;
@@ -82,7 +81,7 @@ const TopicManage: React.FC = () => {
 
   const handleDelete = async (id: number) => {
     try {
-      await api.adminControllerDeleteTopic(id);
+      await api.adminTopicsControllerDeleteTopic(id);
       message.success("删除成功");
       loadData();
     } catch {
@@ -100,7 +99,7 @@ const TopicManage: React.FC = () => {
           cover: values.cover,
           isHot: values.isHot,
         };
-        await api.adminControllerUpdateTopic(editingTopic.id, updateData);
+        await api.adminTopicsControllerUpdateTopic(editingTopic.id, updateData);
         message.success("更新成功");
       } else {
         const createData: AdminCreateTopicDto = {
@@ -109,7 +108,7 @@ const TopicManage: React.FC = () => {
           cover: values.cover,
           isHot: values.isHot,
         };
-        await api.adminControllerCreateTopic(createData);
+        await api.adminTopicsControllerCreateTopic(createData);
         message.success("创建成功");
       }
       setModalVisible(false);
@@ -121,7 +120,7 @@ const TopicManage: React.FC = () => {
 
   const handleHotToggle = async (record: TopicRow) => {
     try {
-      await api.adminControllerUpdateTopic(record.id, { isHot: !record.isHot });
+      await api.adminTopicsControllerUpdateTopic(record.id, { isHot: !record.isHot });
       message.success(record.isHot ? "已取消热门" : "已设为热门");
       loadData();
     } catch {

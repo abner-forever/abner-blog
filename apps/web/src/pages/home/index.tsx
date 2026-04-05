@@ -11,11 +11,11 @@ import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 import type { RootState } from '@/store';
 import { useQuery } from '@tanstack/react-query';
-import { appControllerGetStats } from '@services/generated/app/app';
+import { getStats } from '@services/generated/app/app';
 import { calendarControllerFindAll } from '@services/generated/calendar/calendar';
-import { weatherControllerGetWeather } from '@services/generated/weather/weather';
-import { httpMutator } from '@services/http';
-import type { BlogDto, MomentDto } from '@services/generated/model';
+import { getWeather } from '@services/generated/weather/weather';
+import { blogsControllerFindAll } from '@services/generated/blogs/blogs';
+import { momentsControllerFindAll } from '@services/generated/moments/moments';
 import { getCurrentLocale } from '@/i18n';
 import dayjs from 'dayjs';
 import 'dayjs/locale/zh-cn';
@@ -81,35 +81,6 @@ interface WeatherState {
   weatherEmoji: string;
 }
 
-interface WeatherResponseData {
-  city?: string;
-  temperature?: number;
-  temperatureMax?: number;
-  temperatureMin?: number;
-  weatherCode?: number;
-}
-
-interface WeatherApiResponse {
-  data?: WeatherResponseData;
-}
-
-const isWeatherData = (value: unknown): value is WeatherResponseData => {
-  if (!value || typeof value !== 'object') return false;
-  const item = value as Record<string, unknown>;
-  return (
-    typeof item.temperature === 'number' &&
-    typeof item.weatherCode === 'number'
-  );
-};
-
-const resolveWeatherPayload = (value: unknown): WeatherResponseData | null => {
-  if (isWeatherData(value)) return value;
-  if (!value || typeof value !== 'object') return null;
-  const wrapped = value as WeatherApiResponse;
-  if (isWeatherData(wrapped.data)) return wrapped.data;
-  return null;
-};
-
 const Home: FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -134,31 +105,20 @@ const Home: FC = () => {
     return () => clearInterval(timer);
   }, [locale]);
 
-  const { data: stats = { articles: 0, moments: 0, views: 0 }, isLoading } = useQuery({
+  const { data: stats = { articles: 0, moments: 0, views: 0, users: 0 }, isLoading } = useQuery({
     queryKey: ['home-stats'],
     queryFn: async () => {
-      const data = (await appControllerGetStats()) as unknown as {
-        articles?: number;
-        moments?: number;
-        views?: number;
-        data?: { articles?: number; moments?: number; views?: number };
-      };
-      const statsData = data?.data ?? data;
-      return {
-        articles: statsData?.articles || 0,
-        moments: statsData?.moments || 0,
-        views: statsData?.views || 0,
-      };
+      const data = await getStats();
+      return data;
     },
   });
 
   const { data: recentBlogs = [] } = useQuery({
     queryKey: ['home-recent-blogs'],
     queryFn: async () => {
-      const blogRes = await httpMutator<{ list: BlogDto[] }>({
-        url: '/api/blogs',
-        method: 'GET',
-        params: { page: 1, pageSize: 3 },
+      const blogRes = await blogsControllerFindAll({
+        page: 1,
+        pageSize: 3,
       });
       return blogRes?.list?.slice(0, 3) || [];
     },
@@ -167,10 +127,9 @@ const Home: FC = () => {
   const { data: recentMoments = [] } = useQuery({
     queryKey: ['home-recent-moments'],
     queryFn: async () => {
-      const momentRes = await httpMutator<{ list: MomentDto[] }>({
-        url: '/api/moments',
-        method: 'GET',
-        params: { page: 1, pageSize: 3 },
+      const momentRes = await momentsControllerFindAll({
+        page: 1,
+        pageSize: 3,
       });
       return momentRes?.list || [];
     },
@@ -183,11 +142,9 @@ const Home: FC = () => {
   } = useQuery<WeatherState>({
     queryKey: ['home-weather'],
     queryFn: async () => {
-      const response = await (weatherControllerGetWeather({
+      const d = await getWeather({
         city: '北京',
-      }) as Promise<unknown>);
-      const d = resolveWeatherPayload(response);
-      if (!d) throw new Error('Invalid weather response');
+      });
       const weatherInfo = getWeatherInfo(d.weatherCode ?? 0);
       return {
         city: d.city || '北京',
@@ -305,6 +262,7 @@ const Home: FC = () => {
         articlesText={t('home.articles')}
         momentsText={t('home.moments')}
         viewsText={t('home.totalViews')}
+        usersText={t('home.totalUsers')}
         stats={stats}
         loading={isLoading}
       />

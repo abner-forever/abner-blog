@@ -135,6 +135,7 @@
     "articles": "文章數量",
     "moments": "動態數量",
     "totalViews": "總訪問量",
+    "totalUsers": "總用戶數",
     "latestArticles": "最新文章",
     "latestMoments": "最新動態",
     "noArticles": "暫無文章，快去寫一篇吧！",

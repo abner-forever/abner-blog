@@ -1,5 +1,10 @@
 import { Controller, Get, Post, Body, Ip, Req } from '@nestjs/common';
-import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiProperty,
+  ApiResponse,
+} from '@nestjs/swagger';
 import { AppService } from './app.service';
 import { BlogsService } from './blogs/blogs.service';
 import { MomentsService } from './moments/moments.service';
@@ -21,6 +26,16 @@ function getBeijingDateStr(date: Date = new Date()): string {
   return beijingTime.toISOString().split('T')[0];
 }
 
+export class AppStatsResponse {
+  @ApiProperty({ description: '文章数量' })
+  articles: number;
+  @ApiProperty({ description: '沸点数量' })
+  moments: number;
+  @ApiProperty({ description: '访问量' })
+  views: number;
+  @ApiProperty({ description: '用户数量' })
+  users: number;
+}
 @ApiTags('app')
 @Controller()
 export class AppController {
@@ -37,7 +52,11 @@ export class AppController {
     return this.appService.getHello();
   }
 
-  @ApiOperation({ summary: '获取站点统计数据' })
+  @ApiOperation({
+    summary: '获取站点统计数据',
+    operationId: 'getStats',
+  })
+  @ApiResponse({ status: 200, type: AppStatsResponse })
   @Get('stats')
   async getStats() {
     try {
@@ -47,24 +66,18 @@ export class AppController {
       const userCount = await this.dataSource.getRepository(User).count();
 
       return {
-        success: true,
-        data: {
-          articles: blogCount,
-          moments: momentCount,
-          views: viewCount,
-          users: userCount,
-        },
+        articles: blogCount,
+        moments: momentCount,
+        views: viewCount,
+        users: userCount,
       };
     } catch (error) {
       console.error('Stats error:', error);
       return {
-        success: true,
-        data: {
-          articles: 0,
-          moments: 0,
-          views: 0,
-          users: 0,
-        },
+        articles: 0,
+        moments: 0,
+        views: 0,
+        users: 0,
       };
     }
   }

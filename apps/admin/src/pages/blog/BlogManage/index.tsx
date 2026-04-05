@@ -13,13 +13,11 @@ import {
 } from "antd";
 import type { TableProps } from "antd";
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
-import { getBlogAPI } from "@/services/generated/admin";
-import type { BlogDto, BlogListResponseDto } from "@/services/generated/model";
+import { getBlogAdminAPI } from "@/services/generated/admin";
+import type { Blog, ToggleBlogPublishDto } from "@/services/generated/model";
 import PageContainer from "@/components/PageContainer";
 
-const api = getBlogAPI();
-
-type Blog = BlogDto;
+const api = getBlogAdminAPI();
 
 const BlogManage: React.FC = () => {
   const [data, setData] = useState<Blog[]>([]);
@@ -40,14 +38,17 @@ const BlogManage: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const result = await api.adminControllerGetBlogs({
+      const result = await api.adminBlogsControllerGetBlogs({
         page: String(pagination.current),
         size: String(pagination.pageSize),
         keyword: keyword || undefined,
         isPublished: status,
         sort: sort,
       });
-      const res = result as unknown as BlogListResponseDto;
+      const res = result as unknown as {
+        list: Blog[];
+        total: number;
+      };
       setData(res.list || []);
       setPagination((prev) => ({ ...prev, total: res.total || 0 }));
     } catch (err: unknown) {
@@ -93,7 +94,7 @@ const BlogManage: React.FC = () => {
 
   const handleDelete = async (id: number) => {
     try {
-      await api.adminControllerDeleteBlog(id);
+      await api.adminBlogsControllerDeleteBlog(id);
       message.success("删除成功");
       loadData();
     } catch {
@@ -103,9 +104,9 @@ const BlogManage: React.FC = () => {
 
   const handlePublishToggle = async (record: Blog) => {
     try {
-      await api.adminControllerToggleBlogPublish(record.id, {
+      await api.adminBlogsControllerToggleBlogPublish(record.id, {
         isPublished: !record.isPublished,
-      });
+      } as ToggleBlogPublishDto);
       message.success(record.isPublished ? "已下架" : "已发布");
       loadData();
     } catch {

@@ -20,14 +20,14 @@ import {
 } from "@ant-design/icons";
 import { MdEditor } from "md-editor-rt";
 import "md-editor-rt/lib/style.css";
-import { getBlogAPI } from "@/services/generated/admin";
+import { getBlogAdminAPI } from "@/services/generated/admin";
 import type {
-  BlogDto,
-  CommentDto,
-  UpdateBlogDto,
+  Blog,
+  Comment,
+  AdminUpdateBlogDto,
 } from "@/services/generated/model";
 
-const api = getBlogAPI();
+const api = getBlogAdminAPI();
 
 const { TextArea } = Input;
 
@@ -53,7 +53,7 @@ const BlogEdit: React.FC = () => {
   const [mdTheme, setMdTheme] = useState<MdTheme>("default");
 
   // 评论相关
-  const [comments, setComments] = useState<CommentDto[]>([]);
+  const [comments, setComments] = useState<Comment[]>([]);
   const [commentsLoading, setCommentsLoading] = useState(false);
   const [commentsPagination, setCommentsPagination] = useState({
     current: 1,
@@ -64,8 +64,8 @@ const BlogEdit: React.FC = () => {
   const loadBlog = useCallback(async () => {
     if (!id) return;
     try {
-      const data = await api.adminControllerGetBlogById(Number(id));
-      const blogData = data as unknown as BlogDto;
+      const data = await api.adminBlogsControllerGetBlogById(Number(id));
+      const blogData = data as unknown as Blog;
       form.setFieldsValue({
         title: blogData.title,
         summary: blogData.summary,
@@ -87,13 +87,13 @@ const BlogEdit: React.FC = () => {
     if (!id) return;
     setCommentsLoading(true);
     try {
-      const result = await api.adminControllerGetBlogComments({
+      const result = await api.adminCommentsControllerGetBlogComments({
         page: String(commentsPagination.current),
         size: String(commentsPagination.pageSize),
         blogId: String(id),
       });
       const response = result as unknown as {
-        list: CommentDto[];
+        list: Comment[];
         total: number;
       };
       setComments(response.list || []);
@@ -121,15 +121,15 @@ const BlogEdit: React.FC = () => {
     try {
       const values = await form.validateFields();
       setSaving(true);
-      const updateData: UpdateBlogDto = {
+      const updateData: AdminUpdateBlogDto = {
         title: values.title,
         summary: values.summary,
-        content,
+        content: content,
         isPublished: values.isPublished,
         tags: values.tags,
-        mdTheme: mdTheme !== "default" ? mdTheme : undefined,
+        mdTheme: mdTheme !== "default" ? mdTheme : undefined as string,
       };
-      await api.adminControllerUpdateBlog(Number(id), updateData);
+      await api.adminBlogsControllerUpdateBlog(Number(id), updateData);
       message.success("保存成功");
     } catch {
       message.error("保存失败");
@@ -140,7 +140,7 @@ const BlogEdit: React.FC = () => {
 
   const handleDeleteComment = async (commentId: number) => {
     try {
-      await api.adminControllerDeleteComment(commentId);
+      await api.adminCommentsControllerDeleteComment(commentId);
       message.success("删除成功");
       loadComments();
     } catch {

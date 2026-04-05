@@ -21,15 +21,14 @@ import {
 } from "@ant-design/icons";
 import ReactECharts from "echarts-for-react";
 import * as echarts from "echarts";
-import { getBlogAPI } from "@/services/generated/admin";
+import { getBlogAdminAPI } from "@/services/generated/admin";
 import type {
-  AdminControllerGetDailyViewsParams,
-  AdminControllerGetDailyViewsType,
+  AdminDashboardControllerGetDailyViewsType,
   DailyViewItemDto,
 } from "@/services/generated/model";
 import "./index.less";
 
-const api = getBlogAPI();
+const api = getBlogAdminAPI();
 
 /** 与后端 AdminService.getDashboardStats 返回一致（生成客户端误标为 void） */
 interface DashboardBlogStats {
@@ -57,18 +56,18 @@ const Dashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [viewType, setViewType] =
-    useState<AdminControllerGetDailyViewsType>("all");
+    useState<AdminDashboardControllerGetDailyViewsType>("all");
   const chartRef = useRef<ReactECharts>(null);
 
   const loadData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const params: AdminControllerGetDailyViewsParams = { type: viewType };
+      const params = { type: viewType };
       const [blogRaw, momentRaw, viewsData] = await Promise.all([
-        api.adminControllerGetDashboardStats(),
-        api.adminControllerGetMomentsStats(),
-        api.adminControllerGetDailyViews(params),
+        api.adminDashboardControllerGetDashboardStats(),
+        api.adminDashboardControllerGetMomentsStats(),
+        api.adminDashboardControllerGetDailyViews(params),
       ]);
 
       const blogParsed = blogRaw as unknown as DashboardBlogStats | undefined;
@@ -378,7 +377,7 @@ const Dashboard: React.FC = () => {
               <Segmented
                 value={viewType}
                 onChange={(val) =>
-                  setViewType(val as AdminControllerGetDailyViewsType)
+                  setViewType(val as AdminDashboardControllerGetDailyViewsType)
                 }
                 options={[
                   { label: "全部", value: "all" },
