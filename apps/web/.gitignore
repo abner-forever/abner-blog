@@ -12,10 +12,6 @@ dist
 dist-ssr
 *.local
 
-# Orval 自动生成的 API 代码（运行 pnpm generate:api 生成，不应手动编辑）
-src/services/generated/*
-!src/services/generated/.gitkeep
-
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
