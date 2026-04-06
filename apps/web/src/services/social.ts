@@ -194,3 +194,15 @@ export const markNotificationsRead = (body: {
     data: body,
     headers: { 'Content-Type': 'application/json' },
   });
+
+export const deleteNotification = (id: number) =>
+  httpMutator<{ deleted: number }>({
+    url: `/api/notifications/${id}`,
+    method: 'DELETE',
+  });
+
+export const deleteConversation = (id: number) =>
+  httpMutator<{ deleted: number }>({
+    url: `/api/conversations/${id}`,
+    method: 'DELETE',
+  });

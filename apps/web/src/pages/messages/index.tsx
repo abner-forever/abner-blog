@@ -8,9 +8,10 @@ import {
   Badge,
   Spin,
   Empty,
+  Popconfirm,
   message as antdMessage,
 } from 'antd';
-import { UserOutlined, SendOutlined } from '@ant-design/icons';
+import { UserOutlined, SendOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
@@ -21,6 +22,7 @@ import {
   getConversationMessages,
   openConversation,
   sendDirectMessage,
+  deleteConversation,
   type ConversationListItem,
   type DirectMessageItem,
 } from '@services/social';
@@ -112,6 +114,20 @@ const MessagesPage: FC = () => {
     },
     onError: (err: Error) => {
       antdMessage.error(err.message || t('social.sendFail'));
+    },
+  });
+
+  const deleteConvMut = useMutation({
+    mutationFn: (id: number) => deleteConversation(id),
+    onSuccess: (_, deletedId) => {
+      void queryClient.invalidateQueries({ queryKey: ['conversations'] });
+      void queryClient.invalidateQueries({ queryKey: ['social', 'dm-unread'] });
+      if (selectedId === deletedId) {
+        setSelectedId(null);
+      }
+    },
+    onError: (err: Error) => {
+      antdMessage.error(err.message || t('social.deleteConversationFail'));
     },
   });
 
@@ -234,6 +250,20 @@ const MessagesPage: FC = () => {
                             {formatConvPreview(item)}
                           </div>
                         </div>
+                        <Popconfirm
+                          title={t('social.confirmDeleteConversation')}
+                          onConfirm={() => deleteConvMut.mutate(item.id)}
+                          onCancel={(e) => e?.stopPropagation()}
+                        >
+                          <Button
+                            type="text"
+                            danger
+                            size="small"
+                            icon={<DeleteOutlined />}
+                            onClick={(e) => e.stopPropagation()}
+                            className="messages-page__conv-delete"
+                          />
+                        </Popconfirm>
                       </div>
                     </button>
                   );

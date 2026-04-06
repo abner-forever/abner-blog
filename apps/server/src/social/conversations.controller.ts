@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Delete,
   Body,
   Param,
   Query,
@@ -110,6 +111,19 @@ export class ConversationsController {
       req.user.userId,
       dto.content,
       dto.attachments,
+    );
+  }
+
+  @Delete(':id')
+  @ApiOperation({ summary: '删除私信会话' })
+  @ApiParam({ name: 'id', description: '会话 ID' })
+  async delete(
+    @Request() req: AuthenticatedRequest,
+    @Param('id', ParseIntPipe) conversationId: number,
+  ) {
+    return this.conversationsService.deleteConversation(
+      req.user.userId,
+      conversationId,
     );
   }
 }

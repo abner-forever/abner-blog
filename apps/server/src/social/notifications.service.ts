@@ -223,6 +223,17 @@ export class NotificationsService {
     });
   }
 
+  async deleteNotification(
+    userId: number,
+    notificationId: number,
+  ): Promise<{ deleted: number }> {
+    const result = await this.notificationRepo.delete({
+      id: notificationId,
+      recipient: { id: userId },
+    });
+    return { deleted: result.affected ?? 0 };
+  }
+
   async markRead(
     userId: number,
     ids: number[] | undefined,

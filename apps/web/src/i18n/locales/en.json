@@ -52,7 +52,10 @@
     "unreadCount": "{{count}} unread",
     "dmLastFromMe": "Me: ",
     "dmLastFromPeer": "{{name}}: ",
-    "dmNoMessagePreview": "No messages yet"
+    "dmNoMessagePreview": "No messages yet",
+    "confirmDeleteNotification": "Delete this notification?",
+    "confirmDeleteConversation": "Delete this conversation? This cannot be undone.",
+    "deleteConversationFail": "Failed to delete conversation"
   },
   "note": {
     "title": "Discover",

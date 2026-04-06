@@ -69,13 +69,12 @@
   align-items: center;
   justify-content: center;
 
-  :global(.ant-image) {
+  .ant-image {
     max-width: 100%;
-    max-height: 100%;
-  }
-
-  :global(.ant-image-img) {
-    object-fit: contain !important;
+    height: 100%;
+    &-img {
+      height: 100%;
+    }
   }
 
   @media (max-width: 768px) {
@@ -185,9 +184,13 @@
     border: 2px solid #ff2442;
   }
 
-  :global(.ant-image) {
+  .ant-image {
     width: 100%;
     height: 100%;
+    &-img {
+      height: 100%;
+      object-fit: contain;
+    }
   }
 
   &.videoThumb {

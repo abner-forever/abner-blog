@@ -1,6 +1,7 @@
 import type { FC } from 'react';
 import classNames from 'classnames';
-import { Button, Spin, Empty, Typography, Image, Space, Tag } from 'antd';
+import { Button, Spin, Empty, Typography, Image, Space, Tag, Popconfirm } from 'antd';
+import { DeleteOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -8,6 +9,7 @@ import DataList from '@/components/DataList';
 import {
   getNotifications,
   markNotificationsRead,
+  deleteNotification,
   type NotificationItem,
 } from '@services/social';
 import './index.less';
@@ -73,6 +75,14 @@ const NotificationsPage: FC = () => {
 
   const markAllMut = useMutation({
     mutationFn: () => markNotificationsRead({ markAll: true }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      void queryClient.invalidateQueries({ queryKey: ['social', 'feed-unread'] });
+    },
+  });
+
+  const deleteMut = useMutation({
+    mutationFn: (id: number) => deleteNotification(id),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['notifications'] });
       void queryClient.invalidateQueries({ queryKey: ['social', 'feed-unread'] });
@@ -149,6 +159,22 @@ const NotificationsPage: FC = () => {
                       <span className="notifications-page__dot" />
                     ) : null}
                   </Space>
+                  <Popconfirm
+                    title={t('social.confirmDeleteNotification')}
+                    onConfirm={() => deleteMut.mutate(n.id)}
+                    onCancel={(e) => e?.stopPropagation()}
+                  >
+                    <Button
+                      type="text"
+                      danger
+                      size="small"
+                      icon={<DeleteOutlined />}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        e.nativeEvent.stopPropagation();
+                      }}
+                    />
+                  </Popconfirm>
                 </div>
                 <div className="notifications-page__item-desc">
                   <Paragraph

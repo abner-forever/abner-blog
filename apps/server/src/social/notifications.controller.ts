@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Delete,
   Body,
   Query,
   UseGuards,
@@ -82,5 +83,14 @@ export class NotificationsController {
       );
     }
     throw new BadRequestException('请提供 ids 或 markAll: true');
+  }
+
+  @Delete(':id')
+  @ApiOperation({ summary: '删除单条通知' })
+  async delete(
+    @Request() req: AuthenticatedRequest,
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    return this.notificationsService.deleteNotification(req.user.userId, id);
   }
 }

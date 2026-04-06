@@ -52,7 +52,10 @@
     "unreadCount": "{{count}} 則未讀",
     "dmLastFromMe": "我：",
     "dmLastFromPeer": "{{name}}：",
-    "dmNoMessagePreview": "暫無訊息"
+    "dmNoMessagePreview": "暫無訊息",
+    "confirmDeleteNotification": "確定刪除這條通知嗎？",
+    "confirmDeleteConversation": "確定刪除這個會話嗎？刪除後不可恢復。",
+    "deleteConversationFail": "刪除會話失敗"
   },
   "note": {
     "title": "發現",

@@ -69,7 +69,7 @@ export class MomentsController {
   @Get(':id')
   findOne(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
     const userId = req.user?.userId;
-    const ip = req.ip || req.connection?.remoteAddress || 'unknown';
+    const ip = req.ip || req.socket?.remoteAddress || 'unknown';
     return this.momentsService.findOne(+id, userId, ip);
   }
 

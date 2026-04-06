@@ -156,11 +156,6 @@ const NoteDetail: React.FC = () => {
     );
   };
 
-  const handleImageClick = (index: number) => {
-    setCurrentImageIndex(index);
-    setPreviewOpen(true);
-  };
-
   const refreshNoteDetailAndComments = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ['note', noteId] });
     queryClient.invalidateQueries({ queryKey: ['noteComments', noteId] });
@@ -239,8 +234,6 @@ const NoteDetail: React.FC = () => {
                       <Image
                         src={currentImage}
                         style={{ objectFit: 'contain' }}
-                        onClick={() => handleImageClick(currentImageIndex)}
-                        preview={{ open: false }}
                       />
                     ) : currentVideo ? (
                       <div
@@ -292,7 +285,7 @@ const NoteDetail: React.FC = () => {
                       className={`thumbnail ${index === currentImageIndex ? 'active' : ''}`}
                       onClick={() => setCurrentImageIndex(index)}
                     >
-                      <Image src={img} style={{ objectFit: 'cover' }} preview={false} />
+                      <Image src={img} style={{ objectFit: 'contain' }} />
                     </div>
                   ))}
                   {note.videos?.map((video, index) => (

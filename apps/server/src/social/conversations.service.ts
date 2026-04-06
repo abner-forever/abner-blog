@@ -366,4 +366,13 @@ export class ConversationsService {
       createdAt: saved.createdAt,
     };
   }
+
+  async deleteConversation(
+    userId: number,
+    conversationId: number,
+  ): Promise<{ deleted: number }> {
+    await this.assertParticipant(conversationId, userId);
+    const result = await this.convRepo.delete({ id: conversationId });
+    return { deleted: result.affected ?? 0 };
+  }
 }

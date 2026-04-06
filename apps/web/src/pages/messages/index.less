@@ -182,6 +182,17 @@
     white-space: nowrap;
   }
 
+  &__conv-delete {
+    flex-shrink: 0;
+    opacity: 0;
+    transition: opacity 0.15s;
+    align-self: center;
+  }
+
+  &__conv-item:hover &__conv-delete {
+    opacity: 1;
+  }
+
   &__main {
     flex: 1;
     min-width: 0;

@@ -52,7 +52,10 @@
     "unreadCount": "{{count}} 条未读",
     "dmLastFromMe": "我：",
     "dmLastFromPeer": "{{name}}：",
-    "dmNoMessagePreview": "暂无消息"
+    "dmNoMessagePreview": "暂无消息",
+    "confirmDeleteNotification": "确定删除这条通知吗？",
+    "confirmDeleteConversation": "确定删除这个会话吗？删除后不可恢复。",
+    "deleteConversationFail": "删除会话失败"
   },
   "note": {
     "title": "发现",
