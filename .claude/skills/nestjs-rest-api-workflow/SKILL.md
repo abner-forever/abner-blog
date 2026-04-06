@@ -357,6 +357,25 @@ const blog = response.data as unknown as BlogDto;
 - 响应类型应为具体结构（如 `BlogDto`），而非 `{ [key: string]: unknown }`
 - 若仍为泛型对象，说明后端响应 DTO 缺少 `@ApiProperty()`
 
+### 8.5 Orval 前端生成对齐：operationId、schema 与 Params/Response 命名
+
+前端（**web** / **admin**）由 Orval 根据 OpenAPI 生成客户端。后端在 Swagger 中的命名会**直接落地**为前端的函数名与类型名，宜保持稳定、可读。
+
+| Swagger / 代码侧 | 前端生成物（典型） | 说明 |
+| ---------------- | ------------------ | ---- |
+| **operationId**（或 Nest 默认推导的操作 id） | `getWeather`、`createBlog` 等 `camelCase` 函数；Query hook 为 `use` + PascalCase，如 `useGetWeather` | 需稳定 API 表面时，可在 `@ApiOperation({ operationId: 'getWeather' })` 显式指定 |
+| Query + Path + Header 等参数 schema | `{Method}{OperationId}Params`，如 `GetWeatherParams` | 来自合并后的参数对象；字段说明用 `@ApiProperty({ description })`，会进生成的 JSDoc |
+| 响应 body 的 **component schema 名**（通常即 DTO 类名） | 如 `WeatherInfoResponse`、`BlogDto` | 类名 PascalCase；经 `httpMutator` 解包后即为 Promise 泛型 `T` |
+| **@ApiTags** | 输出文件目录，如 `generated/weather/weather.ts` | `tags-split` 下一 tag 一个文件 |
+
+**示例（与 `apps/web/src/services/generated/weather/weather.ts` 一致）：**
+
+- Controller 方法对应某 `operationId` → 生成 `export const getWeather = (params?: GetWeatherParams, signal?: AbortSignal) => httpMutator<WeatherInfoResponse>({ ... })`。
+- 查询 DTO 字段 → `GetWeatherParams` 的可选属性与注释。
+- `@ApiResponse({ type: WeatherInfoResponseDto })` 且 DTO 全类名映射到文档 → 前端 `WeatherInfoResponse`（具体以 OpenAPI 中的 schema 名为准）。
+
+变更接口时：先保证 Swagger 中 operationId/schema **有意图地命名**，再执行 `pnpm generate:api`，避免前端大面积重命名。
+
 ---
 
 ## 九、检查清单
@@ -381,6 +400,7 @@ const blog = response.data as unknown as BlogDto;
 
 - [ ] **web** 已执行 `pnpm generate:api`；**admin** 若调用变更接口则已执行 `pnpm --filter @abner-blog/admin generate:api`
 - [ ] 生成的类型不是 `{ [key: string]: unknown }`
+- [ ] 若重命名了对外 API 表面：已确认 `operationId` / 响应 DTO schema 名对 Orval 生成函数与类型名的影响（见 8.5）
 
 ---
 
