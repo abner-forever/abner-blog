@@ -17,7 +17,7 @@ export class Like {
   @ManyToOne(() => User, (user) => user.likes, { onDelete: 'CASCADE' })
   user: User;
 
-  @ManyToOne(() => Blog, (blog) => blog.likes)
+  @ManyToOne(() => Blog, (blog) => blog.likes, { onDelete: 'CASCADE' })
   blog: Blog;
 
   @CreateDateColumn()

@@ -1,48 +1,53 @@
 import type {
-  AdminAuthControllerInitAdmin201,
-  AdminBlogsControllerGetBlogsParams,
-  AdminCommentsControllerGetBlogCommentsParams,
-  AdminCommentsControllerGetCommentsParams,
-  AdminCommentsControllerGetTopicCommentsParams,
   AdminCreateTopicDto,
-  AdminDashboardControllerGetDailyViewsParams,
   AdminLoginDto,
-  AdminMomentsControllerGetMomentsParams,
-  AdminSystemAnnouncementsControllerGetSystemAnnouncementsParams,
-  AdminTopicsControllerGetTopicsParams,
   AdminUpdateBlogDto,
-  AdminUsersControllerGetUsersParams,
+  AllCommentListResponse,
+  AuthTokenResponseDto,
   BatchDeleteCommentsDto,
-  Blog,
+  BlogCommentListResponse,
+  BlogDto,
+  BlogListResponseDto,
   CreateSystemAnnouncementDto,
   CreateUserDto,
   DailyViewItemDto,
-  Moment,
-  SystemAnnouncement,
+  GetAdminBlogCommentsParams,
+  GetAdminBlogsParams,
+  GetAdminCommentsParams,
+  GetAdminDailyViewsParams,
+  GetAdminMomentsParams,
+  GetAdminSystemAnnouncementsParams,
+  GetAdminTopicCommentsParams,
+  GetAdminTopicsParams,
+  GetAdminUsersParams,
+  MomentDto,
+  MomentListResponse,
   ToggleBlogPublishDto,
-  Topic,
+  TopicCommentListResponse,
+  TopicDto,
+  TopicListResponse,
   UpdateMomentDto,
   UpdateSystemAnnouncementDto,
   UpdateTopicDto,
   UpdateUserDto,
   UpdateUserStatusDto,
-  User,
+  UserProfileDto,
 } from "./model";
 
 import { httpMutator } from "../http";
 export const getBlogAdminAPI = () => {
   /**
-   * @summary 初始化管理员
+   * @summary 初始化管理员（首次调用创建默认管理员）
    */
-  const adminAuthControllerInitAdmin = () => {
-    return httpMutator<AdminAuthControllerInitAdmin201>({
-      url: `/api/admin/init-admin`,
-      method: "POST",
-    });
+  const initAdmin = () => {
+    return httpMutator<void>({ url: `/api/admin/init-admin`, method: "POST" });
   };
 
-  const adminAuthControllerLogin = (adminLoginDto: AdminLoginDto) => {
-    return httpMutator<void>({
+  /**
+   * @summary 管理员登录
+   */
+  const adminLogin = (adminLoginDto: AdminLoginDto) => {
+    return httpMutator<AuthTokenResponseDto | void>({
       url: `/api/admin/auth/login`,
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -50,18 +55,30 @@ export const getBlogAdminAPI = () => {
     });
   };
 
-  const adminAuthControllerGetProfile = () => {
-    return httpMutator<void>({ url: `/api/admin/auth/profile`, method: "GET" });
+  /**
+   * @summary 获取当前管理员信息
+   */
+  const getAdminProfile = () => {
+    return httpMutator<AuthTokenResponseDto>({
+      url: `/api/admin/auth/profile`,
+      method: "GET",
+    });
   };
 
-  const adminDashboardControllerGetDashboardStats = () => {
+  /**
+   * @summary 获取仪表盘统计数据
+   */
+  const getAdminDashboardStats = () => {
     return httpMutator<void>({
       url: `/api/admin/dashboard/stats`,
       method: "GET",
     });
   };
 
-  const adminDashboardControllerGetMomentsStats = () => {
+  /**
+   * @summary 获取动态统计数据
+   */
+  const getAdminMomentsStats = () => {
     return httpMutator<void>({
       url: `/api/admin/dashboard/moments-stats`,
       method: "GET",
@@ -71,9 +88,7 @@ export const getBlogAdminAPI = () => {
   /**
    * @summary 每日访问量
    */
-  const adminDashboardControllerGetDailyViews = (
-    params?: AdminDashboardControllerGetDailyViewsParams,
-  ) => {
+  const getAdminDailyViews = (params?: GetAdminDailyViewsParams) => {
     return httpMutator<DailyViewItemDto[]>({
       url: `/api/admin/dashboard/daily-views`,
       method: "GET",
@@ -81,20 +96,22 @@ export const getBlogAdminAPI = () => {
     });
   };
 
-  const adminTopicsControllerGetTopics = (
-    params?: AdminTopicsControllerGetTopicsParams,
-  ) => {
-    return httpMutator<void>({
+  /**
+   * @summary 获取话题列表
+   */
+  const getAdminTopics = (params?: GetAdminTopicsParams) => {
+    return httpMutator<TopicListResponse>({
       url: `/api/admin/topics`,
       method: "GET",
       params,
     });
   };
 
-  const adminTopicsControllerCreateTopic = (
-    adminCreateTopicDto: AdminCreateTopicDto,
-  ) => {
-    return httpMutator<Topic>({
+  /**
+   * @summary 创建话题
+   */
+  const createAdminTopic = (adminCreateTopicDto: AdminCreateTopicDto) => {
+    return httpMutator<TopicDto>({
       url: `/api/admin/topics`,
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -102,11 +119,11 @@ export const getBlogAdminAPI = () => {
     });
   };
 
-  const adminTopicsControllerUpdateTopic = (
-    id: number,
-    updateTopicDto: UpdateTopicDto,
-  ) => {
-    return httpMutator<Topic>({
+  /**
+   * @summary 更新话题
+   */
+  const updateAdminTopic = (id: number, updateTopicDto: UpdateTopicDto) => {
+    return httpMutator<TopicDto>({
       url: `/api/admin/topics/${id}`,
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -114,51 +131,63 @@ export const getBlogAdminAPI = () => {
     });
   };
 
-  const adminTopicsControllerDeleteTopic = (id: number) => {
+  /**
+   * @summary 删除话题
+   */
+  const deleteAdminTopic = (id: number) => {
     return httpMutator<void>({
       url: `/api/admin/topics/${id}`,
       method: "DELETE",
     });
   };
 
-  const adminCommentsControllerGetBlogComments = (
-    params?: AdminCommentsControllerGetBlogCommentsParams,
-  ) => {
-    return httpMutator<void>({
+  /**
+   * @summary 获取博客评论列表（管理端）
+   */
+  const getAdminBlogComments = (params?: GetAdminBlogCommentsParams) => {
+    return httpMutator<BlogCommentListResponse>({
       url: `/api/admin/comments/blog`,
       method: "GET",
       params,
     });
   };
 
-  const adminCommentsControllerGetTopicComments = (
-    params?: AdminCommentsControllerGetTopicCommentsParams,
-  ) => {
-    return httpMutator<void>({
+  /**
+   * @summary 获取话题评论列表（管理端）
+   */
+  const getAdminTopicComments = (params?: GetAdminTopicCommentsParams) => {
+    return httpMutator<TopicCommentListResponse>({
       url: `/api/admin/comments/topic`,
       method: "GET",
       params,
     });
   };
 
-  const adminCommentsControllerGetComments = (
-    params?: AdminCommentsControllerGetCommentsParams,
-  ) => {
-    return httpMutator<void>({
+  /**
+   * @summary 获取全部评论列表（管理端）
+   */
+  const getAdminComments = (params?: GetAdminCommentsParams) => {
+    return httpMutator<AllCommentListResponse>({
       url: `/api/admin/comments`,
       method: "GET",
       params,
     });
   };
 
-  const adminCommentsControllerDeleteComment = (id: number) => {
+  /**
+   * @summary 删除评论
+   */
+  const deleteAdminComment = (id: number) => {
     return httpMutator<void>({
       url: `/api/admin/comments/${id}`,
       method: "DELETE",
     });
   };
 
-  const adminCommentsControllerBatchDeleteComments = (
+  /**
+   * @summary 批量删除评论
+   */
+  const batchDeleteAdminComments = (
     batchDeleteCommentsDto: BatchDeleteCommentsDto,
   ) => {
     return httpMutator<void>({
@@ -169,18 +198,22 @@ export const getBlogAdminAPI = () => {
     });
   };
 
-  const adminUsersControllerGetUsers = (
-    params?: AdminUsersControllerGetUsersParams,
-  ) => {
-    return httpMutator<void>({
+  /**
+   * @summary 获取用户列表（管理端）
+   */
+  const getAdminUsers = (params?: GetAdminUsersParams) => {
+    return httpMutator<UserProfileDto[]>({
       url: `/api/admin/users`,
       method: "GET",
       params,
     });
   };
 
-  const adminUsersControllerCreateUser = (createUserDto: CreateUserDto) => {
-    return httpMutator<User>({
+  /**
+   * @summary 创建用户
+   */
+  const createAdminUser = (createUserDto: CreateUserDto) => {
+    return httpMutator<UserProfileDto>({
       url: `/api/admin/users`,
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -188,15 +221,21 @@ export const getBlogAdminAPI = () => {
     });
   };
 
-  const adminUsersControllerGetUserById = (id: number) => {
-    return httpMutator<User>({ url: `/api/admin/users/${id}`, method: "GET" });
+  /**
+   * @summary 获取用户详情（管理端）
+   */
+  const getAdminUserById = (id: number) => {
+    return httpMutator<UserProfileDto>({
+      url: `/api/admin/users/${id}`,
+      method: "GET",
+    });
   };
 
-  const adminUsersControllerUpdateUser = (
-    id: number,
-    updateUserDto: UpdateUserDto,
-  ) => {
-    return httpMutator<User>({
+  /**
+   * @summary 更新用户
+   */
+  const updateAdminUser = (id: number, updateUserDto: UpdateUserDto) => {
+    return httpMutator<UserProfileDto>({
       url: `/api/admin/users/${id}`,
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -204,18 +243,24 @@ export const getBlogAdminAPI = () => {
     });
   };
 
-  const adminUsersControllerDeleteUser = (id: number) => {
+  /**
+   * @summary 删除用户
+   */
+  const deleteAdminUser = (id: number) => {
     return httpMutator<void>({
       url: `/api/admin/users/${id}`,
       method: "DELETE",
     });
   };
 
-  const adminUsersControllerUpdateUserStatus = (
+  /**
+   * @summary 更新用户状态
+   */
+  const updateAdminUserStatus = (
     id: number,
     updateUserStatusDto: UpdateUserStatusDto,
   ) => {
-    return httpMutator<User>({
+    return httpMutator<UserProfileDto>({
       url: `/api/admin/users/${id}/status`,
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -223,25 +268,35 @@ export const getBlogAdminAPI = () => {
     });
   };
 
-  const adminBlogsControllerGetBlogs = (
-    params?: AdminBlogsControllerGetBlogsParams,
-  ) => {
-    return httpMutator<void>({
+  /**
+   * @summary 获取博客列表（管理端）
+   */
+  const getAdminBlogs = (params?: GetAdminBlogsParams) => {
+    return httpMutator<BlogListResponseDto>({
       url: `/api/admin/blogs`,
       method: "GET",
       params,
     });
   };
 
-  const adminBlogsControllerGetBlogById = (id: number) => {
-    return httpMutator<Blog>({ url: `/api/admin/blogs/${id}`, method: "GET" });
+  /**
+   * @summary 获取博客详情（管理端）
+   */
+  const getAdminBlogById = (id: number) => {
+    return httpMutator<BlogDto>({
+      url: `/api/admin/blogs/${id}`,
+      method: "GET",
+    });
   };
 
-  const adminBlogsControllerUpdateBlog = (
+  /**
+   * @summary 更新博客
+   */
+  const updateAdminBlog = (
     id: number,
     adminUpdateBlogDto: AdminUpdateBlogDto,
   ) => {
-    return httpMutator<Blog>({
+    return httpMutator<BlogDto>({
       url: `/api/admin/blogs/${id}`,
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -249,18 +304,24 @@ export const getBlogAdminAPI = () => {
     });
   };
 
-  const adminBlogsControllerDeleteBlog = (id: number) => {
+  /**
+   * @summary 删除博客
+   */
+  const deleteAdminBlog = (id: number) => {
     return httpMutator<void>({
       url: `/api/admin/blogs/${id}`,
       method: "DELETE",
     });
   };
 
-  const adminBlogsControllerToggleBlogPublish = (
+  /**
+   * @summary 切换博客发布状态
+   */
+  const toggleAdminBlogPublish = (
     id: number,
     toggleBlogPublishDto: ToggleBlogPublishDto,
   ) => {
-    return httpMutator<Blog>({
+    return httpMutator<BlogDto>({
       url: `/api/admin/blogs/${id}/publish`,
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -268,28 +329,32 @@ export const getBlogAdminAPI = () => {
     });
   };
 
-  const adminMomentsControllerGetMoments = (
-    params?: AdminMomentsControllerGetMomentsParams,
-  ) => {
-    return httpMutator<void>({
+  /**
+   * @summary 获取动态列表
+   */
+  const getAdminMoments = (params?: GetAdminMomentsParams) => {
+    return httpMutator<MomentListResponse>({
       url: `/api/admin/moments`,
       method: "GET",
       params,
     });
   };
 
-  const adminMomentsControllerGetMomentById = (id: number) => {
-    return httpMutator<Moment>({
+  /**
+   * @summary 获取动态详情
+   */
+  const getAdminMomentById = (id: number) => {
+    return httpMutator<MomentDto>({
       url: `/api/admin/moments/${id}`,
       method: "GET",
     });
   };
 
-  const adminMomentsControllerUpdateMoment = (
-    id: number,
-    updateMomentDto: UpdateMomentDto,
-  ) => {
-    return httpMutator<Moment>({
+  /**
+   * @summary 更新动态
+   */
+  const updateAdminMoment = (id: number, updateMomentDto: UpdateMomentDto) => {
+    return httpMutator<MomentDto>({
       url: `/api/admin/moments/${id}`,
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -297,15 +362,21 @@ export const getBlogAdminAPI = () => {
     });
   };
 
-  const adminMomentsControllerDeleteMoment = (id: number) => {
+  /**
+   * @summary 删除动态
+   */
+  const deleteAdminMoment = (id: number) => {
     return httpMutator<void>({
       url: `/api/admin/moments/${id}`,
       method: "DELETE",
     });
   };
 
-  const adminSystemAnnouncementsControllerGetSystemAnnouncements = (
-    params?: AdminSystemAnnouncementsControllerGetSystemAnnouncementsParams,
+  /**
+   * @summary 获取系统公告列表
+   */
+  const getAdminSystemAnnouncements = (
+    params?: GetAdminSystemAnnouncementsParams,
   ) => {
     return httpMutator<void>({
       url: `/api/admin/system-announcements`,
@@ -314,10 +385,13 @@ export const getBlogAdminAPI = () => {
     });
   };
 
-  const adminSystemAnnouncementsControllerCreateSystemAnnouncement = (
+  /**
+   * @summary 创建系统公告
+   */
+  const createAdminSystemAnnouncement = (
     createSystemAnnouncementDto: CreateSystemAnnouncementDto,
   ) => {
-    return httpMutator<SystemAnnouncement>({
+    return httpMutator<void>({
       url: `/api/admin/system-announcements`,
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -325,20 +399,24 @@ export const getBlogAdminAPI = () => {
     });
   };
 
-  const adminSystemAnnouncementsControllerGetSystemAnnouncementById = (
-    id: number,
-  ) => {
-    return httpMutator<SystemAnnouncement>({
+  /**
+   * @summary 获取系统公告详情
+   */
+  const getAdminSystemAnnouncementById = (id: number) => {
+    return httpMutator<void>({
       url: `/api/admin/system-announcements/${id}`,
       method: "GET",
     });
   };
 
-  const adminSystemAnnouncementsControllerUpdateSystemAnnouncement = (
+  /**
+   * @summary 更新系统公告
+   */
+  const updateAdminSystemAnnouncement = (
     id: number,
     updateSystemAnnouncementDto: UpdateSystemAnnouncementDto,
   ) => {
-    return httpMutator<SystemAnnouncement>({
+    return httpMutator<void>({
       url: `/api/admin/system-announcements/${id}`,
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -346,381 +424,246 @@ export const getBlogAdminAPI = () => {
     });
   };
 
-  const adminSystemAnnouncementsControllerDeleteSystemAnnouncement = (
-    id: number,
-  ) => {
+  /**
+   * @summary 删除系统公告
+   */
+  const deleteAdminSystemAnnouncement = (id: number) => {
     return httpMutator<void>({
       url: `/api/admin/system-announcements/${id}`,
       method: "DELETE",
     });
   };
 
-  const adminSystemAnnouncementsControllerPublishSystemAnnouncement = (
-    id: number,
-  ) => {
+  /**
+   * @summary 发布系统公告
+   */
+  const publishAdminSystemAnnouncement = (id: number) => {
     return httpMutator<void>({
       url: `/api/admin/system-announcements/${id}/publish`,
       method: "POST",
     });
   };
 
-  const adminSystemAnnouncementsControllerRecallSystemAnnouncement = (
-    id: number,
-  ) => {
+  /**
+   * @summary 撤回系统公告
+   */
+  const recallAdminSystemAnnouncement = (id: number) => {
     return httpMutator<void>({
       url: `/api/admin/system-announcements/${id}/recall`,
       method: "POST",
     });
   };
 
-  const adminSystemAnnouncementsControllerSyncSystemAnnouncementNotifications =
-    (id: number) => {
-      return httpMutator<void>({
-        url: `/api/admin/system-announcements/${id}/sync-notifications`,
-        method: "POST",
-      });
-    };
+  /**
+   * @summary 同步系统公告通知
+   */
+  const syncAdminSystemAnnouncementNotifications = (id: number) => {
+    return httpMutator<void>({
+      url: `/api/admin/system-announcements/${id}/sync-notifications`,
+      method: "POST",
+    });
+  };
 
   return {
-    adminAuthControllerInitAdmin,
-    adminAuthControllerLogin,
-    adminAuthControllerGetProfile,
-    adminDashboardControllerGetDashboardStats,
-    adminDashboardControllerGetMomentsStats,
-    adminDashboardControllerGetDailyViews,
-    adminTopicsControllerGetTopics,
-    adminTopicsControllerCreateTopic,
-    adminTopicsControllerUpdateTopic,
-    adminTopicsControllerDeleteTopic,
-    adminCommentsControllerGetBlogComments,
-    adminCommentsControllerGetTopicComments,
-    adminCommentsControllerGetComments,
-    adminCommentsControllerDeleteComment,
-    adminCommentsControllerBatchDeleteComments,
-    adminUsersControllerGetUsers,
-    adminUsersControllerCreateUser,
-    adminUsersControllerGetUserById,
-    adminUsersControllerUpdateUser,
-    adminUsersControllerDeleteUser,
-    adminUsersControllerUpdateUserStatus,
-    adminBlogsControllerGetBlogs,
-    adminBlogsControllerGetBlogById,
-    adminBlogsControllerUpdateBlog,
-    adminBlogsControllerDeleteBlog,
-    adminBlogsControllerToggleBlogPublish,
-    adminMomentsControllerGetMoments,
-    adminMomentsControllerGetMomentById,
-    adminMomentsControllerUpdateMoment,
-    adminMomentsControllerDeleteMoment,
-    adminSystemAnnouncementsControllerGetSystemAnnouncements,
-    adminSystemAnnouncementsControllerCreateSystemAnnouncement,
-    adminSystemAnnouncementsControllerGetSystemAnnouncementById,
-    adminSystemAnnouncementsControllerUpdateSystemAnnouncement,
-    adminSystemAnnouncementsControllerDeleteSystemAnnouncement,
-    adminSystemAnnouncementsControllerPublishSystemAnnouncement,
-    adminSystemAnnouncementsControllerRecallSystemAnnouncement,
-    adminSystemAnnouncementsControllerSyncSystemAnnouncementNotifications,
+    initAdmin,
+    adminLogin,
+    getAdminProfile,
+    getAdminDashboardStats,
+    getAdminMomentsStats,
+    getAdminDailyViews,
+    getAdminTopics,
+    createAdminTopic,
+    updateAdminTopic,
+    deleteAdminTopic,
+    getAdminBlogComments,
+    getAdminTopicComments,
+    getAdminComments,
+    deleteAdminComment,
+    batchDeleteAdminComments,
+    getAdminUsers,
+    createAdminUser,
+    getAdminUserById,
+    updateAdminUser,
+    deleteAdminUser,
+    updateAdminUserStatus,
+    getAdminBlogs,
+    getAdminBlogById,
+    updateAdminBlog,
+    deleteAdminBlog,
+    toggleAdminBlogPublish,
+    getAdminMoments,
+    getAdminMomentById,
+    updateAdminMoment,
+    deleteAdminMoment,
+    getAdminSystemAnnouncements,
+    createAdminSystemAnnouncement,
+    getAdminSystemAnnouncementById,
+    updateAdminSystemAnnouncement,
+    deleteAdminSystemAnnouncement,
+    publishAdminSystemAnnouncement,
+    recallAdminSystemAnnouncement,
+    syncAdminSystemAnnouncementNotifications,
   };
 };
-export type AdminAuthControllerInitAdminResult = NonNullable<
+export type InitAdminResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof getBlogAdminAPI>["initAdmin"]>>
+>;
+export type AdminLoginResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof getBlogAdminAPI>["adminLogin"]>>
+>;
+export type GetAdminProfileResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof getBlogAdminAPI>["getAdminProfile"]>>
+>;
+export type GetAdminDashboardStatsResult = NonNullable<
+  Awaited<
+    ReturnType<ReturnType<typeof getBlogAdminAPI>["getAdminDashboardStats"]>
+  >
+>;
+export type GetAdminMomentsStatsResult = NonNullable<
+  Awaited<
+    ReturnType<ReturnType<typeof getBlogAdminAPI>["getAdminMomentsStats"]>
+  >
+>;
+export type GetAdminDailyViewsResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof getBlogAdminAPI>["getAdminDailyViews"]>>
+>;
+export type GetAdminTopicsResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof getBlogAdminAPI>["getAdminTopics"]>>
+>;
+export type CreateAdminTopicResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof getBlogAdminAPI>["createAdminTopic"]>>
+>;
+export type UpdateAdminTopicResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof getBlogAdminAPI>["updateAdminTopic"]>>
+>;
+export type DeleteAdminTopicResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof getBlogAdminAPI>["deleteAdminTopic"]>>
+>;
+export type GetAdminBlogCommentsResult = NonNullable<
+  Awaited<
+    ReturnType<ReturnType<typeof getBlogAdminAPI>["getAdminBlogComments"]>
+  >
+>;
+export type GetAdminTopicCommentsResult = NonNullable<
+  Awaited<
+    ReturnType<ReturnType<typeof getBlogAdminAPI>["getAdminTopicComments"]>
+  >
+>;
+export type GetAdminCommentsResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof getBlogAdminAPI>["getAdminComments"]>>
+>;
+export type DeleteAdminCommentResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof getBlogAdminAPI>["deleteAdminComment"]>>
+>;
+export type BatchDeleteAdminCommentsResult = NonNullable<
+  Awaited<
+    ReturnType<ReturnType<typeof getBlogAdminAPI>["batchDeleteAdminComments"]>
+  >
+>;
+export type GetAdminUsersResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof getBlogAdminAPI>["getAdminUsers"]>>
+>;
+export type CreateAdminUserResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof getBlogAdminAPI>["createAdminUser"]>>
+>;
+export type GetAdminUserByIdResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof getBlogAdminAPI>["getAdminUserById"]>>
+>;
+export type UpdateAdminUserResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof getBlogAdminAPI>["updateAdminUser"]>>
+>;
+export type DeleteAdminUserResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof getBlogAdminAPI>["deleteAdminUser"]>>
+>;
+export type UpdateAdminUserStatusResult = NonNullable<
+  Awaited<
+    ReturnType<ReturnType<typeof getBlogAdminAPI>["updateAdminUserStatus"]>
+  >
+>;
+export type GetAdminBlogsResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof getBlogAdminAPI>["getAdminBlogs"]>>
+>;
+export type GetAdminBlogByIdResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof getBlogAdminAPI>["getAdminBlogById"]>>
+>;
+export type UpdateAdminBlogResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof getBlogAdminAPI>["updateAdminBlog"]>>
+>;
+export type DeleteAdminBlogResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof getBlogAdminAPI>["deleteAdminBlog"]>>
+>;
+export type ToggleAdminBlogPublishResult = NonNullable<
+  Awaited<
+    ReturnType<ReturnType<typeof getBlogAdminAPI>["toggleAdminBlogPublish"]>
+  >
+>;
+export type GetAdminMomentsResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof getBlogAdminAPI>["getAdminMoments"]>>
+>;
+export type GetAdminMomentByIdResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof getBlogAdminAPI>["getAdminMomentById"]>>
+>;
+export type UpdateAdminMomentResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof getBlogAdminAPI>["updateAdminMoment"]>>
+>;
+export type DeleteAdminMomentResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof getBlogAdminAPI>["deleteAdminMoment"]>>
+>;
+export type GetAdminSystemAnnouncementsResult = NonNullable<
   Awaited<
     ReturnType<
-      ReturnType<typeof getBlogAdminAPI>["adminAuthControllerInitAdmin"]
+      ReturnType<typeof getBlogAdminAPI>["getAdminSystemAnnouncements"]
     >
   >
 >;
-export type AdminAuthControllerLoginResult = NonNullable<
-  Awaited<
-    ReturnType<ReturnType<typeof getBlogAdminAPI>["adminAuthControllerLogin"]>
-  >
->;
-export type AdminAuthControllerGetProfileResult = NonNullable<
+export type CreateAdminSystemAnnouncementResult = NonNullable<
   Awaited<
     ReturnType<
-      ReturnType<typeof getBlogAdminAPI>["adminAuthControllerGetProfile"]
+      ReturnType<typeof getBlogAdminAPI>["createAdminSystemAnnouncement"]
     >
   >
 >;
-export type AdminDashboardControllerGetDashboardStatsResult = NonNullable<
+export type GetAdminSystemAnnouncementByIdResult = NonNullable<
   Awaited<
     ReturnType<
-      ReturnType<
-        typeof getBlogAdminAPI
-      >["adminDashboardControllerGetDashboardStats"]
+      ReturnType<typeof getBlogAdminAPI>["getAdminSystemAnnouncementById"]
     >
   >
 >;
-export type AdminDashboardControllerGetMomentsStatsResult = NonNullable<
+export type UpdateAdminSystemAnnouncementResult = NonNullable<
   Awaited<
     ReturnType<
-      ReturnType<
-        typeof getBlogAdminAPI
-      >["adminDashboardControllerGetMomentsStats"]
+      ReturnType<typeof getBlogAdminAPI>["updateAdminSystemAnnouncement"]
     >
   >
 >;
-export type AdminDashboardControllerGetDailyViewsResult = NonNullable<
+export type DeleteAdminSystemAnnouncementResult = NonNullable<
   Awaited<
     ReturnType<
-      ReturnType<
-        typeof getBlogAdminAPI
-      >["adminDashboardControllerGetDailyViews"]
+      ReturnType<typeof getBlogAdminAPI>["deleteAdminSystemAnnouncement"]
     >
   >
 >;
-export type AdminTopicsControllerGetTopicsResult = NonNullable<
+export type PublishAdminSystemAnnouncementResult = NonNullable<
   Awaited<
     ReturnType<
-      ReturnType<typeof getBlogAdminAPI>["adminTopicsControllerGetTopics"]
+      ReturnType<typeof getBlogAdminAPI>["publishAdminSystemAnnouncement"]
     >
   >
 >;
-export type AdminTopicsControllerCreateTopicResult = NonNullable<
+export type RecallAdminSystemAnnouncementResult = NonNullable<
   Awaited<
     ReturnType<
-      ReturnType<typeof getBlogAdminAPI>["adminTopicsControllerCreateTopic"]
+      ReturnType<typeof getBlogAdminAPI>["recallAdminSystemAnnouncement"]
     >
   >
 >;
-export type AdminTopicsControllerUpdateTopicResult = NonNullable<
-  Awaited<
-    ReturnType<
-      ReturnType<typeof getBlogAdminAPI>["adminTopicsControllerUpdateTopic"]
-    >
-  >
->;
-export type AdminTopicsControllerDeleteTopicResult = NonNullable<
-  Awaited<
-    ReturnType<
-      ReturnType<typeof getBlogAdminAPI>["adminTopicsControllerDeleteTopic"]
-    >
-  >
->;
-export type AdminCommentsControllerGetBlogCommentsResult = NonNullable<
-  Awaited<
-    ReturnType<
-      ReturnType<
-        typeof getBlogAdminAPI
-      >["adminCommentsControllerGetBlogComments"]
-    >
-  >
->;
-export type AdminCommentsControllerGetTopicCommentsResult = NonNullable<
-  Awaited<
-    ReturnType<
-      ReturnType<
-        typeof getBlogAdminAPI
-      >["adminCommentsControllerGetTopicComments"]
-    >
-  >
->;
-export type AdminCommentsControllerGetCommentsResult = NonNullable<
-  Awaited<
-    ReturnType<
-      ReturnType<typeof getBlogAdminAPI>["adminCommentsControllerGetComments"]
-    >
-  >
->;
-export type AdminCommentsControllerDeleteCommentResult = NonNullable<
-  Awaited<
-    ReturnType<
-      ReturnType<typeof getBlogAdminAPI>["adminCommentsControllerDeleteComment"]
-    >
-  >
->;
-export type AdminCommentsControllerBatchDeleteCommentsResult = NonNullable<
-  Awaited<
-    ReturnType<
-      ReturnType<
-        typeof getBlogAdminAPI
-      >["adminCommentsControllerBatchDeleteComments"]
-    >
-  >
->;
-export type AdminUsersControllerGetUsersResult = NonNullable<
-  Awaited<
-    ReturnType<
-      ReturnType<typeof getBlogAdminAPI>["adminUsersControllerGetUsers"]
-    >
-  >
->;
-export type AdminUsersControllerCreateUserResult = NonNullable<
-  Awaited<
-    ReturnType<
-      ReturnType<typeof getBlogAdminAPI>["adminUsersControllerCreateUser"]
-    >
-  >
->;
-export type AdminUsersControllerGetUserByIdResult = NonNullable<
-  Awaited<
-    ReturnType<
-      ReturnType<typeof getBlogAdminAPI>["adminUsersControllerGetUserById"]
-    >
-  >
->;
-export type AdminUsersControllerUpdateUserResult = NonNullable<
-  Awaited<
-    ReturnType<
-      ReturnType<typeof getBlogAdminAPI>["adminUsersControllerUpdateUser"]
-    >
-  >
->;
-export type AdminUsersControllerDeleteUserResult = NonNullable<
-  Awaited<
-    ReturnType<
-      ReturnType<typeof getBlogAdminAPI>["adminUsersControllerDeleteUser"]
-    >
-  >
->;
-export type AdminUsersControllerUpdateUserStatusResult = NonNullable<
-  Awaited<
-    ReturnType<
-      ReturnType<typeof getBlogAdminAPI>["adminUsersControllerUpdateUserStatus"]
-    >
-  >
->;
-export type AdminBlogsControllerGetBlogsResult = NonNullable<
-  Awaited<
-    ReturnType<
-      ReturnType<typeof getBlogAdminAPI>["adminBlogsControllerGetBlogs"]
-    >
-  >
->;
-export type AdminBlogsControllerGetBlogByIdResult = NonNullable<
-  Awaited<
-    ReturnType<
-      ReturnType<typeof getBlogAdminAPI>["adminBlogsControllerGetBlogById"]
-    >
-  >
->;
-export type AdminBlogsControllerUpdateBlogResult = NonNullable<
-  Awaited<
-    ReturnType<
-      ReturnType<typeof getBlogAdminAPI>["adminBlogsControllerUpdateBlog"]
-    >
-  >
->;
-export type AdminBlogsControllerDeleteBlogResult = NonNullable<
-  Awaited<
-    ReturnType<
-      ReturnType<typeof getBlogAdminAPI>["adminBlogsControllerDeleteBlog"]
-    >
-  >
->;
-export type AdminBlogsControllerToggleBlogPublishResult = NonNullable<
+export type SyncAdminSystemAnnouncementNotificationsResult = NonNullable<
   Awaited<
     ReturnType<
       ReturnType<
         typeof getBlogAdminAPI
-      >["adminBlogsControllerToggleBlogPublish"]
+      >["syncAdminSystemAnnouncementNotifications"]
     >
   >
 >;
-export type AdminMomentsControllerGetMomentsResult = NonNullable<
-  Awaited<
-    ReturnType<
-      ReturnType<typeof getBlogAdminAPI>["adminMomentsControllerGetMoments"]
-    >
-  >
->;
-export type AdminMomentsControllerGetMomentByIdResult = NonNullable<
-  Awaited<
-    ReturnType<
-      ReturnType<typeof getBlogAdminAPI>["adminMomentsControllerGetMomentById"]
-    >
-  >
->;
-export type AdminMomentsControllerUpdateMomentResult = NonNullable<
-  Awaited<
-    ReturnType<
-      ReturnType<typeof getBlogAdminAPI>["adminMomentsControllerUpdateMoment"]
-    >
-  >
->;
-export type AdminMomentsControllerDeleteMomentResult = NonNullable<
-  Awaited<
-    ReturnType<
-      ReturnType<typeof getBlogAdminAPI>["adminMomentsControllerDeleteMoment"]
-    >
-  >
->;
-export type AdminSystemAnnouncementsControllerGetSystemAnnouncementsResult =
-  NonNullable<
-    Awaited<
-      ReturnType<
-        ReturnType<
-          typeof getBlogAdminAPI
-        >["adminSystemAnnouncementsControllerGetSystemAnnouncements"]
-      >
-    >
-  >;
-export type AdminSystemAnnouncementsControllerCreateSystemAnnouncementResult =
-  NonNullable<
-    Awaited<
-      ReturnType<
-        ReturnType<
-          typeof getBlogAdminAPI
-        >["adminSystemAnnouncementsControllerCreateSystemAnnouncement"]
-      >
-    >
-  >;
-export type AdminSystemAnnouncementsControllerGetSystemAnnouncementByIdResult =
-  NonNullable<
-    Awaited<
-      ReturnType<
-        ReturnType<
-          typeof getBlogAdminAPI
-        >["adminSystemAnnouncementsControllerGetSystemAnnouncementById"]
-      >
-    >
-  >;
-export type AdminSystemAnnouncementsControllerUpdateSystemAnnouncementResult =
-  NonNullable<
-    Awaited<
-      ReturnType<
-        ReturnType<
-          typeof getBlogAdminAPI
-        >["adminSystemAnnouncementsControllerUpdateSystemAnnouncement"]
-      >
-    >
-  >;
-export type AdminSystemAnnouncementsControllerDeleteSystemAnnouncementResult =
-  NonNullable<
-    Awaited<
-      ReturnType<
-        ReturnType<
-          typeof getBlogAdminAPI
-        >["adminSystemAnnouncementsControllerDeleteSystemAnnouncement"]
-      >
-    >
-  >;
-export type AdminSystemAnnouncementsControllerPublishSystemAnnouncementResult =
-  NonNullable<
-    Awaited<
-      ReturnType<
-        ReturnType<
-          typeof getBlogAdminAPI
-        >["adminSystemAnnouncementsControllerPublishSystemAnnouncement"]
-      >
-    >
-  >;
-export type AdminSystemAnnouncementsControllerRecallSystemAnnouncementResult =
-  NonNullable<
-    Awaited<
-      ReturnType<
-        ReturnType<
-          typeof getBlogAdminAPI
-        >["adminSystemAnnouncementsControllerRecallSystemAnnouncement"]
-      >
-    >
-  >;
-export type AdminSystemAnnouncementsControllerSyncSystemAnnouncementNotificationsResult =
-  NonNullable<
-    Awaited<
-      ReturnType<
-        ReturnType<
-          typeof getBlogAdminAPI
-        >["adminSystemAnnouncementsControllerSyncSystemAnnouncementNotifications"]
-      >
-    >
-  >;

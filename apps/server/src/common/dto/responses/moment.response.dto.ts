@@ -78,7 +78,7 @@ export class MomentDto {
   updatedAt: Date;
 }
 
-export class MomentListResponseDto {
+export class MomentListResponse {
   @ApiProperty({ type: [MomentDto], description: '沸点列表' })
   list: MomentDto[];
 
@@ -123,4 +123,12 @@ export class TopicDto {
 
   @ApiProperty({ description: '创建时间' })
   createdAt: Date;
+}
+
+export class TopicListResponse {
+  @ApiProperty({ type: [TopicDto], description: '话题列表' })
+  list: TopicDto[];
+
+  @ApiProperty({ description: '总数' })
+  total: number;
 }

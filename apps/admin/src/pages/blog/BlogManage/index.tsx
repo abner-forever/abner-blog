@@ -14,13 +14,13 @@ import {
 import type { TableProps } from "antd";
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import { getBlogAdminAPI } from "@/services/generated/admin";
-import type { Blog, ToggleBlogPublishDto } from "@/services/generated/model";
+import type { BlogDto, ToggleBlogPublishDto } from "@/services/generated/model";
 import PageContainer from "@/components/PageContainer";
 
 const api = getBlogAdminAPI();
 
 const BlogManage: React.FC = () => {
-  const [data, setData] = useState<Blog[]>([]);
+  const [data, setData] = useState<BlogDto[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pagination, setPagination] = useState({
@@ -38,15 +38,15 @@ const BlogManage: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const result = await api.adminBlogsControllerGetBlogs({
-        page: String(pagination.current),
-        size: String(pagination.pageSize),
+      const result = await api.getAdminBlogs({
+        page: pagination.current,
+        size: pagination.pageSize,
         keyword: keyword || undefined,
         isPublished: status,
         sort: sort,
       });
       const res = result as unknown as {
-        list: Blog[];
+        list: BlogDto[];
         total: number;
       };
       setData(res.list || []);
@@ -88,13 +88,13 @@ const BlogManage: React.FC = () => {
     loadData();
   };
 
-  const handleEdit = (record: Blog) => {
+  const handleEdit = (record: BlogDto) => {
     navigate(`/blogs/${record.id}/edit`);
   };
 
   const handleDelete = async (id: number) => {
     try {
-      await api.adminBlogsControllerDeleteBlog(id);
+      await api.deleteAdminBlog(id);
       message.success("删除成功");
       loadData();
     } catch {
@@ -102,9 +102,9 @@ const BlogManage: React.FC = () => {
     }
   };
 
-  const handlePublishToggle = async (record: Blog) => {
+  const handlePublishToggle = async (record: BlogDto) => {
     try {
-      await api.adminBlogsControllerToggleBlogPublish(record.id, {
+      await api.toggleAdminBlogPublish(record.id, {
         isPublished: !record.isPublished,
       } as ToggleBlogPublishDto);
       message.success(record.isPublished ? "已下架" : "已发布");
@@ -114,7 +114,7 @@ const BlogManage: React.FC = () => {
     }
   };
 
-  const columns: TableProps<Blog>["columns"] = [
+  const columns: TableProps<BlogDto>["columns"] = [
     { title: "ID", dataIndex: "id", width: 50 },
     {
       title: "标题",
@@ -127,7 +127,7 @@ const BlogManage: React.FC = () => {
       title: "作者",
       dataIndex: ["author", "username"],
       width: 70,
-      render: (_: unknown, record: Blog) => record.author?.username || "-",
+      render: (_: unknown, record: BlogDto) => record.author?.username || "-",
     },
     {
       title: "状态",
@@ -153,7 +153,7 @@ const BlogManage: React.FC = () => {
       title: "操作",
       key: "action",
       width: 140,
-      render: (_: unknown, record: Blog) => (
+      render: (_: unknown, record: BlogDto) => (
         <Space size="small">
           <Button
             type="link"

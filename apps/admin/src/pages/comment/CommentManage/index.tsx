@@ -12,7 +12,8 @@ import {
 import type { TableProps } from "antd";
 import { DeleteOutlined } from "@ant-design/icons";
 import { getBlogAdminAPI } from "@/services/generated/admin";
-import type { Comment } from "@/services/generated/model";
+import type { BlogCommentDto, CommentDto, TopicCommentDto } from "@/services/generated/model";
+import dayjs from "dayjs";
 
 const api = getBlogAdminAPI();
 
@@ -21,7 +22,7 @@ const CommentManage: React.FC = () => {
   const [activeTab, setActiveTab] = useState("blog");
 
   // 博客评论
-  const [blogComments, setBlogComments] = useState<Comment[]>([]);
+  const [blogComments, setBlogComments] = useState<BlogCommentDto[]>([]);
   const [blogPagination, setBlogPagination] = useState({
     current: 1,
     pageSize: 10,
@@ -30,7 +31,7 @@ const CommentManage: React.FC = () => {
   const [blogKeyword, setBlogKeyword] = useState("");
 
   // 闲聊评论
-  const [topicComments, setTopicComments] = useState<Comment[]>([]);
+  const [topicComments, setTopicComments] = useState<TopicCommentDto[]>([]);
   const [topicPagination, setTopicPagination] = useState({
     current: 1,
     pageSize: 10,
@@ -44,12 +45,11 @@ const CommentManage: React.FC = () => {
   const loadBlogComments = useCallback(async () => {
     setLoading(true);
     try {
-      const result = await api.adminCommentsControllerGetBlogComments({
-        page: String(blogPagination.current),
-        size: String(blogPagination.pageSize),
+      const response = await api.getAdminBlogComments({
+        page: blogPagination.current,
+        size: blogPagination.pageSize,
         keyword: blogKeyword || undefined,
       });
-      const response = result as unknown as { list: Comment[]; total: number };
       setBlogComments(response.list || []);
       setBlogPagination((prev) => ({ ...prev, total: response.total || 0 }));
     } catch {
@@ -63,12 +63,11 @@ const CommentManage: React.FC = () => {
   const loadTopicComments = useCallback(async () => {
     setLoading(true);
     try {
-      const result = await api.adminCommentsControllerGetTopicComments({
-        page: String(topicPagination.current),
-        size: String(topicPagination.pageSize),
+      const response = await api.getAdminTopicComments({
+        page: topicPagination.current,
+        size: topicPagination.pageSize,
         keyword: topicKeyword || undefined,
       });
-      const response = result as unknown as { list: Comment[]; total: number };
       setTopicComments(response.list || []);
       setTopicPagination((prev) => ({ ...prev, total: response.total || 0 }));
     } catch {
@@ -99,7 +98,7 @@ const CommentManage: React.FC = () => {
 
   const handleDelete = async (id: number) => {
     try {
-      await api.adminCommentsControllerDeleteComment(id);
+      await api.deleteAdminComment(id);
       message.success("删除成功");
       if (activeTab === "blog") {
         loadBlogComments();
@@ -115,7 +114,7 @@ const CommentManage: React.FC = () => {
     if (selectedRowKeys.length === 0) return;
     try {
       const batchData = { ids: selectedRowKeys };
-      await api.adminCommentsControllerBatchDeleteComments(batchData);
+      await api.batchDeleteAdminComments(batchData);
       message.success("批量删除成功");
       setSelectedRowKeys([]);
       if (activeTab === "blog") {
@@ -133,32 +132,33 @@ const CommentManage: React.FC = () => {
     onChange: (keys: React.Key[]) => setSelectedRowKeys(keys as number[]),
   };
 
-  const blogColumns: TableProps<Comment>["columns"] = [
+  const blogColumns: TableProps<CommentDto>["columns"] = [
     { title: "ID", dataIndex: "id", width: 60 },
-    { title: "评论内容", dataIndex: "content", ellipsis: true },
     {
       title: "博客",
       dataIndex: ["blog", "title"],
       ellipsis: true,
-      width: 150,
-      render: (_: unknown, record: Comment) => record.blog?.title || "-",
+      width: 300,
+      render: (_: unknown, record: BlogCommentDto) => record.blog?.title || "-",
     },
+    { title: "评论内容", dataIndex: "content", ellipsis: true },
     {
       title: "作者",
       dataIndex: ["author", "username"],
       width: 100,
-      render: (_: unknown, record: Comment) => record.author?.username || "-",
+      render: (_: unknown, record) => record.author?.username || "-",
     },
     {
       title: "时间",
       dataIndex: "createdAt",
+      width: 200,
       render: (v: string) => new Date(v).toLocaleString(),
     },
     {
       title: "操作",
       key: "action",
       width: 100,
-      render: (_: unknown, record: Comment) => (
+      render: (_: unknown, record) => (
         <Popconfirm title="确定删除?" onConfirm={() => handleDelete(record.id)}>
           <Button type="link" size="small" danger icon={<DeleteOutlined />}>
             删除
@@ -168,7 +168,7 @@ const CommentManage: React.FC = () => {
     },
   ];
 
-  const topicColumns: TableProps<Comment>["columns"] = [
+  const topicColumns: TableProps<TopicCommentDto>["columns"] = [
     { title: "ID", dataIndex: "id", width: 60 },
     { title: "评论内容", dataIndex: "content", ellipsis: true },
     {
@@ -176,9 +176,9 @@ const CommentManage: React.FC = () => {
       dataIndex: ["blog", "title"],
       ellipsis: true,
       width: 150,
-      render: (_: unknown, record: Comment) =>
-        record.blog?.title ? (
-          <Tag color="purple">{record.blog.title}</Tag>
+      render: (_: unknown, record) =>
+        record.topic?.name ? (
+          <Tag color="purple">{record.topic.name}</Tag>
         ) : (
           "-"
         ),
@@ -186,19 +186,20 @@ const CommentManage: React.FC = () => {
     {
       title: "作者",
       dataIndex: ["author", "username"],
-      width: 100,
-      render: (_: unknown, record: Comment) => record.author?.username || "-",
+      width: 150,
+      render: (_: unknown, record) => record.author?.username || "-",
     },
     {
       title: "时间",
       dataIndex: "createdAt",
-      render: (v: string) => new Date(v).toLocaleString(),
+      width: 200,
+      render: (v: string) => dayjs(v).format("YYYY-MM-DD HH:mm:ss"),
     },
     {
       title: "操作",
       key: "action",
       width: 100,
-      render: (_: unknown, record: Comment) => (
+      render: (_: unknown, record) => (
         <Popconfirm title="确定删除?" onConfirm={() => handleDelete(record.id)}>
           <Button type="link" size="small" danger icon={<DeleteOutlined />}>
             删除

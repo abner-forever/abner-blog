@@ -67,7 +67,7 @@
     "tencentcloud-sdk-nodejs-captcha": "^4.1.191",
     "typeorm": "^0.3.20",
     "uuid": "^11.1.0",
-    "webpack": "^5.90.3",
+    "webpack": "^5.104.1",
     "webpack-cli": "^5.1.4",
     "webpack-node-externals": "^3.0.0"
   },

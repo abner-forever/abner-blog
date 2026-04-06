@@ -20,7 +20,7 @@ export class Comment {
   @ManyToOne(() => User, (user) => user.comments, { onDelete: 'CASCADE' })
   author: User;
 
-  @ManyToOne(() => Blog, (blog) => blog.comments)
+  @ManyToOne(() => Blog, (blog) => blog.comments, { onDelete: 'CASCADE' })
   blog: Blog;
 
   @Column({ default: 0 })
@@ -29,7 +29,7 @@ export class Comment {
   @Column({ default: false })
   isEdited: boolean;
 
-  @ManyToOne(() => Comment, { nullable: true })
+  @ManyToOne(() => Comment, { nullable: true, onDelete: 'CASCADE' })
   parentComment?: Comment;
 
   @ManyToOne(() => User, { nullable: true, eager: true, onDelete: 'CASCADE' })

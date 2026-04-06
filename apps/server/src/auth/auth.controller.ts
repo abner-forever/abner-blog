@@ -84,6 +84,7 @@ export class AuthController {
   }
 
   @ApiOperation({ summary: '发送邮箱验证码' })
+  @ApiResponse({ status: 200, description: '验证码发送成功' })
   @Post('send-code')
   async sendCode(@Body() sendCodeDto: SendCodeDto, @Ip() ip: string) {
     return this.authService.sendVerificationCode(sendCodeDto, ip);
@@ -106,12 +107,14 @@ export class AuthController {
   }
 
   @ApiOperation({ summary: '请求重置密码（发送邮件）' })
+  @ApiResponse({ status: 200, description: '重置邮件发送成功' })
   @Post('request-reset')
   async requestReset(@Body() requestPasswordResetDto: RequestPasswordResetDto) {
     return this.authService.requestPasswordReset(requestPasswordResetDto.email);
   }
 
   @ApiOperation({ summary: '重置密码' })
+  @ApiResponse({ status: 200, description: '密码重置成功' })
   @Post('reset-password')
   async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
     return this.authService.resetPassword(

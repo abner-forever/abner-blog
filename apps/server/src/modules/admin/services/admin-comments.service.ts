@@ -139,10 +139,14 @@ export class AdminCommentsService {
         return {
           id: comment.id,
           content: comment.content,
-          authorUsername: author?.username,
-          authorId: author?.id,
-          topicName: moment?.topic?.name,
-          topicId: moment?.topic?.id,
+          author: {
+            id: author?.id,
+            username: author?.username,
+          },
+          topic: {
+            id: moment?.topic?.id,
+            name: moment?.topic?.name,
+          },
           createdAt: comment.createdAt,
         };
       }),
@@ -199,11 +203,21 @@ export class AdminCommentsService {
   }
 
   async deleteComment(id: number) {
+    // 先查博客评论
     const comment = await this.commentRepository.findOne({ where: { id } });
-    if (!comment) {
-      throw new NotFoundException('评论不存在');
+    if (comment) {
+      await this.commentRepository.remove(comment);
+      return;
     }
-    await this.commentRepository.remove(comment);
+    // 再查话题评论
+    const momentComment = await this.momentCommentRepository.findOne({
+      where: { id },
+    });
+    if (momentComment) {
+      await this.momentCommentRepository.remove(momentComment);
+      return;
+    }
+    throw new NotFoundException('评论不存在');
   }
 
   async batchDeleteComments(dto: BatchDeleteCommentsDto) {

@@ -8,7 +8,7 @@
   ],
   "scripts": {
     "dev:web": "cd apps/web && pnpm run dev",
-    "dev:server": "cd apps/server && pnpm run start:dev",
+    "dev:server": "cd apps/server && pnpm run dev",
     "dev:admin": "cd apps/admin && pnpm run dev",
     "build:web": "cd apps/web && pnpm run build",
     "build:server": "cd apps/server && pnpm run build",

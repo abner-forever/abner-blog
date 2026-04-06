@@ -26,7 +26,7 @@ import type {
   CreateMomentCommentDto,
   CreateMomentDto,
   MomentDto,
-  MomentListResponseDto,
+  MomentListResponse,
   MomentsControllerFindAllParams,
   MomentsControllerGetFavorites200Item,
   ToggleMomentFavoriteResponseDto,
@@ -129,7 +129,7 @@ export const momentsControllerFindAll = (
   params?: MomentsControllerFindAllParams,
   signal?: AbortSignal,
 ) => {
-  return httpMutator<MomentListResponseDto>({
+  return httpMutator<MomentListResponse>({
     url: `/api/moments`,
     method: 'GET',
     params,

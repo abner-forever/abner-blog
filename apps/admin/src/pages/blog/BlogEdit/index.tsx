@@ -22,8 +22,8 @@ import { MdEditor } from "md-editor-rt";
 import "md-editor-rt/lib/style.css";
 import { getBlogAdminAPI } from "@/services/generated/admin";
 import type {
-  Blog,
-  Comment,
+  BlogDto,
+  CommentDto,
   AdminUpdateBlogDto,
 } from "@/services/generated/model";
 
@@ -53,7 +53,7 @@ const BlogEdit: React.FC = () => {
   const [mdTheme, setMdTheme] = useState<MdTheme>("default");
 
   // 评论相关
-  const [comments, setComments] = useState<Comment[]>([]);
+  const [comments, setComments] = useState<CommentDto[]>([]);
   const [commentsLoading, setCommentsLoading] = useState(false);
   const [commentsPagination, setCommentsPagination] = useState({
     current: 1,
@@ -64,8 +64,8 @@ const BlogEdit: React.FC = () => {
   const loadBlog = useCallback(async () => {
     if (!id) return;
     try {
-      const data = await api.adminBlogsControllerGetBlogById(Number(id));
-      const blogData = data as unknown as Blog;
+      const data = await api.getAdminBlogById(Number(id));
+      const blogData = data as unknown as BlogDto;
       form.setFieldsValue({
         title: blogData.title,
         summary: blogData.summary,
@@ -87,13 +87,13 @@ const BlogEdit: React.FC = () => {
     if (!id) return;
     setCommentsLoading(true);
     try {
-      const result = await api.adminCommentsControllerGetBlogComments({
-        page: String(commentsPagination.current),
-        size: String(commentsPagination.pageSize),
-        blogId: String(id),
+      const result = await api.getAdminBlogComments({
+        page: commentsPagination.current,
+        size: commentsPagination.pageSize,
+        blogId: Number(id),
       });
       const response = result as unknown as {
-        list: Comment[];
+        list: CommentDto[];
         total: number;
       };
       setComments(response.list || []);
@@ -129,7 +129,7 @@ const BlogEdit: React.FC = () => {
         tags: values.tags,
         mdTheme: mdTheme !== "default" ? mdTheme : undefined as string,
       };
-      await api.adminBlogsControllerUpdateBlog(Number(id), updateData);
+      await api.updateAdminBlog(Number(id), updateData);
       message.success("保存成功");
     } catch {
       message.error("保存失败");
@@ -140,7 +140,7 @@ const BlogEdit: React.FC = () => {
 
   const handleDeleteComment = async (commentId: number) => {
     try {
-      await api.adminCommentsControllerDeleteComment(commentId);
+      await api.deleteAdminComment(commentId);
       message.success("删除成功");
       loadComments();
     } catch {

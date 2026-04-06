@@ -1,3 +1,6 @@
+/**
+ * 用户状态
+ */
 export type UpdateUserStatusDtoStatus =
   (typeof UpdateUserStatusDtoStatus)[keyof typeof UpdateUserStatusDtoStatus];
 

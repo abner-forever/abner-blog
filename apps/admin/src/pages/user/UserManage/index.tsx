@@ -21,7 +21,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { getBlogAdminAPI } from "@/services/generated/admin";
 import type {
-  User,
+  UserProfileDto,
   CreateUserDto,
   UpdateUserDto,
   UpdateUserStatusDtoStatus
@@ -32,7 +32,7 @@ const api = getBlogAdminAPI();
 
 const UserManage: React.FC = () => {
   const { t } = useTranslation();
-  const [data, setData] = useState<User[]>([]);
+  const [data, setData] = useState<UserProfileDto[]>([]);
   const [loading, setLoading] = useState(false);
   const [pagination, setPagination] = useState({
     current: 1,
@@ -40,7 +40,7 @@ const UserManage: React.FC = () => {
     total: 0,
   });
   const [modalVisible, setModalVisible] = useState(false);
-  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [editingUser, setEditingUser] = useState<UserProfileDto | null>(null);
   const [form] = Form.useForm();
   const [keyword, setKeyword] = useState<string>("");
 
@@ -52,8 +52,8 @@ const UserManage: React.FC = () => {
         size: String(pagination.pageSize),
         keyword: keyword || undefined,
       };
-      const result = (await api.adminUsersControllerGetUsers(params)) as unknown as {
-        list: User[];
+      const result = (await api.getAdminUsers(params as any)) as unknown as {
+        list: UserProfileDto[];
         total: number;
       };
       setData(result.list || []);
@@ -81,7 +81,7 @@ const UserManage: React.FC = () => {
     setModalVisible(true);
   };
 
-  const handleEdit = (record: User) => {
+  const handleEdit = (record: UserProfileDto) => {
     setEditingUser(record);
     form.setFieldsValue(record);
     setModalVisible(true);
@@ -89,7 +89,7 @@ const UserManage: React.FC = () => {
 
   const handleDelete = async (id: number) => {
     try {
-      await api.adminUsersControllerDeleteUser(id);
+      await api.deleteAdminUser(id);
       message.success(t("userManage.deleteSuccess"));
       loadData();
     } catch {
@@ -102,7 +102,7 @@ const UserManage: React.FC = () => {
     status: UpdateUserStatusDtoStatus,
   ) => {
     try {
-      await api.adminUsersControllerUpdateUserStatus(id, { status });
+      await api.updateAdminUserStatus(id, { status });
       message.success(t("userManage.statusUpdateSuccess"));
       loadData();
     } catch {
@@ -120,7 +120,7 @@ const UserManage: React.FC = () => {
           role: values.role,
           status: values.status,
         };
-        await api.adminUsersControllerUpdateUser(editingUser.id, updateData);
+        await api.updateAdminUser(editingUser.id, updateData);
         message.success(t("userManage.updateSuccess"));
       } else {
         const createData: CreateUserDto = {
@@ -131,7 +131,7 @@ const UserManage: React.FC = () => {
           role: values.role,
           status: values.status,
         };
-        await api.adminUsersControllerCreateUser(createData);
+        await api.createAdminUser(createData);
         message.success(t("userManage.createSuccess"));
       }
       setModalVisible(false);
@@ -174,7 +174,7 @@ const UserManage: React.FC = () => {
     {
       title: t("common.actions"),
       key: "action",
-      render: (_: unknown, record: User) => (
+      render: (_: unknown, record: UserProfileDto) => (
         <Space>
           <Button
             type="link"

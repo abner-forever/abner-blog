@@ -23,7 +23,7 @@ import ReactECharts from "echarts-for-react";
 import * as echarts from "echarts";
 import { getBlogAdminAPI } from "@/services/generated/admin";
 import type {
-  AdminDashboardControllerGetDailyViewsType,
+  GetAdminDailyViewsType,
   DailyViewItemDto,
 } from "@/services/generated/model";
 import "./index.less";
@@ -56,7 +56,7 @@ const Dashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [viewType, setViewType] =
-    useState<AdminDashboardControllerGetDailyViewsType>("all");
+    useState<GetAdminDailyViewsType>("all");
   const chartRef = useRef<ReactECharts>(null);
 
   const loadData = useCallback(async () => {
@@ -65,9 +65,9 @@ const Dashboard: React.FC = () => {
     try {
       const params = { type: viewType };
       const [blogRaw, momentRaw, viewsData] = await Promise.all([
-        api.adminDashboardControllerGetDashboardStats(),
-        api.adminDashboardControllerGetMomentsStats(),
-        api.adminDashboardControllerGetDailyViews(params),
+        api.getAdminDashboardStats(),
+        api.getAdminMomentsStats(),
+        api.getAdminDailyViews(params),
       ]);
 
       const blogParsed = blogRaw as unknown as DashboardBlogStats | undefined;
@@ -296,13 +296,15 @@ const Dashboard: React.FC = () => {
   }
 
   return (
-    <div>
+    <div style={{ overflowX: "hidden" }}>
       <div
         style={{
           marginBottom: 24,
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
+          flexWrap: "wrap",
+          gap: 12,
         }}
       >
         <h2 style={{ margin: 0 }}>数据概览</h2>
@@ -377,7 +379,7 @@ const Dashboard: React.FC = () => {
               <Segmented
                 value={viewType}
                 onChange={(val) =>
-                  setViewType(val as AdminDashboardControllerGetDailyViewsType)
+                  setViewType(val as GetAdminDailyViewsType)
                 }
                 options={[
                   { label: "全部", value: "all" },
@@ -387,6 +389,7 @@ const Dashboard: React.FC = () => {
               />
             }
             style={{ borderRadius: 8 }}
+            styles={{ body: { minWidth: 0 } }}
           >
             <ReactECharts
               ref={chartRef}
@@ -396,7 +399,7 @@ const Dashboard: React.FC = () => {
           </Card>
         </Col>
         <Col xs={24} lg={8}>
-          <Card title="博客分类" style={{ borderRadius: 8 }}>
+          <Card title="博客分类" style={{ borderRadius: 8 }} styles={{ body: { minWidth: 0 } }}>
             <ReactECharts
               option={getCategoryOption()}
               style={{ height: 300 }}

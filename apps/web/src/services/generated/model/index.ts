@@ -70,7 +70,7 @@ export * from './momentComment';
 export * from './momentDto';
 export * from './momentFavorite';
 export * from './momentLike';
-export * from './momentListResponseDto';
+export * from './momentListResponse';
 export * from './momentsControllerFindAllParams';
 export * from './momentsControllerFindAllSortBy';
 export * from './momentsControllerGetFavorites200Item';

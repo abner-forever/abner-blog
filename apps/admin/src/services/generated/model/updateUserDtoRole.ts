@@ -1,3 +1,6 @@
+/**
+ * 用户角色
+ */
 export type UpdateUserDtoRole =
   (typeof UpdateUserDtoRole)[keyof typeof UpdateUserDtoRole];
 

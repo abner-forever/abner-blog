@@ -13,14 +13,14 @@ import {
 import { PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import { getBlogAdminAPI } from "@/services/generated/admin";
 import type {
-  Topic,
+  TopicDto,
   AdminCreateTopicDto,
   UpdateTopicDto,
 } from "@/services/generated/model";
 
 const api = getBlogAdminAPI();
 
-type TopicRow = Topic;
+type TopicRow = TopicDto;
 
 const TopicManage: React.FC = () => {
   const [data, setData] = useState<TopicRow[]>([]);
@@ -43,7 +43,7 @@ const TopicManage: React.FC = () => {
         size: pagination.pageSize,
         keyword: keyword || undefined,
       };
-      const result = await api.adminTopicsControllerGetTopics(params);
+      const result = await api.getAdminTopics(params);
       const response = result as unknown as {
         list: TopicRow[];
         total: number;
@@ -81,7 +81,7 @@ const TopicManage: React.FC = () => {
 
   const handleDelete = async (id: number) => {
     try {
-      await api.adminTopicsControllerDeleteTopic(id);
+      await api.deleteAdminTopic(id);
       message.success("删除成功");
       loadData();
     } catch {
@@ -99,7 +99,7 @@ const TopicManage: React.FC = () => {
           cover: values.cover,
           isHot: values.isHot,
         };
-        await api.adminTopicsControllerUpdateTopic(editingTopic.id, updateData);
+        await api.updateAdminTopic(editingTopic.id, updateData);
         message.success("更新成功");
       } else {
         const createData: AdminCreateTopicDto = {
@@ -108,7 +108,7 @@ const TopicManage: React.FC = () => {
           cover: values.cover,
           isHot: values.isHot,
         };
-        await api.adminTopicsControllerCreateTopic(createData);
+        await api.createAdminTopic(createData);
         message.success("创建成功");
       }
       setModalVisible(false);
@@ -120,8 +120,8 @@ const TopicManage: React.FC = () => {
 
   const handleHotToggle = async (record: TopicRow) => {
     try {
-      await api.adminTopicsControllerUpdateTopic(record.id, { isHot: !record.isHot });
-      message.success(record.isHot ? "已取消热门" : "已设为热门");
+      await api.updateAdminTopic(record.id, { isHot: !(record as any).isHot });
+      message.success((record as any).isHot ? "已取消热门" : "已设为热门");
       loadData();
     } catch {
       message.error("操作失败");

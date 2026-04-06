@@ -178,9 +178,9 @@ const SystemAnnouncementManage: React.FC = () => {
     {
       title: t("systemAnnouncement.statusCol"),
       key: "status",
-      width: 160,
+      width: 120,
       render: (_: unknown, row: SystemAnnouncementRow) => (
-        <Space wrap size={4}>
+        <Space size={4}>
           {row.published ? (
             <Tag color="green">{t("systemAnnouncement.published")}</Tag>
           ) : (
@@ -206,9 +206,9 @@ const SystemAnnouncementManage: React.FC = () => {
     {
       title: t("systemAnnouncement.actionsCol"),
       key: "actions",
-      width: 400,
+      width: 280,
       render: (_: unknown, row: SystemAnnouncementRow) => (
-        <Space wrap size="small">
+        <Space size="small">
           <Button type="link" icon={<EditOutlined />} onClick={() => handleEdit(row)}>
             {t("common.edit")}
           </Button>
@@ -250,7 +250,7 @@ const SystemAnnouncementManage: React.FC = () => {
   ];
 
   return (
-    <div className="system-announcement-manage">
+    <div className="system-announcement-manage" style={{ overflowX: "auto" }}>
       <div style={{ marginBottom: 16, display: "flex", justifyContent: "space-between" }}>
         <h2 style={{ margin: 0 }}>{t("systemAnnouncement.pageTitle")}</h2>
         <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>

@@ -19,10 +19,10 @@ import {
 } from "@ant-design/icons";
 import { getBlogAdminAPI } from "@/services/generated/admin";
 import type {
-  Moment,
-  Topic,
+  MomentDto,
+  TopicDto,
   UpdateMomentDto,
-  MomentComment,
+  CommentDto,
 } from "@/services/generated/model";
 
 const api = getBlogAdminAPI();
@@ -35,10 +35,10 @@ const MomentEdit: React.FC = () => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [topics, setTopics] = useState<Topic[]>([]);
+  const [topics, setTopics] = useState<TopicDto[]>([]);
 
   // 评论相关
-  const [comments, setComments] = useState<MomentComment[]>([]);
+  const [comments, setComments] = useState<CommentDto[]>([]);
   const [commentsLoading, setCommentsLoading] = useState(false);
   const [commentsPagination, setCommentsPagination] = useState({
     current: 1,
@@ -49,8 +49,8 @@ const MomentEdit: React.FC = () => {
   const loadMoment = useCallback(async () => {
     if (!id) return;
     try {
-      const data = await api.adminMomentsControllerGetMomentById(Number(id));
-      const momentData = data as unknown as Moment;
+      const data = await api.getAdminMomentById(Number(id));
+      const momentData = data as unknown as MomentDto;
       form.setFieldsValue({
         content: momentData.content,
         images: momentData.images?.join("\n"),
@@ -66,8 +66,8 @@ const MomentEdit: React.FC = () => {
 
   const loadTopics = useCallback(async () => {
     try {
-      const result = await api.adminTopicsControllerGetTopics({ page: 1, size: 100 });
-      const response = result as unknown as { list: Topic[] };
+      const result = await api.getAdminTopics({ page: 1, size: 100 });
+      const response = result as unknown as { list: TopicDto[] };
       setTopics(response.list || []);
     } catch {
       message.error("加载话题失败");
@@ -78,15 +78,11 @@ const MomentEdit: React.FC = () => {
     if (!id) return;
     setCommentsLoading(true);
     try {
-      const result = await api.adminCommentsControllerGetTopicComments({
-        page: String(commentsPagination.current),
-        size: String(commentsPagination.pageSize),
-        topicId: String(id),
+      const response = await api.getAdminTopicComments({
+        page: commentsPagination.current,
+        size: commentsPagination.pageSize,
+        topicId: Number(id),
       });
-      const response = result as unknown as {
-        list: MomentComment[];
-        total: number;
-      };
       setComments(response.list || []);
       setCommentsPagination((prev) => ({
         ...prev,
@@ -118,7 +114,7 @@ const MomentEdit: React.FC = () => {
         topicId: values.topicId,
       };
       await (
-        api.adminMomentsControllerUpdateMoment as unknown as (
+        api.updateAdminMoment as unknown as (
           id: number,
           data: UpdateMomentDto,
         ) => Promise<void>
@@ -133,7 +129,7 @@ const MomentEdit: React.FC = () => {
 
   const handleDeleteComment = async (commentId: number) => {
     try {
-      await api.adminCommentsControllerDeleteComment(commentId);
+      await api.deleteAdminComment(commentId);
       message.success("删除成功");
       loadComments();
     } catch {

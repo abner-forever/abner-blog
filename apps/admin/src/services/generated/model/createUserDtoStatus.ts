@@ -1,3 +1,6 @@
+/**
+ * 用户状态
+ */
 export type CreateUserDtoStatus =
   (typeof CreateUserDtoStatus)[keyof typeof CreateUserDtoStatus];
 

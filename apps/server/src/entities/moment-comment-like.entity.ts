@@ -17,7 +17,7 @@ export class MomentCommentLike {
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   user: User;
 
-  @ManyToOne(() => MomentComment)
+  @ManyToOne(() => MomentComment, { onDelete: 'CASCADE' })
   comment: MomentComment;
 
   @CreateDateColumn()

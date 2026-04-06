@@ -69,6 +69,7 @@ export class AdminUsersService {
 
   async deleteUser(id: number) {
     const user = await this.getUserById(id);
+    // 级联删除会自动处理：用户博客 → 博客的点赞/评论/收藏
     await this.userRepository.remove(user);
   }
 

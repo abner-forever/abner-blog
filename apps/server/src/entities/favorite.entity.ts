@@ -17,7 +17,7 @@ export class Favorite {
   @ManyToOne(() => User, (user) => user.favorites, { onDelete: 'CASCADE' })
   user: User;
 
-  @ManyToOne(() => Blog, (blog) => blog.favorites)
+  @ManyToOne(() => Blog, (blog) => blog.favorites, { onDelete: 'CASCADE' })
   blog: Blog;
 
   @CreateDateColumn()

@@ -19,7 +19,7 @@ export class NoteViewLog {
   @Column({ nullable: true })
   noteId: number;
 
-  @ManyToOne(() => User, { nullable: true })
+  @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   user: User;
 
   @Column({ nullable: true })

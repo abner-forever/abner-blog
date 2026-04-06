@@ -1,4 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { TopicDto } from './moment.response.dto';
+import { BlogDto } from './blog.response.dto';
 
 export class CommentAuthorDto {
   @ApiProperty({ description: '用户 ID' })
@@ -77,6 +79,43 @@ export class CommentDto {
   updatedAt: Date;
 }
 
+export class BlogCommentDto extends CommentDto {
+  @ApiProperty({ type: BlogDto, description: '博客信息' })
+  blog: BlogDto | null;
+}
+
+export class BlogCommentListResponse {
+  @ApiProperty({ type: [BlogCommentDto], description: '评论列表' })
+  list: BlogCommentDto[];
+
+  @ApiProperty({ description: '总数量' })
+  total: number;
+}
+
+export class TopicCommentDto extends CommentDto {
+  @ApiProperty({ type: TopicDto, description: '话题信息' })
+  topic: TopicDto;
+}
+
+export class TopicCommentListResponse {
+  @ApiProperty({ type: [TopicCommentDto], description: '评论列表' })
+  list: TopicCommentDto[];
+
+  @ApiProperty({ description: '总数量' })
+  total: number;
+}
+
+export class AllCommentListResponse {
+  @ApiProperty({
+    enumName: 'CommentType',
+    enum: [BlogCommentDto, TopicCommentDto],
+    description: '评论列表',
+  })
+  list: (BlogCommentDto | TopicCommentDto)[];
+
+  @ApiProperty({ description: '总数量' })
+  total: number;
+}
 export class ToggleCommentLikeResponseDto {
   @ApiProperty({ description: '操作后是否已点赞' })
   isLiked: boolean;

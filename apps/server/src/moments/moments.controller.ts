@@ -19,7 +19,7 @@ import {
 } from '@nestjs/swagger';
 import {
   MomentDto,
-  MomentListResponseDto,
+  MomentListResponse,
   ToggleMomentLikeResponseDto,
   ToggleMomentFavoriteResponseDto,
 } from '../common/dto/responses/moment.response.dto';
@@ -51,7 +51,7 @@ export class MomentsController {
   }
 
   @ApiOperation({ summary: '获取沸点列表' })
-  @ApiResponse({ status: 200, type: MomentListResponseDto })
+  @ApiResponse({ status: 200, type: MomentListResponse })
   @UseGuards(OptionalJwtAuthGuard)
   @Get()
   async findAll(
