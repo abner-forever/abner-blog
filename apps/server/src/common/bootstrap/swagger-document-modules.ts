@@ -1,6 +1,7 @@
 import type { Type } from '@nestjs/common';
 import { AppModule } from '../../app.module';
 import { AIModule } from '../../ai/ai.module';
+import { AnalyticsModule } from '../../analytics/analytics.module';
 import { AuthModule } from '../../auth/auth.module';
 import { BlogsModule } from '../../blogs/blogs.module';
 import { CalendarModule } from '../../calendar/calendar.module';
@@ -45,4 +46,4 @@ export const SWAGGER_PUBLIC_MODULES: Type<unknown>[] = [
 ];
 
 /** 供「管理后台」独立 Swagger 文档扫描的模块 */
-export const SWAGGER_ADMIN_MODULES: Type<unknown>[] = [AdminModule];
+export const SWAGGER_ADMIN_MODULES: Type<unknown>[] = [AdminModule, AnalyticsModule];

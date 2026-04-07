@@ -6,6 +6,11 @@ import { blogRoutes } from "../pages/blog/routes";
 import { momentRoutes } from "../pages/moment/routes";
 import { commentRoutes } from "../pages/comment/routes";
 import { systemAnnouncementRoutes } from "../pages/system-announcement/routes";
+import { trackEventsRoutes } from "../pages/analytics/TrackEvents/routes";
+import { performanceRoutes } from "../pages/analytics/Performance/routes";
+import { dashboardRoutes as analyticsDashboardRoutes } from "../pages/analytics/Dashboard/routes";
+import { userListRoutes } from "../pages/analytics/UserList/routes";
+import { userDetailRoutes } from "../pages/analytics/UserDetail/routes";
 
 export interface RouteConfig {
   path: string;
@@ -21,6 +26,11 @@ export const adminLayoutChildren: RouteConfig[] = [
   ...momentRoutes,
   ...commentRoutes,
   ...systemAnnouncementRoutes,
+  ...trackEventsRoutes,
+  ...performanceRoutes,
+  ...analyticsDashboardRoutes,
+  ...userListRoutes,
+  ...userDetailRoutes,
   indexRoute,
 ];
 

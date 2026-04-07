@@ -8,11 +8,22 @@ import App from "./App";
 import { store } from "./store";
 import "./i18n";
 import "./styles/global.less";
+import { initAnalytics, setUserId, clearUser } from "@abner/analytics";
 
 const routerFutureFlags = {
   v7_startTransition: true,
   v7_relativeSplatPath: true,
 } as const;
+
+// 初始化 analytics SDK
+initAnalytics({
+  appId: 'abner-blog-admin',
+  serverUrl: '',
+  sampleRate: 0.15,
+  autoTrack: true,
+  debug: false,
+  getToken: () => localStorage.getItem('admin-token'),
+});
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
@@ -34,3 +45,21 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     </Provider>
   </React.StrictMode>,
 );
+
+// 监听登录状态变化，同步 userId
+let lastToken: string | null = null;
+store.subscribe(() => {
+  const state = store.getState();
+  const currentToken = state.auth?.token;
+
+  if (currentToken && currentToken !== lastToken) {
+    lastToken = currentToken;
+    const userId = state.auth?.user?.id;
+    if (userId) {
+      setUserId(userId);
+    }
+  } else if (!currentToken && lastToken !== null) {
+    lastToken = null;
+    clearUser();
+  }
+});

@@ -59,6 +59,9 @@ import { DirectMessage } from './entities/direct-message.entity';
 import { UserNotification } from './entities/user-notification.entity';
 import { SystemAnnouncement } from './entities/system-announcement.entity';
 import { SocialModule } from './social/social.module';
+import { AnalyticsModule } from './analytics/analytics.module';
+import { TrackEvent } from './entities/track-event.entity';
+import { PerformanceMetric } from './entities/performance-metric.entity';
 
 @Module({
   imports: [
@@ -106,6 +109,8 @@ import { SocialModule } from './social/social.module';
         DirectMessage,
         UserNotification,
         SystemAnnouncement,
+        TrackEvent,
+        PerformanceMetric,
       ],
       synchronize: process.env.NODE_ENV !== 'production',
     }),
@@ -128,6 +133,7 @@ import { SocialModule } from './social/social.module';
     NoteCollectionsModule,
     AIModule,
     SocialModule,
+    AnalyticsModule,
   ],
   controllers: [AppController],
   providers: [

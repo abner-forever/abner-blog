@@ -8,6 +8,7 @@ import {
   MessageOutlined,
   LogoutOutlined,
   NotificationOutlined,
+  BarChartOutlined,
 } from "@ant-design/icons";
 import { useTranslation } from "react-i18next";
 import { logout } from "@/store/authSlice";
@@ -57,6 +58,9 @@ const AdminLayout: React.FC = () => {
     if (path.startsWith("/moments")) {
       return ["moments"];
     }
+    if (path.startsWith("/analytics")) {
+      return ["analytics"];
+    }
     return [];
   };
 
@@ -99,6 +103,17 @@ const AdminLayout: React.FC = () => {
               children: [
                 { key: "/moments", label: t("adminLayout.momentList") },
                 { key: "/moments/topics", label: t("adminLayout.topicManage") },
+              ],
+            },
+            {
+              key: "analytics",
+              icon: <BarChartOutlined />,
+              label: t("adminLayout.analytics"),
+              children: [
+                { key: "/analytics/dashboard", label: t("adminLayout.analyticsDashboard") },
+                { key: "/analytics/users", label: t("adminLayout.userList") },
+                { key: "/analytics/events", label: t("adminLayout.trackEvents") },
+                { key: "/analytics/performance", label: t("adminLayout.performance") },
               ],
             },
           ]}

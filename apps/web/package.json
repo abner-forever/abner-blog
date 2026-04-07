@@ -20,6 +20,7 @@
     "semantic-release": "semantic-release"
   },
   "dependencies": {
+    "@abner/analytics": "workspace:*",
     "@abner-blog/env-tool": "workspace:*",
     "@abner-blog/upload": "workspace:*",
     "@abner-blog/utils": "workspace:*",
