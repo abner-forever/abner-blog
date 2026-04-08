@@ -21,7 +21,11 @@ import type {
   UseQueryResult,
 } from '@tanstack/react-query';
 
-import type { ToggleLikeResponseDto } from '../model';
+import type {
+  BlogLikedStatusResponseDto,
+  BlogLikesCountResponseDto,
+  ToggleLikeResponseDto,
+} from '../model';
 
 import { httpMutator } from '../../http';
 
@@ -116,7 +120,7 @@ export const likesControllerGetLikesCount = (
   blogId: string,
   signal?: AbortSignal,
 ) => {
-  return httpMutator<void>({
+  return httpMutator<BlogLikesCountResponseDto>({
     url: `/api/blogs/${blogId}/likes/count`,
     method: 'GET',
     signal,
@@ -280,7 +284,7 @@ export const likesControllerHasLiked = (
   blogId: string,
   signal?: AbortSignal,
 ) => {
-  return httpMutator<void>({
+  return httpMutator<BlogLikedStatusResponseDto>({
     url: `/api/blogs/${blogId}/likes/status`,
     method: 'GET',
     signal,

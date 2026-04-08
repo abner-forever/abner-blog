@@ -21,7 +21,12 @@ import type {
   UseQueryResult,
 } from '@tanstack/react-query';
 
-import type { CreateTopicDto, TopicsControllerFindOneParams } from '../model';
+import type {
+  CreateTopicDto,
+  TopicDetailResponse,
+  TopicItemDto,
+  TopicsControllerFindOneParams,
+} from '../model';
 
 import { httpMutator } from '../../http';
 
@@ -32,7 +37,7 @@ export const topicsControllerCreate = (
   createTopicDto: CreateTopicDto,
   signal?: AbortSignal,
 ) => {
-  return httpMutator<void>({
+  return httpMutator<TopicItemDto>({
     url: `/api/topics`,
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -112,7 +117,11 @@ export const useTopicsControllerCreate = <TError = unknown, TContext = unknown>(
  * @summary 获取话题列表
  */
 export const topicsControllerFindAll = (signal?: AbortSignal) => {
-  return httpMutator<void>({ url: `/api/topics`, method: 'GET', signal });
+  return httpMutator<TopicItemDto[]>({
+    url: `/api/topics`,
+    method: 'GET',
+    signal,
+  });
 };
 
 export const getTopicsControllerFindAllQueryKey = () => {
@@ -254,7 +263,11 @@ export function useTopicsControllerFindAll<
  * @summary 获取热门话题列表
  */
 export const topicsControllerFindHot = (signal?: AbortSignal) => {
-  return httpMutator<void>({ url: `/api/topics/hot`, method: 'GET', signal });
+  return httpMutator<TopicItemDto[]>({
+    url: `/api/topics/hot`,
+    method: 'GET',
+    signal,
+  });
 };
 
 export const getTopicsControllerFindHotQueryKey = () => {
@@ -400,7 +413,7 @@ export const topicsControllerFindOne = (
   params?: TopicsControllerFindOneParams,
   signal?: AbortSignal,
 ) => {
-  return httpMutator<void>({
+  return httpMutator<TopicDetailResponse>({
     url: `/api/topics/${id}`,
     method: 'GET',
     params,

@@ -25,6 +25,7 @@ import type {
   CommentDto,
   CreateMomentCommentDto,
   CreateMomentDto,
+  FavoriteMomentItemDto,
   MomentDto,
   MomentListResponse,
   MomentsControllerFindAllParams,
@@ -1194,7 +1195,7 @@ export const useMomentsControllerToggleCommentLike = <
  * @summary 获取我收藏的沸点列表
  */
 export const momentsControllerGetFavorites = (signal?: AbortSignal) => {
-  return httpMutator<void>({
+  return httpMutator<FavoriteMomentItemDto[]>({
     url: `/api/moments/favorites/my`,
     method: 'GET',
     signal,

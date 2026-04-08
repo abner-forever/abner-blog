@@ -20,9 +20,16 @@ import { NotesService } from './notes.service';
 import { CreateNoteDto } from './dto/create-note.dto';
 import { SearchNoteDto } from './dto/search-note.dto';
 import { CreateNoteCommentDto } from './dto/create-note-comment.dto';
+import {
+  NestedCommentDto,
+  NoteDto,
+  NoteFavoriteItemDto,
+  NoteListResponseDto,
+} from './dto/note-response.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { OptionalJwtAuthGuard } from '../auth/optional-jwt-auth.guard';
 import { AuthenticatedRequest } from '../common/interfaces/request.interface';
+import { CommentDto, ToggleCommentLikeResponseDto } from '../common/dto/responses/comment.response.dto';
 
 @ApiTags('notes')
 @Controller('notes')
@@ -31,7 +38,7 @@ export class NotesController {
 
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: '创建笔记' })
-  @ApiResponse({ status: 201 })
+  @ApiResponse({ status: 201, type: NoteDto })
   @UseGuards(JwtAuthGuard)
   @Post()
   create(
@@ -42,7 +49,7 @@ export class NotesController {
   }
 
   @ApiOperation({ summary: '获取笔记列表' })
-  @ApiResponse({ status: 200 })
+  @ApiResponse({ status: 200, type: NoteListResponseDto })
   @UseGuards(OptionalJwtAuthGuard)
   @Get()
   async findAll(
@@ -55,7 +62,7 @@ export class NotesController {
 
   @ApiOperation({ summary: '获取笔记详情' })
   @ApiParam({ name: 'id', description: '笔记 ID' })
-  @ApiResponse({ status: 200 })
+  @ApiResponse({ status: 200, type: NoteDto })
   @UseGuards(OptionalJwtAuthGuard)
   @Get(':id')
   findOne(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
@@ -95,7 +102,7 @@ export class NotesController {
 
   @ApiOperation({ summary: '获取笔记评论列表（嵌套结构）' })
   @ApiParam({ name: 'id', description: '笔记 ID' })
-  @ApiResponse({ status: 200 })
+  @ApiResponse({ status: 200, type: NestedCommentDto, isArray: true })
   @UseGuards(OptionalJwtAuthGuard)
   @Get(':id/comments')
   getComments(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
@@ -106,7 +113,7 @@ export class NotesController {
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: '创建笔记评论' })
   @ApiParam({ name: 'id', description: '笔记 ID' })
-  @ApiResponse({ status: 201 })
+  @ApiResponse({ status: 201, type: CommentDto })
   @UseGuards(JwtAuthGuard)
   @Post(':id/comments')
   createComment(
@@ -136,7 +143,7 @@ export class NotesController {
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: '切换评论点赞状态' })
   @ApiParam({ name: 'commentId', description: '评论 ID' })
-  @ApiResponse({ status: 200 })
+  @ApiResponse({ status: 200, type: ToggleCommentLikeResponseDto })
   @UseGuards(JwtAuthGuard)
   @Post('comments/:commentId/like')
   toggleCommentLike(
@@ -148,6 +155,7 @@ export class NotesController {
 
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: '获取我收藏的笔记列表' })
+  @ApiResponse({ status: 200, type: NoteFavoriteItemDto, isArray: true })
   @UseGuards(JwtAuthGuard)
   @Get('favorites/my')
   getFavorites(@Req() req: AuthenticatedRequest) {

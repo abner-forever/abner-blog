@@ -29,7 +29,7 @@ import { httpMutator } from '../../http';
  * @summary 服务健康检查
  */
 export const appControllerGetHello = (signal?: AbortSignal) => {
-  return httpMutator<void>({ url: `/api`, method: 'GET', signal });
+  return httpMutator<string>({ url: `/api`, method: 'GET', signal });
 };
 
 export const getAppControllerGetHelloQueryKey = () => {

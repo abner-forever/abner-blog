@@ -16,7 +16,7 @@ import type {
   BlogDto,
   MomentDto,
   BlogListResponseDto,
-  MomentListResponseDto,
+  MomentListResponse,
 } from '@services/generated/model';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
@@ -93,7 +93,7 @@ const SearchPage = () => {
     if (!q.trim()) return;
     setMomentsLoading(true);
     try {
-      const data = await httpMutator<MomentListResponseDto>({
+      const data = await httpMutator<MomentListResponse>({
         url: '/api/moments',
         method: 'GET',
         params: { search: q, page, pageSize: PAGE_SIZE },

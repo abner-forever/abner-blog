@@ -22,6 +22,7 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  ChunkUploadStatusDto,
   InitChunkUploadDto,
   MergeUploadDto,
   UploadControllerUploadChunkBody,
@@ -425,7 +426,7 @@ export const uploadControllerGetChunkStatus = (
   uploadId: string,
   signal?: AbortSignal,
 ) => {
-  return httpMutator<void>({
+  return httpMutator<ChunkUploadStatusDto>({
     url: `/api/upload/chunk/status/${uploadId}`,
     method: 'GET',
     signal,

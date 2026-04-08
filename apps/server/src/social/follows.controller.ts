@@ -20,6 +20,10 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { FollowsService } from './follows.service';
 import { PaginationQueryDto } from './dto/pagination-query.dto';
 import { AuthenticatedRequest } from '../common/interfaces/request.interface';
+import {
+  FollowListResponseDto,
+  FollowStatusResponseDto,
+} from './dto/social-response.dto';
 
 @ApiTags('social')
 @Controller('users')
@@ -54,6 +58,7 @@ export class FollowsController {
   @Get(':id/followers')
   @ApiOperation({ summary: '粉丝列表' })
   @ApiParam({ name: 'id', description: '用户 ID' })
+  @ApiResponse({ status: 200, type: FollowListResponseDto })
   async followers(
     @Param('id', ParseIntPipe) userId: number,
     @Query() q: PaginationQueryDto,
@@ -68,6 +73,7 @@ export class FollowsController {
   @Get(':id/following')
   @ApiOperation({ summary: '关注列表' })
   @ApiParam({ name: 'id', description: '用户 ID' })
+  @ApiResponse({ status: 200, type: FollowListResponseDto })
   async following(
     @Param('id', ParseIntPipe) userId: number,
     @Query() q: PaginationQueryDto,
@@ -84,6 +90,7 @@ export class FollowsController {
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: '当前用户与该用户的关注状态' })
   @ApiParam({ name: 'id', description: '对方用户 ID' })
+  @ApiResponse({ status: 200, type: FollowStatusResponseDto })
   async followStatus(
     @Request() req: AuthenticatedRequest,
     @Param('id', ParseIntPipe) targetUserId: number,

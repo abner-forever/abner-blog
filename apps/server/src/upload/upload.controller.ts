@@ -32,6 +32,7 @@ import { ChunkUploadService } from './chunk-upload.service';
 import { InitChunkUploadDto } from './dto/init-chunk-upload.dto';
 import { UploadChunkBodyDto } from './dto/upload-chunk.dto';
 import { MergeUploadDto } from './dto/merge-upload.dto';
+import { ChunkUploadStatusDto } from './dto/chunk-upload-response.dto';
 
 const chunkMulterOptions = {
   storage: memoryStorage(),
@@ -188,6 +189,7 @@ export class UploadController {
   }
 
   @ApiOperation({ summary: '查询分片上传状态' })
+  @ApiResponse({ status: 200, type: ChunkUploadStatusDto })
   @Get('chunk/status/:uploadId')
   async getChunkStatus(@Param('uploadId') uploadId: string) {
     return this.chunkUploadService.getUploadStatus(uploadId);

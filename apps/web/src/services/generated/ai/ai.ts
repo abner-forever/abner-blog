@@ -22,6 +22,7 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AIConfigPublicKeyResponseDto,
   ChatRequestDto,
   ChatResponseDto,
   SaveAIConfigDto,
@@ -279,7 +280,7 @@ export const useAIControllerSaveConfig = <TError = void, TContext = unknown>(
  * @summary 获取 AI 配置传输加密公钥
  */
 export const aIControllerGetConfigPublicKey = (signal?: AbortSignal) => {
-  return httpMutator<void>({
+  return httpMutator<AIConfigPublicKeyResponseDto>({
     url: `/api/ai/config/public-key`,
     method: 'GET',
     signal,

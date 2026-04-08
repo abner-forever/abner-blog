@@ -98,3 +98,23 @@ export class ToggleFavoriteResponseDto {
   @ApiProperty({ description: '当前收藏总数' })
   favoritesCount: number;
 }
+
+export class BlogLikesCountResponseDto {
+  @ApiProperty({ description: '点赞总数' })
+  count: number;
+}
+
+export class BlogFavoritesCountResponseDto {
+  @ApiProperty({ description: '收藏总数' })
+  count: number;
+}
+
+export class BlogLikedStatusResponseDto {
+  @ApiProperty({ description: '当前用户是否已点赞' })
+  liked: boolean;
+}
+
+export class BlogFavoritedStatusResponseDto {
+  @ApiProperty({ description: '当前用户是否已收藏' })
+  favorited: boolean;
+}

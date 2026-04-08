@@ -18,6 +18,7 @@ import {
   ApiResponse,
 } from '@nestjs/swagger';
 import {
+  FavoriteMomentItemDto,
   MomentDto,
   MomentListResponse,
   ToggleMomentLikeResponseDto,
@@ -169,6 +170,7 @@ export class MomentsController {
 
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: '获取我收藏的沸点列表' })
+  @ApiResponse({ status: 200, type: FavoriteMomentItemDto, isArray: true })
   @UseGuards(JwtAuthGuard)
   @Get('favorites/my')
   getFavorites(@Req() req: AuthenticatedRequest) {

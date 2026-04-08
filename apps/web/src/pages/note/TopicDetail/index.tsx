@@ -3,50 +3,27 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from 'antd';
 import { LeftOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import { httpMutator } from '@services/http';
 import { useQuery } from '@tanstack/react-query';
 import CustomEmpty from '@/components/CustomEmpty';
 import NoteCard from '@components/NoteCard';
 import Loading from '@/components/Loading';
-import type { Note } from '@services/generated/model';
+import { topicsControllerFindOne } from '@/services/generated/topics/topics';
 import './index.less';
 
-type TopicNote = Note & {
-  title?: string;
-  cover?: string;
-};
-
-interface TopicDetailResponse {
-  topic: {
-    id: number;
-    name: string;
-    description: string;
-    icon: string;
-    color: string;
-    noteCount: number;
-  };
-  notes: TopicNote[];
-  total: number;
-  page: number;
-  pageSize: number;
-  totalPages: number;
-}
 
 const TopicDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [currentPage, setCurrentPage] = useState(1);
-  const topicId = Number(id);
+  const topicId = id || '';
 
   const { data: topicData, isLoading } = useQuery({
     queryKey: ['topicDetail', topicId, currentPage],
-    queryFn: () =>
-      httpMutator<TopicDetailResponse>({
-        url: `/api/topics/${topicId}`,
-        method: 'GET',
-        params: { page: currentPage, pageSize: 10 },
-      }),
+    queryFn: async () =>{
+      const data = await topicsControllerFindOne(topicId, { page: currentPage, pageSize: 10 })
+      return data || {};
+    },
     enabled: !!topicId,
   });
 
@@ -113,7 +90,7 @@ const TopicDetail: React.FC = () => {
         <div className="topicInfo">
           <span
             className="topicIcon"
-            style={{ backgroundColor: topic.color }}
+            style={{ backgroundColor: topic.color || '' }}
           >
             {topic.icon}
           </span>

@@ -13,7 +13,11 @@ import {
   ApiParam,
   ApiResponse,
 } from '@nestjs/swagger';
-import { ToggleLikeResponseDto } from '../common/dto/responses/blog.response.dto';
+import {
+  BlogLikedStatusResponseDto,
+  BlogLikesCountResponseDto,
+  ToggleLikeResponseDto,
+} from '../common/dto/responses/blog.response.dto';
 import { LikesService } from './likes.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { AuthenticatedRequest } from '../common/interfaces/request.interface';
@@ -38,6 +42,7 @@ export class LikesController {
 
   @ApiOperation({ summary: '获取博客点赞数量' })
   @ApiParam({ name: 'blogId', description: '博客 ID' })
+  @ApiResponse({ status: 200, type: BlogLikesCountResponseDto })
   @Get('count')
   getLikesCount(@Param('blogId') blogId: string) {
     return this.likesService.getLikesCount(+blogId);
@@ -46,6 +51,7 @@ export class LikesController {
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: '查询当前用户是否已点赞' })
   @ApiParam({ name: 'blogId', description: '博客 ID' })
+  @ApiResponse({ status: 200, type: BlogLikedStatusResponseDto })
   @UseGuards(JwtAuthGuard)
   @Get('status')
   hasLiked(

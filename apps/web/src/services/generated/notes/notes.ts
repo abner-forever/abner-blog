@@ -23,9 +23,16 @@ import type {
 
 import type {
   AddNoteToCollectionDto,
+  CommentDto,
   CreateNoteCommentDto,
   CreateNoteDto,
+  NestedCommentDto,
+  NoteCollectedResponseDto,
+  NoteDto,
+  NoteFavoriteItemDto,
+  NoteListResponseDto,
   NotesControllerFindAllParams,
+  ToggleCommentLikeResponseDto,
 } from '../model';
 
 import { httpMutator } from '../../http';
@@ -37,7 +44,7 @@ export const notesControllerCreate = (
   createNoteDto: CreateNoteDto,
   signal?: AbortSignal,
 ) => {
-  return httpMutator<void>({
+  return httpMutator<NoteDto>({
     url: `/api/notes`,
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -120,7 +127,7 @@ export const notesControllerFindAll = (
   params?: NotesControllerFindAllParams,
   signal?: AbortSignal,
 ) => {
-  return httpMutator<void>({
+  return httpMutator<NoteListResponseDto>({
     url: `/api/notes`,
     method: 'GET',
     params,
@@ -276,7 +283,11 @@ export function useNotesControllerFindAll<
  * @summary 获取笔记详情
  */
 export const notesControllerFindOne = (id: string, signal?: AbortSignal) => {
-  return httpMutator<void>({ url: `/api/notes/${id}`, method: 'GET', signal });
+  return httpMutator<NoteDto>({
+    url: `/api/notes/${id}`,
+    method: 'GET',
+    signal,
+  });
 };
 
 export const getNotesControllerFindOneQueryKey = (id: string) => {
@@ -676,7 +687,7 @@ export const notesControllerGetComments = (
   id: string,
   signal?: AbortSignal,
 ) => {
-  return httpMutator<void>({
+  return httpMutator<NestedCommentDto[]>({
     url: `/api/notes/${id}/comments`,
     method: 'GET',
     signal,
@@ -838,7 +849,7 @@ export const notesControllerCreateComment = (
   createNoteCommentDto: CreateNoteCommentDto,
   signal?: AbortSignal,
 ) => {
-  return httpMutator<void>({
+  return httpMutator<CommentDto>({
     url: `/api/notes/${id}/comments`,
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -1008,7 +1019,7 @@ export const notesControllerToggleCommentLike = (
   commentId: string,
   signal?: AbortSignal,
 ) => {
-  return httpMutator<void>({
+  return httpMutator<ToggleCommentLikeResponseDto>({
     url: `/api/notes/comments/${commentId}/like`,
     method: 'POST',
     signal,
@@ -1089,7 +1100,7 @@ export const useNotesControllerToggleCommentLike = <
  * @summary 获取我收藏的笔记列表
  */
 export const notesControllerGetFavorites = (signal?: AbortSignal) => {
-  return httpMutator<void>({
+  return httpMutator<NoteFavoriteItemDto[]>({
     url: `/api/notes/favorites/my`,
     method: 'GET',
     signal,
@@ -1239,7 +1250,7 @@ export const noteCollectionsNoteControllerAddNoteToCollection = (
   addNoteToCollectionDto: AddNoteToCollectionDto,
   signal?: AbortSignal,
 ) => {
-  return httpMutator<void>({
+  return httpMutator<NoteCollectedResponseDto>({
     url: `/api/notes/${id}/collect`,
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

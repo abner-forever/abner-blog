@@ -19,6 +19,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { AIService } from './ai.service';
 import { ChatRequestDto, SaveAIConfigDto } from './dto/chat.dto';
 import { ChatResponseDto } from './dto/extraction-result.dto';
+import { AIConfigPublicKeyResponseDto } from './dto/ai-config.response.dto';
 import { AuthenticatedRequest } from '../common/interfaces/request.interface';
 import type { Response } from 'express';
 
@@ -110,7 +111,11 @@ export class AIController {
   @ApiBearerAuth()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: '获取 AI 配置传输加密公钥' })
-  @ApiResponse({ status: 200, description: 'RSA 公钥（DER Base64）' })
+  @ApiResponse({
+    status: 200,
+    description: 'RSA 公钥（DER Base64）',
+    type: AIConfigPublicKeyResponseDto,
+  })
   @ApiResponse({ status: 401, description: '未授权' })
   getConfigPublicKey() {
     return this.aiService.getConfigTransportPublicKey();

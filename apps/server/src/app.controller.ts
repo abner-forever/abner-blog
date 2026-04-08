@@ -47,6 +47,7 @@ export class AppController {
   ) {}
 
   @ApiOperation({ summary: '服务健康检查' })
+  @ApiResponse({ status: 200, type: String })
   @Get()
   getHello(): string {
     return this.appService.getHello();

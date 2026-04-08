@@ -10,9 +10,9 @@ export type TopicsControllerFindOneParams = {
   /**
    * 页码
    */
-  page?: string;
+  page?: number;
   /**
    * 每页数量
    */
-  pageSize?: string;
+  pageSize?: number;
 };

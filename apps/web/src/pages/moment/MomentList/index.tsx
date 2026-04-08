@@ -12,19 +12,12 @@ import { useTranslation } from 'react-i18next';
 import { useMoments } from '@/hooks/useMoments';
 import { useQuery } from '@tanstack/react-query';
 import { useQueryClient } from '@tanstack/react-query';
-import { httpMutator } from '@services/http';
+import type { MomentDto } from '@services/generated/model';
 import MomentCard from '../../../components/MomentCard';
 import Loading from '@/components/Loading';
 import CustomEmpty from '@/components/CustomEmpty';
 import './index.less';
-
-interface HotTopicDto {
-  id: number;
-  name: string;
-  icon?: string | null;
-  color?: string | null;
-  momentCount: number;
-}
+import { topicsControllerFindHot } from '@/services/generated/topics/topics';
 
 const { Search } = Input;
 
@@ -50,20 +43,16 @@ const MomentListPage = () => {
   );
 
   const { data: momentsData, isLoading } = useMoments(params);
-  const { data: topicsData } = useQuery({
+  const { data: topics=[] } = useQuery({
     queryKey: ['topics'],
-    queryFn: async () => {
-      const data = await httpMutator<HotTopicDto[]>({
-        url: '/api/topics/hot',
-        method: 'GET',
-      });
+    queryFn: async()=>{
+      const data = await topicsControllerFindHot()
       return data || [];
     },
   });
 
-  const moments = momentsData?.list || [];
+  const moments: MomentDto[] = momentsData?.list || [];
   const total = momentsData?.total || 0;
-  const topics = topicsData || [];
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);

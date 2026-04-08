@@ -18,7 +18,11 @@ import type {
   UseQueryResult,
 } from '@tanstack/react-query';
 
-import type { HotsearchControllerGetHotSearchParams } from '../model';
+import type {
+  HotSearchItemDto,
+  HotSearchResponseDto,
+  HotsearchControllerGetHotSearchParams,
+} from '../model';
 
 import { httpMutator } from '../../http';
 
@@ -29,7 +33,7 @@ export const hotsearchControllerGetHotSearch = (
   params?: HotsearchControllerGetHotSearchParams,
   signal?: AbortSignal,
 ) => {
-  return httpMutator<void>({
+  return httpMutator<HotSearchResponseDto>({
     url: `/api/hotsearch`,
     method: 'GET',
     params,
@@ -189,7 +193,7 @@ export function useHotsearchControllerGetHotSearch<
  * @summary 强制刷新热搜缓存（管理员用）
  */
 export const hotsearchControllerRefreshCache = (signal?: AbortSignal) => {
-  return httpMutator<void>({
+  return httpMutator<HotSearchResponseDto>({
     url: `/api/hotsearch/refresh`,
     method: 'GET',
     signal,
@@ -335,7 +339,7 @@ export function useHotsearchControllerRefreshCache<
  * @summary 获取微博热搜
  */
 export const hotsearchControllerGetWeiboHot = (signal?: AbortSignal) => {
-  return httpMutator<void>({
+  return httpMutator<HotSearchItemDto[]>({
     url: `/api/hotsearch/weibo`,
     method: 'GET',
     signal,
@@ -481,7 +485,7 @@ export function useHotsearchControllerGetWeiboHot<
  * @summary 获取 B 站热搜
  */
 export const hotsearchControllerGetBilibiliHot = (signal?: AbortSignal) => {
-  return httpMutator<void>({
+  return httpMutator<HotSearchItemDto[]>({
     url: `/api/hotsearch/bilibili`,
     method: 'GET',
     signal,
@@ -628,7 +632,7 @@ export function useHotsearchControllerGetBilibiliHot<
  * @summary 获取 GitHub Trending
  */
 export const hotsearchControllerGetGitHubHot = (signal?: AbortSignal) => {
-  return httpMutator<void>({
+  return httpMutator<HotSearchItemDto[]>({
     url: `/api/hotsearch/github`,
     method: 'GET',
     signal,

@@ -18,6 +18,11 @@ import {
 import { NoteCollectionsService } from './note-collections.service';
 import { CreateNoteCollectionDto } from './dto/create-note-collection.dto';
 import { AddNoteToCollectionDto } from './dto/add-note-to-collection.dto';
+import {
+  NoteCollectedResponseDto,
+  NoteCollectionDetailDto,
+  NoteCollectionDto,
+} from './dto/note-collection-response.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { AuthenticatedRequest } from '../common/interfaces/request.interface';
 
@@ -31,7 +36,7 @@ export class NoteCollectionsController {
   ) {}
 
   @ApiOperation({ summary: '创建收藏夹' })
-  @ApiResponse({ status: 201 })
+  @ApiResponse({ status: 201, type: NoteCollectionDto })
   @Post()
   create(
     @Body() createDto: CreateNoteCollectionDto,
@@ -41,7 +46,7 @@ export class NoteCollectionsController {
   }
 
   @ApiOperation({ summary: '获取我的收藏夹列表' })
-  @ApiResponse({ status: 200 })
+  @ApiResponse({ status: 200, type: NoteCollectionDto, isArray: true })
   @Get()
   findMyCollections(@Req() req: AuthenticatedRequest) {
     return this.noteCollectionsService.findMyCollections(req.user.userId);
@@ -49,6 +54,7 @@ export class NoteCollectionsController {
 
   @ApiOperation({ summary: '获取笔记所在收藏夹列表' })
   @ApiParam({ name: 'noteId', description: '笔记 ID' })
+  @ApiResponse({ status: 200, type: NoteCollectionDto, isArray: true })
   @Get('note/:noteId')
   getNoteCollections(
     @Param('noteId') noteId: string,
@@ -62,7 +68,7 @@ export class NoteCollectionsController {
 
   @ApiOperation({ summary: '获取收藏夹详情' })
   @ApiParam({ name: 'id', description: '收藏夹 ID' })
-  @ApiResponse({ status: 200 })
+  @ApiResponse({ status: 200, type: NoteCollectionDetailDto })
   @Get(':id')
   findOne(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
     return this.noteCollectionsService.findOne(+id, req.user.userId);
@@ -86,7 +92,7 @@ export class NoteCollectionsNoteController {
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: '收藏笔记到指定收藏夹' })
   @ApiParam({ name: 'id', description: '笔记 ID' })
-  @ApiResponse({ status: 200 })
+  @ApiResponse({ status: 200, type: NoteCollectedResponseDto })
   @UseGuards(JwtAuthGuard)
   @Post(':id/collect')
   addNoteToCollection(

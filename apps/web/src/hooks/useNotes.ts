@@ -6,7 +6,7 @@ import {
 } from '@tanstack/react-query';
 import { httpMutator } from '@services/http';
 import type {
-  NoteComment,
+  CommentDto,
   CreateNoteCommentDto,
 } from '@services/generated/model';
 
@@ -53,7 +53,7 @@ export interface NoteDetail {
   };
 }
 
-export interface NestedNoteComment extends Omit<NoteComment, 'parentId'> {
+export interface NestedNoteComment extends Omit<CommentDto, 'parentComment'> {
   parentId: number | null;
   isLiked: boolean;
   replies: NestedNoteComment[];

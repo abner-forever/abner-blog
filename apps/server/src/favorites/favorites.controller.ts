@@ -16,6 +16,8 @@ import {
   ApiResponse,
 } from '@nestjs/swagger';
 import {
+  BlogFavoritedStatusResponseDto,
+  BlogFavoritesCountResponseDto,
   ToggleFavoriteResponseDto,
   BlogDto,
 } from '../common/dto/responses/blog.response.dto';
@@ -50,6 +52,7 @@ export class FavoritesController {
 
   @ApiOperation({ summary: '获取博客收藏数量' })
   @ApiParam({ name: 'blogId', description: '博客 ID' })
+  @ApiResponse({ status: 200, type: BlogFavoritesCountResponseDto })
   @Get('count')
   getFavoritesCount(@Param('blogId') blogId: string) {
     return this.favoritesService.getFavoritesCount(+blogId);
@@ -58,6 +61,7 @@ export class FavoritesController {
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: '查询当前用户是否已收藏' })
   @ApiParam({ name: 'blogId', description: '博客 ID' })
+  @ApiResponse({ status: 200, type: BlogFavoritedStatusResponseDto })
   @UseGuards(JwtAuthGuard)
   @Get('status')
   hasFavorited(

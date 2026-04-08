@@ -99,6 +99,14 @@ export class ToggleMomentFavoriteResponseDto {
   isFavorited: boolean;
 }
 
+export class FavoriteMomentItemDto extends MomentDto {
+  @ApiProperty({ description: '收藏记录 ID' })
+  favoriteId: number;
+
+  @ApiProperty({ description: '收藏时间' })
+  favoritedAt: Date;
+}
+
 export class TopicDto {
   @ApiProperty({ description: '话题 ID' })
   id: number;

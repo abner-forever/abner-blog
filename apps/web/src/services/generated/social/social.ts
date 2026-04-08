@@ -22,16 +22,28 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  ConversationListResponseDto,
   ConversationsControllerListParams,
   ConversationsControllerMessagesParams,
+  DeletedCountResponseDto,
+  DirectMessageDto,
+  DirectMessageListResponseDto,
+  DmUnreadCountResponseDto,
+  FollowListResponseDto,
+  FollowStatusResponseDto,
   FollowsControllerFollowersParams,
   FollowsControllerFollowingParams,
   MarkDmReadThroughDto,
   MarkNotificationsReadDto,
+  MarkReadThroughResponseDto,
+  NotificationListResponseDto,
+  NotificationUnreadCountResponseDto,
   NotificationsControllerListParams,
   OpenConversationDto,
+  OpenConversationResponseDto,
   SendDirectMessageDto,
   SystemAnnouncementPublicDto,
+  UpdatedCountResponseDto,
 } from '../model';
 
 import { httpMutator } from '../../http';
@@ -206,7 +218,7 @@ export const followsControllerFollowers = (
   params?: FollowsControllerFollowersParams,
   signal?: AbortSignal,
 ) => {
-  return httpMutator<void>({
+  return httpMutator<FollowListResponseDto>({
     url: `/api/users/${id}/followers`,
     method: 'GET',
     params,
@@ -381,7 +393,7 @@ export const followsControllerFollowing = (
   params?: FollowsControllerFollowingParams,
   signal?: AbortSignal,
 ) => {
-  return httpMutator<void>({
+  return httpMutator<FollowListResponseDto>({
     url: `/api/users/${id}/following`,
     method: 'GET',
     params,
@@ -555,7 +567,7 @@ export const followsControllerFollowStatus = (
   id: number,
   signal?: AbortSignal,
 ) => {
-  return httpMutator<void>({
+  return httpMutator<FollowStatusResponseDto>({
     url: `/api/users/${id}/follow-status`,
     method: 'GET',
     signal,
@@ -716,7 +728,7 @@ export function useFollowsControllerFollowStatus<
  * @summary 私信未读消息条数
  */
 export const conversationsControllerUnreadCount = (signal?: AbortSignal) => {
-  return httpMutator<void>({
+  return httpMutator<DmUnreadCountResponseDto>({
     url: `/api/conversations/unread-count`,
     method: 'GET',
     signal,
@@ -866,7 +878,7 @@ export const conversationsControllerList = (
   params?: ConversationsControllerListParams,
   signal?: AbortSignal,
 ) => {
-  return httpMutator<void>({
+  return httpMutator<ConversationListResponseDto>({
     url: `/api/conversations`,
     method: 'GET',
     params,
@@ -1028,7 +1040,7 @@ export const conversationsControllerOpen = (
   openConversationDto: OpenConversationDto,
   signal?: AbortSignal,
 ) => {
-  return httpMutator<void>({
+  return httpMutator<OpenConversationResponseDto>({
     url: `/api/conversations/open`,
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -1115,7 +1127,7 @@ export const conversationsControllerMarkReadThrough = (
   markDmReadThroughDto: MarkDmReadThroughDto,
   signal?: AbortSignal,
 ) => {
-  return httpMutator<void>({
+  return httpMutator<MarkReadThroughResponseDto>({
     url: `/api/conversations/${id}/read-through`,
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -1203,7 +1215,7 @@ export const conversationsControllerMessages = (
   params?: ConversationsControllerMessagesParams,
   signal?: AbortSignal,
 ) => {
-  return httpMutator<void>({
+  return httpMutator<DirectMessageListResponseDto>({
     url: `/api/conversations/${id}/messages`,
     method: 'GET',
     params,
@@ -1382,7 +1394,7 @@ export const conversationsControllerSend = (
   sendDirectMessageDto: SendDirectMessageDto,
   signal?: AbortSignal,
 ) => {
-  return httpMutator<void>({
+  return httpMutator<DirectMessageDto>({
     url: `/api/conversations/${id}/messages`,
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -1468,7 +1480,7 @@ export const conversationsControllerDelete = (
   id: number,
   signal?: AbortSignal,
 ) => {
-  return httpMutator<void>({
+  return httpMutator<DeletedCountResponseDto>({
     url: `/api/conversations/${id}`,
     method: 'DELETE',
     signal,
@@ -1549,7 +1561,7 @@ export const useConversationsControllerDelete = <
  * @summary 通知中心未读数（不含私信）
  */
 export const notificationsControllerUnreadCount = (signal?: AbortSignal) => {
-  return httpMutator<void>({
+  return httpMutator<NotificationUnreadCountResponseDto>({
     url: `/api/notifications/unread-count`,
     method: 'GET',
     signal,
@@ -1866,7 +1878,7 @@ export const notificationsControllerList = (
   params?: NotificationsControllerListParams,
   signal?: AbortSignal,
 ) => {
-  return httpMutator<void>({
+  return httpMutator<NotificationListResponseDto>({
     url: `/api/notifications`,
     method: 'GET',
     params,
@@ -2028,7 +2040,7 @@ export const notificationsControllerMarkRead = (
   markNotificationsReadDto: MarkNotificationsReadDto,
   signal?: AbortSignal,
 ) => {
-  return httpMutator<void>({
+  return httpMutator<UpdatedCountResponseDto>({
     url: `/api/notifications/read`,
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -2115,7 +2127,7 @@ export const notificationsControllerDelete = (
   id: number,
   signal?: AbortSignal,
 ) => {
-  return httpMutator<void>({
+  return httpMutator<DeletedCountResponseDto>({
     url: `/api/notifications/${id}`,
     method: 'DELETE',
     signal,

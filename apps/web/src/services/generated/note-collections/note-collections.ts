@@ -21,7 +21,11 @@ import type {
   UseQueryResult,
 } from '@tanstack/react-query';
 
-import type { CreateNoteCollectionDto } from '../model';
+import type {
+  CreateNoteCollectionDto,
+  NoteCollectionDetailDto,
+  NoteCollectionDto,
+} from '../model';
 
 import { httpMutator } from '../../http';
 
@@ -32,7 +36,7 @@ export const noteCollectionsControllerCreate = (
   createNoteCollectionDto: CreateNoteCollectionDto,
   signal?: AbortSignal,
 ) => {
-  return httpMutator<void>({
+  return httpMutator<NoteCollectionDto>({
     url: `/api/note-collections`,
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -118,7 +122,7 @@ export const useNoteCollectionsControllerCreate = <
 export const noteCollectionsControllerFindMyCollections = (
   signal?: AbortSignal,
 ) => {
-  return httpMutator<void>({
+  return httpMutator<NoteCollectionDto[]>({
     url: `/api/note-collections`,
     method: 'GET',
     signal,
@@ -283,7 +287,7 @@ export const noteCollectionsControllerGetNoteCollections = (
   noteId: string,
   signal?: AbortSignal,
 ) => {
-  return httpMutator<void>({
+  return httpMutator<NoteCollectionDto[]>({
     url: `/api/note-collections/note/${noteId}`,
     method: 'GET',
     signal,
@@ -468,7 +472,7 @@ export const noteCollectionsControllerFindOne = (
   id: string,
   signal?: AbortSignal,
 ) => {
-  return httpMutator<void>({
+  return httpMutator<NoteCollectionDetailDto>({
     url: `/api/note-collections/${id}`,
     method: 'GET',
     signal,

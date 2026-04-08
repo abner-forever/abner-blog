@@ -23,6 +23,12 @@ import { PaginationQueryDto } from './dto/pagination-query.dto';
 import { MarkNotificationsReadDto } from './dto/mark-notifications-read.dto';
 import { AuthenticatedRequest } from '../common/interfaces/request.interface';
 import { SystemAnnouncementPublicDto } from './dto/system-announcement-public.dto';
+import {
+  DeletedCountResponseDto,
+  NotificationListResponseDto,
+  NotificationUnreadCountResponseDto,
+  UpdatedCountResponseDto,
+} from './dto/social-response.dto';
 
 @ApiTags('social')
 @Controller('notifications')
@@ -33,6 +39,7 @@ export class NotificationsController {
 
   @Get('unread-count')
   @ApiOperation({ summary: '通知中心未读数（不含私信）' })
+  @ApiOkResponse({ type: NotificationUnreadCountResponseDto })
   async unreadCount(@Request() req: AuthenticatedRequest) {
     const feedUnread = await this.notificationsService.countFeedUnread(
       req.user.userId,
@@ -51,6 +58,7 @@ export class NotificationsController {
 
   @Get()
   @ApiOperation({ summary: '通知列表' })
+  @ApiOkResponse({ type: NotificationListResponseDto })
   async list(
     @Request() req: AuthenticatedRequest,
     @Query() q: PaginationQueryDto,
@@ -64,6 +72,7 @@ export class NotificationsController {
 
   @Post('read')
   @ApiOperation({ summary: '标记通知已读' })
+  @ApiOkResponse({ type: UpdatedCountResponseDto })
   async markRead(
     @Request() req: AuthenticatedRequest,
     @Body() dto: MarkNotificationsReadDto,
@@ -87,6 +96,7 @@ export class NotificationsController {
 
   @Delete(':id')
   @ApiOperation({ summary: '删除单条通知' })
+  @ApiOkResponse({ type: DeletedCountResponseDto })
   async delete(
     @Request() req: AuthenticatedRequest,
     @Param('id', ParseIntPipe) id: number,

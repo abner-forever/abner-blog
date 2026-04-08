@@ -21,7 +21,12 @@ import type {
   UseQueryResult,
 } from '@tanstack/react-query';
 
-import type { BlogDto, ToggleFavoriteResponseDto } from '../model';
+import type {
+  BlogDto,
+  BlogFavoritedStatusResponseDto,
+  BlogFavoritesCountResponseDto,
+  ToggleFavoriteResponseDto,
+} from '../model';
 
 import { httpMutator } from '../../http';
 
@@ -116,7 +121,7 @@ export const favoritesControllerGetFavoritesCount = (
   blogId: string,
   signal?: AbortSignal,
 ) => {
-  return httpMutator<void>({
+  return httpMutator<BlogFavoritesCountResponseDto>({
     url: `/api/blogs/${blogId}/favorites/count`,
     method: 'GET',
     signal,
@@ -283,7 +288,7 @@ export const favoritesControllerHasFavorited = (
   blogId: string,
   signal?: AbortSignal,
 ) => {
-  return httpMutator<void>({
+  return httpMutator<BlogFavoritedStatusResponseDto>({
     url: `/api/blogs/${blogId}/favorites/status`,
     method: 'GET',
     signal,
