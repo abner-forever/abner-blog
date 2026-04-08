@@ -1,4 +1,4 @@
-import { Controller, Get, Req, Query } from '@nestjs/common';
+import { Controller, Get, Req, Query, NotFoundException } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
@@ -25,9 +25,16 @@ export class WeatherController {
   })
   @Get()
   @ApiQuery({
-    name: 'city',
+    name: 'location',
     required: false,
-    description: '城市名称，如北京、上海',
+    description:
+      '城市名称，支持文字搜索，如"北京"；也支持经纬度坐标（lon,lat）、LocationID 或 Adcode',
+  })
+  @ApiQuery({
+    name: 'adm',
+    required: false,
+    description:
+      '上级行政区划，用于排除重名城市，如 adm=北京 可确定查询的是北京市而非朝阳市',
   })
   @ApiQuery({
     name: 'date',
@@ -40,7 +47,8 @@ export class WeatherController {
   })
   async getWeather(
     @Req() req: Request,
-    @Query('city') city?: string,
+    @Query('location') location?: string,
+    @Query('adm') adm?: string,
     @Query('date') date?: string,
   ): Promise<WeatherInfoResponse> {
     const forwarded = req.headers['x-forwarded-for'];
@@ -48,6 +56,17 @@ export class WeatherController {
       ? forwarded[0]
       : (forwarded?.split(',')[0]?.trim() ?? req.socket.remoteAddress ?? '');
 
-    return this.weatherService.getWeather(clientIp, city, date);
+    const data = await this.weatherService.getWeather(
+      clientIp,
+      location,
+      adm,
+      date,
+    );
+    if (data.fallback?.isFallback) {
+      throw new NotFoundException(
+        '城市 "' + data.fallback.requestedCity + '" 未找到或不支持',
+      );
+    }
+    return data;
   }
 }

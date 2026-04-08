@@ -316,6 +316,30 @@ export function handleChatStreamEvent({
         title: item.title,
         completed: Boolean(item.completed),
       }));
+    const analysisData = (streamEvent.payload?.analysis as {
+      completionRate?: number;
+      total?: number;
+      completed?: number;
+      pending?: number;
+      overdueCount?: number;
+      distribution?: string;
+      priorityItems?: string[];
+      summary?: string;
+      suggestion?: string;
+    } | undefined);
+    const analysis = analysisData
+      ? {
+          completionRate: analysisData.completionRate ?? 0,
+          total: analysisData.total ?? 0,
+          completed: analysisData.completed ?? 0,
+          pending: analysisData.pending ?? 0,
+          overdueCount: analysisData.overdueCount ?? 0,
+          distribution: analysisData.distribution ?? '均匀',
+          priorityItems: analysisData.priorityItems ?? [],
+          summary: analysisData.summary ?? '',
+          suggestion: analysisData.suggestion ?? '',
+        }
+      : undefined;
     const text =
       scheduleItems.length === 0
         ? '📋 您最近没有日程安排。'
@@ -343,6 +367,7 @@ export function handleChatStreamEvent({
                       : '📋 您最近的日程和待办',
                   events,
                   todos,
+                  analysis,
                 },
               },
             }

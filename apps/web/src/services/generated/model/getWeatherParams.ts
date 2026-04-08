@@ -8,9 +8,13 @@
 
 export type GetWeatherParams = {
   /**
-   * 城市名称，如北京、上海
+   * 城市名称，支持文字搜索，如"北京"；也支持经纬度坐标（lon,lat）、LocationID 或 Adcode
    */
-  city?: string;
+  location?: string;
+  /**
+   * 上级行政区划，用于排除重名城市，如 adm=北京 可确定查询的是北京市而非朝阳市
+   */
+  adm?: string;
   /**
    * 目标日期（YYYY-MM-DD），默认当天
    */

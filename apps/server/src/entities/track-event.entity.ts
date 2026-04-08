@@ -48,13 +48,28 @@ export class TrackEvent {
   @Column({ type: 'text', nullable: true })
   userAgent: string;
 
-  @Column({ type: 'enum', enum: ['desktop', 'mobile', 'tablet'], default: 'desktop', nullable: true })
+  @Column({
+    type: 'enum',
+    enum: ['desktop', 'mobile', 'tablet'],
+    default: 'desktop',
+    nullable: true,
+  })
   deviceType: DeviceType;
 
-  @Column({ type: 'enum', enum: ['chrome', 'firefox', 'safari', 'edge', 'ie', 'other'], default: 'other', nullable: true })
+  @Column({
+    type: 'enum',
+    enum: ['chrome', 'firefox', 'safari', 'edge', 'ie', 'other'],
+    default: 'other',
+    nullable: true,
+  })
   browser: Browser;
 
-  @Column({ type: 'enum', enum: ['windows', 'macos', 'linux', 'android', 'ios', 'other'], default: 'other', nullable: true })
+  @Column({
+    type: 'enum',
+    enum: ['windows', 'macos', 'linux', 'android', 'ios', 'other'],
+    default: 'other',
+    nullable: true,
+  })
   os: OS;
 
   @CreateDateColumn()

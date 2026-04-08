@@ -22,8 +22,12 @@ export interface WeatherInfoResponse {
   temperatureMax: number;
   /** 最低气温（℃） */
   temperatureMin: number;
-  /** WMO 天气代码 */
+  /** 天气代码（兼容和风 icon / 前端共享码） */
   weatherCode: number;
+  /** 天气文案（如 晴 / 小雨 / 阴天） */
+  weatherText: string;
+  /** 天气图标 emoji（如 ☀️ / 🌧️） */
+  weatherEmoji: string;
   /** 是否白天 */
   isDay: boolean;
   /** 风速（km/h） */

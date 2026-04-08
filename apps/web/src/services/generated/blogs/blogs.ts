@@ -25,7 +25,6 @@ import type {
   BlogDto,
   BlogListResponseDto,
   BlogsControllerFindAllParams,
-  BlogsControllerTogglePublish200,
   CreateBlogDto,
   UpdateBlogDto,
 } from '../model';
@@ -893,7 +892,7 @@ export const blogsControllerTogglePublish = (
   id: string,
   signal?: AbortSignal,
 ) => {
-  return httpMutator<BlogsControllerTogglePublish200>({
+  return httpMutator<void>({
     url: `/api/blogs/${id}/publish`,
     method: 'PATCH',
     signal,

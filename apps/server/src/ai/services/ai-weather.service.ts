@@ -44,6 +44,7 @@ export class AIWeatherService {
     const weather = await this.weatherService.getWeather(
       'unknown',
       city,
+      weatherQueryContext.adm,
       weatherQueryContext.date,
     );
     process.stderr.write(`[AI Weather] Weather: ${JSON.stringify(weather)}\n`);
@@ -136,21 +137,10 @@ export class AIWeatherService {
       return `${cityLabel}${dateLabel}的天气数据暂时无法获取（连接天气服务超时或网络异常），请稍后再试。`;
     }
 
-    const weatherText = this.getWeatherDescription(
+    const weatherText = this.weatherService.getWeatherText(
       weather.weatherCode,
       weather.isDay,
     );
     return `${cityLabel}${dateLabel}天气：当前温度${weather.temperature}°C，最高${weather.temperatureMax}°C，最低${weather.temperatureMin}°C，风速${weather.windspeed}km/h，天气${weatherText}。`;
-  }
-
-  private getWeatherDescription(weatherCode: number, isDay: boolean): string {
-    if (weatherCode === 0) return isDay ? '晴' : '晴夜';
-    if ([1, 2, 3].includes(weatherCode)) return '多云';
-    if ([45, 48].includes(weatherCode)) return '雾';
-    if ([51, 53, 55, 56, 57].includes(weatherCode)) return '毛毛雨';
-    if ([61, 63, 65, 66, 67, 80, 81, 82].includes(weatherCode)) return '下雨';
-    if ([71, 73, 75, 77, 85, 86].includes(weatherCode)) return '下雪';
-    if ([95, 96, 99].includes(weatherCode)) return '雷暴';
-    return '未知';
   }
 }

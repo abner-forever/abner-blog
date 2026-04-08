@@ -23,9 +23,9 @@ import {
   QueryPerformanceMetricsDto,
   PerformanceStatsDto,
 } from './dto/performance-metric.dto';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { OptionalJwtAuthGuard } from '../auth/optional-jwt-auth.guard';
 import { AuthenticatedRequest } from '../common/interfaces/request.interface';
+import { parseUserAgent } from '../common/utils/user-agent';
 
 @ApiTags('Analytics')
 @Controller('analytics')
@@ -141,7 +141,12 @@ export class AnalyticsController {
     @Query('page') page?: number,
     @Query('pageSize') pageSize?: number,
   ) {
-    return this.analyticsService.getUserList({ startTime, endTime, page, pageSize });
+    return this.analyticsService.getUserList({
+      startTime,
+      endTime,
+      page,
+      pageSize,
+    });
   }
 
   // 用户行为详情
@@ -176,7 +181,11 @@ export class AnalyticsController {
     @Query('endTime') endTime: string,
     @Query('granularity') granularity?: string,
   ) {
-    return this.analyticsService.getPageViewStats(startTime, endTime, granularity);
+    return this.analyticsService.getPageViewStats(
+      startTime,
+      endTime,
+      granularity,
+    );
   }
 
   // 点击事件统计
@@ -189,7 +198,11 @@ export class AnalyticsController {
     @Query('endTime') endTime: string,
     @Query('granularity') granularity?: string,
   ) {
-    return this.analyticsService.getClickEventStats(startTime, endTime, granularity);
+    return this.analyticsService.getClickEventStats(
+      startTime,
+      endTime,
+      granularity,
+    );
   }
 
   // 热门页面
@@ -216,8 +229,6 @@ export class AnalyticsController {
     };
 
     const userAgent = req.headers['user-agent'] || '';
-    const { parseUserAgent } = require('../common/utils/user-agent');
-
     const { deviceType, browser, os } = parseUserAgent(userAgent);
 
     return {

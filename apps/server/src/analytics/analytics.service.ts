@@ -51,7 +51,10 @@ export class AnalyticsService {
     return this.trackEventRepo.save(entities);
   }
 
-  async createPerformanceMetric(data: PerformanceMetricDto, extra: Partial<PerformanceMetric>) {
+  async createPerformanceMetric(
+    data: PerformanceMetricDto,
+    extra: Partial<PerformanceMetric>,
+  ) {
     const metric = this.performanceMetricRepo.create({
       ...data,
       ...Object.fromEntries(
@@ -62,7 +65,15 @@ export class AnalyticsService {
   }
 
   async findTrackEvents(query: QueryTrackEventsDto) {
-    const { eventName, userId, pageUrl, startTime, endTime, page = 1, pageSize = 20 } = query;
+    const {
+      eventName,
+      userId,
+      pageUrl,
+      startTime,
+      endTime,
+      page = 1,
+      pageSize = 20,
+    } = query;
 
     const where: Record<string, unknown> = {};
     if (eventName) where.eventName = eventName;
@@ -112,14 +123,21 @@ export class AnalyticsService {
       .orderBy('time', 'ASC')
       .getRawMany();
 
-    return result.map((r) => ({
+    return (result as Array<{ time: string; count: string }>).map((r) => ({
       time: r.time,
       count: parseInt(r.count, 10),
     }));
   }
 
   async findPerformanceMetrics(query: QueryPerformanceMetricsDto) {
-    const { userId, pageUrl, startTime, endTime, page = 1, pageSize = 20 } = query;
+    const {
+      userId,
+      pageUrl,
+      startTime,
+      endTime,
+      page = 1,
+      pageSize = 20,
+    } = query;
 
     const where: Record<string, unknown> = {};
     if (userId) where.userId = userId;
@@ -177,7 +195,16 @@ export class AnalyticsService {
       .orderBy('time', 'ASC')
       .getRawMany();
 
-    return result.map((r) => ({
+    return (
+      result as Array<{
+        time: string;
+        avgLcp: string;
+        avgFid: string;
+        avgCls: string;
+        avgFcp: string;
+        avgTtfb: string;
+      }>
+    ).map((r) => ({
       time: r.time,
       lcp: parseFloat(r.avgLcp) || 0,
       fid: parseFloat(r.avgFid) || 0,
@@ -199,7 +226,14 @@ export class AnalyticsService {
       .limit(limit)
       .getRawMany();
 
-    return result.map((r) => ({
+    return (
+      result as Array<{
+        pageUrl: string;
+        avgLcp: string;
+        avgCls: string;
+        count: string;
+      }>
+    ).map((r) => ({
       pageUrl: r.pageUrl,
       avgLcp: parseFloat(r.avgLcp) || 0,
       avgCls: parseFloat(r.avgCls) || 0,
@@ -223,7 +257,10 @@ export class AnalyticsService {
       `Deleted ${trackResult.affected} track events and ${perfResult.affected} performance metrics older than ${retentionDays} days`,
     );
 
-    return { trackEvents: trackResult.affected, performanceMetrics: perfResult.affected };
+    return {
+      trackEvents: trackResult.affected,
+      performanceMetrics: perfResult.affected,
+    };
   }
 
   // 全局概览统计
@@ -242,12 +279,13 @@ export class AnalyticsService {
     });
 
     // 独立访客数 (按anonymousId去重)
-    const uvResult = await this.trackEventRepo
+    // TypeORM getRawOne() returns `any`; double-cast silences unsafe-assignment lint
+    const uvRaw = (await this.trackEventRepo
       .createQueryBuilder('event')
       .select('COUNT(DISTINCT event.anonymousId)', 'uv')
       .where('event.createdAt BETWEEN :start AND :end', { start, end })
-      .getRawOne();
-    const uv = parseInt(uvResult?.uv || '0', 10);
+      .getRawOne()) as unknown as { uv: string };
+    const uv = parseInt(uvRaw?.uv || '0', 10);
 
     // 点击事件数
     const clickEvents = await this.trackEventRepo.count({
@@ -257,7 +295,9 @@ export class AnalyticsService {
     // JS错误数
     const errorEvents = await this.trackEventRepo
       .createQueryBuilder('event')
-      .where('event.eventName IN (:...names)', { names: ['js_error', 'unhandled_promise_error'] })
+      .where('event.eventName IN (:...names)', {
+        names: ['js_error', 'unhandled_promise_error'],
+      })
       .andWhere('event.createdAt BETWEEN :start AND :end', { start, end })
       .getCount();
 
@@ -271,7 +311,11 @@ export class AnalyticsService {
   }
 
   // 全局事件趋势
-  async getEventTrend(startTime: string, endTime: string, granularity: string = 'day') {
+  async getEventTrend(
+    startTime: string,
+    endTime: string,
+    granularity: string = 'day',
+  ) {
     const dateFormat = this.getDateFormat(granularity);
 
     const result = await this.trackEventRepo
@@ -279,15 +323,24 @@ export class AnalyticsService {
       .select('DATE_FORMAT(event.createdAt, :dateFormat)', 'time')
       .addSelect('event.eventName', 'eventName')
       .addSelect('COUNT(*)', 'count')
-      .where('event.createdAt BETWEEN :start AND :end', { start: startTime, end: endTime })
+      .where('event.createdAt BETWEEN :start AND :end', {
+        start: startTime,
+        end: endTime,
+      })
       .setParameter('dateFormat', dateFormat)
       .groupBy('time, event.eventName')
       .orderBy('time', 'ASC')
       .getRawMany();
 
+    const typedResult = result as Array<{
+      time: string;
+      eventName: string;
+      count: string;
+    }>;
+
     // 转换为趋势数据格式
-    const timeMap = new Map<string, Record<string, number>>();
-    for (const row of result) {
+    const timeMap = new Map<string, Record<string, string | number>>();
+    for (const row of typedResult) {
       const time = row.time;
       const eventName = row.eventName;
       const count = parseInt(row.count, 10);
@@ -295,10 +348,12 @@ export class AnalyticsService {
       if (!timeMap.has(time)) {
         timeMap.set(time, { time });
       }
-      timeMap.get(time)![eventName] = count;
+      timeMap.get(time)[eventName] = count;
     }
 
-    return Array.from(timeMap.values()).sort((a, b) => String(a.time).localeCompare(String(b.time)));
+    return Array.from(timeMap.values()).sort((a, b) =>
+      String(a.time).localeCompare(String(b.time)),
+    );
   }
 
   // 用户列表（按设备分组）
@@ -310,9 +365,8 @@ export class AnalyticsService {
   }) {
     const { startTime, endTime, page = 1, pageSize = 20 } = query;
 
-    const whereCondition = startTime && endTime
-      ? 'event.createdAt BETWEEN :start AND :end'
-      : '1=1';
+    const whereCondition =
+      startTime && endTime ? 'event.createdAt BETWEEN :start AND :end' : '1=1';
     const params: Record<string, unknown> = {};
     if (startTime && endTime) {
       params.start = new Date(startTime);
@@ -334,14 +388,24 @@ export class AnalyticsService {
       .limit(pageSize)
       .getRawMany();
 
-    const totalResult = await this.trackEventRepo
+    // TypeORM getRawOne() returns `any`; double-cast silences unsafe-assignment lint
+    const totalResult = (await this.trackEventRepo
       .createQueryBuilder('event')
       .select('COUNT(DISTINCT event.anonymousId)', 'total')
       .where(whereCondition, params)
-      .getRawOne();
+      .getRawOne()) as unknown as { total: string } | null;
+
+    const typedResult = result as Array<{
+      anonymousId: string;
+      userId: string | null;
+      eventCount: string;
+      pageCount: string;
+      firstVisit: Date;
+      lastVisit: Date;
+    }>;
 
     return {
-      list: result.map((r) => ({
+      list: typedResult.map((r) => ({
         anonymousId: r.anonymousId,
         userId: r.userId || null,
         eventCount: parseInt(r.eventCount, 10),
@@ -356,13 +420,16 @@ export class AnalyticsService {
   }
 
   // 用户行为详情
-  async getUserBehaviorDetail(anonymousId: string, query: {
-    startTime?: string;
-    endTime?: string;
-    eventName?: string;
-    page?: number;
-    pageSize?: number;
-  }) {
+  async getUserBehaviorDetail(
+    anonymousId: string,
+    query: {
+      startTime?: string;
+      endTime?: string;
+      eventName?: string;
+      page?: number;
+      pageSize?: number;
+    },
+  ) {
     const { startTime, endTime, eventName, page = 1, pageSize = 50 } = query;
 
     const where: Record<string, unknown> = { anonymousId };
@@ -388,7 +455,11 @@ export class AnalyticsService {
   }
 
   // 页面访问统计
-  async getPageViewStats(startTime: string, endTime: string, granularity: string = 'day') {
+  async getPageViewStats(
+    startTime: string,
+    endTime: string,
+    granularity: string = 'day',
+  ) {
     const dateFormat = this.getDateFormat(granularity);
 
     const result = await this.trackEventRepo
@@ -398,13 +469,23 @@ export class AnalyticsService {
       .addSelect('COUNT(*)', 'pv')
       .addSelect('COUNT(DISTINCT event.anonymousId)', 'uv')
       .where('event.eventName = :eventName', { eventName: 'page_view' })
-      .andWhere('event.createdAt BETWEEN :start AND :end', { start: startTime, end: endTime })
+      .andWhere('event.createdAt BETWEEN :start AND :end', {
+        start: startTime,
+        end: endTime,
+      })
       .setParameter('dateFormat', dateFormat)
       .groupBy('time, event.pageUrl')
       .orderBy('pv', 'DESC')
       .getRawMany();
 
-    return result.map((r) => ({
+    return (
+      result as Array<{
+        time: string;
+        pageUrl: string;
+        pv: string;
+        uv: string;
+      }>
+    ).map((r) => ({
       time: r.time,
       pageUrl: r.pageUrl,
       pv: parseInt(r.pv, 10),
@@ -413,7 +494,11 @@ export class AnalyticsService {
   }
 
   // 点击事件统计
-  async getClickEventStats(startTime: string, endTime: string, granularity: string = 'day') {
+  async getClickEventStats(
+    startTime: string,
+    endTime: string,
+    granularity: string = 'day',
+  ) {
     const dateFormat = this.getDateFormat(granularity);
 
     const result = await this.trackEventRepo
@@ -422,25 +507,39 @@ export class AnalyticsService {
       .addSelect('event.eventData', 'eventData')
       .addSelect('COUNT(*)', 'count')
       .where('event.eventName = :eventName', { eventName: 'click' })
-      .andWhere('event.createdAt BETWEEN :start AND :end', { start: startTime, end: endTime })
+      .andWhere('event.createdAt BETWEEN :start AND :end', {
+        start: startTime,
+        end: endTime,
+      })
       .setParameter('dateFormat', dateFormat)
       .groupBy('time, event.eventData')
       .orderBy('count', 'DESC')
       .limit(50)
       .getRawMany();
 
-    return result.map((r) => {
-      let eventData = {};
+    return (
+      result as Array<{
+        time: string;
+        eventData: string | null;
+        count: string;
+      }>
+    ).map((r) => {
+      let eventData: Record<string, unknown> = {};
       try {
-        eventData = typeof r.eventData === 'string' ? JSON.parse(r.eventData) : r.eventData || {};
-      } catch {}
+        eventData =
+          typeof r.eventData === 'string'
+            ? (JSON.parse(r.eventData) as Record<string, unknown>)
+            : (r.eventData as Record<string, unknown>) || {};
+      } catch {
+        // ignore parse errors
+      }
 
       return {
         time: r.time,
         count: parseInt(r.count, 10),
-        elementTag: eventData['elementTag'] || '',
-        elementText: eventData['elementText'] || '',
-        pageUrl: eventData['pageUrl'] || '',
+        elementTag: (eventData['elementTag'] as string) || '',
+        elementText: (eventData['elementText'] as string) || '',
+        pageUrl: (eventData['pageUrl'] as string) || '',
       };
     });
   }
@@ -458,7 +557,13 @@ export class AnalyticsService {
       .limit(limit)
       .getRawMany();
 
-    return result.map((r) => ({
+    return (
+      result as Array<{
+        pageUrl: string;
+        pv: string;
+        uv: string;
+      }>
+    ).map((r) => ({
       pageUrl: r.pageUrl,
       pv: parseInt(r.pv, 10),
       uv: parseInt(r.uv, 10),

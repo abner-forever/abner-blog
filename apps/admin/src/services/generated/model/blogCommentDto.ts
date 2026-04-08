@@ -23,5 +23,5 @@ export interface BlogCommentDto {
   /** 更新时间 */
   updatedAt: string;
   /** 博客信息 */
-  blog: BlogDto | null;
+  blog: BlogDto;
 }

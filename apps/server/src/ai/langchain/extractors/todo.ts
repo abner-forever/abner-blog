@@ -5,7 +5,7 @@ import {
 } from '../../dto/extraction-result.dto';
 import type { ChatLLM } from '../model';
 import { cleanTitle, getTextContent, parseJson } from '../parsers';
-import { TODO_EXTRACTION_PROMPT } from '../prompts';
+import { TODO_ANALYSIS_PROMPT, TODO_EXTRACTION_PROMPT } from '../prompts';
 
 export async function extractTodoEntities(
   llm: ChatLLM,
@@ -61,4 +61,68 @@ function cleanTodoTitle(input: string): string {
   text = text.replace(/\s*(待办|todo)\s*$/i, '');
   text = text.replace(/\s+/g, ' ').trim();
   return cleanTitle(text.trim());
+}
+
+export interface TodoAnalysisResult {
+  completionRate: number;
+  total: number;
+  completed: number;
+  pending: number;
+  overdueCount: number;
+  distribution: '均匀' | '集中' | '稀疏';
+  priorityItems: string[];
+  summary: string;
+  suggestion: string;
+}
+
+export async function analyzeTodoSchedule(
+  llm: ChatLLM,
+  todos: Array<{
+    id: number;
+    title: string;
+    completed: boolean;
+  }>,
+  currentDate: string,
+): Promise<TodoAnalysisResult | null> {
+  const completed = todos.filter((t) => t.completed).length;
+  const pending = todos.length - completed;
+
+  const todoStats = `总数: ${todos.length}, 已完成: ${completed}, 未完成: ${pending}`;
+  const todoList = todos
+    .map((t) => `- ${t.title} [${t.completed ? '已完成' : '未完成'}]`)
+    .join('\n');
+
+  const prompt = TODO_ANALYSIS_PROMPT.replace('{currentDate}', currentDate)
+    .replace('{todoStats}', todoStats)
+    .replace('{todoList}', todoList);
+
+  try {
+    const result = await llm.invoke([
+      new SystemMessage('你是一个任务管理助手，只输出JSON。'),
+      new HumanMessage(prompt),
+    ]);
+
+    const content = getTextContent(result);
+    const parsed = parseJson(content);
+
+    if (!parsed) return null;
+
+    return {
+      completionRate: Number(parsed.completionRate) || 0,
+      total: Number(parsed.total) || todos.length,
+      completed: Number(parsed.completed) || completed,
+      pending: Number(parsed.pending) || pending,
+      overdueCount: Number(parsed.overdueCount) || 0,
+      distribution: (parsed.distribution as '均匀' | '集中' | '稀疏') || '均匀',
+      priorityItems: Array.isArray(parsed.priorityItems)
+        ? (parsed.priorityItems as string[])
+        : [],
+      summary: typeof parsed.summary === 'string' ? parsed.summary : '',
+      suggestion:
+        typeof parsed.suggestion === 'string' ? parsed.suggestion : '',
+    };
+  } catch (error) {
+    console.error('Todo analysis error:', error);
+    return null;
+  }
 }

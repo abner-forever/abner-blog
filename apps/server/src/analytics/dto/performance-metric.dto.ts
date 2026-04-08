@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsNumber, MaxLength } from 'class-validator';
+import { IsString, IsOptional, IsNumber } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 
@@ -105,7 +105,10 @@ export class PerformanceStatsDto {
   @IsString()
   endTime: string;
 
-  @ApiPropertyOptional({ description: '时间粒度', enum: ['hour', 'day', 'week', 'month'] })
+  @ApiPropertyOptional({
+    description: '时间粒度',
+    enum: ['hour', 'day', 'week', 'month'],
+  })
   @IsOptional()
   @IsString()
   granularity?: string = 'day';

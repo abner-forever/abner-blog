@@ -397,6 +397,7 @@ export class AIService {
           data: result.data,
           clarification: result.clarification,
           scheduleData: result.scheduleData,
+          analysis: (result as { scheduleAnalysis?: unknown }).scheduleAnalysis,
           error: result.error,
         },
       };
@@ -485,8 +486,11 @@ export class AIService {
   /**
    * 处理查询日程
    */
-  private async handleQuerySchedule(userId: number): Promise<ChatResponseDto> {
-    return this.aiCommandService.handleQuerySchedule(userId);
+  private async handleQuerySchedule(
+    llm: ChatLLM,
+    userId: number,
+  ): Promise<ChatResponseDto> {
+    return this.aiCommandService.handleQuerySchedule(llm, userId);
   }
 
   /**
@@ -673,7 +677,7 @@ export class AIService {
       case IntentType.DELETE_EVENT:
         return this.handleDeleteEvent(llm, message, userId, currentDate);
       case IntentType.QUERY_SCHEDULE:
-        return this.handleQuerySchedule(userId);
+        return this.handleQuerySchedule(llm, userId);
       case IntentType.QUERY_WEATHER:
         return this.handleQueryWeather(
           llm,

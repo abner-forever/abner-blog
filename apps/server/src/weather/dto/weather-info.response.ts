@@ -40,8 +40,14 @@ export class WeatherInfoResponse {
   @ApiProperty({ description: '最低气温（℃）' })
   temperatureMin: number;
 
-  @ApiProperty({ description: 'WMO 天气代码' })
+  @ApiProperty({ description: '天气代码（兼容和风 icon / 前端共享码）' })
   weatherCode: number;
+
+  @ApiProperty({ description: '天气文案（如 晴 / 小雨 / 阴天）' })
+  weatherText: string;
+
+  @ApiProperty({ description: '天气图标 emoji（如 ☀️ / 🌧️）' })
+  weatherEmoji: string;
 
   @ApiProperty({ description: '是否白天' })
   isDay: boolean;

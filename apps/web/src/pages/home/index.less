@@ -157,7 +157,9 @@
         top: 72px;
         right: 88px;
         animation-delay: 0.5s;
-        min-width: 175px;
+        min-width: 156px;
+        padding: 10px 12px;
+        border-radius: 14px;
       }
 
       &.card-3 {
@@ -177,10 +179,11 @@
         }
       }
 
-      .weather-emoji {
-        font-size: 32px;
+      .weather-icon {
+        font-size: 24px;
         flex-shrink: 0;
         line-height: 1;
+        color: var(--skin-primary);
       }
 
       .weather-content {
@@ -188,13 +191,13 @@
         align-items: center;
         justify-content: space-between;
         width: 100%;
-        gap: 8px;
+        gap: 6px;
       }
 
       .weather-left {
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: 4px;
       }
 
       .weather-temp {
@@ -203,13 +206,13 @@
         line-height: 1.25;
 
         .temp-current {
-          font-size: 18px;
+          font-size: 16px;
           font-weight: 700;
           color: #1a1a2e;
         }
 
         .temp-range {
-          font-size: 11px;
+          font-size: 10px;
           color: #888;
         }
       }
@@ -221,13 +224,13 @@
         gap: 2px;
 
         .weather-status {
-          font-size: 13px;
+          font-size: 12px;
           font-weight: 500;
           color: #1a1a2e;
         }
 
         .weather-city {
-          font-size: 11px;
+          font-size: 10px;
           color: #888;
           display: flex;
           align-items: center;

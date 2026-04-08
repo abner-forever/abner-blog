@@ -26,7 +26,6 @@ import type {
   CreateNoteCommentDto,
   CreateNoteDto,
   NotesControllerFindAllParams,
-  NotesControllerGetFavorites200Item,
 } from '../model';
 
 import { httpMutator } from '../../http';
@@ -1090,7 +1089,7 @@ export const useNotesControllerToggleCommentLike = <
  * @summary 获取我收藏的笔记列表
  */
 export const notesControllerGetFavorites = (signal?: AbortSignal) => {
-  return httpMutator<NotesControllerGetFavorites200Item[]>({
+  return httpMutator<void>({
     url: `/api/notes/favorites/my`,
     method: 'GET',
     signal,

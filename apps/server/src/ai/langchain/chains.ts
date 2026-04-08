@@ -7,7 +7,11 @@
  * - 待上层调用全部迁移完成后，可评估移除此兼容层。
  */
 export { detectIntent } from './intent';
-export { extractTodoEntities } from './extractors/todo';
+export {
+  extractTodoEntities,
+  analyzeTodoSchedule,
+  type TodoAnalysisResult,
+} from './extractors/todo';
 export { extractEventEntities } from './extractors/event';
 export {
   extractWeatherQueryContext,

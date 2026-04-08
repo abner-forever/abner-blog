@@ -32,7 +32,7 @@ export const likesControllerToggleLike = (
   blogId: string,
   signal?: AbortSignal,
 ) => {
-  return httpMutator<ToggleLikeResponseDto | void>({
+  return httpMutator<ToggleLikeResponseDto>({
     url: `/api/blogs/${blogId}/likes`,
     method: 'POST',
     signal,
@@ -116,7 +116,7 @@ export const likesControllerGetLikesCount = (
   blogId: string,
   signal?: AbortSignal,
 ) => {
-  return httpMutator<number>({
+  return httpMutator<void>({
     url: `/api/blogs/${blogId}/likes/count`,
     method: 'GET',
     signal,
@@ -280,7 +280,7 @@ export const likesControllerHasLiked = (
   blogId: string,
   signal?: AbortSignal,
 ) => {
-  return httpMutator<boolean>({
+  return httpMutator<void>({
     url: `/api/blogs/${blogId}/likes/status`,
     method: 'GET',
     signal,

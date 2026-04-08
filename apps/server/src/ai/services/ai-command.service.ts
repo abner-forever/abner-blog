@@ -7,7 +7,11 @@ import {
   EVENT_LOOKUP_LOOKBACK_DAYS,
 } from '../constants';
 import { ChatResponseDto, IntentType } from '../dto/extraction-result.dto';
-import { extractEventEntities, extractTodoEntities } from '../langchain/chains';
+import {
+  analyzeTodoSchedule,
+  extractEventEntities,
+  extractTodoEntities,
+} from '../langchain/chains';
 import type { ChatLLM } from '../langchain/model';
 import { buildIsoDateRangeAround } from '../utils/date-range';
 import { buildClarificationResponse } from '../utils/response-builders';
@@ -257,7 +261,10 @@ export class AICommandService {
     };
   }
 
-  async handleQuerySchedule(userId: number): Promise<ChatResponseDto> {
+  async handleQuerySchedule(
+    llm: ChatLLM,
+    userId: number,
+  ): Promise<ChatResponseDto> {
     const now = new Date();
     const startOfWeek = new Date(now);
     startOfWeek.setDate(now.getDate() - now.getDay());
@@ -272,6 +279,17 @@ export class AICommandService {
       endOfWeek.toISOString(),
     );
     const todosResult = await this.todosService.findAll(userId);
+
+    // 调用 LLM 进行分析
+    const analysis = await analyzeTodoSchedule(
+      llm,
+      todosResult.todos.map((t) => ({
+        id: t.id,
+        title: t.title,
+        completed: t.completed,
+      })),
+      now.toISOString(),
+    );
 
     return {
       type: 'schedule_query',
@@ -291,6 +309,7 @@ export class AICommandService {
           completed: t.completed,
         })),
       ],
+      scheduleAnalysis: analysis ?? undefined,
     };
   }
 

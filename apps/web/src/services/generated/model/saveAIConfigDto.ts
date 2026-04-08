@@ -17,21 +17,9 @@ export interface SaveAIConfigDto {
    * @maximum 10
    */
   temperature?: number;
-  /**
-   * @minimum 1
-   * @maximum 32768
-   */
   maxTokens?: number;
-  /**
-   * @minimum 1
-   * @maximum 50
-   */
   contextWindow?: number;
   thinkingEnabled?: boolean;
-  /**
-   * @minimum 0
-   * @maximum 32000
-   */
   thinkingBudget?: number;
   /** 按 provider 存储 apiKey，例如 {"openai":"sk-xxx"} */
   apiKeys?: SaveAIConfigDtoApiKeys;

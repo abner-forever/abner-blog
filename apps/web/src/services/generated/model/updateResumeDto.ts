@@ -8,29 +8,17 @@
 import type { UpdateResumeDtoResumeTimelineItem } from './updateResumeDtoResumeTimelineItem';
 
 export interface UpdateResumeDto {
-  /**
-   * 真实姓名
-   * @maxLength 50
-   */
+  /** 真实姓名 */
   resumeName?: string;
-  /**
-   * 职位
-   * @maxLength 100
-   */
+  /** 职位 */
   resumeTitle?: string;
   /** 技能栈数组 */
   resumeSkills?: string[];
   /** 经历数组 [{year, event}] */
   resumeTimeline?: UpdateResumeDtoResumeTimelineItem[];
-  /**
-   * 所在地
-   * @maxLength 50
-   */
+  /** 所在地 */
   resumeLocation?: string;
-  /**
-   * 公司/学校
-   * @maxLength 100
-   */
+  /** 公司/学校 */
   resumeCompany?: string;
   /** GitHub 地址 */
   resumeGithub?: string;

@@ -6,9 +6,9 @@
  * OpenAPI spec version: 1.0
  */
 import type { ChatResponseDtoData } from './chatResponseDtoData';
-import type { ChatResponseDtoScheduleDataItem } from './chatResponseDtoScheduleDataItem';
 import type { ChatResponseDtoType } from './chatResponseDtoType';
 import type { ClarificationNeededDto } from './clarificationNeededDto';
+import type { ScheduleAnalysisDto } from './scheduleAnalysisDto';
 
 export interface ChatResponseDto {
   /** 响应类型 */
@@ -18,7 +18,9 @@ export interface ChatResponseDto {
   /** 创建的数据（type=todo_created/event_created 时） */
   data?: ChatResponseDtoData;
   /** 日程列表（type=schedule_query 时） */
-  scheduleData?: ChatResponseDtoScheduleDataItem[];
+  scheduleData?: string[];
+  /** 日程分析结果（type=schedule_query 时） */
+  scheduleAnalysis?: ScheduleAnalysisDto;
   /** 需要补充的信息（type=clarification_needed 时） */
   clarification?: ClarificationNeededDto;
   /** 错误信息（type=error 时） */

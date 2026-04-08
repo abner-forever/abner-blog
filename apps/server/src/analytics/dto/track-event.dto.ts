@@ -1,4 +1,11 @@
-import { IsString, IsOptional, IsNumber, IsArray, MaxLength, IsEnum } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsNumber,
+  IsArray,
+  MaxLength,
+  IsEnum,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 
@@ -73,7 +80,10 @@ export class TrackEventStatsDto {
   @IsString()
   endTime: string;
 
-  @ApiPropertyOptional({ description: '时间粒度', enum: ['hour', 'day', 'week', 'month'] })
+  @ApiPropertyOptional({
+    description: '时间粒度',
+    enum: ['hour', 'day', 'week', 'month'],
+  })
   @IsOptional()
   @IsEnum(['hour', 'day', 'week', 'month'])
   granularity?: 'hour' | 'day' | 'week' | 'month' = 'day';

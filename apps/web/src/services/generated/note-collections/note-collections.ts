@@ -21,7 +21,7 @@ import type {
   UseQueryResult,
 } from '@tanstack/react-query';
 
-import type { CreateNoteCollectionDto, NoteCollection } from '../model';
+import type { CreateNoteCollectionDto } from '../model';
 
 import { httpMutator } from '../../http';
 
@@ -283,7 +283,7 @@ export const noteCollectionsControllerGetNoteCollections = (
   noteId: string,
   signal?: AbortSignal,
 ) => {
-  return httpMutator<NoteCollection[]>({
+  return httpMutator<void>({
     url: `/api/note-collections/note/${noteId}`,
     method: 'GET',
     signal,

@@ -7,15 +7,9 @@
  */
 
 export interface CreateNoteDto {
-  /**
-   * 笔记标题
-   * @maxLength 120
-   */
+  /** 笔记标题 */
   title?: string;
-  /**
-   * 笔记内容
-   * @maxLength 1000
-   */
+  /** 笔记内容 */
   content: string;
   /** 图片数组 */
   images?: string[];

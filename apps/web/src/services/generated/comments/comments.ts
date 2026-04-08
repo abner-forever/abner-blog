@@ -22,7 +22,6 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
-  Comment,
   CommentDto,
   CreateCommentDto,
   ToggleCommentLikeResponseDto,
@@ -465,7 +464,7 @@ export const commentsControllerUpdate = (
   updateCommentDto: UpdateCommentDto,
   signal?: AbortSignal,
 ) => {
-  return httpMutator<Comment>({
+  return httpMutator<void>({
     url: `/api/blogs/${blogId}/comments/${id}`,
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
@@ -637,7 +636,7 @@ export const commentsControllerToggleLike = (
   id: string,
   signal?: AbortSignal,
 ) => {
-  return httpMutator<ToggleCommentLikeResponseDto | void>({
+  return httpMutator<ToggleCommentLikeResponseDto>({
     url: `/api/blogs/${blogId}/comments/${id}/like`,
     method: 'POST',
     signal,

@@ -30,7 +30,7 @@ export interface WeatherCardData {
   tempMax: number;
   tempMin: number;
   weatherText: string;
-  weatherEmoji: string;
+  weatherIconClass: string;
 }
 
 export interface CalendarEventData {
@@ -118,7 +118,7 @@ export const HeroSection: FC<HeroSectionProps> = ({
         ) : (
           <div className="weather-content">
             <div className="weather-left">
-              <span className="weather-emoji">{weatherData.weatherEmoji}</span>
+              <i className={`weather-icon ${weatherData.weatherIconClass}`} />
               <div className="weather-temp">
                 <span className="temp-current">{weatherData.temp}°</span>
                 <span className="temp-range">

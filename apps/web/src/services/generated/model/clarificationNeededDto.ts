@@ -5,12 +5,11 @@
  * ABNER Blog 用户站 / 公开 REST 接口（不含管理后台）
  * OpenAPI spec version: 1.0
  */
-import type { ClarificationNeededDtoIntent } from './clarificationNeededDtoIntent';
 import type { ClarificationNeededDtoPartialData } from './clarificationNeededDtoPartialData';
 
 export interface ClarificationNeededDto {
   /** 意图类型 */
-  intent: ClarificationNeededDtoIntent;
+  intent: string;
   /** 缺失的字段列表 */
   missingFields: string[];
   /** 已提取的部分数据 */

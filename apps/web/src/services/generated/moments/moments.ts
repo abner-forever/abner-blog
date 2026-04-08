@@ -28,7 +28,6 @@ import type {
   MomentDto,
   MomentListResponse,
   MomentsControllerFindAllParams,
-  MomentsControllerGetFavorites200Item,
   ToggleMomentFavoriteResponseDto,
   ToggleMomentLikeResponseDto,
   UpdateMomentDto,
@@ -614,7 +613,7 @@ export const momentsControllerToggleLike = (
   id: string,
   signal?: AbortSignal,
 ) => {
-  return httpMutator<ToggleMomentLikeResponseDto | void>({
+  return httpMutator<ToggleMomentLikeResponseDto>({
     url: `/api/moments/${id}/like`,
     method: 'POST',
     signal,
@@ -698,7 +697,7 @@ export const momentsControllerToggleFavorite = (
   id: string,
   signal?: AbortSignal,
 ) => {
-  return httpMutator<ToggleMomentFavoriteResponseDto | void>({
+  return httpMutator<ToggleMomentFavoriteResponseDto>({
     url: `/api/moments/${id}/favorite`,
     method: 'POST',
     signal,
@@ -1195,7 +1194,7 @@ export const useMomentsControllerToggleCommentLike = <
  * @summary 获取我收藏的沸点列表
  */
 export const momentsControllerGetFavorites = (signal?: AbortSignal) => {
-  return httpMutator<MomentsControllerGetFavorites200Item[]>({
+  return httpMutator<void>({
     url: `/api/moments/favorites/my`,
     method: 'GET',
     signal,

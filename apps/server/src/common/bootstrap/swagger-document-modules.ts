@@ -46,4 +46,7 @@ export const SWAGGER_PUBLIC_MODULES: Type<unknown>[] = [
 ];
 
 /** 供「管理后台」独立 Swagger 文档扫描的模块 */
-export const SWAGGER_ADMIN_MODULES: Type<unknown>[] = [AdminModule, AnalyticsModule];
+export const SWAGGER_ADMIN_MODULES: Type<unknown>[] = [
+  AdminModule,
+  AnalyticsModule,
+];

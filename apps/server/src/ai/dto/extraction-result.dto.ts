@@ -54,6 +54,35 @@ export class ClarificationNeededDto {
   suggestion: string;
 }
 
+export class ScheduleAnalysisDto {
+  @ApiProperty({ description: '完成率 0-100' })
+  completionRate: number;
+
+  @ApiProperty({ description: '总数' })
+  total: number;
+
+  @ApiProperty({ description: '已完成数' })
+  completed: number;
+
+  @ApiProperty({ description: '未完成数' })
+  pending: number;
+
+  @ApiProperty({ description: '过期未完成数' })
+  overdueCount: number;
+
+  @ApiProperty({ description: '分布情况' })
+  distribution: '均匀' | '集中' | '稀疏';
+
+  @ApiProperty({ description: '优先处理项' })
+  priorityItems: string[];
+
+  @ApiProperty({ description: '一句话总结' })
+  summary: string;
+
+  @ApiProperty({ description: '建议' })
+  suggestion: string;
+}
+
 export class ChatResponseDto {
   @ApiProperty({
     description: '响应类型',
@@ -82,6 +111,11 @@ export class ChatResponseDto {
 
   @ApiPropertyOptional({ description: '日程列表（type=schedule_query 时）' })
   scheduleData?: Record<string, unknown>[];
+
+  @ApiPropertyOptional({
+    description: '日程分析结果（type=schedule_query 时）',
+  })
+  scheduleAnalysis?: ScheduleAnalysisDto;
 
   @ApiPropertyOptional({
     description: '需要补充的信息（type=clarification_needed 时）',

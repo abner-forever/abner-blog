@@ -31,32 +31,32 @@ import './index.less';
 
 dayjs.locale('zh-cn');
 
-// WMO 天气代码映射
-const weatherCodeMap: Record<number, { text: string; emoji: string }> = {
-  0: { text: '晴', emoji: '☀️' },
-  1: { text: '大体晴朗', emoji: '🌤️' },
-  2: { text: '局部多云', emoji: '⛅' },
-  3: { text: '阴天', emoji: '☁️' },
-  45: { text: '有雾', emoji: '🌫️' },
-  48: { text: '冰雾', emoji: '🌫️' },
-  51: { text: '轻毛毛雨', emoji: '🌦️' },
-  53: { text: '毛毛雨', emoji: '🌦️' },
-  55: { text: '大毛毛雨', emoji: '🌦️' },
-  61: { text: '小雨', emoji: '🌧️' },
-  63: { text: '中雨', emoji: '🌧️' },
-  65: { text: '大雨', emoji: '🌧️' },
-  71: { text: '小雪', emoji: '🌨️' },
-  73: { text: '中雪', emoji: '🌨️' },
-  75: { text: '大雪', emoji: '🌨️' },
-  77: { text: '冰晶', emoji: '❄️' },
-  80: { text: '阵雨', emoji: '🌦️' },
-  81: { text: '阵雨', emoji: '🌦️' },
-  82: { text: '暴雨', emoji: '⛈️' },
-  85: { text: '阵雪', emoji: '🌨️' },
-  86: { text: '大阵雪', emoji: '🌨️' },
-  95: { text: '雷暴', emoji: '⛈️' },
-  96: { text: '冰雹雷暴', emoji: '⛈️' },
-  99: { text: '大冰雹雷暴', emoji: '⛈️' },
+// 天气代码映射（作为后端字段缺失时的兜底）
+const weatherCodeMap: Record<number, { text: string; iconCode: number }> = {
+  0: { text: '晴', iconCode: 100 },
+  1: { text: '大体晴朗', iconCode: 101 },
+  2: { text: '局部多云', iconCode: 102 },
+  3: { text: '阴天', iconCode: 104 },
+  45: { text: '有雾', iconCode: 500 },
+  48: { text: '冰雾', iconCode: 501 },
+  51: { text: '轻毛毛雨', iconCode: 305 },
+  53: { text: '毛毛雨', iconCode: 306 },
+  55: { text: '大毛毛雨', iconCode: 307 },
+  61: { text: '小雨', iconCode: 300 },
+  63: { text: '中雨', iconCode: 301 },
+  65: { text: '大雨', iconCode: 302 },
+  71: { text: '小雪', iconCode: 400 },
+  73: { text: '中雪', iconCode: 401 },
+  75: { text: '大雪', iconCode: 402 },
+  77: { text: '冰晶', iconCode: 404 },
+  80: { text: '阵雨', iconCode: 350 },
+  81: { text: '阵雨', iconCode: 351 },
+  82: { text: '暴雨', iconCode: 351 },
+  85: { text: '阵雪', iconCode: 456 },
+  86: { text: '大阵雪', iconCode: 457 },
+  95: { text: '雷暴', iconCode: 302 },
+  96: { text: '冰雹雷暴', iconCode: 304 },
+  99: { text: '大冰雹雷暴', iconCode: 304 },
 };
 
 function getWeatherInfo(code: number) {
@@ -64,12 +64,18 @@ function getWeatherInfo(code: number) {
   const entry = weatherCodeMap[code];
   if (entry) return entry;
   // 按范围兜底
-  if (code <= 3) return { text: '多云', emoji: '⛅' };
-  if (code <= 48) return { text: '有雾', emoji: '🌫️' };
-  if (code <= 67) return { text: '有雨', emoji: '🌧️' };
-  if (code <= 77) return { text: '有雪', emoji: '🌨️' };
-  if (code <= 82) return { text: '阵雨', emoji: '🌦️' };
-  return { text: '雷暴', emoji: '⛈️' };
+  if (code <= 3) return { text: '多云', iconCode: 101 };
+  if (code <= 48) return { text: '有雾', iconCode: 500 };
+  if (code <= 67) return { text: '有雨', iconCode: 300 };
+  if (code <= 77) return { text: '有雪', iconCode: 400 };
+  if (code <= 82) return { text: '阵雨', iconCode: 350 };
+  return { text: '雷暴', iconCode: 302 };
+}
+
+function getQweatherIconClass(code: number): string {
+  if (code >= 100) return `qi-${code}`;
+  const weatherInfo = getWeatherInfo(code);
+  return `qi-${weatherInfo.iconCode}`;
 }
 
 interface WeatherState {
@@ -78,7 +84,7 @@ interface WeatherState {
   tempMax: number;
   tempMin: number;
   weatherText: string;
-  weatherEmoji: string;
+  weatherIconClass: string;
 }
 
 const Home: FC = () => {
@@ -142,17 +148,15 @@ const Home: FC = () => {
   } = useQuery<WeatherState>({
     queryKey: ['home-weather'],
     queryFn: async () => {
-      const d = await getWeather({
-        city: '北京',
-      });
+      const d = await getWeather();
       const weatherInfo = getWeatherInfo(d.weatherCode ?? 0);
       return {
         city: d.city || '北京',
         temp: d.temperature ?? 0,
         tempMax: d.temperatureMax ?? d.temperature ?? 0,
         tempMin: d.temperatureMin ?? d.temperature ?? 0,
-        weatherText: weatherInfo.text,
-        weatherEmoji: weatherInfo.emoji,
+        weatherText: d.weatherText || weatherInfo.text,
+        weatherIconClass: getQweatherIconClass(d.weatherCode ?? 0),
       };
     },
   });

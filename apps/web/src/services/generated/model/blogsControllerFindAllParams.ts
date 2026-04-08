@@ -35,7 +35,6 @@ export type BlogsControllerFindAllParams = {
   sortBy?: string;
   /**
    * 按作者 ID 筛选（只返回已发布）
-   * @minimum 1
    */
   authorId?: number;
 };

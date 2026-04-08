@@ -100,32 +100,63 @@ export const TODO_EXTRACTION_PROMPT = `从用户输入中提取待办事项。
 
 只输出JSON：{"title":"...","description":null}`;
 
-export const WEATHER_QUERY_EXTRACTION_PROMPT = `从用户输入中提取“要查询天气的城市和日期”。
+export const TODO_ANALYSIS_PROMPT = `你是一个任务管理分析助手。请分析以下待办事项数据，生成简洁的分析报告。
 
-当前日期（ISO）：{currentDate}
-用户输入："{userInput}"
+当前日期：{currentDate}
 
-输出要求（只输出 JSON）：
-{"city":"城市名或NONE","date":"YYYY-MM-DD","label":"今天|明天|后天|YYYY-MM-DD"}
+待办统计数据：
+{todoStats}
+
+待办事项列表：
+{todoList}
+
+请分析并输出 JSON 格式的分析结果：
+{
+  “completionRate”: 完成率（0-100的数字）,
+  “total”: 总数,
+  “completed”: 已完成数,
+  “pending”: 未完成数,
+  “overdueCount”: 0,
+  “distribution”: “均匀” | “集中” | “稀疏”,
+  “priorityItems”: [优先处理的待办标题，最多3个],
+  “summary”: 一句话总结（20字以内）,
+  “suggestion”: 建议（50字以内）
+}
 
 规则：
-1) city 只输出城市名本身，不要包含“天气/气温/温度/风速”等词；若未指定城市输出 NONE。
-2) 如果用户说“今天/现在/当前”，输出今天日期，label=今天。
-3) 如果用户说“明天”，输出明天日期，label=明天。
-4) 如果用户说“后天”，输出后天日期，label=后天。
-5) 如果用户给出明确公历日期（如 2026-03-30、3月30日、03/30），输出对应 YYYY-MM-DD，label 用 YYYY-MM-DD。
-6) 若未提及日期，默认今天。
-7) 不要输出解释、不要 markdown 代码块、不要多余字段。
-8) 像“我想问/请问/帮我查/查一下/看一下/告诉我”等语气词、动作词绝不是城市，city 必须输出 NONE。
+- completionRate = 已完成数 / 总数 * 100，保留整数
+- overdueCount: 由于没有截止日期信息，固定为 0
+- distribution: 根据待办数量分布判断（集中/均匀/稀疏）
+- priorityItems: 优先选择未完成的待办
+- 只输出 JSON，不要其他内容。`;
+
+export const WEATHER_QUERY_EXTRACTION_PROMPT = `从用户输入中提取”要查询天气的城市、上级行政区划和日期”。
+
+当前日期（ISO）：{currentDate}
+用户输入：”{userInput}”
+
+输出要求（只输出 JSON）：
+{“city”:”城市名或NONE”,”adm”:”上级行政区划或省略”,”date”:”YYYY-MM-DD”,”label”:”今天|明天|后天|YYYY-MM-DD”}
+
+规则：
+1) city 只输出城市名本身，不要包含”天气/气温/温度/风速”等词；若未指定城市输出 NONE。
+2) adm 用于消除城市重名（如”朝阳区”可能是北京或长春的），提取上级行政区划名称；若未提及或不需要省略则输出省略。
+3) 如果用户说”今天/现在/当前”，输出今天日期，label=今天。
+4) 如果用户说”明天”，输出明天日期，label=明天。
+5) 如果用户说”后天”，输出后天日期，label=后天。
+6) 如果用户给出明确公历日期（如 2026-03-30、3月30日、03/30），输出对应 YYYY-MM-DD，label 用 YYYY-MM-DD。
+7) 若未提及日期，默认今天。
+8) 不要输出解释、不要 markdown 代码块、不要多余字段。
+9) 像”我想问/请问/帮我查/查一下/看一下/告诉我”等语气词、动作词绝不是城市，city 必须输出 NONE。
 
 示例：
 - 输入：明天上海天气
-  输出：{"city":"上海","date":"2026-03-28","label":"明天"}
+  输出：{“city”:”上海”,”adm”:”省略”,”date”:”2026-03-28”,”label”:”明天”}
+- 输入：北京朝阳区天气
+  输出：{“city”:”朝阳区”,”adm”:”北京”,”date”:”今天日期”,”label”:”今天”}
 - 输入：后天北京市气温
-  输出：{"city":"北京市","date":"2026-03-29","label":"后天"}
+  输出：{“city”:”北京市”,”adm”:”省略”,”date”:”2026-03-29”,”label”:”后天”}
 - 输入：今天天气如何
-  输出：{"city":"NONE","date":"2026-03-27","label":"今天"}
-- 输入：我想问昨天的天气
-  输出：{"city":"NONE","date":"2026-03-26","label":"2026-03-26"}
+  输出：{“city”:”NONE”,”adm”:”省略”,”date”:”今天日期”,”label”:”今天”}
 - 输入：请问后天会下雨吗
-  输出：{"city":"NONE","date":"2026-03-29","label":"后天"}`;
+  输出：{“city”:”NONE”,”adm”:”省略”,”date”:”2026-03-29”,”label”:”后天”}`;

@@ -3,6 +3,18 @@ import type {
   AdminLoginDto,
   AdminUpdateBlogDto,
   AllCommentListResponse,
+  AnalyticsControllerGetClickEventStatsParams,
+  AnalyticsControllerGetEventTrendParams,
+  AnalyticsControllerGetOverviewParams,
+  AnalyticsControllerGetPageViewStatsParams,
+  AnalyticsControllerGetPerformanceMetricsParams,
+  AnalyticsControllerGetPerformanceStatsParams,
+  AnalyticsControllerGetPopularPagesParams,
+  AnalyticsControllerGetTopPagesParams,
+  AnalyticsControllerGetTrackEventStatsParams,
+  AnalyticsControllerGetTrackEventsParams,
+  AnalyticsControllerGetUserBehaviorDetailParams,
+  AnalyticsControllerGetUserListParams,
   AuthTokenResponseDto,
   BatchDeleteCommentsDto,
   BlogCommentListResponse,
@@ -22,10 +34,13 @@ import type {
   GetAdminUsersParams,
   MomentDto,
   MomentListResponse,
+  PerformanceMetricDto,
   ToggleBlogPublishDto,
   TopicCommentListResponse,
   TopicDto,
   TopicListResponse,
+  TrackEventBatchDto,
+  TrackEventDto,
   UpdateMomentDto,
   UpdateSystemAnnouncementDto,
   UpdateTopicDto,
@@ -47,7 +62,7 @@ export const getBlogAdminAPI = () => {
    * @summary 管理员登录
    */
   const adminLogin = (adminLoginDto: AdminLoginDto) => {
-    return httpMutator<AuthTokenResponseDto | void>({
+    return httpMutator<AuthTokenResponseDto>({
       url: `/api/admin/auth/login`,
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -464,6 +479,203 @@ export const getBlogAdminAPI = () => {
     });
   };
 
+  /**
+   * @summary 上报埋点事件
+   */
+  const analyticsControllerTrack = (trackEventDto: TrackEventDto) => {
+    return httpMutator<void>({
+      url: `/api/analytics/track`,
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      data: trackEventDto,
+    });
+  };
+
+  /**
+   * @summary 批量上报埋点事件
+   */
+  const analyticsControllerTrackBatch = (
+    trackEventBatchDto: TrackEventBatchDto,
+  ) => {
+    return httpMutator<void>({
+      url: `/api/analytics/track/batch`,
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      data: trackEventBatchDto,
+    });
+  };
+
+  /**
+   * @summary 上报性能数据
+   */
+  const analyticsControllerPerformance = (
+    performanceMetricDto: PerformanceMetricDto,
+  ) => {
+    return httpMutator<void>({
+      url: `/api/analytics/performance`,
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      data: performanceMetricDto,
+    });
+  };
+
+  /**
+   * @summary 查询性能数据列表
+   */
+  const analyticsControllerGetPerformanceMetrics = (
+    params?: AnalyticsControllerGetPerformanceMetricsParams,
+  ) => {
+    return httpMutator<void>({
+      url: `/api/analytics/performance`,
+      method: "GET",
+      params,
+    });
+  };
+
+  /**
+   * @summary 查询埋点事件列表
+   */
+  const analyticsControllerGetTrackEvents = (
+    params?: AnalyticsControllerGetTrackEventsParams,
+  ) => {
+    return httpMutator<void>({
+      url: `/api/analytics/events`,
+      method: "GET",
+      params,
+    });
+  };
+
+  /**
+   * @summary 获取埋点事件统计
+   */
+  const analyticsControllerGetTrackEventStats = (
+    params: AnalyticsControllerGetTrackEventStatsParams,
+  ) => {
+    return httpMutator<void>({
+      url: `/api/analytics/events/stats`,
+      method: "GET",
+      params,
+    });
+  };
+
+  /**
+   * @summary 获取性能数据统计
+   */
+  const analyticsControllerGetPerformanceStats = (
+    params: AnalyticsControllerGetPerformanceStatsParams,
+  ) => {
+    return httpMutator<void>({
+      url: `/api/analytics/performance/stats`,
+      method: "GET",
+      params,
+    });
+  };
+
+  /**
+   * @summary 获取性能最差的页面
+   */
+  const analyticsControllerGetTopPages = (
+    params: AnalyticsControllerGetTopPagesParams,
+  ) => {
+    return httpMutator<void>({
+      url: `/api/analytics/performance/top-pages`,
+      method: "GET",
+      params,
+    });
+  };
+
+  /**
+   * @summary 获取埋点概览统计
+   */
+  const analyticsControllerGetOverview = (
+    params: AnalyticsControllerGetOverviewParams,
+  ) => {
+    return httpMutator<void>({
+      url: `/api/analytics/overview`,
+      method: "GET",
+      params,
+    });
+  };
+
+  /**
+   * @summary 获取事件趋势
+   */
+  const analyticsControllerGetEventTrend = (
+    params: AnalyticsControllerGetEventTrendParams,
+  ) => {
+    return httpMutator<void>({
+      url: `/api/analytics/trend`,
+      method: "GET",
+      params,
+    });
+  };
+
+  /**
+   * @summary 获取用户列表
+   */
+  const analyticsControllerGetUserList = (
+    params: AnalyticsControllerGetUserListParams,
+  ) => {
+    return httpMutator<void>({
+      url: `/api/analytics/users`,
+      method: "GET",
+      params,
+    });
+  };
+
+  /**
+   * @summary 获取用户行为详情
+   */
+  const analyticsControllerGetUserBehaviorDetail = (
+    anonymousId: string,
+    params: AnalyticsControllerGetUserBehaviorDetailParams,
+  ) => {
+    return httpMutator<void>({
+      url: `/api/analytics/users/${anonymousId}`,
+      method: "GET",
+      params,
+    });
+  };
+
+  /**
+   * @summary 获取页面访问统计
+   */
+  const analyticsControllerGetPageViewStats = (
+    params: AnalyticsControllerGetPageViewStatsParams,
+  ) => {
+    return httpMutator<void>({
+      url: `/api/analytics/pageviews`,
+      method: "GET",
+      params,
+    });
+  };
+
+  /**
+   * @summary 获取点击事件统计
+   */
+  const analyticsControllerGetClickEventStats = (
+    params: AnalyticsControllerGetClickEventStatsParams,
+  ) => {
+    return httpMutator<void>({
+      url: `/api/analytics/clicks`,
+      method: "GET",
+      params,
+    });
+  };
+
+  /**
+   * @summary 获取热门页面排行
+   */
+  const analyticsControllerGetPopularPages = (
+    params: AnalyticsControllerGetPopularPagesParams,
+  ) => {
+    return httpMutator<void>({
+      url: `/api/analytics/popular-pages`,
+      method: "GET",
+      params,
+    });
+  };
+
   return {
     initAdmin,
     adminLogin,
@@ -503,6 +715,21 @@ export const getBlogAdminAPI = () => {
     publishAdminSystemAnnouncement,
     recallAdminSystemAnnouncement,
     syncAdminSystemAnnouncementNotifications,
+    analyticsControllerTrack,
+    analyticsControllerTrackBatch,
+    analyticsControllerPerformance,
+    analyticsControllerGetPerformanceMetrics,
+    analyticsControllerGetTrackEvents,
+    analyticsControllerGetTrackEventStats,
+    analyticsControllerGetPerformanceStats,
+    analyticsControllerGetTopPages,
+    analyticsControllerGetOverview,
+    analyticsControllerGetEventTrend,
+    analyticsControllerGetUserList,
+    analyticsControllerGetUserBehaviorDetail,
+    analyticsControllerGetPageViewStats,
+    analyticsControllerGetClickEventStats,
+    analyticsControllerGetPopularPages,
   };
 };
 export type InitAdminResult = NonNullable<
@@ -664,6 +891,119 @@ export type SyncAdminSystemAnnouncementNotificationsResult = NonNullable<
       ReturnType<
         typeof getBlogAdminAPI
       >["syncAdminSystemAnnouncementNotifications"]
+    >
+  >
+>;
+export type AnalyticsControllerTrackResult = NonNullable<
+  Awaited<
+    ReturnType<ReturnType<typeof getBlogAdminAPI>["analyticsControllerTrack"]>
+  >
+>;
+export type AnalyticsControllerTrackBatchResult = NonNullable<
+  Awaited<
+    ReturnType<
+      ReturnType<typeof getBlogAdminAPI>["analyticsControllerTrackBatch"]
+    >
+  >
+>;
+export type AnalyticsControllerPerformanceResult = NonNullable<
+  Awaited<
+    ReturnType<
+      ReturnType<typeof getBlogAdminAPI>["analyticsControllerPerformance"]
+    >
+  >
+>;
+export type AnalyticsControllerGetPerformanceMetricsResult = NonNullable<
+  Awaited<
+    ReturnType<
+      ReturnType<
+        typeof getBlogAdminAPI
+      >["analyticsControllerGetPerformanceMetrics"]
+    >
+  >
+>;
+export type AnalyticsControllerGetTrackEventsResult = NonNullable<
+  Awaited<
+    ReturnType<
+      ReturnType<typeof getBlogAdminAPI>["analyticsControllerGetTrackEvents"]
+    >
+  >
+>;
+export type AnalyticsControllerGetTrackEventStatsResult = NonNullable<
+  Awaited<
+    ReturnType<
+      ReturnType<
+        typeof getBlogAdminAPI
+      >["analyticsControllerGetTrackEventStats"]
+    >
+  >
+>;
+export type AnalyticsControllerGetPerformanceStatsResult = NonNullable<
+  Awaited<
+    ReturnType<
+      ReturnType<
+        typeof getBlogAdminAPI
+      >["analyticsControllerGetPerformanceStats"]
+    >
+  >
+>;
+export type AnalyticsControllerGetTopPagesResult = NonNullable<
+  Awaited<
+    ReturnType<
+      ReturnType<typeof getBlogAdminAPI>["analyticsControllerGetTopPages"]
+    >
+  >
+>;
+export type AnalyticsControllerGetOverviewResult = NonNullable<
+  Awaited<
+    ReturnType<
+      ReturnType<typeof getBlogAdminAPI>["analyticsControllerGetOverview"]
+    >
+  >
+>;
+export type AnalyticsControllerGetEventTrendResult = NonNullable<
+  Awaited<
+    ReturnType<
+      ReturnType<typeof getBlogAdminAPI>["analyticsControllerGetEventTrend"]
+    >
+  >
+>;
+export type AnalyticsControllerGetUserListResult = NonNullable<
+  Awaited<
+    ReturnType<
+      ReturnType<typeof getBlogAdminAPI>["analyticsControllerGetUserList"]
+    >
+  >
+>;
+export type AnalyticsControllerGetUserBehaviorDetailResult = NonNullable<
+  Awaited<
+    ReturnType<
+      ReturnType<
+        typeof getBlogAdminAPI
+      >["analyticsControllerGetUserBehaviorDetail"]
+    >
+  >
+>;
+export type AnalyticsControllerGetPageViewStatsResult = NonNullable<
+  Awaited<
+    ReturnType<
+      ReturnType<typeof getBlogAdminAPI>["analyticsControllerGetPageViewStats"]
+    >
+  >
+>;
+export type AnalyticsControllerGetClickEventStatsResult = NonNullable<
+  Awaited<
+    ReturnType<
+      ReturnType<
+        typeof getBlogAdminAPI
+      >["analyticsControllerGetClickEventStats"]
+    >
+  >
+>;
+export type AnalyticsControllerGetPopularPagesResult = NonNullable<
+  Awaited<
+    ReturnType<
+      ReturnType<typeof getBlogAdminAPI>["analyticsControllerGetPopularPages"]
     >
   >
 >;

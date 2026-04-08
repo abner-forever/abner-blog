@@ -32,7 +32,7 @@ export const favoritesControllerToggleFavorite = (
   blogId: string,
   signal?: AbortSignal,
 ) => {
-  return httpMutator<ToggleFavoriteResponseDto | void>({
+  return httpMutator<ToggleFavoriteResponseDto>({
     url: `/api/blogs/${blogId}/favorites`,
     method: 'POST',
     signal,
@@ -116,7 +116,7 @@ export const favoritesControllerGetFavoritesCount = (
   blogId: string,
   signal?: AbortSignal,
 ) => {
-  return httpMutator<number>({
+  return httpMutator<void>({
     url: `/api/blogs/${blogId}/favorites/count`,
     method: 'GET',
     signal,

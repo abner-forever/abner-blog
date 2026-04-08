@@ -23,25 +23,10 @@ export interface ChatRequestDto {
    * @maximum 10
    */
   temperature?: number;
-  /**
-   * @minimum 1
-   * @maximum 32768
-   */
   maxTokens?: number;
-  /**
-   * @minimum 1
-   * @maximum 50
-   */
   contextWindow?: number;
   thinkingEnabled?: boolean;
-  /**
-   * @minimum 0
-   * @maximum 32000
-   */
   thinkingBudget?: number;
-  /**
-   * 随消息附带的图片（用于视觉理解），最多 4 张
-   * @maxItems 4
-   */
+  /** 随消息附带的图片（用于视觉理解），最多 4 张 */
   images?: ChatImageDto[];
 }

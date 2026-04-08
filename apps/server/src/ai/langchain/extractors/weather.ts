@@ -5,6 +5,7 @@ import { WEATHER_QUERY_EXTRACTION_PROMPT } from '../prompts';
 
 export interface WeatherQueryContext {
   city: string | null;
+  adm?: string;
   date: string;
   label: string;
 }
@@ -31,11 +32,16 @@ export async function extractWeatherQueryContext(
       typeof parsed?.city === 'string'
         ? normalizeExtractedWeatherCity(parsed.city)
         : null;
+    const adm =
+      typeof parsed?.adm === 'string' && parsed.adm.trim()
+        ? parsed.adm.trim()
+        : undefined;
     const date =
       typeof parsed?.date === 'string' ? normalizeIsoDate(parsed.date) : null;
     if (!date) {
       return {
         city,
+        adm,
         date: fallbackDate.date,
         label: fallbackDate.label,
       };
@@ -44,10 +50,11 @@ export async function extractWeatherQueryContext(
       typeof parsed?.label === 'string' && parsed.label.trim()
         ? parsed.label.trim()
         : deriveWeatherLabelFromDate(date, fallbackDate.baseDate);
-    return { city, date, label };
+    return { city, adm, date, label };
   } catch {
     return {
       city: null,
+      adm: undefined,
       date: fallbackDate.date,
       label: fallbackDate.label,
     };

@@ -1462,6 +1462,90 @@ export const useConversationsControllerSend = <
   );
 };
 /**
+ * @summary 删除私信会话
+ */
+export const conversationsControllerDelete = (
+  id: number,
+  signal?: AbortSignal,
+) => {
+  return httpMutator<void>({
+    url: `/api/conversations/${id}`,
+    method: 'DELETE',
+    signal,
+  });
+};
+
+export const getConversationsControllerDeleteMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof conversationsControllerDelete>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof conversationsControllerDelete>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationKey = ['conversationsControllerDelete'];
+  const { mutation: mutationOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey } };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof conversationsControllerDelete>>,
+    { id: number }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return conversationsControllerDelete(id);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type ConversationsControllerDeleteMutationResult = NonNullable<
+  Awaited<ReturnType<typeof conversationsControllerDelete>>
+>;
+
+export type ConversationsControllerDeleteMutationError = unknown;
+
+/**
+ * @summary 删除私信会话
+ */
+export const useConversationsControllerDelete = <
+  TError = unknown,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof conversationsControllerDelete>>,
+      TError,
+      { id: number },
+      TContext
+    >;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof conversationsControllerDelete>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  return useMutation(
+    getConversationsControllerDeleteMutationOptions(options),
+    queryClient,
+  );
+};
+/**
  * @summary 通知中心未读数（不含私信）
  */
 export const notificationsControllerUnreadCount = (signal?: AbortSignal) => {
@@ -2021,6 +2105,90 @@ export const useNotificationsControllerMarkRead = <
 > => {
   return useMutation(
     getNotificationsControllerMarkReadMutationOptions(options),
+    queryClient,
+  );
+};
+/**
+ * @summary 删除单条通知
+ */
+export const notificationsControllerDelete = (
+  id: number,
+  signal?: AbortSignal,
+) => {
+  return httpMutator<void>({
+    url: `/api/notifications/${id}`,
+    method: 'DELETE',
+    signal,
+  });
+};
+
+export const getNotificationsControllerDeleteMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof notificationsControllerDelete>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof notificationsControllerDelete>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationKey = ['notificationsControllerDelete'];
+  const { mutation: mutationOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey } };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof notificationsControllerDelete>>,
+    { id: number }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return notificationsControllerDelete(id);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type NotificationsControllerDeleteMutationResult = NonNullable<
+  Awaited<ReturnType<typeof notificationsControllerDelete>>
+>;
+
+export type NotificationsControllerDeleteMutationError = unknown;
+
+/**
+ * @summary 删除单条通知
+ */
+export const useNotificationsControllerDelete = <
+  TError = unknown,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof notificationsControllerDelete>>,
+      TError,
+      { id: number },
+      TContext
+    >;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof notificationsControllerDelete>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  return useMutation(
+    getNotificationsControllerDeleteMutationOptions(options),
     queryClient,
   );
 };

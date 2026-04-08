@@ -14,17 +14,11 @@ export interface InitChunkUploadDto {
   businessPath?: string;
   /** 文件名 */
   filename: string;
-  /**
-   * 文件大小(字节)
-   * @minimum 1
-   */
+  /** 文件大小(字节) */
   fileSize: number;
   /** 文件 MD5 hash（用于秒传） */
   fileHash?: string;
-  /**
-   * 总分片数
-   * @minimum 1
-   */
+  /** 总分片数 */
   totalChunks?: number;
   /** 文件 MIME 类型 */
   mimeType?: string;

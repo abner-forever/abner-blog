@@ -31,6 +31,17 @@ export type AssistantCard =
         events?: Array<{ title: string; dateText?: string }>;
         todos?: Array<{ title: string; completed: boolean }>;
         items?: string[];
+        analysis?: {
+          completionRate: number;
+          total: number;
+          completed: number;
+          pending: number;
+          overdueCount: number;
+          distribution: string;
+          priorityItems: string[];
+          summary: string;
+          suggestion: string;
+        };
       };
     }
   | {
@@ -79,7 +90,18 @@ const ScheduleQueryCard = memo<{
   events?: Array<{ title: string; dateText?: string }>;
   todos?: Array<{ title: string; completed: boolean }>;
   items?: string[];
-}>(({ summary, events, todos, items }) => {
+  analysis?: {
+    completionRate: number;
+    total: number;
+    completed: number;
+    pending: number;
+    overdueCount: number;
+    distribution: string;
+    priorityItems: string[];
+    summary: string;
+    suggestion: string;
+  };
+}>(({ summary, events, todos, items, analysis }) => {
   const safeEvents = events || [];
   const safeTodos = todos || [];
   const safeItems = items || [];
@@ -88,6 +110,44 @@ const ScheduleQueryCard = memo<{
     <div className="ai-result-card ai-result-card--schedule-query">
       <div className="ai-result-card__header">📋 日程查询结果</div>
       <div className="ai-result-card__title">{summary}</div>
+
+      {analysis ? (
+        <div className="ai-schedule-analysis">
+          <div className="ai-schedule-analysis__progress">
+            <div className="ai-schedule-analysis__progress-bar">
+              <div
+                className="ai-schedule-analysis__progress-fill"
+                style={{ width: `${analysis.completionRate}%` }}
+              />
+            </div>
+            <span className="ai-schedule-analysis__rate">
+              {analysis.completionRate}% 完成
+            </span>
+          </div>
+
+          <div className="ai-schedule-analysis__stats">
+            <span>共 {analysis.total} 项</span>
+            <span>✅ 已完成 {analysis.completed}</span>
+            <span>⬜ 待处理 {analysis.pending}</span>
+            {analysis.overdueCount > 0 && (
+              <span className="is-overdue">⚠️ 过期 {analysis.overdueCount}</span>
+            )}
+          </div>
+
+          {analysis.priorityItems.length > 0 && (
+            <div className="ai-schedule-analysis__priority">
+              <span className="ai-schedule-analysis__priority-label">🔥 优先处理：</span>
+              {analysis.priorityItems.join('、')}
+            </div>
+          )}
+
+          {analysis.suggestion && (
+            <div className="ai-schedule-analysis__suggestion">
+              💡 {analysis.suggestion}
+            </div>
+          )}
+        </div>
+      ) : null}
 
       {safeEvents.length > 0 ? (
         <div className="ai-schedule-section">
@@ -169,9 +229,10 @@ const WeatherCard = memo<{
         <div className="ai-result-card__meta">日期：{dateLabel}</div>
 
         <div className="ai-weather-main">
-          <span className={`ai-weather-main__icon ${weatherVisual.className}`}>
-            {weatherVisual.icon}
-          </span>
+          <i
+            className={`ai-weather-main__icon ${weatherVisual.className} ${weatherVisual.iconClass}`}
+            aria-hidden="true"
+          />
           <div className="ai-weather-main__temp">{temperatureText}</div>
         </div>
 
@@ -198,14 +259,14 @@ const WeatherCard = memo<{
 
 const getWeatherVisual = (
   weatherText: string,
-): { icon: string; className: string } => {
-  if (/雷/.test(weatherText)) return { icon: '⛈️', className: 'is-thunder' };
-  if (/雪|冰/.test(weatherText)) return { icon: '🌨️', className: 'is-snow' };
-  if (/雨|阵雨/.test(weatherText)) return { icon: '🌧️', className: 'is-rain' };
-  if (/雾|霾/.test(weatherText)) return { icon: '🌫️', className: 'is-fog' };
-  if (/晴/.test(weatherText)) return { icon: '☀️', className: 'is-sunny' };
-  if (/云|阴/.test(weatherText)) return { icon: '⛅', className: 'is-cloudy' };
-  return { icon: '🌤️', className: 'is-default' };
+): { iconClass: string; className: string } => {
+  if (/雷/.test(weatherText)) return { iconClass: 'qi-302-fill', className: 'is-thunder' };
+  if (/雪|冰/.test(weatherText)) return { iconClass: 'qi-400-fill', className: 'is-snow' };
+  if (/雨|阵雨/.test(weatherText)) return { iconClass: 'qi-300-fill', className: 'is-rain' };
+  if (/雾|霾/.test(weatherText)) return { iconClass: 'qi-500-fill', className: 'is-fog' };
+  if (/晴/.test(weatherText)) return { iconClass: 'qi-100-fill', className: 'is-sunny' };
+  if (/云|阴/.test(weatherText)) return { iconClass: 'qi-101-fill', className: 'is-cloudy' };
+  return { iconClass: 'qi-999-fill', className: 'is-default' };
 };
 
 const AssistantCardRenderer = memo<{ card: AssistantCard }>(({ card }) => {
@@ -271,6 +332,7 @@ const AssistantCardRenderer = memo<{ card: AssistantCard }>(({ card }) => {
           events={card.data.events}
           todos={card.data.todos}
           items={card.data.items}
+          analysis={card.data.analysis}
         />
       );
     case 'weather_query':

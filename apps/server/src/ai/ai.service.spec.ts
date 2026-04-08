@@ -231,6 +231,8 @@ describe('AIService Integration', () => {
         temperatureMax: 22,
         temperatureMin: 12,
         weatherCode: 0,
+        weatherText: '晴',
+        weatherEmoji: '☀️',
         isDay: true,
         windspeed: 8,
       };
@@ -261,6 +263,8 @@ describe('AIService Integration', () => {
         temperatureMax: 25,
         temperatureMin: 16,
         weatherCode: 0,
+        weatherText: '晴',
+        weatherEmoji: '☀️',
         isDay: true,
         windspeed: 10,
       };
@@ -291,6 +295,8 @@ describe('AIService Integration', () => {
         temperatureMax: 21,
         temperatureMin: 11,
         weatherCode: 0,
+        weatherText: '晴',
+        weatherEmoji: '☀️',
         isDay: true,
         windspeed: 6,
       };
@@ -378,6 +384,8 @@ describe('AIService Integration', () => {
         temperatureMax: 22,
         temperatureMin: 12,
         weatherCode: 0,
+        weatherText: '晴',
+        weatherEmoji: '☀️',
         isDay: true,
         windspeed: 8,
       };
