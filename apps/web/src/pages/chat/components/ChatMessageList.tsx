@@ -62,7 +62,11 @@ const ChatMessageList: React.FC<Props> = memo(function ChatMessageList({
           </div>
           <div className="message-content">
             <div
-              className={`message-bubble ${message.role === 'assistant' && message.card ? 'card-only' : ''}`}
+              className={`message-bubble ${
+                message.role === 'assistant' && message.card && message.isComplete
+                  ? 'card-only'
+                  : ''
+              }`}
             >
               {message.role === 'assistant' ? (
                 <div className="assistant-message">
@@ -113,7 +117,7 @@ const ChatMessageList: React.FC<Props> = memo(function ChatMessageList({
                       />
                     </div>
                   ) : null}
-                  {message.card ? (
+                  {message.card && message.isComplete ? (
                     <AssistantCardRenderer card={message.card} />
                   ) : (
                     <MarkdownRenderer

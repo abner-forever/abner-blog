@@ -16,6 +16,7 @@ export async function extractWeatherQueryContext(
   currentDate: string,
 ): Promise<WeatherQueryContext> {
   const fallbackDate = extractWeatherDateByRules(userInput, currentDate);
+  const fallbackCity = extractWeatherCityByRules(userInput);
   const prompt = WEATHER_QUERY_EXTRACTION_PROMPT.replace(
     '{currentDate}',
     currentDate,
@@ -40,7 +41,7 @@ export async function extractWeatherQueryContext(
       typeof parsed?.date === 'string' ? normalizeIsoDate(parsed.date) : null;
     if (!date) {
       return {
-        city,
+        city: city ?? fallbackCity,
         adm,
         date: fallbackDate.date,
         label: fallbackDate.label,
@@ -50,10 +51,10 @@ export async function extractWeatherQueryContext(
       typeof parsed?.label === 'string' && parsed.label.trim()
         ? parsed.label.trim()
         : deriveWeatherLabelFromDate(date, fallbackDate.baseDate);
-    return { city, adm, date, label };
+    return { city: city ?? fallbackCity, adm, date, label };
   } catch {
     return {
-      city: null,
+      city: fallbackCity,
       adm: undefined,
       date: fallbackDate.date,
       label: fallbackDate.label,
@@ -61,7 +62,25 @@ export async function extractWeatherQueryContext(
   }
 }
 
-function normalizeExtractedWeatherCity(cityText: string): string | null {
+function extractWeatherCityByRules(userInput: string): string | null {
+  const text = userInput.trim().replace(/[，。,.!?！？]/g, ' ');
+  const explicitRegionMatch = text.match(
+    /([^\s:：]{2,20}?(?:市|区|县|州|特别行政区))(?:的)?(?:天气|气温|温度|降雨|风速|风力|空气质量)?/,
+  );
+  if (explicitRegionMatch?.[1]) {
+    return normalizeExtractedWeatherCity(explicitRegionMatch[1]);
+  }
+
+  const bareLocationMatch = text.match(
+    /([^\s:：]{2,20}?)(?:的)?(?:天气|气温|温度|降雨|风速|风力|空气质量)/,
+  );
+  if (bareLocationMatch?.[1]) {
+    return normalizeExtractedWeatherCity(bareLocationMatch[1]);
+  }
+  return null;
+}
+
+export function normalizeExtractedWeatherCity(cityText: string): string | null {
   const normalized = cityText
     .trim()
     .replace(/^["'“”]|["'“”]$/g, '')
@@ -69,10 +88,12 @@ function normalizeExtractedWeatherCity(cityText: string): string | null {
     .replace(/^(今天|明天|后天|今晚|今早|明早|昨天|现在|当前)\s*/g, '')
     .replace(/\s*(天气|气温|温度|风速|降雨|下雨)\s*$/g, '')
     .trim();
+  // 结构/语气助词：例如「明天的天气」去掉「明天」后，简陋正则会误把「的」当地名
+  if (/^[的了嘛吗呢吧呀啊哦麽么着过呐哩哇啥]$/.test(normalized)) return null;
   const conversationalOnlyPattern =
-    /^(我|我们|你|你们|他|她|它)?\s*(想问|问下|问一下|请问|帮我|帮忙|查|查询|查下|查一下|看|看下|看一下|告诉我|告诉下|说下)$/;
+    /^(我|我们|你|你们|他|她|它)?\s*(想问|问下|问一下|请问|帮我|帮忙|查|查询|查下|查一下|看|看下|看一下|看看|瞅瞅|告诉我|告诉下|说下)$/;
   const obviousNonCityPattern =
-    /^(我想问|我想知道|请问|帮我查|帮忙查|查一下|看一下|告诉我)$/;
+    /^(我想问|我想知道|请问|帮我查|帮忙查|查一下|看一下|看看|你看看|帮我看看|告诉我)$/;
   if (!normalized || /^none$/i.test(normalized)) return null;
   if (conversationalOnlyPattern.test(normalized)) return null;
   if (obviousNonCityPattern.test(normalized)) return null;

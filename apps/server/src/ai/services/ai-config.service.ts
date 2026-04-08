@@ -23,6 +23,7 @@ export interface UserAIConfigInput {
   contextWindow: number;
   thinkingEnabled: boolean;
   thinkingBudget: number;
+  useMcpTools?: boolean;
   apiKeys?: Partial<Record<LLMProvider, string>>;
 }
 
@@ -56,6 +57,7 @@ export class AIConfigService {
       contextWindow: entity.contextWindow,
       thinkingEnabled: entity.thinkingEnabled,
       thinkingBudget: entity.thinkingBudget,
+      useMcpTools: entity.useMcpTools,
       hasApiKeyByProvider: this.buildHasApiKeyMap(apiKeys),
     };
   }
@@ -81,6 +83,7 @@ export class AIConfigService {
       contextWindow: input.contextWindow,
       thinkingEnabled: input.thinkingEnabled,
       thinkingBudget: input.thinkingBudget,
+      useMcpTools: input.useMcpTools ?? false,
       encryptedApiKeys: this.encryptApiKeys(mergedApiKeys),
     });
     const saved = await this.userAIConfigRepository.save(entity);
@@ -92,6 +95,7 @@ export class AIConfigService {
       contextWindow: saved.contextWindow,
       thinkingEnabled: saved.thinkingEnabled,
       thinkingBudget: saved.thinkingBudget,
+      useMcpTools: saved.useMcpTools,
       hasApiKeyByProvider: this.buildHasApiKeyMap(mergedApiKeys),
     };
   }
@@ -154,6 +158,7 @@ export class AIConfigService {
       maxTokens: runtime.maxTokens ?? stored.maxTokens,
       thinkingEnabled: runtime.thinkingEnabled ?? stored.thinkingEnabled,
       thinkingBudget: runtime.thinkingBudget ?? stored.thinkingBudget,
+      useMcpTools: runtime.useMcpTools ?? stored.useMcpTools,
     };
   }
 
@@ -181,6 +186,7 @@ export class AIConfigService {
       contextWindow: 10,
       thinkingEnabled: false,
       thinkingBudget: 0,
+      useMcpTools: false,
       hasApiKeyByProvider: {},
     };
   }

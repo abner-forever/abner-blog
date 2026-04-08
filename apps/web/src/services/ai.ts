@@ -14,6 +14,7 @@ interface ChatStreamRequest {
   contextWindow?: number;
   thinkingEnabled?: boolean;
   thinkingBudget?: number;
+  useMcpTools?: boolean;
   /** 随消息上传的图片（Base64，与后端 ChatImageDto 一致） */
   images?: ChatStreamImagePart[];
   signal?: AbortSignal;
@@ -124,6 +125,7 @@ export const requestAIChatStream = async ({
   contextWindow,
   thinkingEnabled,
   thinkingBudget,
+  useMcpTools,
   images,
   signal,
 }: ChatStreamRequest): Promise<Response> => {
@@ -144,6 +146,7 @@ export const requestAIChatStream = async ({
       contextWindow,
       thinkingEnabled,
       thinkingBudget,
+      useMcpTools,
     }),
     signal,
   });
@@ -163,6 +166,7 @@ export interface SaveAIConfigRequest {
   contextWindow: number;
   thinkingEnabled: boolean;
   thinkingBudget: number;
+  useMcpTools?: boolean;
   apiKeys: Record<string, string>;
 }
 

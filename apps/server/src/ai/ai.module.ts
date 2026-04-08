@@ -12,12 +12,14 @@ import { AIChatSessionService } from './services/ai-chat-session.service';
 import { AIWeatherService } from './services/ai-weather.service';
 import { AIChatResponseService } from './services/ai-chat-response.service';
 import { AIWebSearchService } from './services/ai-web-search.service';
+import { McpModule } from '../mcp/mcp.module';
 
 @Module({
   imports: [
     CalendarModule,
     TodosModule,
     WeatherModule,
+    McpModule,
     TypeOrmModule.forFeature([UserAIConfig]),
   ],
   controllers: [AIController],

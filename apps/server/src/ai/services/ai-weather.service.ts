@@ -3,7 +3,11 @@ import { HumanMessage, SystemMessage } from '@langchain/core/messages';
 import { extractWeatherQueryContext } from '../langchain/chains';
 import type { ChatLLM } from '../langchain/model';
 import { WeatherService } from '../../weather/weather.service';
-import { WEATHER_ANALYSIS_PROMPT } from '../langchain/prompts';
+import {
+  WEATHER_ANALYSIS_PROMPT,
+  WEATHER_MCP_USER_REPLY_PROMPT,
+} from '../langchain/prompts';
+import { getTextContent } from '../langchain/parsers';
 
 type WeatherPayload = {
   city: string;
@@ -89,7 +93,55 @@ export class AIWeatherService {
       airQuality ?? null,
       indices ?? null,
       weatherQueryContext.label,
+      message,
     );
+  }
+
+  /**
+   * MCP 天气工具仅返回结构化事实文本，此处用 LLM 结合用户原话生成完整回复（含运动/出行等延伸问题）。
+   */
+  buildMcpWeatherUserReplyMessages(
+    userMessage: string,
+    mcpWeatherText: string,
+  ): [SystemMessage, HumanMessage] | null {
+    const facts = mcpWeatherText.trim();
+    if (!facts) return null;
+    const prompt = WEATHER_MCP_USER_REPLY_PROMPT.replace(
+      '{userQuestion}',
+      userMessage.trim(),
+    ).replace('{weatherFacts}', facts);
+    return [
+      new SystemMessage(
+        '你是贴心的天气与生活助手。下方「天气工具输出」为唯一事实来源，不得编造其中没有的数值或地点。',
+      ),
+      new HumanMessage(prompt),
+    ];
+  }
+
+  /**
+   * MCP 天气工具仅返回结构化事实文本，此处用 LLM 结合用户原话生成完整回复（含运动/出行等延伸问题）。
+   */
+  async composeMcpWeatherUserReply(
+    llm: ChatLLM,
+    userMessage: string,
+    mcpWeatherText: string,
+  ): Promise<string> {
+    const facts = mcpWeatherText.trim();
+    if (!facts) return '获取天气信息失败';
+    const messages = this.buildMcpWeatherUserReplyMessages(
+      userMessage,
+      mcpWeatherText,
+    );
+    if (!messages) return '获取天气信息失败';
+
+    try {
+      const result = await llm.invoke(messages);
+      const text = getTextContent(result).trim();
+      return text || facts;
+    } catch (err) {
+      this.logger.warn(`MCP weather synthesis failed: ${String(err)}`);
+      return facts;
+    }
   }
 
   private async buildAIAnalysis(
@@ -98,6 +150,7 @@ export class AIWeatherService {
     airQuality: AirQualityPayload | null,
     indices: WeatherIndicesPayload | null,
     dateLabel: string,
+    userQuestion: string,
   ): Promise<string> {
     if (weather.unavailable) {
       return `${weather.city}${dateLabel}的天气数据暂时无法获取（连接天气服务超时或网络异常），请稍后再试。`;
@@ -113,6 +166,7 @@ export class AIWeatherService {
       '{currentDate}',
       new Date().toISOString().split('T')[0],
     )
+      .replace('{userQuestion}', userQuestion.trim())
       .replace('{city}', weather.city)
       .replace('{dateLabel}', dateLabel)
       .replace('{weatherText}', weatherText)

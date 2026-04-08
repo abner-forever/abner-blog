@@ -99,15 +99,15 @@
 /* 红红火火（主色对齐小红书品牌红 #FF2442） */
 :root[data-skin="red"] {
   --skin-primary: #ff2442;
-  --skin-primary-hover: #e0203a;
-  --skin-gradient: linear-gradient(135deg, #ff2442 0%, #ff6b81 100%);
-  --skin-gradient-reverse: linear-gradient(135deg, #ff8fa3 0%, #ff2442 100%);
-  --skin-gradient-bg: linear-gradient(135deg, #ff244220 0%, #e0203a20 100%);
-  --skin-glow: 0 0 40px rgba(255, 36, 66, 0.3);
-  --skin-card-bg: linear-gradient(145deg, rgba(255, 36, 66, 0.1) 0%, rgba(224, 32, 58, 0.05) 100%);
-  --skin-border-color: rgba(255, 36, 66, 0.3);
+  --skin-primary-hover: #e11d48;
+  --skin-gradient: linear-gradient(135deg, #ff2442 0%, #ff5225 100%);
+  --skin-gradient-reverse: linear-gradient(135deg, #ff5225 0%, #ff2442 100%);
+  --skin-gradient-bg: linear-gradient(135deg, #ff24421a 0%, #ff52251a 100%);
+  --skin-glow: 0 0 36px rgba(255, 36, 66, 0.32);
+  --skin-card-bg: linear-gradient(145deg, rgba(255, 36, 66, 0.11) 0%, rgba(255, 82, 37, 0.06) 100%);
+  --skin-border-color: rgba(255, 36, 66, 0.32);
   --primary-color: #ff2442;
-  --primary-hover: #e0203a;
+  --primary-hover: #e11d48;
 }
 
 /* 碧海蓝天 */
@@ -287,6 +287,33 @@
   --glass-border: rgba(168, 85, 247, 0.2);
 }
 
+/* Claude Code - 官网风格（Anthropic clay + neutral gray） */
+:root[data-skin="claude-code"] {
+  --skin-primary: #d97757;
+  --skin-primary-hover: #c96442;
+  --skin-gradient: linear-gradient(135deg, #d97757 0%, #c96442 100%);
+  --skin-gradient-reverse: linear-gradient(135deg, #c96442 0%, #d97757 100%);
+  --skin-gradient-bg: linear-gradient(135deg, #d9775720 0%, #c9644220 100%);
+  --skin-glow: 0 0 22px rgba(217, 119, 87, 0.18);
+  --skin-card-bg: linear-gradient(145deg, rgba(255, 255, 255, 0.92) 0%, rgba(245, 244, 237, 0.9) 100%);
+  --skin-border-color: rgba(209, 207, 197, 0.56);
+  --primary-color: #d97757;
+  --primary-hover: #c96442;
+  --bg-color: #faf9f5;
+  --card-bg: #ffffff;
+  --text-main: #141413;
+  --text-secondary: #4d4c48;
+  --text-muted: #73726c;
+  --border-color: #d1cfc5;
+  --divider-color: #e8e6dc;
+  --bg-layout: #faf9f5;
+  --shadow-sm: 0 1px 2px 0 rgba(20, 20, 19, 0.08);
+  --shadow-md: 0 6px 14px -6px rgba(20, 20, 19, 0.14);
+  --shadow-lg: 0 16px 30px -12px rgba(20, 20, 19, 0.18);
+  --glass-bg: rgba(255, 255, 255, 0.88);
+  --glass-border: rgba(209, 207, 197, 0.44);
+}
+
 /* ======================= Dark Mode ======================= */
 
 /* 确保 dark 模式变量在 html[data-theme='dark'] 下生效 */
@@ -368,6 +395,26 @@ html[data-theme='dark'][data-skin="lavender"],
   --skin-glow: 0 0 30px rgba(167, 139, 250, 0.3);
   --skin-card-bg: linear-gradient(145deg, rgba(167, 139, 250, 0.1) 0%, rgba(139, 92, 246, 0.05) 100%);
   --skin-border-color: rgba(167, 139, 250, 0.4);
+}
+
+/* Claude Code - 暗黑模式（加深背景与对比） */
+html[data-theme='dark'][data-skin="claude-code"],
+[data-theme='dark'][data-skin="claude-code"] {
+  --skin-primary: #d97757;
+  --skin-primary-hover: #c96442;
+  --skin-glow: 0 0 24px rgba(217, 119, 87, 0.24);
+  --skin-card-bg: linear-gradient(145deg, rgba(217, 119, 87, 0.09) 0%, rgba(227, 218, 204, 0.04) 100%);
+  --skin-border-color: rgba(194, 192, 182, 0.3);
+  --bg-color: #141413;
+  --card-bg: #1a1918;
+  --text-main: #faf9f5;
+  --text-secondary: #d1cfc5;
+  --text-muted: #9f9a90;
+  --border-color: #3d3d3a;
+  --divider-color: #262624;
+  --bg-layout: #141413;
+  --glass-bg: rgba(26, 25, 24, 0.9);
+  --glass-border: rgba(194, 192, 182, 0.2);
 }
 
 /* 酷炫主题在 light 模式下的适配 - 使用浅色文字 */

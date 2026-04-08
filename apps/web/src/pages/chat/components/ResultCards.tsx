@@ -54,8 +54,13 @@ export type AssistantCard =
         minTemperatureText: string;
         windspeedText: string;
         weatherText?: string;
+        clothingAdvice?: string;
+        airQualityText?: string;
+        coldIndexText?: string;
       };
     };
+
+type WeatherQueryData = Extract<AssistantCard, { type: 'weather_query' }>['data'];
 
 const TodoCard = memo<{ header: string; modifier: string; title: string }>(
   ({ header, modifier, title }) => (
@@ -200,16 +205,15 @@ const ScheduleQueryCard = memo<{
   );
 });
 
-const WeatherCard = memo<{
-  city: string;
-  dateLabel: string;
-  temperatureText: string;
-  maxTemperatureText: string;
-  minTemperatureText: string;
-  windspeedText: string;
-  weatherText?: string;
-}>(
-  ({
+const formatWindDisplay = (raw: string): string => {
+  const t = raw.trim();
+  if (!t) return raw;
+  if (/km\/?h/i.test(t)) return t;
+  return `${t} km/h`;
+};
+
+const WeatherCard = memo<{ data: WeatherQueryData }>(({ data }) => {
+  const {
     city,
     dateLabel,
     temperatureText,
@@ -217,45 +221,89 @@ const WeatherCard = memo<{
     minTemperatureText,
     windspeedText,
     weatherText,
-  }) => {
-    const weatherValue = weatherText || '未知';
-    const weatherVisual = getWeatherVisual(weatherValue);
-    return (
-      <div className="ai-result-card ai-result-card--weather-query">
-        <div className="ai-weather-top">
-          <div className="ai-result-card__header">🌤️ 天气查询结果</div>
-          <div className="ai-weather-city">{city}</div>
-        </div>
-        <div className="ai-result-card__meta">日期：{dateLabel}</div>
+    clothingAdvice,
+    airQualityText,
+    coldIndexText,
+  } = data;
+  const weatherValue = weatherText || '未知';
+  const weatherVisual = getWeatherVisual(weatherValue);
+  const windDisplay = formatWindDisplay(windspeedText);
 
-        <div className="ai-weather-main">
+  const insights: Array<{
+    key: 'clothing' | 'aqi' | 'cold';
+    label: string;
+    glyph: string;
+    text: string;
+  }> = [];
+  if (clothingAdvice) {
+    insights.push({ key: 'clothing', label: '穿衣建议', glyph: '👔', text: clothingAdvice });
+  }
+  if (airQualityText) {
+    insights.push({ key: 'aqi', label: '空气质量', glyph: '🌿', text: airQualityText });
+  }
+  if (coldIndexText) {
+    insights.push({ key: 'cold', label: '感冒指数', glyph: '🧣', text: coldIndexText });
+  }
+
+  return (
+    <div className="ai-result-card ai-result-card--weather-query">
+      <header className="ai-weather-head">
+        <span className="ai-weather-head__badge">🌤️ 天气查询结果</span>
+        <div className="ai-weather-head__place">
+          <span className="ai-weather-head__city">{city}</span>
+          <span className="ai-weather-head__date">{dateLabel}</span>
+        </div>
+      </header>
+
+      <div className="ai-weather-hero">
+        <div className="ai-weather-hero__icon-wrap">
           <i
-            className={`ai-weather-main__icon ${weatherVisual.className} ${weatherVisual.iconClass}`}
+            className={`ai-weather-hero__icon ${weatherVisual.className} ${weatherVisual.iconClass}`}
             aria-hidden="true"
           />
-          <div className="ai-weather-main__temp">{temperatureText}</div>
         </div>
-
-        <div className="ai-weather-main__status">{weatherValue}</div>
-
-        <div className="ai-weather-metrics">
-          <div className="ai-weather-metric">
-            <div className="ai-weather-metric__label">最高</div>
-            <div className="ai-weather-metric__value">{maxTemperatureText}</div>
-          </div>
-          <div className="ai-weather-metric">
-            <div className="ai-weather-metric__label">最低</div>
-            <div className="ai-weather-metric__value">{minTemperatureText}</div>
-          </div>
-          <div className="ai-weather-metric">
-            <div className="ai-weather-metric__label">风速</div>
-            <div className="ai-weather-metric__value">{windspeedText}</div>
-          </div>
+        <div className="ai-weather-hero__body">
+          <div className="ai-weather-hero__temp">{temperatureText}</div>
+          <div className="ai-weather-hero__status">{weatherValue}</div>
         </div>
       </div>
-    );
-  },
-);
+
+      <div className="ai-weather-metrics">
+        <div className="ai-weather-metric">
+          <div className="ai-weather-metric__label">最高</div>
+          <div className="ai-weather-metric__value">{maxTemperatureText}</div>
+        </div>
+        <div className="ai-weather-metric">
+          <div className="ai-weather-metric__label">最低</div>
+          <div className="ai-weather-metric__value">{minTemperatureText}</div>
+        </div>
+        <div className="ai-weather-metric">
+          <div className="ai-weather-metric__label">风速</div>
+          <div className="ai-weather-metric__value">{windDisplay}</div>
+        </div>
+      </div>
+
+      {insights.length > 0 ? (
+        <div className="ai-weather-insights">
+          {insights.map((item) => (
+            <div
+              key={item.key}
+              className={`ai-weather-insight ai-weather-insight--${item.key}`}
+            >
+              <div className="ai-weather-insight__head">
+                <span className="ai-weather-insight__glyph" aria-hidden="true">
+                  {item.glyph}
+                </span>
+                <span className="ai-weather-insight__label">{item.label}</span>
+              </div>
+              <p className="ai-weather-insight__text">{item.text}</p>
+            </div>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+});
 
 const getWeatherVisual = (
   weatherText: string,
@@ -336,17 +384,7 @@ const AssistantCardRenderer = memo<{ card: AssistantCard }>(({ card }) => {
         />
       );
     case 'weather_query':
-      return (
-        <WeatherCard
-          city={card.data.city}
-          dateLabel={card.data.dateLabel}
-          temperatureText={card.data.temperatureText}
-          maxTemperatureText={card.data.maxTemperatureText}
-          minTemperatureText={card.data.minTemperatureText}
-          windspeedText={card.data.windspeedText}
-          weatherText={card.data.weatherText}
-        />
-      );
+      return <WeatherCard data={card.data} />;
     default:
       return null;
   }

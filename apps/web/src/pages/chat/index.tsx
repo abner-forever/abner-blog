@@ -42,8 +42,8 @@ import {
   isVendorType,
   sessionsForLocalStorage,
 } from './constants';
-import { parseSSEChunk } from './stream-utils';
-import { handleChatStreamEvent } from './stream-event-handler';
+import { parseSSEChunk } from './utils/stream-utils';
+import { handleChatStreamEvent } from './utils/stream-event-handler';
 import {
   VendorType,
   type ChatSession,
@@ -76,6 +76,7 @@ const ChatPage: React.FC = () => {
   const [contextWindow, setContextWindow] = useState(10);
   const [thinkingBudget, setThinkingBudget] = useState(0);
   const [enableThinking, setEnableThinking] = useState(true);
+  const [useMcpTools, setUseMcpTools] = useState(false);
   const [expandedThinkingMessageIds, setExpandedThinkingMessageIds] = useState<
     Set<string>
   >(new Set());
@@ -289,6 +290,7 @@ const ChatPage: React.FC = () => {
           contextWindow?: number;
           thinkingEnabled?: boolean;
           thinkingBudget?: number;
+          useMcpTools?: boolean;
           hasApiKeyByProvider?: Record<string, boolean>;
         };
         if (data.provider && isVendorType(data.provider)) {
@@ -300,6 +302,7 @@ const ChatPage: React.FC = () => {
         if (typeof data.contextWindow === 'number') setContextWindow(data.contextWindow);
         if (typeof data.thinkingEnabled === 'boolean') setEnableThinking(data.thinkingEnabled);
         if (typeof data.thinkingBudget === 'number') setThinkingBudget(data.thinkingBudget);
+        if (typeof data.useMcpTools === 'boolean') setUseMcpTools(data.useMcpTools);
         if (
           data.hasApiKeyByProvider &&
           typeof data.hasApiKeyByProvider === 'object'
@@ -563,6 +566,7 @@ const ChatPage: React.FC = () => {
         contextWindow,
         thinkingEnabled: enableThinking,
         thinkingBudget,
+        useMcpTools,
         signal: abortControllerRef.current.signal,
       });
 
@@ -734,6 +738,7 @@ const ChatPage: React.FC = () => {
         contextWindow,
         thinkingEnabled: enableThinking,
         thinkingBudget,
+        useMcpTools,
         apiKeys,
       });
       setHasApiKeyByProvider((prev) => ({
@@ -752,6 +757,7 @@ const ChatPage: React.FC = () => {
     contextWindow,
     enableThinking,
     thinkingBudget,
+    useMcpTools,
     apiKeys,
   ]);
 
@@ -794,6 +800,7 @@ const ChatPage: React.FC = () => {
         contextWindow={contextWindow}
         enableThinking={enableThinking}
         thinkingBudget={thinkingBudget}
+        useMcpTools={useMcpTools}
         hasApiKeyByProvider={hasApiKeyByProvider}
         onApiKeysChange={setApiKeys}
         onVendorChange={setVendor}
@@ -803,6 +810,7 @@ const ChatPage: React.FC = () => {
         onContextWindowChange={setContextWindow}
         onEnableThinkingChange={setEnableThinking}
         onThinkingBudgetChange={setThinkingBudget}
+        onUseMcpToolsChange={setUseMcpTools}
         onSave={handleSaveSettings}
         apiKeyConfiguredText={t('chat.apiKeyConfigured', {
           defaultValue: '当前厂商已配置密钥（服务器端加密存储）',
@@ -821,6 +829,7 @@ const ChatPage: React.FC = () => {
       contextWindow,
       enableThinking,
       thinkingBudget,
+      useMcpTools,
       hasApiKeyByProvider,
       handleSaveSettings,
       t,

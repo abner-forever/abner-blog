@@ -219,7 +219,8 @@
     "star": "Star Ocean",
     "chocolate": "Chocolate",
     "mint": "Mint",
-    "lavender": "Lavender"
+    "lavender": "Lavender",
+    "claude-code": "Claude Code"
   },
   "common": {
     "loading": "Loading...",

@@ -45,6 +45,7 @@ export interface ChatModelConfig {
   maxTokens?: number;
   thinkingEnabled?: boolean;
   thinkingBudget?: number;
+  useMcpTools?: boolean;
 }
 
 export interface MiniMaxInput {
@@ -90,6 +91,7 @@ export class UniversalChatLLM implements ChatLLM {
       maxTokens: config.maxTokens ?? 4096,
       thinkingEnabled: config.thinkingEnabled ?? false,
       thinkingBudget: config.thinkingBudget ?? 0,
+      useMcpTools: config.useMcpTools ?? false,
     };
   }
 

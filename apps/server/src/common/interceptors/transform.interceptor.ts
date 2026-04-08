@@ -46,14 +46,25 @@ export class TransformInterceptor<T>
     context: ExecutionContext,
     next: CallHandler,
   ): Observable<Response<T>> {
+    const request = context.switchToHttp().getRequest<{ path?: string }>();
     return next.handle().pipe(
-      map((data) => ({
-        success: true,
-        code: 0,
-        message: 'success',
-        data: sanitizeResponseData(data) as T,
-        timestamp: new Date().toLocaleString(),
-      })),
+      map((data) => {
+        // MCP 路由直接返回原始响应，不经过响应包装
+        // MCP 使用标准 JSON-RPC 协议，不需要响应包装
+        // MCP 路由直接返回原始响应，不经过响应包装
+        // MCP 使用标准 JSON-RPC 协议，不需要响应包装
+        // 注意：实际路径是 /api/mcp
+        if (request.path?.includes('/mcp')) {
+          return data as unknown as Response<T>;
+        }
+        return {
+          success: true,
+          code: 0,
+          message: 'success',
+          data: sanitizeResponseData(data) as T,
+          timestamp: new Date().toLocaleString(),
+        };
+      }),
     );
   }
 }

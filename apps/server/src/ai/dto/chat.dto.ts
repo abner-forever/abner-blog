@@ -101,6 +101,15 @@ export class SaveAIConfigDto {
   @IsOptional()
   @IsObject()
   encryptedApiKeys?: Record<string, string>;
+
+  @ApiPropertyOptional({
+    description:
+      '是否启用 MCP 工具模式，开启后 AI 将通过 MCP 协议调用天气、日程等工具',
+    default: false,
+  })
+  @IsOptional()
+  @IsBoolean()
+  useMcpTools?: boolean;
 }
 
 export class ChatRequestDto {
@@ -173,4 +182,12 @@ export class ChatRequestDto {
   @ValidateNested({ each: true })
   @Type(() => ChatImageDto)
   images?: ChatImageDto[];
+
+  @ApiPropertyOptional({
+    description: '是否启用 MCP 工具模式（覆盖用户配置）',
+    default: false,
+  })
+  @IsOptional()
+  @IsBoolean()
+  useMcpTools?: boolean;
 }

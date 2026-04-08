@@ -21,6 +21,7 @@ import { AdminModule } from './modules/admin/admin.module';
 import { NotesModule } from './notes/notes.module';
 import { NoteCollectionsModule } from './note-collections/note-collections.module';
 import { AIModule } from './ai/ai.module';
+import { McpModule } from './mcp/mcp.module';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 import { RedisModule } from './redis/redis.module';
 import { Video } from './entities/video.entity';
@@ -132,6 +133,7 @@ import { PerformanceMetric } from './entities/performance-metric.entity';
     NotesModule,
     NoteCollectionsModule,
     AIModule,
+    McpModule,
     SocialModule,
     AnalyticsModule,
   ],

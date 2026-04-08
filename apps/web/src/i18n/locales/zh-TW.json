@@ -219,7 +219,8 @@
     "star": "星辰大海",
     "chocolate": "濃郁巧克力",
     "mint": "清新薄荷",
-    "lavender": "浪漫薰衣草"
+    "lavender": "浪漫薰衣草",
+    "claude-code": "Claude Code"
   },
   "common": {
     "loading": "頁面載入中...",

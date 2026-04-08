@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, Input, Select, Slider } from 'antd';
+import { Button, Input, Select, Slider, Switch } from 'antd';
 import { MODEL_VENDORS } from '../constants';
 import type { VendorType } from '../types';
 
@@ -12,6 +12,7 @@ interface Props {
   contextWindow: number;
   enableThinking: boolean;
   thinkingBudget: number;
+  useMcpTools: boolean;
   hasApiKeyByProvider: Record<string, boolean>;
   onApiKeysChange: React.Dispatch<React.SetStateAction<Record<string, string>>>;
   onVendorChange: (value: VendorType) => void;
@@ -21,6 +22,7 @@ interface Props {
   onContextWindowChange: (value: number) => void;
   onEnableThinkingChange: (value: boolean) => void;
   onThinkingBudgetChange: (value: number) => void;
+  onUseMcpToolsChange: (value: boolean) => void;
   onSave: () => void;
   apiKeyConfiguredText: string;
   apiKeyNotConfiguredText: string;
@@ -35,6 +37,7 @@ const ChatSettingsPanel: React.FC<Props> = ({
   contextWindow,
   enableThinking,
   thinkingBudget,
+  useMcpTools,
   hasApiKeyByProvider,
   onApiKeysChange,
   onVendorChange,
@@ -44,6 +47,7 @@ const ChatSettingsPanel: React.FC<Props> = ({
   onContextWindowChange,
   onEnableThinkingChange,
   onThinkingBudgetChange,
+  onUseMcpToolsChange,
   onSave,
   apiKeyConfiguredText,
   apiKeyNotConfiguredText,
@@ -143,6 +147,16 @@ const ChatSettingsPanel: React.FC<Props> = ({
             { label: '关闭', value: false },
           ]}
         />
+      </div>
+
+      <div className="settings-group switch-group">
+        <div className="settings-label">
+          MCP 工具模式
+          <span style={{ fontSize: 12, opacity: 0.7, marginLeft: 8 }}>
+            (通过 MCP 协议调用天气、日程等工具)
+          </span>
+        </div>
+        <Switch checked={useMcpTools} onChange={onUseMcpToolsChange} />
       </div>
 
       <div className="settings-group">

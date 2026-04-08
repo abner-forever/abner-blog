@@ -1,6 +1,10 @@
 import type React from 'react';
-import type { Message, IntentName, StreamEvent } from './types';
-import { formatEventDateTime, parseWeatherCardData } from './stream-utils';
+import type { Message, IntentName, StreamEvent } from '../types';
+import {
+  formatEventDateTime,
+  parseWeatherCardData,
+  stripRedactedThinkingBlocks,
+} from './stream-utils';
 
 function finishWebSearchLoading<M extends Pick<Message, 'webSearchStatus'>>(
   msg: M,
@@ -389,19 +393,21 @@ export function handleChatStreamEvent({
     const finalType = streamEvent.payload?.type as string | undefined;
     if (finalType === 'chat' && runtime.accumulatedText) {
       if (runtime.detectedIntent === 'query_weather') {
-        stopTypeWriter();
-        const weatherData = parseWeatherCardData(runtime.accumulatedText);
+        const cleanText = stripRedactedThinkingBlocks(
+          runtime.accumulatedText,
+        );
+        const weatherData = parseWeatherCardData(cleanText);
+        streamCompletedRef.current = true;
         setMessages((prev) =>
           prev.map((msg) =>
             msg.id === assistantMessageId
               ? finishWebSearchLoading({
                   ...msg,
-                  content: runtime.accumulatedText,
-                  displayContent: runtime.accumulatedText,
+                  content: cleanText,
                   thinkingContent: runtime.accumulatedThinking,
                   thinkingStatus: 'done',
-                  answerStatus: 'done',
-                  isComplete: true,
+                  answerStatus: 'streaming',
+                  isComplete: false,
                   card: weatherData
                     ? { type: 'weather_query', data: weatherData }
                     : undefined,
@@ -409,6 +415,7 @@ export function handleChatStreamEvent({
               : msg,
           ),
         );
+        runTypeWriter(assistantMessageId);
       } else {
         streamCompletedRef.current = true;
         setMessages((prev) =>

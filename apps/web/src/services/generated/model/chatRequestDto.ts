@@ -29,4 +29,6 @@ export interface ChatRequestDto {
   thinkingBudget?: number;
   /** 随消息附带的图片（用于视觉理解），最多 4 张 */
   images?: ChatImageDto[];
+  /** 是否启用 MCP 工具模式（覆盖用户配置） */
+  useMcpTools?: boolean;
 }

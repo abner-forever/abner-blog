@@ -36,4 +36,8 @@ export interface WeatherInfoResponse {
   unavailable?: boolean;
   /** 城市回退等附加信息 */
   fallback?: WeatherInfoFallback;
+  /** 降雨量（mm） */
+  precip?: number;
+  /** 湿度（%） */
+  humidity?: number;
 }

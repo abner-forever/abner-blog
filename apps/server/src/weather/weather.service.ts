@@ -56,6 +56,7 @@ export interface WeatherData {
 
 /** 空气质量数据 */
 export interface AirQualityData {
+  [key: string]: unknown;
   aqi: number; // 空气质量指数 (AQI)
   level: string; // 空气质量等级 (优/良/轻度污染/中度污染/重度污染/严重污染)
   category: string; // 英文 category (Excellent/Good/Light pollution/etc.)
@@ -72,6 +73,7 @@ export interface AirQualityData {
 
 /** 生活指数数据 */
 export interface WeatherIndicesData {
+  [key: string]: unknown;
   dressingIndex: string; // 穿衣指数
   dressingLevel: string; // 穿衣指数级别
   uvIndex: string; // UV 指数描述

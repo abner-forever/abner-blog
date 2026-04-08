@@ -35,6 +35,9 @@ export class UserAIConfig {
   @Column({ type: 'int', default: 0 })
   thinkingBudget: number;
 
+  @Column({ default: false })
+  useMcpTools: boolean;
+
   @Column({ type: 'text', nullable: true })
   encryptedApiKeys: string | null;
 

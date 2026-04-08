@@ -25,4 +25,6 @@ export interface SaveAIConfigDto {
   apiKeys?: SaveAIConfigDtoApiKeys;
   /** 按 provider 存储经过公钥加密的 apiKey（base64），例如 {"openai":"..."} */
   encryptedApiKeys?: SaveAIConfigDtoEncryptedApiKeys;
+  /** 是否启用 MCP 工具模式，开启后 AI 将通过 MCP 协议调用天气、日程等工具 */
+  useMcpTools?: boolean;
 }

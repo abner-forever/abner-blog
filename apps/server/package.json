@@ -27,6 +27,8 @@
   },
   "dependencies": {
     "@langchain/community": "^1.1.25",
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "@nestjs/axios": "^4.0.1",
     "@nestjs/common": "^11.1.1",
     "@nestjs/config": "^3.2.0",
     "@nestjs/core": "^11.1.1",
@@ -44,7 +46,7 @@
     "@types/uuid": "^10.0.0",
     "ajv": "^6.12.6",
     "ajv-keywords": "^3.5.2",
-    "axios": "^1.9.0",
+    "axios": "^1.13.6",
     "bcrypt": "^5.1.1",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
@@ -69,7 +71,8 @@
     "uuid": "^11.1.0",
     "webpack": "^5.104.1",
     "webpack-cli": "^5.1.4",
-    "webpack-node-externals": "^3.0.0"
+    "webpack-node-externals": "^3.0.0",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",

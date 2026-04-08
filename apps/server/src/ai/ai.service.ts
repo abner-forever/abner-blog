@@ -4,9 +4,10 @@ import {
   Logger,
   UnauthorizedException,
 } from '@nestjs/common';
+import axios from 'axios';
 import { UniversalChatLLM } from './langchain/model';
 import type { ChatLLM } from './langchain/model';
-import { detectIntent } from './langchain/chains';
+import { detectIntent, extractWeatherQueryContext } from './langchain/chains';
 import { IntentType, ChatResponseDto } from './dto/extraction-result.dto';
 import { CHAT_STREAM_CHUNK_SIZE } from './constants';
 import { buildScheduleSummary } from './utils/response-builders';
@@ -20,6 +21,12 @@ import { AIChatSessionService } from './services/ai-chat-session.service';
 import { AIWeatherService } from './services/ai-weather.service';
 import { AIChatResponseService } from './services/ai-chat-response.service';
 import { AIWebSearchService } from './services/ai-web-search.service';
+import {
+  splitCompleteReplyThink,
+  splitThinkTaggedDelta,
+  type ThinkTagSplitState,
+} from './utils/think-tag-split';
+import { McpService } from '../mcp/mcp.service';
 
 export interface AIStreamEvent {
   event:
@@ -40,78 +47,16 @@ export interface AIStreamEvent {
 }
 
 const MAX_CHAT_IMAGE_BYTES = 4 * 1024 * 1024;
-const THINK_START_TAG = '<think>';
-const THINK_END_TAG = '</think>';
-
-interface ThinkTagSplitState {
-  inThink: boolean;
-  pending: string;
-}
-
-function longestTagPrefixSuffix(input: string, tag: string): string {
-  const maxLen = Math.min(input.length, tag.length - 1);
-  for (let len = maxLen; len > 0; len -= 1) {
-    if (input.endsWith(tag.slice(0, len))) {
-      return input.slice(-len);
-    }
-  }
-  return '';
-}
-
-function splitThinkTaggedDelta(
-  delta: string,
-  state: ThinkTagSplitState,
-): { answerDelta: string; reasoningDelta: string } {
-  let rest = state.pending + delta;
-  state.pending = '';
-  let answerDelta = '';
-  let reasoningDelta = '';
-
-  while (rest.length > 0) {
-    if (!state.inThink) {
-      const idx = rest.indexOf(THINK_START_TAG);
-      if (idx === -1) {
-        const tail = longestTagPrefixSuffix(rest, THINK_START_TAG);
-        if (tail) {
-          answerDelta += rest.slice(0, rest.length - tail.length);
-          state.pending = tail;
-        } else {
-          answerDelta += rest;
-        }
-        rest = '';
-        continue;
-      }
-      answerDelta += rest.slice(0, idx);
-      rest = rest.slice(idx + THINK_START_TAG.length);
-      state.inThink = true;
-      continue;
-    }
-
-    const idx = rest.indexOf(THINK_END_TAG);
-    if (idx === -1) {
-      const tail = longestTagPrefixSuffix(rest, THINK_END_TAG);
-      if (tail) {
-        reasoningDelta += rest.slice(0, rest.length - tail.length);
-        state.pending = tail;
-      } else {
-        reasoningDelta += rest;
-      }
-      rest = '';
-      continue;
-    }
-
-    reasoningDelta += rest.slice(0, idx);
-    rest = rest.slice(idx + THINK_END_TAG.length);
-    state.inThink = false;
-  }
-
-  return { answerDelta, reasoningDelta };
-}
 
 @Injectable()
 export class AIService {
   private readonly logger = new Logger(AIService.name);
   private readonly maxHistoryMessages = 10;
+
+  // MCP session 状态（维护已初始化的 session）
+  private static mcpSessionInitialized = false;
+  private static mcpSessionId: string | null = null;
+  private static mcpProtocolVersion = '2025-03-26';
 
   constructor(
     private readonly aiCommandService: AICommandService,
@@ -120,6 +65,7 @@ export class AIService {
     private readonly weatherService: AIWeatherService,
     private readonly chatResponseService: AIChatResponseService,
     private readonly webSearchService: AIWebSearchService,
+    private readonly mcpService: McpService,
   ) {
     // 兼容旧部署：允许通过用户配置或请求内 apiKey 注入。
   }
@@ -185,7 +131,7 @@ export class AIService {
     process.stderr.write(`[AI Stream] Received message: ${message}\n`);
     try {
       this.validateChatImages(requestConfig?.images);
-      const { llm, thinkingEnabled } = await this.buildLLM(
+      const { llm, thinkingEnabled, useMcpTools } = await this.buildLLM(
         userId,
         requestConfig,
       );
@@ -209,24 +155,93 @@ export class AIService {
           userId,
           sessionId,
         );
-        const weatherContent = await this.weatherService.buildWeatherResponse(
-          llm,
-          message,
-          currentDate,
+        let weatherAnswer = '';
+
+        if (useMcpTools) {
+          const mcpWeatherFacts = await this.buildWeatherResponseViaMcp(
+            llm,
+            message,
+            currentDate,
+          );
+          const synthMessages =
+            this.weatherService.buildMcpWeatherUserReplyMessages(
+              message,
+              mcpWeatherFacts,
+            );
+          if (!synthMessages) {
+            weatherAnswer = mcpWeatherFacts;
+          } else {
+            const thinkTagState: ThinkTagSplitState = {
+              inThink: false,
+              pending: '',
+            };
+            let hasDelta = false;
+            try {
+              for await (const streamChunk of llm.invokeStream(synthMessages)) {
+                const tagged = splitThinkTaggedDelta(
+                  streamChunk.answerDelta,
+                  thinkTagState,
+                );
+                const delta = tagged.answerDelta;
+                if (!delta) continue;
+                const appendDelta =
+                  this.chatResponseService.extractIncrementalDelta(
+                    weatherAnswer,
+                    delta,
+                  );
+                if (!appendDelta) continue;
+                hasDelta = true;
+                weatherAnswer += appendDelta;
+                yield { event: 'chat_delta', payload: { delta: appendDelta } };
+              }
+            } catch (err) {
+              this.logger.warn(
+                `[AI Weather] stream synthesis failed, fallback to tool facts: ${String(err)}`,
+              );
+              weatherAnswer = mcpWeatherFacts;
+              for (const chunk of splitTextToChunks(
+                weatherAnswer,
+                CHAT_STREAM_CHUNK_SIZE,
+              )) {
+                yield { event: 'chat_delta', payload: { delta: chunk } };
+              }
+              hasDelta = true;
+            }
+            if (!hasDelta) {
+              weatherAnswer = mcpWeatherFacts;
+              for (const chunk of splitTextToChunks(
+                weatherAnswer,
+                CHAT_STREAM_CHUNK_SIZE,
+              )) {
+                yield { event: 'chat_delta', payload: { delta: chunk } };
+              }
+            }
+          }
+        } else {
+          const weatherContent = await this.weatherService.buildWeatherResponse(
+            llm,
+            message,
+            currentDate,
+          );
+          weatherAnswer = splitCompleteReplyThink(weatherContent).answer;
+          const chunks = splitTextToChunks(
+            weatherAnswer,
+            CHAT_STREAM_CHUNK_SIZE,
+          );
+          for (const chunk of chunks) {
+            yield { event: 'chat_delta', payload: { delta: chunk } };
+          }
+        }
+
+        const historyReply = this.chatResponseService.normalizeAssistantReply(
+          weatherAnswer.trim(),
         );
         this.chatSessionService.appendHistory(
           sessionKey,
           message,
-          weatherContent,
+          historyReply,
           this.maxHistoryMessages,
         );
-        const chunks = splitTextToChunks(
-          weatherContent,
-          CHAT_STREAM_CHUNK_SIZE,
-        );
-        for (const chunk of chunks) {
-          yield { event: 'chat_delta', payload: { delta: chunk } };
-        }
         yield { event: 'done', payload: { type: 'chat' } };
         return;
       }
@@ -557,16 +572,196 @@ export class AIService {
       message,
       currentDate,
     );
+    const { answer: weatherAnswer } = splitCompleteReplyThink(weatherReply);
+    const contentForUser = this.chatResponseService.normalizeAssistantReply(
+      weatherAnswer.trim(),
+    );
     this.chatSessionService.appendHistory(
       sessionKey,
       message,
-      weatherReply,
+      contentForUser,
       this.maxHistoryMessages,
     );
     return {
       type: 'chat',
-      content: weatherReply,
+      content: contentForUser,
     };
+  }
+
+  /**
+   * 通过 MCP 协议调用天气工具，并用 LLM 结合用户原话生成回复（覆盖运动/出行等延伸问法）
+   */
+  private async buildWeatherResponseViaMcp(
+    llm: ChatLLM,
+    message: string,
+    currentDate: string,
+  ): Promise<string> {
+    const protocolVersion = AIService.mcpProtocolVersion;
+    const mcpUrl =
+      process.env.MCP_SERVER_URL || 'http://localhost:8080/api/mcp';
+
+    // 获取已保存的 sessionId（如果已初始化则不复用）
+    let serverSessionId = AIService.mcpSessionId || 'shared-session';
+    const weatherQueryContext = await extractWeatherQueryContext(
+      llm,
+      message,
+      currentDate,
+    );
+    const city = weatherQueryContext.city || '北京';
+    const targetDate = weatherQueryContext.date;
+
+    try {
+      if (this.shouldUseInProcessMcpTransport(mcpUrl)) {
+        const result = await this.mcpService.callTool('get_weather', {
+          city,
+          date: targetDate,
+        });
+        const localText = result.content?.[0]?.text || '获取天气信息失败';
+        this.logger.log(
+          `[MCP Weather][in-process] City: ${city}, Result: ${localText.substring(0, 50)}...`,
+        );
+        return localText;
+      }
+
+      // 1. 仅在未初始化时才发送 initialize 请求
+      if (!AIService.mcpSessionInitialized) {
+        const initResponse = await axios.post(
+          mcpUrl,
+          {
+            jsonrpc: '2.0',
+            id: 1,
+            method: 'initialize',
+            params: {
+              protocolVersion,
+              capabilities: {},
+              clientInfo: { name: 'abner-blog-ai', version: '1.0.0' },
+            },
+          },
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              Accept: 'application/json, text/event-stream',
+            },
+            validateStatus: () => true,
+          },
+        );
+        this.logger.debug(`MCP init response status: ${initResponse.status}`);
+
+        // 检查初始化是否成功
+        if (initResponse.status !== 200) {
+          const errorData: unknown = initResponse.data;
+          let errorMsg = `MCP 初始化失败，状态码: ${initResponse.status}`;
+          if (errorData && typeof errorData === 'object') {
+            const maybeError = (errorData as { error?: unknown }).error;
+            if (maybeError && typeof maybeError === 'object') {
+              const maybeMessage = (maybeError as { message?: unknown })
+                .message;
+              if (typeof maybeMessage === 'string' && maybeMessage.trim()) {
+                errorMsg = maybeMessage;
+              }
+            }
+          }
+          this.logger.error(`[MCP Weather] Init failed: ${errorMsg}`);
+          return errorMsg;
+        }
+
+        // 从响应头获取服务端分配的 sessionId
+        serverSessionId =
+          (initResponse.headers['mcp-session-id'] as string) ||
+          'shared-session';
+        AIService.mcpSessionId = serverSessionId;
+        AIService.mcpSessionInitialized = true;
+        this.logger.debug(
+          `MCP initialized: sessionId=${serverSessionId}, protocolVersion=${protocolVersion}`,
+        );
+
+        // 2. 发送 initialized 通知（不等待响应）
+        axios
+          .post(
+            mcpUrl,
+            { jsonrpc: '2.0', method: 'notifications/initialized', params: {} },
+            {
+              headers: {
+                'Content-Type': 'application/json',
+                Accept: 'application/json, text/event-stream',
+                'mcp-session-id': serverSessionId,
+                'mcp-protocol-version': protocolVersion,
+              },
+              validateStatus: () => true,
+            },
+          )
+          .catch((err: { message: string }) => {
+            this.logger.warn(
+              `MCP notification error (ignored): ${err.message}`,
+            );
+          });
+
+        // 等待一小段时间确保通知被处理
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      } else {
+        this.logger.debug(
+          `MCP using existing session: sessionId=${serverSessionId}`,
+        );
+      }
+
+      // 3. 调用 get_weather 工具
+      const response = await axios.post(
+        mcpUrl,
+        {
+          jsonrpc: '2.0',
+          id: 2,
+          method: 'tools/call',
+          params: {
+            name: 'get_weather',
+            arguments: { city, date: targetDate },
+          },
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json, text/event-stream',
+            'mcp-session-id': serverSessionId,
+            'mcp-protocol-version': protocolVersion,
+          },
+          timeout: 30000,
+          validateStatus: () => true,
+        },
+      );
+
+      // 4. 解析响应
+      /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
+      const data: any = response.data;
+      let resultText = '获取天气信息失败';
+
+      if (typeof data === 'string' && data.includes('data:')) {
+        // SSE 格式响应
+        const jsonMatch = data.match(/data: (\{.*\})/);
+        if (jsonMatch) {
+          const parsed: any = JSON.parse(jsonMatch[1]);
+          if (parsed.result?.content?.[0]?.text) {
+            resultText = parsed.result.content[0].text;
+          }
+        }
+      } else if (data?.result?.content?.[0]?.text) {
+        resultText = data.result.content[0].text;
+      }
+      /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
+
+      this.logger.log(
+        `[MCP Weather] City: ${city}, Result: ${resultText.substring(0, 50)}...`,
+      );
+      return resultText;
+    } catch (error) {
+      this.logger.error(`[MCP Weather] Error: ${error}`);
+      return `通过 MCP 获取天气信息失败: ${error instanceof Error ? error.message : '未知错误'}`;
+    }
+  }
+
+  private shouldUseInProcessMcpTransport(mcpUrl: string): boolean {
+    if (!mcpUrl) return true;
+    return /^(https?:\/\/)?(localhost|127\.0\.0\.1)(:\d+)?\/api\/mcp\/?$/.test(
+      mcpUrl,
+    );
   }
 
   private appendIntentResultToHistoryIfNeeded(
@@ -791,6 +986,7 @@ export class AIService {
       contextWindow: input.contextWindow ?? this.maxHistoryMessages,
       thinkingEnabled: input.thinkingEnabled ?? false,
       thinkingBudget: input.thinkingBudget ?? 0,
+      useMcpTools: input.useMcpTools ?? false,
       apiKeys: mergedApiKeys,
     });
   }
@@ -798,7 +994,7 @@ export class AIService {
   private async buildLLM(
     userId: number,
     requestConfig?: ChatRequestDto,
-  ): Promise<{ llm: ChatLLM; thinkingEnabled: boolean }> {
+  ): Promise<{ llm: ChatLLM; thinkingEnabled: boolean; useMcpTools: boolean }> {
     try {
       const resolvedModelConfig = await this.aiConfigService.resolveModelConfig(
         userId,
@@ -810,11 +1006,13 @@ export class AIService {
           contextWindow: requestConfig?.contextWindow,
           thinkingEnabled: requestConfig?.thinkingEnabled,
           thinkingBudget: requestConfig?.thinkingBudget,
+          useMcpTools: requestConfig?.useMcpTools,
         },
       );
       return {
         llm: new UniversalChatLLM(resolvedModelConfig),
         thinkingEnabled: Boolean(resolvedModelConfig.thinkingEnabled),
+        useMcpTools: Boolean(resolvedModelConfig.useMcpTools),
       };
     } catch (error) {
       throw new UnauthorizedException(
