@@ -43,6 +43,8 @@ export interface WeatherData {
   weatherEmoji: string;
   isDay: boolean;
   windspeed: number;
+  humidity?: number;
+  precip?: number;
   /** 上游 API 失败或超时，数值为占位 0，不应当作真实天气展示 */
   unavailable?: boolean;
   fallback?: {
@@ -50,6 +52,33 @@ export interface WeatherData {
     requestedCity?: string;
     reason?: string;
   };
+}
+
+/** 空气质量数据 */
+export interface AirQualityData {
+  aqi: number; // 空气质量指数 (AQI)
+  level: string; // 空气质量等级 (优/良/轻度污染/中度污染/重度污染/严重污染)
+  category: string; // 英文 category (Excellent/Good/Light pollution/etc.)
+  primaryPollutant: string; // 首要污染物
+  healthAdvice: string; // 对一般人群的健康建议
+  sensitiveAdvice: string; // 对敏感人群的健康建议
+  pm2_5: number; // PM2.5 浓度 (μg/m³)
+  pm10: number; // PM10 浓度 (μg/m³)
+  no2: number; // 二氧化氮 (μg/m³)
+  so2: number; // 二氧化硫 (μg/m³)
+  co: number; // 一氧化碳 (mg/m³)
+  o3: number; // 臭氧 (μg/m³)
+}
+
+/** 生活指数数据 */
+export interface WeatherIndicesData {
+  dressingIndex: string; // 穿衣指数
+  dressingLevel: string; // 穿衣指数级别
+  uvIndex: string; // UV 指数描述
+  carWashingIndex: string; // 洗车指数
+  coldRiskIndex: string; // 感冒指数
+  comfortIndex: string; // 舒适度指数
+  sportIndex: string; // 运动指数
 }
 
 /** 和风天气地理编码响应 */
@@ -119,6 +148,55 @@ interface Qweather3dResponse {
     vis?: string;
     cloud?: string;
     uvIndex?: string;
+  }>;
+}
+
+/** 和风天气空气质量响应 (新 API) */
+interface QweatherAirResponse {
+  metadata?: {
+    tag?: string;
+  };
+  indexes?: Array<{
+    code?: string;
+    name?: string;
+    aqi?: number;
+    aqiDisplay?: string;
+    level?: string;
+    category?: string;
+    primaryPollutant?: {
+      code?: string;
+      name?: string;
+      fullName?: string;
+    };
+    health?: {
+      effect?: string;
+      advice?: {
+        generalPopulation?: string;
+        sensitivePopulation?: string;
+      };
+    };
+  }>;
+  pollutants?: Array<{
+    code?: string;
+    name?: string;
+    fullName?: string;
+    concentration?: {
+      value?: number;
+      unit?: string;
+    };
+  }>;
+}
+
+/** 和风天气生活指数响应 */
+interface QweatherIndicesResponse {
+  code: string;
+  daily?: Array<{
+    date?: string;
+    type?: string;
+    name?: string;
+    level?: string;
+    category?: string;
+    text?: string;
   }>;
 }
 
@@ -295,6 +373,8 @@ export class WeatherService {
     let weatherCode = 0;
     let isDay = true;
     let windspeed = 0;
+    let humidity = 0;
+    let precip = 0;
 
     try {
       const nowRes = await axios.get<QweatherNowResponse>(
@@ -315,6 +395,8 @@ export class WeatherService {
         // iconDay/iconNight: 100=晴白天, 150=晴夜晚, 101=多云, ...
         isDay = Number.parseInt(now.icon ?? '100') < 200;
         windspeed = Math.round(Number.parseInt(now.windSpeed ?? '0', 10) || 0);
+        humidity = Math.round(Number.parseInt(now.humidity ?? '0', 10) || 0);
+        precip = Number.parseFloat(now.precip ?? '0') || 0;
       }
     } catch (err: unknown) {
       this.logger.warn(`Qweather now failed: ${(err as Error).message}`);
@@ -379,9 +461,236 @@ export class WeatherService {
       weatherEmoji: this.getWeatherEmoji(weatherCode, isDay),
       isDay,
       windspeed,
+      humidity,
+      precip,
       unavailable,
       fallback: fallbackInfo,
     };
+  }
+
+  /**
+   * 获取空气质量数据 (使用新 API)
+   */
+  async getAirQuality(
+    clientIp: string,
+    location?: string,
+  ): Promise<AirQualityData | null> {
+    const ip = this.normalizeIp(clientIp);
+    const normalizedLocation = this.normalizeCity(location);
+
+    let lat = 39.9042;
+    let lon = 116.4074;
+
+    // 如果提供了城市名，先解析坐标
+    if (normalizedLocation) {
+      const apiHost = process.env.QWEATHER_API_HOST;
+      const privateKeyPem = process.env.QWEATHER_PRIVATE_KEY;
+      const projectId = process.env.QWEATHER_PROJECT_ID;
+      const keyId = process.env.QWEATHER_KEY_ID;
+
+      if (apiHost && privateKeyPem && projectId && keyId) {
+        try {
+          const jwt = this.generateJwt(keyId, projectId, privateKeyPem);
+          const resolved = await this.resolveLocationId(
+            apiHost,
+            jwt,
+            normalizedLocation,
+          );
+          if (resolved) {
+            lat = resolved.lat;
+            lon = resolved.lon;
+          }
+        } catch {
+          // 使用默认值
+        }
+      }
+    } else if (!this.isLocalIp(ip)) {
+      const ipLoc = await this.resolveIpLocation(ip);
+      if (ipLoc) {
+        lat = ipLoc.lat;
+        lon = ipLoc.lon;
+      }
+    }
+
+    const apiHost = process.env.QWEATHER_API_HOST;
+    const privateKeyPem = process.env.QWEATHER_PRIVATE_KEY;
+    const projectId = process.env.QWEATHER_PROJECT_ID;
+    const keyId = process.env.QWEATHER_KEY_ID;
+
+    if (!apiHost || !privateKeyPem || !projectId || !keyId) {
+      this.logger.error('Qweather config missing for air quality');
+      return null;
+    }
+
+    const jwt = this.generateJwt(keyId, projectId, privateKeyPem);
+
+    // 使用新的空气质量 API
+    try {
+      const res = await axios.get<QweatherAirResponse>(
+        `https://${apiHost}/airquality/v1/current/${lat.toFixed(2)}/${lon.toFixed(2)}`,
+        {
+          headers: {
+            Authorization: `Bearer ${jwt}`,
+            'Accept-Encoding': 'gzip',
+          },
+          timeout: this.TIMEOUT,
+        },
+      );
+
+      // 解析 indexes 数组，找到 US EPA AQI (常用标准)
+      const indexes = res.data?.indexes ?? [];
+      const usEpaIndex =
+        indexes.find((idx) => idx?.code === 'us-epa') ?? indexes[0];
+
+      if (usEpaIndex) {
+        // 解析污染物浓度
+        const pollutants = res.data?.pollutants ?? [];
+        const getPollutantValue = (code: string): number => {
+          const pollutant = pollutants.find((p) => p?.code === code);
+          return pollutant?.concentration?.value ?? 0;
+        };
+
+        // 将 AQI 转换为等级描述
+        const aqiValue = usEpaIndex.aqi ?? 0;
+        const levelMap: Record<string, string> = {
+          '1': '优',
+          '2': '良',
+          '3': '轻度污染',
+          '4': '中度污染',
+          '5': '重度污染',
+          '6': '严重污染',
+        };
+
+        return {
+          aqi: aqiValue,
+          level:
+            levelMap[usEpaIndex.level ?? ''] ?? usEpaIndex.category ?? '未知',
+          category: usEpaIndex.category ?? 'Unknown',
+          primaryPollutant: usEpaIndex.primaryPollutant?.name ?? '无',
+          healthAdvice: usEpaIndex.health?.advice?.generalPopulation ?? '',
+          sensitiveAdvice: usEpaIndex.health?.advice?.sensitivePopulation ?? '',
+          pm2_5: getPollutantValue('pm2p5'),
+          pm10: getPollutantValue('pm10'),
+          no2: getPollutantValue('no2'),
+          so2: getPollutantValue('so2'),
+          co: getPollutantValue('co'),
+          o3: getPollutantValue('o3'),
+        };
+      }
+    } catch (err: unknown) {
+      this.logger.warn(
+        `Qweather air quality failed: ${(err as Error).message}`,
+      );
+    }
+
+    return null;
+  }
+
+  /**
+   * 获取天气生活指数
+   */
+  async getWeatherIndices(
+    clientIp: string,
+    location?: string,
+  ): Promise<WeatherIndicesData | null> {
+    const ip = this.normalizeIp(clientIp);
+    const normalizedLocation = this.normalizeCity(location);
+
+    let lat = 39.9042;
+    let lon = 116.4074;
+
+    if (normalizedLocation) {
+      const apiHost = process.env.QWEATHER_API_HOST;
+      const privateKeyPem = process.env.QWEATHER_PRIVATE_KEY;
+      const projectId = process.env.QWEATHER_PROJECT_ID;
+      const keyId = process.env.QWEATHER_KEY_ID;
+
+      if (apiHost && privateKeyPem && projectId && keyId) {
+        try {
+          const jwt = this.generateJwt(keyId, projectId, privateKeyPem);
+          const resolved = await this.resolveLocationId(
+            apiHost,
+            jwt,
+            normalizedLocation,
+          );
+          if (resolved) {
+            lat = resolved.lat;
+            lon = resolved.lon;
+          }
+        } catch {
+          // 使用默认值
+        }
+      }
+    } else if (!this.isLocalIp(ip)) {
+      const ipLoc = await this.resolveIpLocation(ip);
+      if (ipLoc) {
+        lat = ipLoc.lat;
+        lon = ipLoc.lon;
+      }
+    }
+
+    const apiHost = process.env.QWEATHER_API_HOST;
+    const privateKeyPem = process.env.QWEATHER_PRIVATE_KEY;
+    const projectId = process.env.QWEATHER_PROJECT_ID;
+    const keyId = process.env.QWEATHER_KEY_ID;
+
+    if (!apiHost || !privateKeyPem || !projectId || !keyId) {
+      this.logger.error('Qweather config missing for indices');
+      return null;
+    }
+
+    const jwt = this.generateJwt(keyId, projectId, privateKeyPem);
+    const coords = `${lon.toFixed(2)},${lat.toFixed(2)}`;
+
+    // 和风天气生活指数类型: 1=穿衣, 2=紫外线, 3=感冒, 5=洗车, 6=运动, 9=舒适度
+    const indicesTypes = '1,2,3,5,6,9';
+
+    try {
+      const res = await axios.get<QweatherIndicesResponse>(
+        `https://${apiHost}/v7/indices/1d`,
+        {
+          headers: {
+            Authorization: `Bearer ${jwt}`,
+            'Accept-Encoding': 'gzip',
+          },
+          params: { location: coords, type: indicesTypes },
+          timeout: this.TIMEOUT,
+        },
+      );
+
+      if (res.data?.code === '200' && res.data.daily?.length) {
+        const indicesMap = new Map<string, { level: string; text: string }>();
+        for (const item of res.data.daily) {
+          if (item.type && item.name) {
+            indicesMap.set(item.type, {
+              level: item.category ?? item.level ?? '',
+              text: item.text ?? '',
+            });
+          }
+        }
+
+        const dressing = indicesMap.get('1');
+        const uv = indicesMap.get('2');
+        const coldRisk = indicesMap.get('3');
+        const carWashing = indicesMap.get('5');
+        const sport = indicesMap.get('6');
+        const comfort = indicesMap.get('9');
+
+        return {
+          dressingIndex: dressing?.text ?? '未知',
+          dressingLevel: dressing?.level ?? '未知',
+          uvIndex: uv?.text ?? '未知',
+          carWashingIndex: carWashing?.text ?? '未知',
+          coldRiskIndex: coldRisk?.text ?? '未知',
+          comfortIndex: comfort?.text ?? '未知',
+          sportIndex: sport?.text ?? '未知',
+        };
+      }
+    } catch (err: unknown) {
+      this.logger.warn(`Qweather indices failed: ${(err as Error).message}`);
+    }
+
+    return null;
   }
 
   /**
@@ -607,6 +916,8 @@ export class WeatherService {
       weatherEmoji: this.getWeatherEmoji(0, true),
       isDay: true,
       windspeed: 0,
+      humidity: 0,
+      precip: 0,
       unavailable: true,
     };
   }

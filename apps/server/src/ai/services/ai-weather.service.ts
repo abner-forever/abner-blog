@@ -1,7 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
+import { HumanMessage, SystemMessage } from '@langchain/core/messages';
 import { extractWeatherQueryContext } from '../langchain/chains';
 import type { ChatLLM } from '../langchain/model';
 import { WeatherService } from '../../weather/weather.service';
+import { WEATHER_ANALYSIS_PROMPT } from '../langchain/prompts';
 
 type WeatherPayload = {
   city: string;
@@ -11,6 +13,8 @@ type WeatherPayload = {
   weatherCode: number;
   isDay: boolean;
   windspeed: number;
+  humidity?: number;
+  precip?: number;
   unavailable?: boolean;
   fallback?: {
     isFallback: boolean;
@@ -18,8 +22,27 @@ type WeatherPayload = {
   };
 };
 
+type AirQualityPayload = {
+  aqi: number;
+  level: string;
+  primaryPollutant: string;
+  healthAdvice: string;
+  sensitiveAdvice: string;
+  pm2_5: number;
+  pm10: number;
+};
+
+type WeatherIndicesPayload = {
+  dressingIndex: string;
+  coldRiskIndex: string;
+  uvIndex: string;
+  comfortIndex: string;
+};
+
 @Injectable()
 export class AIWeatherService {
+  private readonly logger = new Logger(AIWeatherService.name);
+
   constructor(private readonly weatherService: WeatherService) {}
 
   async buildWeatherResponse(
@@ -41,14 +64,102 @@ export class AIWeatherService {
       `[AI Weather] City: ${city}, date: ${weatherQueryContext.date}, label: ${weatherQueryContext.label}\n`,
     );
 
-    const weather = await this.weatherService.getWeather(
-      'unknown',
-      city,
-      weatherQueryContext.adm,
-      weatherQueryContext.date,
-    );
+    // 并行获取天气、空气质量和生活指数
+    const [weather, airQuality, indices] = await Promise.all([
+      this.weatherService.getWeather(
+        'unknown',
+        city,
+        weatherQueryContext.adm,
+        weatherQueryContext.date,
+      ),
+      this.weatherService.getAirQuality('unknown', city),
+      this.weatherService.getWeatherIndices('unknown', city),
+    ]);
+
     process.stderr.write(`[AI Weather] Weather: ${JSON.stringify(weather)}\n`);
-    return this.buildWeatherReply(weather, weatherQueryContext.label);
+    process.stderr.write(
+      `[AI Weather] AirQuality: ${JSON.stringify(airQuality)}\n`,
+    );
+    process.stderr.write(`[AI Weather] Indices: ${JSON.stringify(indices)}\n`);
+
+    // 使用 AI 生成详细分析
+    return this.buildAIAnalysis(
+      llm,
+      weather,
+      airQuality ?? null,
+      indices ?? null,
+      weatherQueryContext.label,
+    );
+  }
+
+  private async buildAIAnalysis(
+    llm: ChatLLM,
+    weather: WeatherPayload,
+    airQuality: AirQualityPayload | null,
+    indices: WeatherIndicesPayload | null,
+    dateLabel: string,
+  ): Promise<string> {
+    if (weather.unavailable) {
+      return `${weather.city}${dateLabel}的天气数据暂时无法获取（连接天气服务超时或网络异常），请稍后再试。`;
+    }
+
+    const weatherText = this.weatherService.getWeatherText(
+      weather.weatherCode,
+      weather.isDay,
+    );
+
+    // 构建提示词
+    const prompt = WEATHER_ANALYSIS_PROMPT.replace(
+      '{currentDate}',
+      new Date().toISOString().split('T')[0],
+    )
+      .replace('{city}', weather.city)
+      .replace('{dateLabel}', dateLabel)
+      .replace('{weatherText}', weatherText)
+      .replace('{temperature}', String(weather.temperature))
+      .replace('{temperatureMax}', String(weather.temperatureMax))
+      .replace('{temperatureMin}', String(weather.temperatureMin))
+      .replace('{windspeed}', String(weather.windspeed))
+      .replace(
+        '{humidity}',
+        weather.humidity !== undefined ? String(weather.humidity) : '未知',
+      )
+      .replace(
+        '{precip}',
+        weather.precip !== undefined ? String(weather.precip) : '0',
+      )
+      .replace('{isDay}', weather.isDay ? '是' : '否')
+      .replace('{aqi}', airQuality ? String(airQuality.aqi) : '无数据')
+      .replace('{airLevel}', airQuality?.level ?? '无数据')
+      .replace('{primaryPollutant}', airQuality?.primaryPollutant ?? '无')
+      .replace('{healthAdvice}', airQuality?.healthAdvice ?? '无')
+      .replace('{pm25}', airQuality ? String(airQuality.pm2_5) : '无数据')
+      .replace('{pm10}', airQuality ? String(airQuality.pm10) : '无数据')
+      .replace('{dressingIndex}', indices?.dressingIndex ?? '无数据')
+      .replace('{coldRiskIndex}', indices?.coldRiskIndex ?? '无数据')
+      .replace('{uvIndex}', indices?.uvIndex ?? '无数据')
+      .replace('{comfortIndex}', indices?.comfortIndex ?? '无数据');
+
+    try {
+      const result = await llm.invoke([
+        new SystemMessage(
+          '你是一个贴心的天气生活助手，用温暖的语气与用户交流。',
+        ),
+        new HumanMessage(prompt),
+      ]);
+
+      const content = result.content;
+      if (typeof content === 'string' && content.trim()) {
+        return content.trim();
+      }
+
+      // Fallback: 如果 AI 返回格式异常，使用基础回复
+      return this.buildWeatherReply(weather, dateLabel);
+    } catch (err) {
+      this.logger.warn(`AI weather analysis failed: ${err}`);
+      // AI 分析失败时使用基础回复
+      return this.buildWeatherReply(weather, dateLabel);
+    }
   }
 
   private extractCityFromWeatherQuery(message: string): string | null {
@@ -141,6 +252,26 @@ export class AIWeatherService {
       weather.weatherCode,
       weather.isDay,
     );
-    return `${cityLabel}${dateLabel}天气：当前温度${weather.temperature}°C，最高${weather.temperatureMax}°C，最低${weather.temperatureMin}°C，风速${weather.windspeed}km/h，天气${weatherText}。`;
+
+    const parts: string[] = [];
+    parts.push(
+      `${cityLabel}${dateLabel}天气：当前温度${weather.temperature}°C，最高${weather.temperatureMax}°C，最低${weather.temperatureMin}°C，风速${weather.windspeed}km/h，天气${weatherText}。`,
+    );
+
+    // 添加穿衣建议
+    if (weather.temperature < 10) {
+      parts.push('气温较低，建议穿着厚外套保暖。');
+    } else if (weather.temperature < 20) {
+      parts.push('气温较为舒适，建议穿着轻薄外套或长袖。');
+    } else {
+      parts.push('气温较高，建议穿着轻薄透气衣物。');
+    }
+
+    // 添加降雨提醒
+    if (weather.precip && weather.precip > 0) {
+      parts.push('有降雨可能，出门建议带伞。');
+    }
+
+    return parts.join('');
   }
 }

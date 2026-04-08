@@ -65,4 +65,52 @@ export class WeatherInfoResponse {
     description: '城市回退等附加信息',
   })
   fallback?: WeatherInfoFallback;
+
+  @ApiPropertyOptional({ description: '降雨量（mm）' })
+  precip?: number;
+
+  @ApiPropertyOptional({ description: '湿度（%）' })
+  humidity?: number;
+}
+
+/** 空气质量响应 */
+export class AirQualityResponse {
+  @ApiProperty({ description: '空气质量指数 (AQI)' })
+  aqi: number;
+
+  @ApiProperty({ description: '空气质量等级（优/良/轻度污染等）' })
+  level: string;
+
+  @ApiProperty({ description: 'PM2.5 浓度（μg/m³）' })
+  pm2_5: number;
+
+  @ApiProperty({ description: 'PM10 浓度（μg/m³）' })
+  pm10: number;
+
+  @ApiProperty({ description: '一氧化碳浓度（mg/m³）' })
+  co: number;
+
+  @ApiProperty({ description: '臭氧浓度（μg/m³）' })
+  o3: number;
+}
+
+/** 生活指数响应 */
+export class WeatherIndicesResponse {
+  @ApiProperty({ description: '穿衣指数' })
+  dressing: string;
+
+  @ApiProperty({ description: '感冒指数' })
+  coldRisk: string;
+
+  @ApiProperty({ description: '紫外线指数' })
+  uv: string;
+
+  @ApiProperty({ description: '舒适度指数' })
+  comfort: string;
+
+  @ApiProperty({ description: '洗车指数' })
+  carWashing: string;
+
+  @ApiProperty({ description: '运动指数' })
+  sport: string;
 }
