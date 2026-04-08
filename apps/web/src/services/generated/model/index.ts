@@ -17,6 +17,7 @@ export * from './calendarControllerFindAllParams';
 export * from './calendarEventDto';
 export * from './calendarEventDtoType';
 export * from './captchaConfigResponseDto';
+export * from './changePasswordByCodeDto';
 export * from './chatImageDto';
 export * from './chatImageDtoMimeType';
 export * from './chatRequestDto';

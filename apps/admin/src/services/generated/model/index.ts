@@ -67,4 +67,5 @@ export * from "./updateUserDtoRole";
 export * from "./updateUserDtoStatus";
 export * from "./updateUserStatusDto";
 export * from "./updateUserStatusDtoStatus";
+export * from "./userListResponse";
 export * from "./userProfileDto";

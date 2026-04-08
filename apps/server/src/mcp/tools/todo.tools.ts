@@ -1,5 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { TodosService } from '../../todos/todos.service';
+import { UsersService } from '../../users/users.service';
+import { McpRequestContextService } from '../services/mcp-request-context.service';
 import type {
   ListTodosInput,
   CreateTodoInput,
@@ -11,14 +13,18 @@ import type {
 export class TodoTools {
   private readonly logger = new Logger(TodoTools.name);
 
-  constructor(private readonly todosService: TodosService) {}
+  constructor(
+    private readonly todosService: TodosService,
+    private readonly usersService: UsersService,
+    private readonly requestContext: McpRequestContextService,
+  ) {}
 
   /**
    * 列出待办事项
    */
   async listTodos(params: ListTodosInput) {
     try {
-      const userId = this.getCurrentUserId();
+      const userId = await this.resolveUserId();
 
       // 查询所有待办
       const result = await this.todosService.findAll(userId);
@@ -96,7 +102,7 @@ export class TodoTools {
    */
   async createTodo(params: CreateTodoInput) {
     try {
-      const userId = this.getCurrentUserId();
+      const userId = await this.resolveUserId();
 
       const todo = await this.todosService.create(
         { title: params.title, description: params.description },
@@ -136,7 +142,7 @@ export class TodoTools {
    */
   async updateTodo(params: UpdateTodoInput) {
     try {
-      const userId = this.getCurrentUserId();
+      const userId = await this.resolveUserId();
 
       const updateData: Record<string, unknown> = {};
       if (params.title !== undefined) updateData.title = params.title;
@@ -183,7 +189,7 @@ export class TodoTools {
    */
   async deleteTodo(params: DeleteTodoInput) {
     try {
-      const userId = this.getCurrentUserId();
+      const userId = await this.resolveUserId();
 
       await this.todosService.remove(params.id, userId);
 
@@ -212,11 +218,15 @@ export class TodoTools {
     }
   }
 
-  /**
-   * 获取当前用户 ID（需要从请求上下文获取）
-   */
-  private getCurrentUserId(): number {
-    // TODO: 从请求上下文获取真实用户 ID
-    return 1;
+  private async resolveUserId(): Promise<number> {
+    const userId = this.requestContext.getUserId();
+    if (!userId) {
+      throw new Error(
+        '未登录或登录已过期。请先调用 mcp_auth 登录，或在 MCP headers 中配置 Bearer Token',
+      );
+    }
+
+    await this.usersService.findById(userId);
+    return userId;
   }
 }

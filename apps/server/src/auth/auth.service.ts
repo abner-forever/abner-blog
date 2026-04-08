@@ -331,6 +331,32 @@ export class AuthService {
     return { message: '密码已成功重置' };
   }
 
+  // 登录用户通过邮箱验证码修改密码
+  async changePasswordByCode(
+    userId: number,
+    code: string,
+    newPassword: string,
+  ): Promise<{ message: string }> {
+    const user = await this.usersService.findById(userId);
+    const cleanCode = code?.trim();
+    const now = new Date();
+
+    if (!user.verificationCode || user.verificationCode !== cleanCode) {
+      throw new UnauthorizedException('验证码不正确');
+    }
+
+    if (!user.verificationCodeExpires || user.verificationCodeExpires < now) {
+      throw new UnauthorizedException('验证码已过期');
+    }
+
+    user.password = await bcrypt.hash(newPassword, 10);
+    user.verificationCode = null;
+    user.verificationCodeExpires = null;
+    await this.usersService.updateUser(user);
+
+    return { message: '密码修改成功' };
+  }
+
   private async handleLoginFailure(user: User): Promise<void> {
     user.loginFailureCount += 1;
 

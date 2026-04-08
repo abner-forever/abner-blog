@@ -1,5 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { CalendarService } from '../../calendar/calendar.service';
+import { UsersService } from '../../users/users.service';
+import { McpRequestContextService } from '../services/mcp-request-context.service';
 import type {
   ListEventsInput,
   CreateEventInput,
@@ -11,14 +13,18 @@ import type {
 export class CalendarTools {
   private readonly logger = new Logger(CalendarTools.name);
 
-  constructor(private readonly calendarService: CalendarService) {}
+  constructor(
+    private readonly calendarService: CalendarService,
+    private readonly usersService: UsersService,
+    private readonly requestContext: McpRequestContextService,
+  ) {}
 
   /**
    * 列出指定日期范围的日程
    */
   async listEvents(params: ListEventsInput) {
     try {
-      const userId = this.getCurrentUserId();
+      const userId = await this.resolveUserId();
 
       const events = await this.calendarService.findAll(
         userId,
@@ -83,8 +89,7 @@ export class CalendarTools {
    */
   async createEvent(params: CreateEventInput) {
     try {
-      // 获取当前用户 ID（从请求上下文）
-      const userId = this.getCurrentUserId();
+      const userId = await this.resolveUserId();
 
       const eventData = {
         title: params.title,
@@ -131,7 +136,7 @@ export class CalendarTools {
    */
   async updateEvent(params: UpdateEventInput) {
     try {
-      const userId = this.getCurrentUserId();
+      const userId = await this.resolveUserId();
 
       const updateData: Record<string, unknown> = {};
       if (params.title !== undefined) updateData.title = params.title;
@@ -186,7 +191,7 @@ export class CalendarTools {
    */
   async deleteEvent(params: DeleteEventInput) {
     try {
-      const userId = this.getCurrentUserId();
+      const userId = await this.resolveUserId();
 
       await this.calendarService.remove(params.id, userId);
 
@@ -215,13 +220,15 @@ export class CalendarTools {
     }
   }
 
-  /**
-   * 获取当前用户 ID（需要从请求上下文获取）
-   * 这里使用一个临时实现，实际需要通过请求上下文获取
-   */
-  private getCurrentUserId(): number {
-    // TODO: 从请求上下文获取真实用户 ID
-    // 临时返回 1，实际实现需要注入 Request 上下文
-    return 1;
+  private async resolveUserId(): Promise<number> {
+    const userId = this.requestContext.getUserId();
+    if (!userId) {
+      throw new Error(
+        '未登录或登录已过期。请先调用 mcp_auth 登录，或在 MCP headers 中配置 Bearer Token',
+      );
+    }
+
+    await this.usersService.findById(userId);
+    return userId;
   }
 }

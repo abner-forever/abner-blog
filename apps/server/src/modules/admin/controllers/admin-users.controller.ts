@@ -29,7 +29,10 @@ import {
   UpdateUserStatusDto,
 } from '../dto/user-manage.dto';
 import { AdminGuard } from '../guards/admin.guard';
-import { UserProfileDto } from '../../../common/dto/responses/user.response.dto';
+import {
+  UserProfileDto,
+  UserListResponse,
+} from '../../../common/dto/responses/user.response.dto';
 
 @ApiExtraModels(UserProfileDto)
 @ApiTags('管理后台 - 用户管理')
@@ -43,7 +46,7 @@ export class AdminUsersController {
     summary: '获取用户列表（管理端）',
     operationId: 'getAdminUsers',
   })
-  @ApiOkResponse({ type: [UserProfileDto], description: '用户列表' })
+  @ApiOkResponse({ type: UserListResponse, description: '用户列表' })
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'size', required: false, type: Number })
   @ApiQuery({ name: 'keyword', required: false, type: String })

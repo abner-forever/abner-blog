@@ -499,10 +499,10 @@
   width: 100%;
   max-width: @layout-max-width;
   margin: 0 auto;
-  padding: @content-margin-top 20px;
+  padding: @content-margin-top 12px;
 
   .profile-edit-header {
-    margin-bottom: 32px;
+    margin-bottom: 16px;
 
     .header-title-row {
       display: flex;
@@ -536,101 +536,55 @@
     box-shadow: @box-shadow-md;
     border-radius: @border-radius-base;
     border: 1px solid @border-color;
-    padding: 40px;
 
     .edit-layout {
       display: flex;
-      gap: 80px;
+      gap: 20px;
 
-      .avatar-section {
-        flex-shrink: 0;
+      .edit-nav {
         width: 200px;
+        flex-shrink: 0;
         display: flex;
         flex-direction: column;
-        align-items: center;
+        gap: 8px;
+        padding-right: 8px;
+        border-right: 1px solid @divider-color;
 
-        .avatar-preview-wrapper {
-          position: relative;
-          margin-bottom: 24px;
-          display: inline-block;
+        &__item {
+          width: 100%;
+          height: 42px;
+          border: 1px solid transparent;
+          background: transparent;
+          border-radius: 10px;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 0 12px;
+          color: @text-secondary;
+          cursor: pointer;
+          transition: all 0.2s;
 
-          &.clickable {
-            cursor: pointer;
-
-            &:hover .profile-avatar {
-              filter: brightness(0.7);
-            }
-
-            &:hover .avatar-hover-mask {
-              opacity: 1;
-            }
+          &:hover {
+            color: @primary-color;
+            background: rgba(79, 70, 229, 0.06);
           }
 
-          .profile-avatar {
-            border: 4px solid var(--bg-color);
-            box-shadow: @box-shadow-md;
-            transition: filter 0.25s;
-            display: block;
-          }
+          &.is-active {
+            color: @primary-color;
+            background: rgba(79, 70, 229, 0.1);
+            border-color: rgba(79, 70, 229, 0.2);
+            font-weight: 600;
 
-          .avatar-hover-mask {
-            position: absolute;
-            inset: 0;
-            border-radius: 50%;
-            background: rgba(0, 0, 0, 0.45);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 4px;
-            opacity: 0;
-            transition: opacity 0.25s;
-            pointer-events: none;
-            color: #fff;
-            font-size: 12px;
-
-            .anticon {
-              font-size: 22px;
+            span {
+              color: @primary-color;
             }
           }
-
-          .avatar-upload-loading {
-            position: absolute;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.5);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #fff;
-            font-size: 12px;
-            backdrop-filter: blur(4px);
-            z-index: 1;
-          }
         }
-
-        .upload-btn {
-          margin-bottom: 16px;
-          height: 38px;
-          border-radius: 19px;
-        }
-
-        .upload-tip {
-          font-size: 12px;
-          color: @text-muted;
-          text-align: center;
-          line-height: 1.6;
-        }
-      }
-
-      .edit-divider {
-        height: auto;
-        margin: 0;
       }
 
       .form-section {
         flex: 1;
-        max-width: 500px;
+        max-width: 640px;
 
         .ant-form-item-label {
           font-weight: 600;
@@ -649,6 +603,143 @@
             min-width: 120px;
             border-radius: 22px;
             font-weight: 600;
+          }
+        }
+
+        .basic-section {
+          .avatar-section {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 18px;
+            margin-bottom: 14px;
+            padding-bottom: 12px;
+            border-bottom: 1px dashed @divider-color;
+
+            .avatar-preview-wrapper {
+              position: relative;
+              display: inline-block;
+
+              &.clickable {
+                cursor: pointer;
+
+                &:hover .profile-avatar {
+                  filter: brightness(0.7);
+                }
+
+                &:hover .avatar-hover-mask {
+                  opacity: 1;
+                }
+              }
+
+              .profile-avatar {
+                border: 4px solid var(--bg-color);
+                box-shadow: @box-shadow-md;
+                transition: filter 0.25s;
+                display: block;
+              }
+
+              .avatar-hover-mask {
+                position: absolute;
+                inset: 0;
+                border-radius: 50%;
+                background: rgba(0, 0, 0, 0.45);
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 4px;
+                opacity: 0;
+                transition: opacity 0.25s;
+                pointer-events: none;
+                color: #fff;
+                font-size: 12px;
+
+                .anticon {
+                  font-size: 22px;
+                }
+              }
+
+              .avatar-upload-loading {
+                position: absolute;
+                inset: 0;
+                background: rgba(0, 0, 0, 0.5);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #fff;
+                font-size: 12px;
+                backdrop-filter: blur(4px);
+                z-index: 1;
+              }
+            }
+
+            .upload-btn {
+              height: 38px;
+              border-radius: 19px;
+            }
+
+            .upload-tip {
+              font-size: 12px;
+              color: @text-muted;
+              text-align: left;
+              line-height: 1.5;
+              margin-top: 8px;
+            }
+
+            .avatar-actions {
+              display: flex;
+              flex-direction: column;
+              align-items: flex-start;
+            }
+          }
+        }
+
+        .security-section {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 10px;
+          padding: 4px 0 0;
+
+          &__header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: @text-main;
+
+            .anticon {
+              color: @primary-color;
+            }
+          }
+
+          &__desc {
+            font-size: 13px;
+            line-height: 1.7;
+          }
+
+          &__form {
+            width: 100%;
+            max-width: 460px;
+            margin-top: 4px;
+          }
+
+          &__email {
+            margin-bottom: 12px;
+          }
+
+          &__code-row {
+            display: flex;
+            gap: 10px;
+
+            .ant-input-affix-wrapper {
+              flex: 1;
+            }
+          }
+
+          &__actions {
+            margin-bottom: 0;
           }
         }
       }
@@ -689,11 +780,34 @@
       padding: 24px;
       .edit-layout {
         flex-direction: column;
-        gap: 40px;
-        align-items: center;
+        gap: 20px;
+        align-items: stretch;
+
+        .edit-nav {
+          width: 100%;
+          border-right: none;
+          padding-right: 0;
+          border-bottom: 1px solid @divider-color;
+          padding-bottom: 12px;
+          flex-direction: row;
+
+          &__item {
+            flex: 1;
+            justify-content: center;
+          }
+        }
         
         .form-section {
           width: 100%;
+
+          .basic-section {
+            .avatar-section {
+              flex-direction: column;
+              align-items: flex-start;
+              gap: 10px;
+              padding-bottom: 10px;
+            }
+          }
         }
       }
     }

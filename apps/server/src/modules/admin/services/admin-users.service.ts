@@ -1,6 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { QueryFailedError, Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { User } from '../../../entities/user.entity';
 import {
@@ -9,6 +13,7 @@ import {
   UpdateUserDto,
   UpdateUserStatusDto,
 } from '../dto/user-manage.dto';
+import { UserListResponse } from '../../../common/dto/responses/user.response.dto';
 
 @Injectable()
 export class AdminUsersService {
@@ -17,7 +22,16 @@ export class AdminUsersService {
     private readonly userRepository: Repository<User>,
   ) {}
 
-  async getUsers(query: UserManageQueryDto) {
+  private isDuplicateEntryError(error: unknown): boolean {
+    if (!(error instanceof QueryFailedError)) {
+      return false;
+    }
+
+    const driverError = error.driverError as { code?: string } | undefined;
+    return driverError?.code === 'ER_DUP_ENTRY';
+  }
+
+  async getUsers(query: UserManageQueryDto): Promise<UserListResponse> {
     const pageNum = query.page ? parseInt(query.page, 10) : 1;
     const sizeNum = query.size ? parseInt(query.size, 10) : 10;
     const { keyword, status } = query;
@@ -38,7 +52,15 @@ export class AdminUsersService {
       .take(sizeNum)
       .getManyAndCount();
 
-    return { list, total };
+    return {
+      list,
+      total,
+      page: pageNum,
+      pageSize: sizeNum,
+      totalPages: Math.ceil(total / sizeNum),
+      hasNextPage: pageNum < Math.ceil(total / sizeNum),
+      hasPrevPage: pageNum > 1,
+    };
   }
 
   async getUserById(id: number) {
@@ -50,21 +72,55 @@ export class AdminUsersService {
   }
 
   async createUser(dto: CreateUserDto) {
+    const duplicatedUser = await this.userRepository.findOne({
+      where: [{ username: dto.username }, { email: dto.email }],
+    });
+    if (duplicatedUser) {
+      if (duplicatedUser.username === dto.username) {
+        throw new ConflictException('用户名已存在');
+      }
+      throw new ConflictException('邮箱已存在');
+    }
+
     const hashedPassword = await bcrypt.hash(dto.password, 10);
     const user = this.userRepository.create({
       ...dto,
       password: hashedPassword,
     });
-    return this.userRepository.save(user);
+    try {
+      return await this.userRepository.save(user);
+    } catch (error) {
+      if (this.isDuplicateEntryError(error)) {
+        throw new ConflictException('用户名或邮箱已存在');
+      }
+      throw error;
+    }
   }
 
   async updateUser(id: number, dto: UpdateUserDto) {
     const user = await this.getUserById(id);
+
+    if (dto.email !== undefined && dto.email !== user.email) {
+      const existedEmailUser = await this.userRepository.findOne({
+        where: { email: dto.email },
+      });
+      if (existedEmailUser && existedEmailUser.id !== id) {
+        throw new ConflictException('邮箱已存在');
+      }
+    }
+
     if (dto.password) {
       dto.password = await bcrypt.hash(dto.password, 10);
     }
     Object.assign(user, dto);
-    return this.userRepository.save(user);
+    try {
+      return await this.userRepository.save(user);
+    } catch (error) {
+      if (this.isDuplicateEntryError(error)) {
+        throw new ConflictException('用户名或邮箱已存在');
+      }
+      throw error;
+    }
   }
 
   async deleteUser(id: number) {

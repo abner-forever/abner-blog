@@ -51,6 +51,9 @@ import {
   type Message,
 } from './types';
 
+const TYPEWRITER_BATCH_SIZE = 4;
+const TYPEWRITER_TICK_MS = 42;
+
 const ChatPage: React.FC = () => {
   const { t } = useTranslation();
   const [sessions, setSessions] = useState<ChatSession[]>([]);
@@ -179,8 +182,8 @@ const ChatPage: React.FC = () => {
         return;
       }
 
-      const chunk = pendingTypeTextRef.current.slice(0, 2);
-      pendingTypeTextRef.current = pendingTypeTextRef.current.slice(2);
+      const chunk = pendingTypeTextRef.current.slice(0, TYPEWRITER_BATCH_SIZE);
+      pendingTypeTextRef.current = pendingTypeTextRef.current.slice(TYPEWRITER_BATCH_SIZE);
 
       setMessages((prev) =>
         prev.map((msg) =>
@@ -190,10 +193,10 @@ const ChatPage: React.FC = () => {
         ),
       );
 
-      typeWriterTimerRef.current = setTimeout(tick, 16);
+      typeWriterTimerRef.current = setTimeout(tick, TYPEWRITER_TICK_MS);
     };
 
-    typeWriterTimerRef.current = setTimeout(tick, 0);
+    typeWriterTimerRef.current = setTimeout(tick, TYPEWRITER_TICK_MS);
   }, []);
 
   const toggleThinkingExpanded = useCallback((messageId: string) => {
@@ -700,6 +703,7 @@ const ChatPage: React.FC = () => {
     contextWindow,
     enableThinking,
     thinkingBudget,
+    useMcpTools,
     stopTypeWriter,
     formatAiStreamErrorPayload,
     runTypeWriter,

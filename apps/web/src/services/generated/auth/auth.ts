@@ -24,6 +24,7 @@ import type {
 import type {
   AuthTokenResponseDto,
   CaptchaConfigResponseDto,
+  ChangePasswordByCodeDto,
   LoginByCodeDto,
   LoginDto,
   RegisterDto,
@@ -685,6 +686,93 @@ export const useAuthControllerResetPassword = <
 > => {
   return useMutation(
     getAuthControllerResetPasswordMutationOptions(options),
+    queryClient,
+  );
+};
+/**
+ * @summary 登录用户通过邮箱验证码修改密码
+ */
+export const authControllerChangePasswordByCode = (
+  changePasswordByCodeDto: ChangePasswordByCodeDto,
+  signal?: AbortSignal,
+) => {
+  return httpMutator<void>({
+    url: `/api/auth/change-password-by-code`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: changePasswordByCodeDto,
+    signal,
+  });
+};
+
+export const getAuthControllerChangePasswordByCodeMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof authControllerChangePasswordByCode>>,
+    TError,
+    { data: ChangePasswordByCodeDto },
+    TContext
+  >;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof authControllerChangePasswordByCode>>,
+  TError,
+  { data: ChangePasswordByCodeDto },
+  TContext
+> => {
+  const mutationKey = ['authControllerChangePasswordByCode'];
+  const { mutation: mutationOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey } };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof authControllerChangePasswordByCode>>,
+    { data: ChangePasswordByCodeDto }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return authControllerChangePasswordByCode(data);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type AuthControllerChangePasswordByCodeMutationResult = NonNullable<
+  Awaited<ReturnType<typeof authControllerChangePasswordByCode>>
+>;
+export type AuthControllerChangePasswordByCodeMutationBody =
+  ChangePasswordByCodeDto;
+export type AuthControllerChangePasswordByCodeMutationError = unknown;
+
+/**
+ * @summary 登录用户通过邮箱验证码修改密码
+ */
+export const useAuthControllerChangePasswordByCode = <
+  TError = unknown,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof authControllerChangePasswordByCode>>,
+      TError,
+      { data: ChangePasswordByCodeDto },
+      TContext
+    >;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof authControllerChangePasswordByCode>>,
+  TError,
+  { data: ChangePasswordByCodeDto },
+  TContext
+> => {
+  return useMutation(
+    getAuthControllerChangePasswordByCodeMutationOptions(options),
     queryClient,
   );
 };

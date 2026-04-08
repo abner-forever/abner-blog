@@ -46,6 +46,7 @@ import type {
   UpdateTopicDto,
   UpdateUserDto,
   UpdateUserStatusDto,
+  UserListResponse,
   UserProfileDto,
 } from "./model";
 
@@ -217,7 +218,7 @@ export const getBlogAdminAPI = () => {
    * @summary 获取用户列表（管理端）
    */
   const getAdminUsers = (params?: GetAdminUsersParams) => {
-    return httpMutator<UserProfileDto[]>({
+    return httpMutator<UserListResponse>({
       url: `/api/admin/users`,
       method: "GET",
       params,

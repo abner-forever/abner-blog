@@ -48,3 +48,26 @@ export class UploadImageResponseDto {
   @ApiProperty({ description: '上传后的图片 URL' })
   url: string;
 }
+
+export class UserListResponse {
+  @ApiProperty({ type: [UserProfileDto], description: '用户列表' })
+  list: UserProfileDto[];
+
+  @ApiProperty({ description: '总用户数' })
+  total: number;
+
+  @ApiProperty({ description: '每页用户数' })
+  pageSize: number;
+
+  @ApiProperty({ description: '总页数' })
+  totalPages: number;
+
+  @ApiProperty({ description: '当前页码' })
+  page: number;
+
+  @ApiProperty({ description: '是否有下一页' })
+  hasNextPage: boolean;
+
+  @ApiProperty({ description: '是否有上一页' })
+  hasPrevPage: boolean;
+}

@@ -20,11 +20,12 @@ import {
 } from "@ant-design/icons";
 import { useTranslation } from "react-i18next";
 import { getBlogAdminAPI } from "@/services/generated/admin";
+import { ApiRequestError } from "@/services/http";
 import type {
   UserProfileDto,
   CreateUserDto,
   UpdateUserDto,
-  UpdateUserStatusDtoStatus
+  UpdateUserStatusDtoStatus,
 } from "@/services/generated/model";
 import "./index.less";
 
@@ -48,14 +49,11 @@ const UserManage: React.FC = () => {
     setLoading(true);
     try {
       const params = {
-        page: String(pagination.current),
-        size: String(pagination.pageSize),
+        page: pagination.current,
+        size: pagination.pageSize,
         keyword: keyword || undefined,
       };
-      const result = (await api.getAdminUsers(params as any)) as unknown as {
-        list: UserProfileDto[];
-        total: number;
-      };
+      const result = await api.getAdminUsers(params);
       setData(result.list || []);
       setPagination((prev) => ({ ...prev, total: result.total || 0 }));
     } catch {
@@ -92,8 +90,10 @@ const UserManage: React.FC = () => {
       await api.deleteAdminUser(id);
       message.success(t("userManage.deleteSuccess"));
       loadData();
-    } catch {
-      message.error(t("userManage.operationFail"));
+    } catch (error) {
+      if (error instanceof ApiRequestError) {
+        message.error(error.message);
+      }
     }
   };
 
@@ -105,8 +105,10 @@ const UserManage: React.FC = () => {
       await api.updateAdminUserStatus(id, { status });
       message.success(t("userManage.statusUpdateSuccess"));
       loadData();
-    } catch {
-      message.error(t("userManage.operationFail"));
+    } catch (error) {
+      if (error instanceof ApiRequestError) {
+        message.error(error.message);
+      }
     }
   };
 
@@ -136,8 +138,14 @@ const UserManage: React.FC = () => {
       }
       setModalVisible(false);
       loadData();
-    } catch {
-      message.error(t("userManage.operationFail"));
+    } catch (error) {
+      const formError = error as { errorFields?: unknown[] };
+      if (Array.isArray(formError.errorFields) && formError.errorFields.length) {
+        return;
+      }
+      if (error instanceof ApiRequestError) {
+        message.error(error.message);
+      }
     }
   };
 

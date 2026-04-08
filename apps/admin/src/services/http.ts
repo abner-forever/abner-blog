@@ -76,6 +76,33 @@ interface ApiResponse<T> {
   timestamp?: number;
 }
 
+export class ApiRequestError extends Error {
+  status?: number;
+
+  constructor(message: string, status?: number) {
+    super(message);
+    this.name = "ApiRequestError";
+    this.status = status;
+  }
+}
+
+const getApiMessage = (error: AxiosError): string | null => {
+  const data = error.response?.data as
+    | { message?: string | string[] }
+    | undefined;
+  const message = data?.message;
+
+  if (Array.isArray(message) && message.length > 0) {
+    return message.join("，");
+  }
+
+  if (typeof message === "string" && message.trim()) {
+    return message;
+  }
+
+  return null;
+};
+
 /**
  * orval mutator — 供自动生成的 API 代码使用。
  * 返回 response.data（包含 success/code/message/data/timestamp）
@@ -92,5 +119,23 @@ export const httpMutator = <T>(config: AxiosRequestConfig): Promise<T> => {
         return responseData.data as T;
       }
       return res.data as T;
+    })
+    .catch((error: unknown) => {
+      if (axios.isAxiosError(error)) {
+        const apiMessage = getApiMessage(error);
+        // 先打印底层错误，便于排查接口异常
+        console.error("[API Error]", {
+          url: config.url,
+          method: config.method,
+          status: error.response?.status,
+          message: apiMessage ?? error.message,
+          error,
+        });
+        throw new ApiRequestError(
+          apiMessage ?? error.message ?? "Request failed",
+          error.response?.status,
+        );
+      }
+      throw error;
     });
 };

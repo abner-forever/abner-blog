@@ -30,6 +30,7 @@ import { LoginDto } from './dto/login.dto';
 import {
   RequestPasswordResetDto,
   ResetPasswordDto,
+  ChangePasswordByCodeDto,
 } from './dto/reset-password.dto';
 import { SendCodeDto, LoginByCodeDto } from './dto/login-by-code.dto';
 import { TencentCaptchaService } from './tencent-captcha.service';
@@ -120,6 +121,22 @@ export class AuthController {
     return this.authService.resetPassword(
       resetPasswordDto.token,
       resetPasswordDto.newPassword,
+    );
+  }
+
+  @ApiBearerAuth('JWT')
+  @ApiOperation({ summary: '登录用户通过邮箱验证码修改密码' })
+  @ApiResponse({ status: 200, description: '密码修改成功' })
+  @UseGuards(JwtAuthGuard)
+  @Post('change-password-by-code')
+  async changePasswordByCode(
+    @Request() req: JwtRequest,
+    @Body() changePasswordByCodeDto: ChangePasswordByCodeDto,
+  ) {
+    return this.authService.changePasswordByCode(
+      req.user.userId,
+      changePasswordByCodeDto.code,
+      changePasswordByCodeDto.newPassword,
     );
   }
 

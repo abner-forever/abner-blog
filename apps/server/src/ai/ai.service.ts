@@ -26,7 +26,7 @@ import {
   splitThinkTaggedDelta,
   type ThinkTagSplitState,
 } from './utils/think-tag-split';
-import { McpService } from '../mcp/mcp.service';
+import { McpService } from '../mcp/services';
 
 export interface AIStreamEvent {
   event:
@@ -616,7 +616,9 @@ export class AIService {
           city,
           date: targetDate,
         });
-        const localText = result.content?.[0]?.text || '获取天气信息失败';
+        const firstContent = result.content?.[0];
+        const localText =
+          firstContent?.type === 'text' ? firstContent.text : '获取天气信息失败';
         this.logger.log(
           `[MCP Weather][in-process] City: ${city}, Result: ${localText.substring(0, 50)}...`,
         );

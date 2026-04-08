@@ -1,37 +1,30 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Card,
-  Form,
-  Input,
-  Button,
-  message,
-  Avatar,
-  Typography,
-  Divider,
-  Breadcrumb,
-  Tooltip,
-} from 'antd';
-import {
-  UserOutlined,
-  UploadOutlined,
-  SaveOutlined,
-  ScissorOutlined,
-  SmileOutlined,
-} from '@ant-design/icons';
+import { Breadcrumb, Card, Form, message } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import { usersControllerUpdateProfile } from '../../../services/generated/users/users';
+import {
+  authControllerSendCode,
+  authControllerChangePasswordByCode,
+} from '@services/generated/auth/auth';
 import { UploadStatus } from '@abner-blog/upload';
 import { createSimpleImageUploader } from '../../../services/simpleImageUploader';
 import type { UpdateProfileDto } from '@services/generated/model';
 import { updateUser } from '../../../store/authSlice';
 import type { RootState } from '../../../store';
 import AvatarCropModal from '@/components/AvatarCropModal';
+import {
+  resolveAuthCaptchaFields,
+  TencentCaptchaUserClosedError,
+} from '@/utils/tencent-captcha';
 import '../UserPages.less';
 import type { AxiosError } from 'axios';
-
-const { Text } = Typography;
+import EditSectionNav from './components/EditSectionNav';
+import BasicProfileSection from './components/BasicProfileSection';
+import SecuritySection from './components/SecuritySection';
+import { maskEmail } from './utils';
+import type { EditSection } from './types';
 
 const ProfileEdit: React.FC = () => {
   const { t } = useTranslation();
@@ -39,7 +32,12 @@ const ProfileEdit: React.FC = () => {
   const dispatch = useDispatch();
   const { user } = useSelector((state: RootState) => state.auth);
   const [form] = Form.useForm();
+  const [securityForm] = Form.useForm();
   const [loading, setLoading] = useState(false);
+  const [securityLoading, setSecurityLoading] = useState(false);
+  const [codeLoading, setCodeLoading] = useState(false);
+  const [countdown, setCountdown] = useState(0);
+  const [activeSection, setActiveSection] = useState<EditSection>('basic');
   const [uploading, setUploading] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | undefined>(
     user?.avatar ?? undefined,
@@ -48,18 +46,28 @@ const ProfileEdit: React.FC = () => {
   // 裁剪弹窗
   const [cropModalOpen, setCropModalOpen] = useState(false);
   const [rawImageSrc, setRawImageSrc] = useState('');
+  const maskedEmail = maskEmail(user?.email);
 
   useEffect(() => {
     if (user) {
       form.setFieldsValue({
         username: user.username,
         nickname: user.nickname || '',
-        email: user.email,
         bio: user.bio,
       });
       setAvatarUrl(user.avatar ?? undefined);
     }
   }, [user, form]);
+
+  useEffect(() => {
+    if (countdown <= 0) {
+      return;
+    }
+    const timer = window.setInterval(() => {
+      setCountdown((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, [countdown]);
 
   const onFinish = async (values: UpdateProfileDto) => {
     setLoading(true);
@@ -138,6 +146,58 @@ const ProfileEdit: React.FC = () => {
     setRawImageSrc('');
   };
 
+  const handleSendCode = async () => {
+    const email = user?.email;
+    if (!email) {
+      message.warning(t('profile.emailMissing'));
+      return;
+    }
+    try {
+      setCodeLoading(true);
+      let captchaFields: Awaited<ReturnType<typeof resolveAuthCaptchaFields>> = {};
+      try {
+        captchaFields = await resolveAuthCaptchaFields();
+      } catch (captchaErr: unknown) {
+        if (captchaErr instanceof TencentCaptchaUserClosedError) {
+          message.warning(t('auth.captchaUserClosed'));
+          return;
+        }
+        message.error(t('auth.captchaFailed'));
+        return;
+      }
+      await authControllerSendCode({ email, ...captchaFields });
+      message.success(t('profile.codeSent'));
+      setCountdown(60);
+    } catch (error: unknown) {
+      const err = error as AxiosError<{ message?: string }>;
+      message.error(err.response?.data?.message || t('profile.sendCodeFailed'));
+    } finally {
+      setCodeLoading(false);
+    }
+  };
+
+  const handleChangePassword = async (values: {
+    code: string;
+    newPassword: string;
+    confirmPassword: string;
+  }) => {
+    try {
+      setSecurityLoading(true);
+      await authControllerChangePasswordByCode({
+        code: values.code,
+        newPassword: values.newPassword,
+      });
+      message.success(t('profile.passwordChangeSuccess'));
+      securityForm.resetFields();
+      setCountdown(0);
+    } catch (error: unknown) {
+      const err = error as AxiosError<{ message?: string }>;
+      message.error(err.response?.data?.message || t('profile.passwordChangeFailed'));
+    } finally {
+      setSecurityLoading(false);
+    }
+  };
+
   return (
     <div className="profile-edit-container">
       <div className="profile-edit-header">
@@ -153,118 +213,34 @@ const ProfileEdit: React.FC = () => {
           ]}
         />
       </div>
-
       <Card className="edit-card" bordered={false}>
         <div className="edit-layout">
-          {/* 头像区域 */}
-          <div className="avatar-section">
-            <Tooltip title="点击更换头像">
-              <div
-                className={`avatar-preview-wrapper clickable ${uploading ? 'uploading' : ''}`}
-                onClick={handleAvatarClick}
-              >
-                <Avatar
-                  size={120}
-                  src={avatarUrl}
-                  icon={<UserOutlined />}
-                  className="profile-avatar"
-                />
-                <div className="avatar-hover-mask">
-                  <ScissorOutlined />
-                  <span>裁剪上传</span>
-                </div>
-                {uploading && (
-                  <div className="avatar-upload-loading">
-                    {t('profile.uploading')}
-                  </div>
-                )}
-              </div>
-            </Tooltip>
-
-            <Button
-              icon={<UploadOutlined />}
-              loading={uploading}
-              className="upload-btn"
-              onClick={handleAvatarClick}
-            >
-              {t('profile.changeAvatar')}
-            </Button>
-            <Text type="secondary" className="upload-tip">
-              支持 JPG / PNG / WebP，自动裁剪压缩
-            </Text>
-          </div>
-
-          <Divider type="vertical" className="edit-divider" />
-
-          {/* 资料表单 */}
+          <EditSectionNav
+            activeSection={activeSection}
+            onSectionChange={setActiveSection}
+          />
           <div className="form-section">
-            <Form
-              form={form}
-              layout="vertical"
-              onFinish={onFinish}
-              requiredMark={false}
-            >
-              <Form.Item
-                label={t('profile.username')}
-                name="username"
-                rules={[
-                  { required: true, message: t('profile.usernameRequired') },
-                  { min: 2, message: t('profile.usernameMin') },
-                  { max: 20, message: '用户名最长20个字符' },
-                  {
-                    pattern: /^[a-zA-Z0-9]+$/,
-                    message: '用户名只能包含英文字母和数字',
-                  },
-                ]}
-              >
-                <Input
-                  prefix={<UserOutlined />}
-                  placeholder={t('profile.usernamePlaceholder')}
-                  maxLength={20}
-                />
-              </Form.Item>
-
-              <Form.Item label="昵称" name="nickname" extra="每天最多修改3次">
-                <Input
-                  prefix={<SmileOutlined />}
-                  placeholder="输入昵称（可以是中文）"
-                  maxLength={30}
-                />
-              </Form.Item>
-
-              <Form.Item
-                label={t('profile.email')}
-                name="email"
-                rules={[
-                  { required: true, message: t('profile.emailRequired') },
-                  { type: 'email', message: t('auth.validEmail') },
-                ]}
-              >
-                <Input placeholder={t('profile.emailPlaceholder')} disabled />
-              </Form.Item>
-
-              <Form.Item label={t('profile.bio')} name="bio">
-                <Input.TextArea
-                  rows={4}
-                  placeholder={t('profile.bioPlaceholder')}
-                  maxLength={100}
-                  showCount
-                />
-              </Form.Item>
-
-              <Form.Item className="form-actions">
-                <Button
-                  type="primary"
-                  htmlType="submit"
-                  icon={<SaveOutlined />}
-                  loading={loading}
-                  block
-                  size="large"
-                >
-                  {t('profile.saveChange')}
-                </Button>
-              </Form.Item>
-            </Form>
+            {activeSection === 'basic' ? (
+              <BasicProfileSection
+                form={form}
+                avatarUrl={avatarUrl}
+                uploading={uploading}
+                loading={loading}
+                maskedEmail={maskedEmail}
+                onAvatarClick={handleAvatarClick}
+                onFinish={onFinish}
+              />
+            ) : (
+              <SecuritySection
+                form={securityForm}
+                maskedEmail={maskedEmail}
+                countdown={countdown}
+                codeLoading={codeLoading}
+                securityLoading={securityLoading}
+                onSendCode={handleSendCode}
+                onFinish={handleChangePassword}
+              />
+            )}
           </div>
         </div>
       </Card>

@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   HttpStatus,
+  RequestMethod,
   ValidationPipe,
 } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
@@ -87,7 +88,13 @@ export function setupSwagger(app: NestExpressApplication): void {
 
 export function setupGlobalAppFeatures(app: NestExpressApplication): void {
   app.set('trust proxy', 1);
-  app.setGlobalPrefix('api');
+  app.setGlobalPrefix('api', {
+    exclude: [
+      { path: 'register', method: RequestMethod.POST },
+      { path: 'authorize', method: RequestMethod.GET },
+      { path: 'token', method: RequestMethod.POST },
+    ],
+  });
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,

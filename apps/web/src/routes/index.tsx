@@ -13,6 +13,7 @@ const Login = lazy(() => import('@pages/auth/Login'));
 const Register = lazy(() => import('@pages/auth/Register'));
 const ForgotPassword = lazy(() => import('@pages/auth/ForgotPassword'));
 const ResetPassword = lazy(() => import('@pages/auth/ResetPassword'));
+const McpConnect = lazy(() => import('@pages/auth/McpConnect'));
 const TodoList = lazy(() => import('@pages/todo/TodoList'));
 const MyFavorites = lazy(() => import('@pages/user/MyFavorites'));
 const MomentList = lazy(() => import('@pages/moment/MomentList'));
@@ -84,6 +85,11 @@ export const routeConfig: RouteConfig[] = [
   {
     path: '/reset-password',
     element: <ResetPassword />,
+    requireAuth: false,
+  },
+  {
+    path: '/mcp/login',
+    element: <McpConnect />,
     requireAuth: false,
   },
   {
