@@ -33,7 +33,7 @@ import {
 } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
-import { logout } from '@/store/authSlice';
+import { useAuth } from '@/hooks/useAuth';
 import { setTheme } from '@/store/themeSlice';
 import type { RootState } from '../../store';
 import {
@@ -53,6 +53,7 @@ const Navbar: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { logout: performLogout } = useAuth();
   const { t, i18n } = useTranslation();
   const siteTitle = getSiteBrand(getCurrentLocale()).title;
   const { user } = useSelector((state: RootState) => state.auth);
@@ -105,8 +106,7 @@ const Navbar: React.FC = () => {
       icon: <LogoutOutlined />,
       label: t('nav.logout'),
       onClick: () => {
-        dispatch(logout());
-        navigate('/login');
+        void performLogout();
       },
     },
   ];

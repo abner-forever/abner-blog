@@ -10,6 +10,7 @@ import {
 import {
   authControllerLogin,
   authControllerLoginByCode,
+  authControllerLogout,
   authControllerRegister,
 } from '@services/generated/auth/auth';
 
@@ -95,9 +96,15 @@ export const useAuth = () => {
     [dispatch, navigate],
   );
 
-  const logoutUser = useCallback(() => {
-    dispatch(logout());
-    navigate('/login');
+  const logoutUser = useCallback(async () => {
+    try {
+      await authControllerLogout();
+    } catch {
+      // 接口失败仍清除本地态，避免用户无法退出
+    } finally {
+      dispatch(logout());
+      navigate('/login', { replace: true });
+    }
   }, [dispatch, navigate]);
 
   return {

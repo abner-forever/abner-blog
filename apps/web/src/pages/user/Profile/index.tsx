@@ -32,7 +32,7 @@ import {
   supportedLanguages,
   type SupportedLocale,
 } from '@/i18n';
-import { logout } from '@/store/authSlice';
+import { useAuth } from '@/hooks/useAuth';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import '../UserPages.less';
 
@@ -42,6 +42,7 @@ const Profile: React.FC = () => {
   const { i18n } = useTranslation();
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const { logout: performLogout } = useAuth();
   const [searchParams] = useSearchParams();
   const activeTab = searchParams.get('tab') || 'blogs';
   const { theme, skin } = useAppSelector((state) => state.theme);
@@ -151,8 +152,7 @@ const Profile: React.FC = () => {
   };
 
   const handleLogout = () => {
-    dispatch(logout());
-    navigate('/');
+    void performLogout();
   };
 
   const mobileSettingsItems = [
