@@ -15,7 +15,7 @@ import {
   ApiResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { AIService } from './ai.service';
 import { ChatRequestDto, SaveAIConfigDto } from './dto/chat.dto';
 import { ChatResponseDto } from './dto/extraction-result.dto';

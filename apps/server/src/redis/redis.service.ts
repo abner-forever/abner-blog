@@ -7,9 +7,8 @@ import {
 import { ConfigService } from '@nestjs/config';
 import Redis from 'ioredis';
 
-/** token 在 Redis 中的滑动过期时间：30 天（秒） */
-const TOKEN_TTL = 30 * 24 * 60 * 60;
-const TOKEN_PREFIX = 'auth:token:';
+/** 刷新会话在 Redis 中的 key 前缀（值为 userId 字符串，TTL 与 refresh JWT 一致） */
+const REFRESH_PREFIX = 'auth:refresh:';
 
 @Injectable()
 export class RedisService implements OnModuleInit, OnModuleDestroy {
@@ -84,77 +83,62 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  // ─── Token 相关操作 ────────────────────────────────────────────────
+  // ─── Refresh token 会话（jti）──────────────────────────────────────
 
-  /** 登录/注册成功后将 token 存入 Redis，TTL 30 天 */
-  async storeToken(token: string, userId: number): Promise<void> {
+  /** 签发 refresh JWT 后将 jti 写入 Redis */
+  async storeRefreshSession(
+    jti: string,
+    userId: number,
+    ttlSeconds: number,
+  ): Promise<void> {
     const client = this.client;
     if (!this.isRedisReady() || !client) {
-      this.logRedisUnavailable('Redis 未就绪，storeToken 跳过（降级继续）');
+      this.logRedisUnavailable('Redis 未就绪，storeRefreshSession 跳过（降级继续）');
       return;
     }
 
     try {
-      await client.setex(`${TOKEN_PREFIX}${token}`, TOKEN_TTL, String(userId));
+      const sec = Math.max(1, Math.floor(ttlSeconds));
+      await client.setex(`${REFRESH_PREFIX}${jti}`, sec, String(userId));
     } catch (err) {
-      // Redis 不可用时降级：JWT 本身仍然有效，isTokenValid 也会降级放行
       this.logger.warn(
-        `Redis storeToken 失败，降级继续登录 (userId=${userId}): ${err instanceof Error ? err.message : String(err)}`,
+        `Redis storeRefreshSession 失败，降级继续 (userId=${userId}): ${err instanceof Error ? err.message : String(err)}`,
       );
     }
   }
 
-  /** 校验 token 是否在 Redis 中有效 */
-  async isTokenValid(token: string): Promise<boolean> {
+  /** 校验 refresh 会话是否存在（Redis 不可用时降级为 true，仅依赖 JWT 校验） */
+  async isRefreshSessionValid(jti: string): Promise<boolean> {
     const client = this.client;
     if (!this.isRedisReady() || !client) {
-      // Redis 不可用时放行，避免因 Redis 故障导致全体用户掉线
-      this.logRedisUnavailable('Redis 未就绪，token 校验降级放行');
+      this.logRedisUnavailable('Redis 未就绪，refresh 会话校验降级放行');
       return true;
     }
 
     try {
-      const result = await client.exists(`${TOKEN_PREFIX}${token}`);
+      const result = await client.exists(`${REFRESH_PREFIX}${jti}`);
       return result === 1;
     } catch (err) {
-      // Redis 不可用时放行，避免因 Redis 故障导致全体用户掉线
       this.logRedisUnavailable(
-        `Redis 校验失败，降级放行: ${err instanceof Error ? err.message : String(err)}`,
+        `Redis refresh 校验失败，降级放行: ${err instanceof Error ? err.message : String(err)}`,
       );
       return true;
     }
   }
 
-  /** 每次请求刷新 token TTL（滑动窗口） */
-  async refreshTokenTTL(token: string): Promise<void> {
+  /** 登出或轮换时吊销 refresh 会话 */
+  async revokeRefreshSession(jti: string): Promise<void> {
     const client = this.client;
     if (!this.isRedisReady() || !client) {
-      this.logRedisUnavailable('Redis 未就绪，跳过 TTL 刷新');
+      this.logRedisUnavailable('Redis 未就绪，revokeRefreshSession 跳过');
       return;
     }
 
     try {
-      await client.expire(`${TOKEN_PREFIX}${token}`, TOKEN_TTL);
-    } catch (err) {
-      this.logRedisUnavailable(
-        `Redis TTL 刷新失败: ${err instanceof Error ? err.message : String(err)}`,
-      );
-    }
-  }
-
-  /** 登出或主动失效 token */
-  async revokeToken(token: string): Promise<void> {
-    const client = this.client;
-    if (!this.isRedisReady() || !client) {
-      this.logRedisUnavailable('Redis 未就绪，revokeToken 跳过');
-      return;
-    }
-
-    try {
-      await client.del(`${TOKEN_PREFIX}${token}`);
+      await client.del(`${REFRESH_PREFIX}${jti}`);
     } catch (err) {
       this.logger.warn(
-        `Redis revokeToken 失败: ${err instanceof Error ? err.message : String(err)}`,
+        `Redis revokeRefreshSession 失败: ${err instanceof Error ? err.message : String(err)}`,
       );
     }
   }

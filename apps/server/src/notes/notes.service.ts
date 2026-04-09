@@ -17,7 +17,7 @@ import { CreateNoteDto } from './dto/create-note.dto';
 import { SearchNoteDto } from './dto/search-note.dto';
 import { CreateNoteCommentDto } from './dto/create-note-comment.dto';
 import { PaginatedResponse } from '../common/interfaces/pagination.interface';
-import { NotificationsService } from '../social/notifications.service';
+import { NotificationsService } from '../social/services';
 
 /**
  * 获取北京时间的日期字符串 (YYYY-MM-DD)

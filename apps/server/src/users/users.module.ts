@@ -2,7 +2,7 @@ import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersService } from './users.service';
 import { UsersController } from './users.controller';
-import { FollowsController } from '../social/follows.controller';
+import { FollowsController } from '../social/controllers';
 import { SocialModule } from '../social/social.module';
 import { User } from '../entities/user.entity';
 import { UserResume } from '../entities/user-resume.entity';

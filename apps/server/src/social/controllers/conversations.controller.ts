@@ -17,13 +17,13 @@ import {
   ApiParam,
   ApiResponse,
 } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { ConversationsService } from './conversations.service';
-import { PaginationQueryDto } from './dto/pagination-query.dto';
-import { OpenConversationDto } from './dto/open-conversation.dto';
-import { SendDirectMessageDto } from './dto/send-direct-message.dto';
-import { MarkDmReadThroughDto } from './dto/mark-dm-read-through.dto';
-import { AuthenticatedRequest } from '../common/interfaces/request.interface';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { ConversationsService } from '../services/conversations.service';
+import { PaginationQueryDto } from '../dto/pagination-query.dto';
+import { OpenConversationDto } from '../dto/open-conversation.dto';
+import { SendDirectMessageDto } from '../dto/send-direct-message.dto';
+import { MarkDmReadThroughDto } from '../dto/mark-dm-read-through.dto';
+import { AuthenticatedRequest } from '../../common/interfaces/request.interface';
 import {
   ConversationListResponseDto,
   DeletedCountResponseDto,
@@ -32,7 +32,7 @@ import {
   DmUnreadCountResponseDto,
   MarkReadThroughResponseDto,
   OpenConversationResponseDto,
-} from './dto/social-response.dto';
+} from '../dto/social-response.dto';
 
 @ApiTags('social')
 @Controller('conversations')

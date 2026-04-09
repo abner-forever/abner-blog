@@ -1,15 +1,12 @@
 import { Module } from '@nestjs/common';
+import { McpController } from './mcp.controller';
+import { McpService } from './mcp.service';
 import {
-  McpController,
   McpOauthCompatController,
   McpOauthController,
-} from './controllers';
-import {
   McpOauthService,
-  McpRequestContextService,
-  McpService,
-  McpSessionAuthService,
-} from './services';
+} from './oauth';
+import { McpRequestContextService, McpSessionAuthService } from './services';
 import { WeatherTools } from './tools/weather.tools';
 import { CalendarTools } from './tools/calendar.tools';
 import { TodoTools } from './tools/todo.tools';

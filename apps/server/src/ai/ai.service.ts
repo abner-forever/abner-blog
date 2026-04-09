@@ -26,7 +26,7 @@ import {
   splitThinkTaggedDelta,
   type ThinkTagSplitState,
 } from './utils/think-tag-split';
-import { McpService } from '../mcp/services';
+import { McpService } from '../mcp/mcp.service';
 
 export interface AIStreamEvent {
   event:

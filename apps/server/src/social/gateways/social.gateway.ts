@@ -7,14 +7,17 @@ import {
 import { Server, Socket } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { RedisService } from '../redis/redis.service';
-import type { JwtPayload } from '../auth/jwt.strategy';
-import { SocialEventsService } from './social-events.service';
+import type { JwtPayload } from '../../auth/strategies/jwt.strategy';
+import { SocialEventsService } from '../services/social-events.service';
 
-function isJwtPayload(value: unknown): value is JwtPayload {
+function isAccessJwtPayload(value: unknown): value is JwtPayload {
   if (typeof value !== 'object' || value === null) return false;
-  const sub = (value as { sub?: unknown }).sub;
-  return typeof sub === 'number' && !Number.isNaN(sub);
+  const o = value as { sub?: unknown; typ?: unknown };
+  return (
+    typeof o.sub === 'number' &&
+    !Number.isNaN(o.sub) &&
+    o.typ === 'access'
+  );
 }
 
 function parseCorsOrigins(): string[] {
@@ -42,7 +45,6 @@ export class SocialGateway implements OnGatewayInit {
   constructor(
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
-    private readonly redisService: RedisService,
     private readonly socialEvents: SocialEventsService,
   ) {}
 
@@ -70,17 +72,11 @@ export class SocialGateway implements OnGatewayInit {
       const decoded: unknown = this.jwtService.verify(token, {
         secret,
       });
-      if (!isJwtPayload(decoded)) {
+      if (!isAccessJwtPayload(decoded)) {
         client.disconnect(true);
         return;
       }
       const userId = decoded.sub;
-      const ok = await this.redisService.isTokenValid(token);
-      if (!ok) {
-        client.disconnect(true);
-        return;
-      }
-      await this.redisService.refreshTokenTTL(token);
       await client.join(`user:${userId}`);
       (client.data as { userId: number }).userId = userId;
     } catch (e) {

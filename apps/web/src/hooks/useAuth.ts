@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store/reduxHooks';
 import { useNavigate } from 'react-router-dom';
 import {
+  AUTH_REFRESH_TOKEN_KEY,
   loginStart,
   loginSuccess,
   loginFailure,
@@ -36,7 +37,11 @@ export const useAuth = () => {
           captchaRandstr: captcha?.captchaRandstr,
         });
         dispatch(
-          loginSuccess({ access_token: data.access_token, user: data.user }),
+          loginSuccess({
+            access_token: data.access_token,
+            refresh_token: data.refresh_token,
+            user: data.user,
+          }),
         );
         navigate('/');
         return true;
@@ -59,7 +64,11 @@ export const useAuth = () => {
           code,
         });
         dispatch(
-          loginSuccess({ access_token: data.access_token, user: data.user }),
+          loginSuccess({
+            access_token: data.access_token,
+            refresh_token: data.refresh_token,
+            user: data.user,
+          }),
         );
         navigate('/');
         return true;
@@ -83,7 +92,11 @@ export const useAuth = () => {
           password,
         });
         dispatch(
-          loginSuccess({ access_token: data.access_token, user: data.user }),
+          loginSuccess({
+            access_token: data.access_token,
+            refresh_token: data.refresh_token,
+            user: data.user,
+          }),
         );
         navigate('/');
       } catch (err: unknown) {
@@ -98,7 +111,11 @@ export const useAuth = () => {
 
   const logoutUser = useCallback(async () => {
     try {
-      await authControllerLogout();
+      const rt =
+        typeof window !== 'undefined'
+          ? localStorage.getItem(AUTH_REFRESH_TOKEN_KEY)
+          : null;
+      await authControllerLogout(rt ? { refresh_token: rt } : undefined);
     } catch {
       // 接口失败仍清除本地态，避免用户无法退出
     } finally {

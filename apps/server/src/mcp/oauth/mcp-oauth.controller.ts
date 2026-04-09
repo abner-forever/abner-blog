@@ -14,15 +14,16 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Request, Response } from 'express';
 import { AuthService } from '../../auth/auth.service';
-import { RedisService } from '../../redis/redis.service';
+import { jwtExpiresInToSeconds } from '../../auth/utils/jwt-expires.util';
+import type { JwtPayload } from '../../auth/strategies/jwt.strategy';
 import { UsersService } from '../../users/users.service';
 import {
   MCP_OAUTH_ALLOWED_CODE_CHALLENGE_METHODS,
   MCP_OAUTH_ALLOWED_REDIRECT_URIS,
   MCP_OAUTH_DEFAULT_CLIENT_ID,
   MCP_OAUTH_STATE_MAX_LENGTH,
-} from '../constants';
-import { McpOauthService } from '../services';
+} from './mcp-oauth.constants';
+import { McpOauthService } from './mcp-oauth.service';
 
 interface OAuthAuthorizeQuery {
   response_type?: string;
@@ -54,7 +55,6 @@ export class McpOauthController {
   constructor(
     private readonly configService: ConfigService,
     private readonly jwtService: JwtService,
-    private readonly redisService: RedisService,
     private readonly usersService: UsersService,
     private readonly authService: AuthService,
     private readonly oauthService: McpOauthService,
@@ -227,12 +227,15 @@ export class McpOauthController {
     }
 
     const user = await this.usersService.findById(record.userId);
-    const token = await this.authService.generateToken(user);
+    const token = await this.authService.generateTokenPair(user);
+    const accessExpiresIn =
+      this.configService.get<string>('JWT_ACCESS_EXPIRES_IN') ?? '15m';
 
     return {
       access_token: token.access_token,
+      refresh_token: token.refresh_token,
       token_type: 'Bearer',
-      expires_in: 30 * 24 * 60 * 60,
+      expires_in: jwtExpiresInToSeconds(accessExpiresIn),
     };
   }
 
@@ -251,18 +254,13 @@ export class McpOauthController {
       throw new UnauthorizedException('missing bearer token');
     }
 
-    const payload = this.jwtService.verify<{ sub: number }>(token, {
-      ignoreExpiration: true,
-    });
-    if (!payload?.sub) {
+    const secret =
+      this.configService.get<string>('JWT_SECRET') ||
+      'your-secret-key-please-change-in-production';
+    const payload = this.jwtService.verify<JwtPayload>(token, { secret });
+    if (!payload?.sub || payload.typ !== 'access') {
       throw new UnauthorizedException('invalid token payload');
     }
-
-    const valid = await this.redisService.isTokenValid(token);
-    if (!valid) {
-      throw new UnauthorizedException('token expired');
-    }
-    await this.redisService.refreshTokenTTL(token);
 
     return payload.sub;
   }

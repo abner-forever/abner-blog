@@ -1,8 +1,28 @@
 import axios from 'axios';
 import type { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { store } from '../store';
-import { logout } from '../store/authSlice';
+import {
+  AUTH_REFRESH_TOKEN_KEY,
+  loginSuccess,
+  logout,
+} from '../store/authSlice';
+import type { AuthTokenResponseDto } from './generated/model/authTokenResponseDto';
 import i18n from '../i18n';
+
+/** 与后端 TransformInterceptor 一致：解包 { code, data } */
+function unwrapEnvelope<T>(body: unknown): T {
+  if (
+    body &&
+    typeof body === 'object' &&
+    'code' in body &&
+    'data' in body &&
+    (Number((body as { code?: unknown }).code) === 0 ||
+      (body as { success?: boolean }).success === true)
+  ) {
+    return (body as { data: T }).data as T;
+  }
+  return body as T;
+}
 
 // HTTP 服务配置
 class HttpService {
@@ -65,7 +85,7 @@ class HttpService {
         }
         return response;
       },
-      (error) => {
+      async (error) => {
         // 提取更友好的错误消息（使用 i18n）
         let displayMessage = i18n.t('http.requestFailed');
 
@@ -95,11 +115,48 @@ class HttpService {
           message: error.message,
         });
 
-        // 排除认证相关的请求，这些请求的 401 应该由业务逻辑自行处理
-        const isAuthRequest = error.config?.url?.includes('/auth/');
-        if (error.response?.status === 401 && !isAuthRequest) {
-          // token 过期或无效，且不是认证请求，自动登出
-          this.handleUnauthorized();
+        const config = error.config;
+        const url = typeof config?.url === 'string' ? config.url : '';
+        const isAuthRequest = url.includes('/auth/');
+
+        if (error.response?.status === 401 && !isAuthRequest && config) {
+          const cfg = config as typeof config & { _retry?: boolean };
+          if (!cfg._retry) {
+            cfg._retry = true;
+            const refresh = localStorage.getItem(AUTH_REFRESH_TOKEN_KEY);
+            if (refresh) {
+              try {
+                const base = this.api.defaults.baseURL ?? '';
+                const { data: raw } = await axios.post(
+                  `${base}/api/auth/refresh`,
+                  { refresh_token: refresh },
+                  { headers: { 'Content-Type': 'application/json' } },
+                );
+                const data = unwrapEnvelope<AuthTokenResponseDto>(raw);
+                localStorage.setItem('user-token', data.access_token);
+                localStorage.setItem(
+                  AUTH_REFRESH_TOKEN_KEY,
+                  data.refresh_token,
+                );
+                store.dispatch(
+                  loginSuccess({
+                    access_token: data.access_token,
+                    refresh_token: data.refresh_token,
+                    user: data.user,
+                  }),
+                );
+                cfg.headers = cfg.headers ?? {};
+                cfg.headers.Authorization = `Bearer ${data.access_token}`;
+                return this.api.request(cfg);
+              } catch {
+                this.handleUnauthorized();
+              }
+            } else {
+              this.handleUnauthorized();
+            }
+          } else {
+            this.handleUnauthorized();
+          }
         }
         return Promise.reject(error);
       },
@@ -171,21 +228,6 @@ class HttpService {
 // 导出单例实例
 export const httpService = new HttpService();
 export default httpService;
-
-/** 与后端 TransformInterceptor 一致：解包 { code, data }，兼容 code 为字符串 */
-function unwrapEnvelope<T>(body: unknown): T {
-  if (
-    body &&
-    typeof body === 'object' &&
-    'code' in body &&
-    'data' in body &&
-    (Number((body as { code?: unknown }).code) === 0 ||
-      (body as { success?: boolean }).success === true)
-  ) {
-    return (body as { data: T }).data as T;
-  }
-  return body as T;
-}
 
 /**
  * orval mutator — 供自动生成的 API 代码使用。

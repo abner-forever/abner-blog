@@ -19,7 +19,7 @@ import {
   ToggleLikeResponseDto,
 } from '../common/dto/responses/blog.response.dto';
 import { LikesService } from './likes.service';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { AuthenticatedRequest } from '../common/interfaces/request.interface';
 
 @ApiTags('likes')

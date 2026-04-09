@@ -80,15 +80,19 @@ const LoginModal: React.FC<LoginModalProps> = ({
         password: values.password,
         captchaTicket: captchaFields.captchaTicket,
         captchaRandstr: captchaFields.captchaRandstr,
-      })) as { access_token: string; user: unknown };
+      })) as {
+        access_token: string;
+        refresh_token: string;
+        user: unknown;
+      };
 
-      if (data?.access_token) {
-        localStorage.setItem('user-token', data.access_token);
+      if (data?.access_token && data?.refresh_token) {
         dispatch(
           loginSuccess({
-            user: data.user,
+            user: data.user as Parameters<typeof loginSuccess>[0]['user'],
             access_token: data.access_token,
-          } as Parameters<typeof loginSuccess>[0]),
+            refresh_token: data.refresh_token,
+          }),
         );
         message.success(t('auth.loginSuccess'));
         handleCancel();
@@ -151,15 +155,19 @@ const LoginModal: React.FC<LoginModalProps> = ({
       const data = (await authControllerLoginByCode({
         email: values.email,
         code: values.code,
-      })) as { access_token: string; user: unknown };
+      })) as {
+        access_token: string;
+        refresh_token: string;
+        user: unknown;
+      };
 
-      if (data?.access_token) {
-        localStorage.setItem('user-token', data.access_token);
+      if (data?.access_token && data?.refresh_token) {
         dispatch(
           loginSuccess({
-            user: data.user,
+            user: data.user as Parameters<typeof loginSuccess>[0]['user'],
             access_token: data.access_token,
-          } as Parameters<typeof loginSuccess>[0]),
+            refresh_token: data.refresh_token,
+          }),
         );
         message.success(t('auth.loginSuccess'));
         handleCancel();

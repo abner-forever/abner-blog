@@ -7,18 +7,21 @@ import {
   Get,
   Body,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { AuthService } from '../../auth/auth.service';
+import { jwtExpiresInToSeconds } from '../../auth/utils/jwt-expires.util';
 import { UsersService } from '../../users/users.service';
 import {
   MCP_OAUTH_ALLOWED_REDIRECT_URIS,
   MCP_OAUTH_DEFAULT_CLIENT_ID,
-} from '../constants';
-import { McpOauthService } from '../services';
+} from './mcp-oauth.constants';
+import { McpOauthService } from './mcp-oauth.service';
 import { Request, Response } from 'express';
 
 @Controller()
 export class McpOauthCompatController {
   constructor(
+    private readonly configService: ConfigService,
     private readonly usersService: UsersService,
     private readonly authService: AuthService,
     private readonly oauthService: McpOauthService,
@@ -152,11 +155,14 @@ export class McpOauthCompatController {
     }
 
     const user = await this.usersService.findById(record.userId);
-    const token = await this.authService.generateToken(user);
+    const token = await this.authService.generateTokenPair(user);
+    const accessExpiresIn =
+      this.configService.get<string>('JWT_ACCESS_EXPIRES_IN') ?? '15m';
     res.status(HttpStatus.OK).json({
       access_token: token.access_token,
+      refresh_token: token.refresh_token,
       token_type: 'Bearer',
-      expires_in: 30 * 24 * 60 * 60,
+      expires_in: jwtExpiresInToSeconds(accessExpiresIn),
     });
   }
 

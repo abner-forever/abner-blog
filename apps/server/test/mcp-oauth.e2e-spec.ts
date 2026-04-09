@@ -1,9 +1,12 @@
 import type { Server } from 'http';
 import { INestApplication } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
-import { McpOauthCompatController } from '../src/mcp/controllers';
-import { McpOauthService } from '../src/mcp/services';
+import {
+  McpOauthCompatController,
+  McpOauthService,
+} from '../src/mcp/oauth';
 import { AuthService } from '../src/auth/auth.service';
 import { UsersService } from '../src/users/users.service';
 
@@ -17,6 +20,14 @@ describe('MCP OAuth Compat (e2e)', () => {
       providers: [
         McpOauthService,
         {
+          provide: ConfigService,
+          useValue: {
+            get: jest.fn((key: string) =>
+              key === 'JWT_ACCESS_EXPIRES_IN' ? '15m' : undefined,
+            ),
+          },
+        },
+        {
           provide: UsersService,
           useValue: {
             findById: jest.fn(async (id: number) => ({
@@ -28,8 +39,9 @@ describe('MCP OAuth Compat (e2e)', () => {
         {
           provide: AuthService,
           useValue: {
-            generateToken: jest.fn(async () => ({
+            generateTokenPair: jest.fn(async () => ({
               access_token: 'mock_access_token',
+              refresh_token: 'mock_refresh_token',
             })),
           },
         },
@@ -80,7 +92,9 @@ describe('MCP OAuth Compat (e2e)', () => {
 
     expect(res.body).toMatchObject({
       access_token: 'mock_access_token',
+      refresh_token: 'mock_refresh_token',
       token_type: 'Bearer',
+      expires_in: 900,
     });
   });
 

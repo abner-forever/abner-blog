@@ -23,7 +23,7 @@ import {
   NoteCollectionDetailDto,
   NoteCollectionDto,
 } from './dto/note-collection-response.dto';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { AuthenticatedRequest } from '../common/interfaces/request.interface';
 
 @ApiTags('note-collections')

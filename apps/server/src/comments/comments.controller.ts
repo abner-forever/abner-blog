@@ -23,10 +23,10 @@ import {
 import { CommentsService } from './comments.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CommentResponse } from './interfaces/comment-response.interface';
 import { AuthenticatedRequest } from '../common/interfaces/request.interface';
-import { OptionalJwtAuthGuard } from '../auth/optional-jwt-auth.guard';
+import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
 
 @ApiTags('comments')
 @Controller('blogs/:blogId/comments')

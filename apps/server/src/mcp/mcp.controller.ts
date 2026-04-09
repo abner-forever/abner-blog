@@ -9,19 +9,23 @@ import {
   Logger,
   OnApplicationBootstrap,
   UnauthorizedException,
+  HttpException,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { randomUUID } from 'node:crypto';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { RedisService } from '../../redis/redis.service';
-import {
-  McpRequestContextService,
-  McpService,
-  McpSessionAuthService,
-} from '../services';
+/** MCP Bearer 解析用（兼容旧版无 typ、以及 refresh） */
+interface McpBearerJwtPayload {
+  sub: number | string;
+  username?: string;
+  typ?: string;
+  jti?: string;
+}
+import { McpService } from './mcp.service';
+import { McpRequestContextService, McpSessionAuthService } from './services';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
-import type { JsonRpcRequest, ToolInfo } from '../types';
+import type { JsonRpcRequest, ToolInfo } from './types';
 
 @Controller('mcp')
 export class McpController implements OnApplicationBootstrap {
@@ -32,7 +36,6 @@ export class McpController implements OnApplicationBootstrap {
   constructor(
     private readonly mcpService: McpService,
     private readonly jwtService: JwtService,
-    private readonly redisService: RedisService,
     private readonly requestContext: McpRequestContextService,
     private readonly sessionAuthService: McpSessionAuthService,
     private readonly configService: ConfigService,
@@ -85,6 +88,11 @@ export class McpController implements OnApplicationBootstrap {
       await this.reconnectTransport();
     }
 
+    const rpcId =
+      requestBody && typeof requestBody === 'object' && 'id' in requestBody
+        ? ((requestBody as JsonRpcRequest).id ?? null)
+        : null;
+
     try {
       const userId = await this.resolveUserIdFromRequest(req);
       const sessionId = this.getSessionIdFromRequest(req);
@@ -102,13 +110,17 @@ export class McpController implements OnApplicationBootstrap {
     } catch (error) {
       this.logger.error(`MCP request error: ${String(error)}`);
       if (!res.headersSent) {
+        if (error instanceof HttpException && error.getStatus() === 401) {
+          this.sendMcpUnauthorized(req, res, rpcId, error.message);
+          return;
+        }
         res.status(500).json({
           jsonrpc: '2.0',
           error: {
             code: -32000,
             message: error instanceof Error ? error.message : 'Internal error',
           },
-          id: null,
+          id: rpcId,
         });
       }
     }
@@ -142,6 +154,10 @@ export class McpController implements OnApplicationBootstrap {
     } catch (error) {
       this.logger.error(`MCP stream request error: ${String(error)}`);
       if (!res.headersSent) {
+        if (error instanceof HttpException && error.getStatus() === 401) {
+          this.sendMcpUnauthorized(req, res, null, error.message);
+          return;
+        }
         res.status(500).json({
           jsonrpc: '2.0',
           error: {
@@ -192,6 +208,34 @@ export class McpController implements OnApplicationBootstrap {
     });
   }
 
+  /** Bearer 已携带但校验失败（过期、类型错误等），返回 401 而非 500 */
+  private sendMcpUnauthorized(
+    req: Request,
+    res: Response,
+    id: string | number | null,
+    message: string,
+  ): void {
+    const issuer = `${req.protocol}://${req.get('host')}/api/mcp`;
+    const metadataUrl = `${issuer}/.well-known/oauth-authorization-server`;
+    const authorizeUrl = `${issuer}/oauth/authorize`;
+    res.setHeader(
+      'WWW-Authenticate',
+      `Bearer authorization_uri="${authorizeUrl}", resource_metadata="${metadataUrl}"`,
+    );
+    res.status(401).json({
+      jsonrpc: '2.0',
+      id,
+      error: {
+        code: -32001,
+        message,
+        data: {
+          authorization_uri: authorizeUrl,
+          resource_metadata: metadataUrl,
+        },
+      },
+    });
+  }
+
   private async resolveUserIdFromRequest(req: Request): Promise<number | null> {
     const sessionId = this.getSessionIdFromRequest(req);
 
@@ -217,27 +261,45 @@ export class McpController implements OnApplicationBootstrap {
     }
 
     try {
-      const payload = this.jwtService.verify<{ sub: number }>(token, {
-        ignoreExpiration: true,
+      const secret =
+        this.configService.get<string>('JWT_SECRET') ||
+        'your-secret-key-please-change-in-production';
+      const payload = this.jwtService.verify<McpBearerJwtPayload>(token, {
+        secret,
       });
 
-      if (!payload?.sub || Number.isNaN(payload.sub)) {
+      const sub = Number(payload.sub);
+      if (
+        payload.sub === undefined ||
+        payload.sub === null ||
+        String(payload.sub).length === 0 ||
+        Number.isNaN(sub)
+      ) {
         throw new UnauthorizedException('无效的 Token');
       }
 
-      const isValid = await this.redisService.isTokenValid(token);
-      if (!isValid) {
-        throw new UnauthorizedException('登录已过期，请重新登录');
+      if (payload.typ === 'refresh') {
+        throw new UnauthorizedException(
+          'MCP 需使用 access_token，不能使用 refresh_token；请在博客登录后更新 MCP 配置中的 Bearer 令牌',
+        );
       }
-      await this.redisService.refreshTokenTTL(token);
+      // 新版 access 带 typ；旧版单 token 仅有 sub/username，无 typ
+      if (payload.typ !== undefined && payload.typ !== 'access') {
+        throw new UnauthorizedException('无效的 Token');
+      }
 
-      return payload.sub;
+      return sub;
     } catch (error) {
       if (sessionId) {
         return await this.sessionAuthService.getSessionUser(sessionId);
       }
       if (error instanceof UnauthorizedException) {
         throw error;
+      }
+      if (error instanceof Error && error.name === 'TokenExpiredError') {
+        throw new UnauthorizedException(
+          'Access token 已过期；请重新登录博客并将新的 access_token 写入 MCP（双令牌模式下 access 有效期较短，可酌情调大 JWT_ACCESS_EXPIRES_IN）',
+        );
       }
       throw new UnauthorizedException('无效的 Token');
     }

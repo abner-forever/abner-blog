@@ -11,7 +11,7 @@ import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { CommentResponse } from './interfaces/comment-response.interface';
 import { CommentLike } from '../entities/comment-like.entity';
-import { NotificationsService } from '../social/notifications.service';
+import { NotificationsService } from '../social/services';
 
 @Injectable()
 export class CommentsService {

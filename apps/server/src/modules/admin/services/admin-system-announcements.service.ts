@@ -6,7 +6,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { SystemAnnouncement } from '../../../entities/system-announcement.entity';
-import { NotificationsService } from '../../../social/notifications.service';
+import { NotificationsService } from '../../../social/services';
 import { sanitizeAnnouncementHtml } from '../../../social/utils/sanitize-announcement-html';
 import {
   CreateSystemAnnouncementDto,

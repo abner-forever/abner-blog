@@ -5,17 +5,35 @@ import {
   Logger,
   BadRequestException,
 } from '@nestjs/common';
-import { TencentCaptchaService } from './tencent-captcha.service';
+import { ConfigService } from '@nestjs/config';
+import { TencentCaptchaService } from './services/tencent-captcha.service';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
 import { User, UserStatus } from '../entities/user.entity';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { SendCodeDto } from './dto/login-by-code.dto';
-import { MailService } from './mail.service';
+import { MailService } from './services/mail.service';
 import { RedisService } from '../redis/redis.service';
 import * as bcrypt from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
+import { jwtExpiresInToSeconds } from './utils/jwt-expires.util';
+import type { JwtRefreshPayload } from './strategies/jwt.strategy';
+
+export interface AuthTokenPair {
+  access_token: string;
+  refresh_token: string;
+  user: {
+    id: number;
+    username: string;
+    nickname: string | null;
+    email: string;
+    avatar: string | null;
+    bio: string | null;
+    status: UserStatus;
+    lastLoginAt: Date | null;
+  };
+}
 
 @Injectable()
 export class AuthService {
@@ -26,15 +44,24 @@ export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
+    private configService: ConfigService,
     private mailService: MailService,
     private redisService: RedisService,
     private tencentCaptchaService: TencentCaptchaService,
   ) {}
 
-  async register(registerDto: RegisterDto): Promise<{
-    access_token: string;
-    user: Partial<User>;
-  }> {
+  private get jwtSecret(): string {
+    return (
+      this.configService.get<string>('JWT_SECRET') ||
+      'your-secret-key-please-change-in-production'
+    );
+  }
+
+  private get refreshExpiresIn(): string {
+    return this.configService.get<string>('JWT_REFRESH_EXPIRES_IN') ?? '30d';
+  }
+
+  async register(registerDto: RegisterDto): Promise<AuthTokenPair> {
     const { username, email, password, nickname } = registerDto;
 
     // 检查用户名和邮箱是否已存在
@@ -63,17 +90,10 @@ export class AuthService {
       `新用户注册: ${username} (${email}), 昵称: ${user.nickname}`,
     );
 
-    // 返回JWT token
-    return await this.generateToken(user);
+    return await this.generateTokenPair(user);
   }
 
-  async login(
-    loginDto: LoginDto,
-    ip?: string,
-  ): Promise<{
-    access_token: string;
-    user: Partial<User>;
-  }> {
+  async login(loginDto: LoginDto, ip?: string): Promise<AuthTokenPair> {
     const { username, password } = loginDto;
 
     try {
@@ -126,7 +146,7 @@ export class AuthService {
 
       this.logger.log(`用户登录成功: ${username} from ${ip || 'unknown'}`);
 
-      return await this.generateToken(user);
+      return await this.generateTokenPair(user);
     } catch (error) {
       if (error instanceof UnauthorizedException) {
         throw error;
@@ -252,18 +272,7 @@ export class AuthService {
     email: string,
     code: string,
     ip?: string,
-  ): Promise<{
-    access_token: string;
-    user: {
-      id: number;
-      username: string;
-      email: string;
-      avatar: string | null;
-      bio: string | null;
-      status: UserStatus;
-      lastLoginAt: Date | null;
-    };
-  }> {
+  ): Promise<AuthTokenPair> {
     const user = await this.usersService.findByEmail(email);
     if (!user) {
       throw new UnauthorizedException('该邮箱未注册');
@@ -291,7 +300,66 @@ export class AuthService {
     user.verificationCodeExpires = null;
     await this.handleLoginSuccess(user, ip);
 
-    return await this.generateToken(user);
+    return await this.generateTokenPair(user);
+  }
+
+  /**
+   * 使用 refresh_token 轮换签发新的 access + refresh（旧 refresh 随即吊销）
+   */
+  async refreshWithRefreshToken(refreshToken: string): Promise<AuthTokenPair> {
+    let payload: JwtRefreshPayload;
+    try {
+      payload = this.jwtService.verify<JwtRefreshPayload>(refreshToken, {
+        secret: this.jwtSecret,
+      });
+    } catch {
+      throw new UnauthorizedException('刷新令牌无效或已过期');
+    }
+
+    if (payload.typ !== 'refresh' || !payload.jti) {
+      throw new UnauthorizedException('无效的刷新令牌');
+    }
+
+    const sessionOk = await this.redisService.isRefreshSessionValid(
+      payload.jti,
+    );
+    if (!sessionOk) {
+      throw new UnauthorizedException('刷新令牌已失效，请重新登录');
+    }
+
+    const user = await this.usersService.findById(payload.sub);
+    if (user.status !== UserStatus.ACTIVE) {
+      throw new UnauthorizedException('账户已被禁用');
+    }
+
+    const pair = await this.generateTokenPair(user);
+    await this.redisService.revokeRefreshSession(payload.jti);
+    return pair;
+  }
+
+  /** 登出时按用户意愿吊销 refresh 会话（需与 access 所属用户一致） */
+  async logoutSession(userId: number, refreshToken?: string): Promise<void> {
+    if (!refreshToken?.trim()) {
+      return;
+    }
+    try {
+      const decoded = this.jwtService.verify<JwtRefreshPayload>(
+        refreshToken.trim(),
+        {
+          secret: this.jwtSecret,
+          ignoreExpiration: true,
+        },
+      );
+      if (decoded.typ !== 'refresh' || !decoded.jti) {
+        return;
+      }
+      if (decoded.sub !== userId) {
+        return;
+      }
+      await this.redisService.revokeRefreshSession(decoded.jti);
+    } catch {
+      // 无法解析的 refresh 忽略
+    }
   }
 
   // 请求密码重置
@@ -377,27 +445,30 @@ export class AuthService {
     await this.usersService.updateUser(user);
   }
 
-  async generateToken(user: User): Promise<{
-    access_token: string;
-    user: {
-      id: number;
-      username: string;
-      nickname: string | null;
-      email: string;
-      avatar: string | null;
-      bio: string | null;
-      status: UserStatus;
-      lastLoginAt: Date | null;
-    };
-  }> {
-    const payload = { username: user.username, sub: user.id };
-    const access_token = this.jwtService.sign(payload);
+  async generateTokenPair(user: User): Promise<AuthTokenPair> {
+    const access_token = this.jwtService.sign({
+      sub: user.id,
+      username: user.username,
+      typ: 'access' as const,
+    });
 
-    // 将 token 存入 Redis，TTL 30 天（滑动窗口）
-    await this.redisService.storeToken(access_token, user.id);
+    const jti = uuidv4();
+    const refreshTtlSec = jwtExpiresInToSeconds(this.refreshExpiresIn);
+    const refresh_token = this.jwtService.sign(
+      {
+        sub: user.id,
+        username: user.username,
+        typ: 'refresh' as const,
+        jti,
+      },
+      { expiresIn: this.refreshExpiresIn },
+    );
+
+    await this.redisService.storeRefreshSession(jti, user.id, refreshTtlSec);
 
     return {
       access_token,
+      refresh_token,
       user: {
         id: user.id,
         username: user.username,

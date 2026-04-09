@@ -5,10 +5,10 @@ import { ConfigService } from '@nestjs/config';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { UsersModule } from '../users/users.module';
-import { JwtStrategy } from './jwt.strategy';
-import { LocalStrategy } from './local.strategy';
-import { MailService } from './mail.service';
-import { TencentCaptchaService } from './tencent-captcha.service';
+import { JwtStrategy } from './strategies/jwt.strategy';
+import { LocalStrategy } from './strategies/local.strategy';
+import { MailService } from './services/mail.service';
+import { TencentCaptchaService } from './services/tencent-captcha.service';
 
 @Module({
   imports: [
@@ -19,8 +19,10 @@ import { TencentCaptchaService } from './tencent-captcha.service';
         secret:
           configService.get<string>('JWT_SECRET') ||
           'your-secret-key-please-change-in-production',
-        // 不设 expiresIn：由 Redis 滑动 TTL（30天）统一管控过期
-        signOptions: {},
+        signOptions: {
+          expiresIn:
+            configService.get<string>('JWT_ACCESS_EXPIRES_IN') ?? '15m',
+        },
       }),
       inject: [ConfigService],
     }),

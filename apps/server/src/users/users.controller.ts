@@ -19,7 +19,7 @@ import { UserResumeDto } from '../common/dto/responses/user-resume.response.dto'
 import { UsersService } from './users.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { UpdateResumeDto } from './dto/update-resume.dto';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 interface AuthenticatedRequest extends Request {
   user: { userId: number };

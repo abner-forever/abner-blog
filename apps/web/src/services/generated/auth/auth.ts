@@ -858,8 +858,17 @@ export const useAuthControllerLoginLegacy = <
 /**
  * @summary 登出，主动使 token 失效
  */
-export const authControllerLogout = (signal?: AbortSignal) => {
-  return httpMutator<void>({ url: `/api/auth/logout`, method: 'POST', signal });
+export const authControllerLogout = (
+  logoutBodyDto?: { refresh_token?: string },
+  signal?: AbortSignal,
+) => {
+  return httpMutator<void>({
+    url: `/api/auth/logout`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: logoutBodyDto ?? {},
+    signal,
+  });
 };
 
 export const getAuthControllerLogoutMutationOptions = <
@@ -869,13 +878,13 @@ export const getAuthControllerLogoutMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof authControllerLogout>>,
     TError,
-    void,
+    { refresh_token?: string } | void,
     TContext
   >;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof authControllerLogout>>,
   TError,
-  void,
+  { refresh_token?: string } | void,
   TContext
 > => {
   const mutationKey = ['authControllerLogout'];
@@ -889,9 +898,11 @@ export const getAuthControllerLogoutMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof authControllerLogout>>,
-    void
-  > = () => {
-    return authControllerLogout();
+    { refresh_token?: string } | void
+  > = (variables) => {
+    return authControllerLogout(
+      variables && typeof variables === 'object' ? variables : undefined,
+    );
   };
 
   return { mutationFn, ...mutationOptions };
@@ -911,7 +922,7 @@ export const useAuthControllerLogout = <TError = unknown, TContext = unknown>(
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof authControllerLogout>>,
       TError,
-      void,
+      { refresh_token?: string } | void,
       TContext
     >;
   },
@@ -919,7 +930,7 @@ export const useAuthControllerLogout = <TError = unknown, TContext = unknown>(
 ): UseMutationResult<
   Awaited<ReturnType<typeof authControllerLogout>>,
   TError,
-  void,
+  { refresh_token?: string } | void,
   TContext
 > => {
   return useMutation(
@@ -1074,12 +1085,17 @@ export function useAuthControllerGetProfile<
 }
 
 /**
- * @summary 刷新 Token
+ * @summary 使用 refresh_token 换发新的 access 与 refresh
  */
-export const authControllerRefresh = (signal?: AbortSignal) => {
+export const authControllerRefresh = (
+  refreshTokenBodyDto: { refresh_token: string },
+  signal?: AbortSignal,
+) => {
   return httpMutator<AuthTokenResponseDto>({
     url: `/api/auth/refresh`,
     method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: refreshTokenBodyDto,
     signal,
   });
 };
@@ -1091,13 +1107,13 @@ export const getAuthControllerRefreshMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof authControllerRefresh>>,
     TError,
-    void,
+    { refresh_token: string },
     TContext
   >;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof authControllerRefresh>>,
   TError,
-  void,
+  { refresh_token: string },
   TContext
 > => {
   const mutationKey = ['authControllerRefresh'];
@@ -1111,9 +1127,9 @@ export const getAuthControllerRefreshMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof authControllerRefresh>>,
-    void
-  > = () => {
-    return authControllerRefresh();
+    { refresh_token: string }
+  > = (variables) => {
+    return authControllerRefresh(variables);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -1133,7 +1149,7 @@ export const useAuthControllerRefresh = <TError = unknown, TContext = unknown>(
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof authControllerRefresh>>,
       TError,
-      void,
+      { refresh_token: string },
       TContext
     >;
   },
@@ -1141,7 +1157,7 @@ export const useAuthControllerRefresh = <TError = unknown, TContext = unknown>(
 ): UseMutationResult<
   Awaited<ReturnType<typeof authControllerRefresh>>,
   TError,
-  void,
+  { refresh_token: string },
   TContext
 > => {
   return useMutation(

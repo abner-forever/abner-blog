@@ -17,18 +17,18 @@ import {
   ApiBearerAuth,
   ApiOkResponse,
 } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { NotificationsService } from './notifications.service';
-import { PaginationQueryDto } from './dto/pagination-query.dto';
-import { MarkNotificationsReadDto } from './dto/mark-notifications-read.dto';
-import { AuthenticatedRequest } from '../common/interfaces/request.interface';
-import { SystemAnnouncementPublicDto } from './dto/system-announcement-public.dto';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { NotificationsService } from '../services/notifications.service';
+import { PaginationQueryDto } from '../dto/pagination-query.dto';
+import { MarkNotificationsReadDto } from '../dto/mark-notifications-read.dto';
+import { AuthenticatedRequest } from '../../common/interfaces/request.interface';
+import { SystemAnnouncementPublicDto } from '../dto/system-announcement-public.dto';
 import {
   DeletedCountResponseDto,
   NotificationListResponseDto,
   NotificationUnreadCountResponseDto,
   UpdatedCountResponseDto,
-} from './dto/social-response.dto';
+} from '../dto/social-response.dto';
 
 @ApiTags('social')
 @Controller('notifications')

@@ -22,7 +22,7 @@ import { CalendarEventDto } from '../common/dto/responses/calendar.response.dto'
 import { CalendarService } from './calendar.service';
 import { CreateCalendarEventDto } from './dto/calendar-event.dto';
 import { UpdateCalendarEventDto } from './dto/calendar-event.dto';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 interface AuthenticatedRequest extends Request {
   user: {

@@ -23,7 +23,7 @@ import {
   QueryPerformanceMetricsDto,
   PerformanceStatsDto,
 } from './dto/performance-metric.dto';
-import { OptionalJwtAuthGuard } from '../auth/optional-jwt-auth.guard';
+import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
 import { AuthenticatedRequest } from '../common/interfaces/request.interface';
 import { parseUserAgent } from '../common/utils/user-agent';
 

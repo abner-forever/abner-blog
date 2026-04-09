@@ -1,19 +1,19 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In, IsNull } from 'typeorm';
-import { UserNotification } from '../entities/user-notification.entity';
-import { NotificationType } from '../entities/notification-type.enum';
+import { UserNotification } from '../../entities/user-notification.entity';
+import { NotificationType } from '../../entities/notification-type.enum';
 import { SocialEventsService } from './social-events.service';
-import { Comment } from '../entities/comment.entity';
-import { Blog } from '../entities/blog.entity';
-import { MomentComment } from '../entities/moment-comment.entity';
-import { Moment } from '../entities/moment.entity';
-import { NoteComment } from '../entities/note-comment.entity';
-import { Note } from '../entities/note.entity';
-import { User } from '../entities/user.entity';
-import { SystemAnnouncement } from '../entities/system-announcement.entity';
-import { sanitizeAnnouncementHtml } from './utils/sanitize-announcement-html';
-import type { SystemAnnouncementPublicDto } from './dto/system-announcement-public.dto';
+import { Comment } from '../../entities/comment.entity';
+import { Blog } from '../../entities/blog.entity';
+import { MomentComment } from '../../entities/moment-comment.entity';
+import { Moment } from '../../entities/moment.entity';
+import { NoteComment } from '../../entities/note-comment.entity';
+import { Note } from '../../entities/note.entity';
+import { User } from '../../entities/user.entity';
+import { SystemAnnouncement } from '../../entities/system-announcement.entity';
+import { sanitizeAnnouncementHtml } from '../utils/sanitize-announcement-html';
+import type { SystemAnnouncementPublicDto } from '../dto/system-announcement-public.dto';
 
 /** 通知中心展示的类型（不含私信，私信仅在会话列表查看） */
 export const NOTIFICATION_FEED_TYPES: NotificationType[] = [

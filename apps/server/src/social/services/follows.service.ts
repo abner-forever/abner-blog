@@ -5,8 +5,8 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { UserFollow } from '../entities/user-follow.entity';
-import { User } from '../entities/user.entity';
+import { UserFollow } from '../../entities/user-follow.entity';
+import { User } from '../../entities/user.entity';
 
 @Injectable()
 export class FollowsService {

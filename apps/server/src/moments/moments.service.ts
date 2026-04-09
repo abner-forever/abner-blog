@@ -17,7 +17,7 @@ import { CreateMomentCommentDto } from './dto/create-moment-comment.dto';
 import { PaginatedResponse } from '../common/interfaces/pagination.interface';
 import { UpdateMomentDto } from './dto/update-moment.dto';
 import { MomentCommentLike } from '../entities/moment-comment-like.entity';
-import { NotificationsService } from '../social/notifications.service';
+import { NotificationsService } from '../social/services';
 
 /**
  * 获取北京时间的日期字符串 (YYYY-MM-DD)

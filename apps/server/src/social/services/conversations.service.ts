@@ -5,10 +5,10 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { DirectConversation } from '../entities/direct-conversation.entity';
-import { DirectMessage } from '../entities/direct-message.entity';
-import { User } from '../entities/user.entity';
-import { normalizeUserPair } from './utils/normalize-user-pair';
+import { DirectConversation } from '../../entities/direct-conversation.entity';
+import { DirectMessage } from '../../entities/direct-message.entity';
+import { User } from '../../entities/user.entity';
+import { normalizeUserPair } from '../utils/normalize-user-pair';
 import { FollowsService } from './follows.service';
 import { NotificationsService } from './notifications.service';
 import { SocialEventsService } from './social-events.service';

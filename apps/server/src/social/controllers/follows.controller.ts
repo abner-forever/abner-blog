@@ -16,14 +16,14 @@ import {
   ApiParam,
   ApiResponse,
 } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { FollowsService } from './follows.service';
-import { PaginationQueryDto } from './dto/pagination-query.dto';
-import { AuthenticatedRequest } from '../common/interfaces/request.interface';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { FollowsService } from '../services/follows.service';
+import { PaginationQueryDto } from '../dto/pagination-query.dto';
+import { AuthenticatedRequest } from '../../common/interfaces/request.interface';
 import {
   FollowListResponseDto,
   FollowStatusResponseDto,
-} from './dto/social-response.dto';
+} from '../dto/social-response.dto';
 
 @ApiTags('social')
 @Controller('users')

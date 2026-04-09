@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { captcha } from 'tencentcloud-sdk-nodejs-captcha';
-import { CaptchaConfigResponseDto } from './dto/captcha-config.response.dto';
+import { CaptchaConfigResponseDto } from '../dto/captcha-config.response.dto';
 
 const CAPTCHA_TYPE_WEB = 9;
 const CAPTCHA_OK_CODE = 1;

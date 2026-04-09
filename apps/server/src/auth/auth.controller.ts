@@ -21,9 +21,8 @@ import {
 } from '../common/dto/responses/user.response.dto';
 import { AuthService } from './auth.service';
 import { UsersService } from '../users/users.service';
-import { RedisService } from '../redis/redis.service';
-import { LocalAuthGuard } from './local-auth.guard';
-import { JwtAuthGuard } from './jwt-auth.guard';
+import { LocalAuthGuard } from './guards/local-auth.guard';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { User } from '../entities/user.entity';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
@@ -33,7 +32,9 @@ import {
   ChangePasswordByCodeDto,
 } from './dto/reset-password.dto';
 import { SendCodeDto, LoginByCodeDto } from './dto/login-by-code.dto';
-import { TencentCaptchaService } from './tencent-captcha.service';
+import { RefreshTokenBodyDto } from './dto/refresh-token.dto';
+import { LogoutBodyDto } from './dto/logout.dto';
+import { TencentCaptchaService } from './services/tencent-captcha.service';
 import { CaptchaConfigResponseDto } from './dto/captcha-config.response.dto';
 
 interface AuthenticatedRequest extends Request {
@@ -50,7 +51,6 @@ export class AuthController {
   constructor(
     private authService: AuthService,
     private usersService: UsersService,
-    private redisService: RedisService,
     private tencentCaptchaService: TencentCaptchaService,
   ) {}
 
@@ -144,7 +144,7 @@ export class AuthController {
   @UseGuards(LocalAuthGuard)
   @Post('login-legacy')
   async loginLegacy(@Request() req: AuthenticatedRequest) {
-    return this.authService.generateToken(req.user);
+    return this.authService.generateTokenPair(req.user);
   }
 
   @ApiBearerAuth('JWT')
@@ -152,15 +152,8 @@ export class AuthController {
   @ApiResponse({ status: 200, description: '登出成功' })
   @UseGuards(JwtAuthGuard)
   @Post('logout')
-  async logout(@Request() req: JwtRequest) {
-    const authHeader: string =
-      (req.headers as unknown as Record<string, string>)?.authorization ||
-      (req.headers as unknown as Record<string, string>)?.Authorization ||
-      '';
-    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
-    if (token) {
-      await this.redisService.revokeToken(token);
-    }
+  async logout(@Request() req: JwtRequest, @Body() body: LogoutBodyDto) {
+    await this.authService.logoutSession(req.user.userId, body.refresh_token);
     return { message: '已成功登出' };
   }
 
@@ -188,17 +181,15 @@ export class AuthController {
   }
 
   @ApiBearerAuth('JWT')
-  @ApiOperation({ summary: '刷新 Token' })
+  @ApiOperation({ summary: '使用 refresh_token 换发新的 access 与 refresh' })
   @ApiResponse({
     status: 200,
     type: AuthTokenResponseDto,
-    description: '刷新后的 token 和用户信息',
+    description: '新的 access、refresh 与用户信息',
   })
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
   @Post('refresh')
-  async refresh(@Request() req: JwtRequest) {
-    const user = await this.usersService.findById(req.user.userId);
-    return this.authService.generateToken(user);
+  async refresh(@Body() body: RefreshTokenBodyDto) {
+    return this.authService.refreshWithRefreshToken(body.refresh_token);
   }
 }

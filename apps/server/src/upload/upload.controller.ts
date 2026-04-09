@@ -23,7 +23,7 @@ import {
   ApiQuery,
 } from '@nestjs/swagger';
 import { UploadImageResponseDto } from '../common/dto/responses/user.response.dto';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Request } from 'express';
 import { imageMulterOptionsByBusinessPath } from '../config/multer.config';
 import { normalizeBusinessPath } from './utils/business-path';

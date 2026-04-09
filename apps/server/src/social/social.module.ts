@@ -8,13 +8,17 @@ import { UserNotification } from '../entities/user-notification.entity';
 import { SystemAnnouncement } from '../entities/system-announcement.entity';
 import { User } from '../entities/user.entity';
 import { NoteComment } from '../entities/note-comment.entity';
-import { SocialEventsService } from './social-events.service';
-import { SocialGateway } from './social.gateway';
-import { FollowsService } from './follows.service';
-import { ConversationsService } from './conversations.service';
-import { ConversationsController } from './conversations.controller';
-import { NotificationsService } from './notifications.service';
-import { NotificationsController } from './notifications.controller';
+import {
+  ConversationsController,
+  NotificationsController,
+} from './controllers';
+import {
+  ConversationsService,
+  FollowsService,
+  NotificationsService,
+  SocialEventsService,
+} from './services';
+import { SocialGateway } from './gateways';
 
 @Module({
   imports: [
