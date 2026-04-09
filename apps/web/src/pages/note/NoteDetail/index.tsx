@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import classNames from 'classnames';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Image, Button, message, Modal, Input, Popconfirm, Drawer } from 'antd';
 import {
@@ -164,7 +165,7 @@ const NoteDetail: React.FC = () => {
 
   if (noteLoading) {
     return (
-      <div className="loadingContainer">
+      <div className="note-detail__loading">
         <Loading size="small" tip={t('note.loading')} />
       </div>
     );
@@ -172,7 +173,7 @@ const NoteDetail: React.FC = () => {
 
   if (!note) {
     return (
-      <div className="emptyContainer">
+      <div className="note-detail__empty">
         <CustomEmpty tip="笔记不存在" />
       </div>
     );
@@ -195,10 +196,10 @@ const NoteDetail: React.FC = () => {
   const hasMoreComments = (note.commentCount || 0) > 3;
 
   return (
-    <div className="noteDetail">
-      <div className="pcLayout">
-        <div className="leftPanel">
-          <div className="imageGallery">
+    <div className="note-detail">
+      <div className="note-detail__pc-layout">
+        <div className="note-detail__left">
+          <div className="note-detail__gallery">
             <Image.PreviewGroup
               preview={{
                 open: previewOpen,
@@ -206,19 +207,20 @@ const NoteDetail: React.FC = () => {
               }}
             >
               <div
-                className={`mainImage ${!isCurrentImage ? 'media-video' : 'media-image'} ${
-                  !isCurrentImage && isCurrentVideoLandscape
-                    ? 'media-landscape'
-                    : !isCurrentImage
-                      ? 'media-portrait'
-                      : ''
-                }`}
+                className={classNames('note-detail__main-media', {
+                  'note-detail__main-media--video': !isCurrentImage,
+                  'note-detail__main-media--image': isCurrentImage,
+                  'note-detail__main-media--landscape':
+                    !isCurrentImage && isCurrentVideoLandscape,
+                  'note-detail__main-media--portrait':
+                    !isCurrentImage && !isCurrentVideoLandscape,
+                })}
               >
                 {totalMediaCount > 0 ? (
                   <>
                     {totalMediaCount > 1 && (
                       <div
-                        className="imageNavBtn prev"
+                        className="note-detail__gallery-nav note-detail__gallery-nav--prev"
                         onClick={() =>
                           setCurrentImageIndex(
                             currentImageIndex > 0
@@ -237,11 +239,10 @@ const NoteDetail: React.FC = () => {
                       />
                     ) : currentVideo ? (
                       <div
-                        className={`videoContainer ${
-                          isCurrentVideoLandscape
-                            ? 'media-landscape'
-                            : 'media-portrait'
-                        }`}
+                        className={classNames('note-detail__video-wrap', {
+                          'note-detail__video-wrap--landscape': isCurrentVideoLandscape,
+                          'note-detail__video-wrap--portrait': !isCurrentVideoLandscape,
+                        })}
                       >
                         <VideoPlayer
                           key={currentVideo}
@@ -262,7 +263,7 @@ const NoteDetail: React.FC = () => {
                     ) : null}
                     {totalMediaCount > 1 && (
                       <div
-                        className="imageNavBtn next"
+                        className="note-detail__gallery-nav note-detail__gallery-nav--next"
                         onClick={() =>
                           setCurrentImageIndex(
                             currentImageIndex < totalMediaCount - 1
@@ -278,11 +279,13 @@ const NoteDetail: React.FC = () => {
                 ) : null}
               </div>
               {totalMediaCount > 1 && (
-                <div className="thumbnailList">
+                <div className="note-detail__thumbs">
                   {note.images?.map((img, index) => (
                     <div
                       key={`img-${index}`}
-                      className={`thumbnail ${index === currentImageIndex ? 'active' : ''}`}
+                      className={classNames('note-detail__thumb', {
+                        'note-detail__thumb--active': index === currentImageIndex,
+                      })}
                       onClick={() => setCurrentImageIndex(index)}
                     >
                       <Image src={img} style={{ objectFit: 'contain' }} />
@@ -291,7 +294,14 @@ const NoteDetail: React.FC = () => {
                   {note.videos?.map((video, index) => (
                     <div
                       key={`video-${index}`}
-                      className={`thumbnail videoThumb ${index + (note.images?.length || 0) === currentImageIndex ? 'active' : ''}`}
+                      className={classNames(
+                        'note-detail__thumb',
+                        'note-detail__thumb--video',
+                        {
+                          'note-detail__thumb--active':
+                            index + (note.images?.length || 0) === currentImageIndex,
+                        },
+                      )}
                       onClick={() => setCurrentImageIndex((note.images?.length || 0) + index)}
                     >
                       <VideoPlayer
@@ -301,7 +311,7 @@ const NoteDetail: React.FC = () => {
                         loop
                         showControls={false}
                       />
-                      <div className="videoPlayIcon">
+                      <div className="note-detail__video-play-icon">
                         <PlayCircleOutlined />
                       </div>
                     </div>
@@ -311,9 +321,9 @@ const NoteDetail: React.FC = () => {
             </Image.PreviewGroup>
           </div>
         </div>
-        <div className="rightPanel">
-          <div className="authorInfo">
-            <div className="avatar">
+        <div className="note-detail__right">
+          <div className="note-detail__author">
+            <div className="note-detail__author-avatar">
               <Image
                 src={note.author.avatar}
                 style={{ objectFit: 'cover' }}
@@ -321,18 +331,18 @@ const NoteDetail: React.FC = () => {
                 height={40}
               />
             </div>
-            <span className="nickname">{note.author.nickname}</span>
+            <span className="note-detail__author-name">{note.author.nickname}</span>
             <Button type="primary" size="small">
               {t('note.follow')}
             </Button>
           </div>
-          <div className="content">
-            {note.title && <h2 className="noteTitle">{note.title}</h2>}
+          <div className="note-detail__body">
+            {note.title && <h2 className="note-detail__title">{note.title}</h2>}
             <p>{note.content}</p>
             {note.topic && (
-              <div className="topics">
+              <div className="note-detail__topics">
                 <span
-                  className="topic"
+                  className="note-detail__topic-tag"
                   onClick={() => navigate(`/notes/topics/${note.topic!.id}`)}
                 >
                   #{note.topic.name}
@@ -340,17 +350,17 @@ const NoteDetail: React.FC = () => {
               </div>
             )}
             {note.location && (
-              <div className="location">
+              <div className="note-detail__location">
                 <span>📍</span>
                 <span>{note.location}</span>
               </div>
             )}
-            <div className="time">
+            <div className="note-detail__time">
               {new Date(note.createdAt).toLocaleString()}
             </div>
           </div>
-          <div className="actions">
-            <div className="actionItem" onClick={handleLike}>
+          <div className="note-detail__actions">
+            <div className="note-detail__action" onClick={handleLike}>
               {note.isLiked ? (
                 <HeartFilled style={{ color: '#ff4d4f' }} />
               ) : (
@@ -358,7 +368,7 @@ const NoteDetail: React.FC = () => {
               )}
               <span>{note.likeCount}</span>
             </div>
-            <div className="actionItem" onClick={handleCollect}>
+            <div className="note-detail__action" onClick={handleCollect}>
               {note.isFavorited ? (
                 <StarOutlined style={{ color: '#faad14' }} />
               ) : (
@@ -366,7 +376,7 @@ const NoteDetail: React.FC = () => {
               )}
               <span>{note.favoriteCount}</span>
             </div>
-            <div className="actionItem" onClick={handleShare}>
+            <div className="note-detail__action" onClick={handleShare}>
               <ShareAltOutlined />
               <span>{t('note.share')}</span>
             </div>
@@ -377,21 +387,21 @@ const NoteDetail: React.FC = () => {
                 okText={t('common.confirm')}
                 cancelText={t('common.cancel')}
               >
-                <div className="actionItem">
+                <div className="note-detail__action">
                   <DeleteOutlined />
                   <span>{t('note.deleteNote')}</span>
                 </div>
               </Popconfirm>
             )}
           </div>
-          <div className="comments commentsCompact">
-            <h3 className="commentsTitle">
+          <div className="note-detail__comments note-detail__comments--compact">
+            <h3 className="note-detail__comments-title">
               {t('note.comments')} {note.commentCount}
             </h3>
             {hasMoreComments && (
               <Button
                 type="link"
-                className="viewAllCommentsBtn"
+                className="note-detail__comments-view-all"
                 onClick={() => setCommentsDrawerVisible(true)}
               >
                 {t('note.viewAllComments')}
@@ -400,22 +410,22 @@ const NoteDetail: React.FC = () => {
             {note.commentCount === 0 && (
               <Button
                 type="link"
-                className="viewAllCommentsBtn"
+                className="note-detail__comments-view-all"
                 onClick={() => setCommentsDrawerVisible(true)}
               >
                 {t('common.writeComment')}
               </Button>
             )}
-            <div className="commentsPreviewList">
+            <div className="note-detail__comments-preview">
               {commentsLoading ? (
-                <div className="commentsLoading">
+                <div className="note-detail__comments-loading">
                   <Loading size="small" tip={t('note.loading')} />
                 </div>
               ) : previewComments.length > 0 ? (
                 previewComments.map((comment) => (
                   <div
                     key={comment.id}
-                    className="commentPreviewItem"
+                    className="note-detail__comment-preview"
                     onClick={() => setCommentsDrawerVisible(true)}
                   >
                     <CommentItem
@@ -441,7 +451,7 @@ const NoteDetail: React.FC = () => {
                 ))
               ) : (
                 <div
-                  className="noComments"
+                  className="note-detail__comments-empty"
                   onClick={() => setCommentsDrawerVisible(true)}
                 >
                   {t('comment.emptyPrompt')}
@@ -458,9 +468,9 @@ const NoteDetail: React.FC = () => {
         size={500}
         open={commentsDrawerVisible}
         onClose={() => setCommentsDrawerVisible(false)}
-        rootClassName="noteCommentsDrawer"
+        rootClassName="note-detail__comments-drawer"
       >
-        <div className="drawerCommentsBody">
+        <div className="note-detail__drawer-comments">
           <CommentSection
             resourceType="note"
             resourceId={noteId}
@@ -471,8 +481,8 @@ const NoteDetail: React.FC = () => {
         </div>
       </Drawer>
 
-      <div className="mobileHeader">
-        <div className="backBtn" onClick={() => navigate(-1)}>
+      <div className="note-detail__mobile-header">
+        <div className="note-detail__mobile-back" onClick={() => navigate(-1)}>
           <CloseOutlined />
         </div>
       </div>
@@ -484,8 +494,8 @@ const NoteDetail: React.FC = () => {
         onCancel={() => setCollectModalVisible(false)}
         footer={null}
       >
-        <div className="collectionModalContent">
-          <div className="createCollection">
+        <div className="note-detail__collection-modal">
+          <div className="note-detail__collection-create">
             <Input
               placeholder={t('note.collectionNamePlaceholder')}
               value={newCollectionName}
@@ -497,19 +507,19 @@ const NoteDetail: React.FC = () => {
             </Button>
           </div>
           <DataList
-            className="collectionList"
+            className="note-detail__collection-list"
             dataSource={collections || []}
             rowKey={(c) => c.id}
-            rowClassName="collectionItem"
+            rowClassName="note-detail__collection-item"
             rowProps={(collection) => ({
               onClick: () =>
                 handleCollectToCollection(collection.id, collection.name),
             })}
-            empty={<div className="collectionEmpty">{t('note.noCollections')}</div>}
+            empty={<div className="note-detail__collection-empty">{t('note.noCollections')}</div>}
             renderItem={(collection) => (
-              <div className="collectionInfo">
-                <span className="collectionName">{collection.name}</span>
-                <span className="collectionCount">
+              <div className="note-detail__collection-info">
+                <span className="note-detail__collection-name">{collection.name}</span>
+                <span className="note-detail__collection-count">
                   {t('note.collectionNoteCount', { count: collection.noteCount ?? 0 })}
                 </span>
               </div>

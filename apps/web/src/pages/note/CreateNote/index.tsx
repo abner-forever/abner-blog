@@ -224,10 +224,10 @@ const CreateNote: React.FC = () => {
   }
 
   return (
-    <div className="createNote">
-      <div className="header">
+    <div className="create-note">
+      <div className="create-note__header">
         <Button onClick={() => navigate(-1)}>取消</Button>
-        <span className="title">发布笔记</span>
+        <span className="create-note__page-title">发布笔记</span>
         <Button
           type="primary"
           onClick={handlePublish}
@@ -238,8 +238,8 @@ const CreateNote: React.FC = () => {
         </Button>
       </div>
 
-      <div className="form">
-        <div className="mediaSection">
+      <div className="create-note__form">
+        <div className="create-note__media">
           <MediaGrid
             media={media}
             images={images}
@@ -257,34 +257,34 @@ const CreateNote: React.FC = () => {
           />
         </div>
 
-        <div className="contentSection">
+        <div className="create-note__content">
           <input
-            className="titleInput"
+            className="create-note__title-input"
             placeholder={t('note.titlePlaceholderOptional')}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             maxLength={120}
           />
           <textarea
-            className="contentInput"
+            className="create-note__content-input"
             placeholder="分享你的想法..."
             value={content}
             onChange={(e) => setContent(e.target.value)}
             maxLength={1000}
           />
-          <div className="wordCount">{content.length}/1000</div>
+          <div className="create-note__word-count">{content.length}/1000</div>
         </div>
 
-        <div className="topicSection">
-          <div className="topicHeader">
-            <span className="topicLabel">添加话题</span>
-            <span className="topicCount">已选 {selectedTopics.length}/3</span>
+        <div className="create-note__topics-block">
+          <div className="create-note__topics-header">
+            <span className="create-note__topics-label">添加话题</span>
+            <span className="create-note__topics-count">已选 {selectedTopics.length}/3</span>
           </div>
-          <div className="topicList">
+          <div className="create-note__topics-list">
             {topics.map((topic) => (
               <span
                 key={topic.id}
-                className={`topicItem ${selectedTopics.includes(topic.id) ? 'active' : ''}`}
+                className={`create-note__topic-chip${selectedTopics.includes(topic.id) ? ' create-note__topic-chip--active' : ''}`}
                 onClick={() => handleTopicSelect(topic.id)}
               >
                 #{topic.name}
@@ -294,7 +294,7 @@ const CreateNote: React.FC = () => {
         </div>
       </div>
 
-      <div className="footer">
+      <div className="create-note__footer">
         <Button block onClick={() => setPreviewMode(true)}>
           预览
         </Button>
@@ -337,10 +337,10 @@ const CreateNote: React.FC = () => {
         onCancel={handleCloseVideoPreview}
         width="100%"
         centered
-        rootClassName="videoPreviewModal"
+        rootClassName="create-note__video-preview-modal"
         destroyOnHidden
       >
-        <div className="videoPreviewContainer">
+        <div className="create-note__video-preview-container">
           <VideoPlayer src={currentVideoUrl} autoPlay />
         </div>
       </Modal>

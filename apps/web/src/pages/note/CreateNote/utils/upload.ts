@@ -1,140 +1,10 @@
-import * as SparkMD5 from 'spark-md5';
-import { FileType, SimpleUploader, UploadStatus } from '@abner-blog/upload';
-import { createSimpleImageUploader } from '@services/simpleImageUploader';
-import { CHUNK_SIZE } from '../constants';
+import {
+  ChunkUploader,
+  FileType,
+  SimpleUploader,
+  UploadStatus,
+} from '@abner-blog/upload';
 import type { MediaItem } from '../types';
-
-/** 与文件内容绑定，用于刷新页面后复用同一 uploadId（断点续传） */
-const VIDEO_RESUME_KEY_PREFIX = 'upload:video-resume:';
-
-const videoResumeStorageKey = (fileHash: string, fileSize: number) =>
-  `${VIDEO_RESUME_KEY_PREFIX}${fileHash}:${fileSize}`;
-
-const calculateFileHash = async (file: File): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    const spark = new SparkMD5.ArrayBuffer();
-    const reader = new FileReader();
-    let offset = 0;
-
-    reader.onload = (e) => {
-      if (e.target?.result) {
-        spark.append(e.target.result as ArrayBuffer);
-        offset += CHUNK_SIZE;
-        if (offset < file.size) {
-          readNextChunk();
-        } else {
-          resolve(spark.end());
-        }
-      }
-    };
-
-    reader.onerror = reject;
-
-    const readNextChunk = () => {
-      const slice = file.slice(offset, offset + CHUNK_SIZE);
-      reader.readAsArrayBuffer(slice);
-    };
-
-    readNextChunk();
-  });
-};
-
-const initChunkUpload = async (
-  filename: string,
-  fileSize: number,
-  fileHash: string,
-  totalChunks: number,
-  mimeType: string,
-) => {
-  const token = localStorage.getItem('user-token');
-  const response = await fetch('/api/upload/chunk/init', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: token ? `Bearer ${token}` : '',
-    },
-    body: JSON.stringify({
-      kind: 'video',
-      businessPath: 'notes',
-      filename,
-      fileSize,
-      fileHash,
-      totalChunks,
-      mimeType,
-    }),
-  });
-  const data = await response.json();
-  if (data.success) {
-    return data.data;
-  }
-  throw new Error(data.message || '初始化上传失败');
-};
-
-const uploadChunk = async (
-  uploadId: string,
-  chunkIndex: number,
-  chunk: Blob,
-  totalChunks: number,
-) => {
-  const token = localStorage.getItem('user-token');
-  const formData = new FormData();
-  formData.append('file', chunk);
-  formData.append('uploadId', uploadId);
-  formData.append('chunkIndex', String(chunkIndex));
-  formData.append('totalChunks', String(totalChunks));
-
-  const response = await fetch('/api/upload/chunk', {
-    method: 'POST',
-    headers: {
-      Authorization: token ? `Bearer ${token}` : '',
-    },
-    body: formData,
-  });
-  const data = await response.json();
-  if (data.success) {
-    return data.data;
-  }
-  throw new Error(data.message || '分片上传失败');
-};
-
-const mergeChunks = async (uploadId: string) => {
-  const token = localStorage.getItem('user-token');
-  const response = await fetch('/api/upload/chunk/merge', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: token ? `Bearer ${token}` : '',
-    },
-    body: JSON.stringify({ uploadId }),
-  });
-  const data = await response.json();
-  if (data.success) {
-    return data.data;
-  }
-  throw new Error(data.message || '合并分片失败');
-};
-
-type ChunkStatusPayload = {
-  uploadedChunks: number[];
-  totalChunks: number;
-  progress: number;
-};
-
-const getChunkUploadStatus = async (
-  uploadId: string,
-): Promise<ChunkStatusPayload | null> => {
-  const token = localStorage.getItem('user-token');
-  const response = await fetch(`/api/upload/chunk/status/${uploadId}`, {
-    headers: {
-      Authorization: token ? `Bearer ${token}` : '',
-    },
-  });
-  const data = await response.json();
-  if (!response.ok || !data.success) {
-    return null;
-  }
-  return data.data as ChunkStatusPayload;
-};
 
 const randomBetween = (min: number, max: number) =>
   min + Math.random() * (max - min);
@@ -253,8 +123,6 @@ const uploadVideo = async (
 ): Promise<string> => {
   if (!item.file) return item.url;
 
-  const file = item.file;
-  const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
   const fakeProgressStartTime = performance.now();
   const minInstantProgressDisplayMs = randomBetween(2200, 4000);
   const lastFakeProgressRef = { value: 0 };
@@ -263,108 +131,39 @@ const uploadVideo = async (
     onProgress,
     lastFakeProgressRef,
   );
-
-  let fileHash: string;
-  let resumeKey: string;
-  let uploadId: string | null = null;
-  const uploadedSet = new Set<number>();
-
-  try {
-    fileHash = await calculateFileHash(file);
-    resumeKey = videoResumeStorageKey(fileHash, file.size);
-
-    const rawResume = localStorage.getItem(resumeKey);
-    if (rawResume) {
-      try {
-        const { uploadId: previousId } = JSON.parse(rawResume) as {
-          uploadId: string;
-        };
-        const status = await getChunkUploadStatus(previousId);
-        if (status && status.totalChunks === totalChunks) {
-          uploadId = previousId;
-          status.uploadedChunks.forEach((i) => uploadedSet.add(i));
-        } else {
-          localStorage.removeItem(resumeKey);
-        }
-      } catch {
-        localStorage.removeItem(resumeKey);
-      }
-    }
-
-    if (!uploadId) {
-      const initResult = await initChunkUpload(
-        file.name,
-        file.size,
-        fileHash,
-        totalChunks,
-        file.type,
-      );
-      if (initResult.skipUpload && initResult.url) {
-        await ensureMinInitialProgressDisplay(
-          fakeProgressStartTime,
-          minInstantProgressDisplayMs,
-        );
-        stopFakeInitialProgress();
-        await animateInstantUploadToComplete(
-          item.id,
-          onProgress,
-          lastFakeProgressRef.value,
-        );
-        localStorage.removeItem(resumeKey);
-        return initResult.url;
-      }
-      uploadId = initResult.uploadId;
-      localStorage.setItem(resumeKey, JSON.stringify({ uploadId }));
-    } else {
-      localStorage.setItem(resumeKey, JSON.stringify({ uploadId }));
-    }
-  } catch (e) {
+  let fakeStopped = false;
+  let hasRealUploadProgress = false;
+  const stopFakeOnce = () => {
+    if (fakeStopped) return;
+    fakeStopped = true;
     stopFakeInitialProgress();
-    throw e;
-  }
-
-  if (!uploadId) {
-    stopFakeInitialProgress();
-    throw new Error('视频分片上传初始化失败');
-  }
-
-  stopFakeInitialProgress();
-  const reportProgress = () => {
-    const real = Math.round((uploadedSet.size / totalChunks) * 100);
-    const v = Math.max(lastFakeProgressRef.value, real);
-    lastFakeProgressRef.value = v;
-    onProgress(item.id, v);
   };
-  reportProgress();
-
-  for (let i = 0; i < totalChunks; i++) {
-    if (uploadedSet.has(i)) {
-      continue;
-    }
-    const start = i * CHUNK_SIZE;
-    const end = Math.min(start + CHUNK_SIZE, file.size);
-    const chunk = file.slice(start, end);
-    await uploadChunk(uploadId, i, chunk, totalChunks);
-    uploadedSet.add(i);
-    reportProgress();
-  }
 
   try {
-    const mergeResult = await mergeChunks(uploadId);
-    localStorage.removeItem(resumeKey);
-    return mergeResult.url;
-  } catch (e) {
-    const message = e instanceof Error ? e.message : '';
-    if (message.includes('已上传完成')) {
-      localStorage.removeItem(resumeKey);
-      const again = await initChunkUpload(
-        file.name,
-        file.size,
-        fileHash,
-        totalChunks,
-        file.type,
-      );
-      if (again.skipUpload && again.url) {
+    const uploader = new ChunkUploader({
+      type: FileType.VIDEO,
+      baseUrl: '',
+      chunkBusinessPath: 'notes',
+      // 当前后端分片状态写入对高并发不稳定，创建笔记场景先串行上传避免 merge 400
+      concurrency: 1,
+      onProgress: (task) => {
+        if (task.progress > 0) {
+          hasRealUploadProgress = true;
+          // 对齐旧逻辑：进入真实分片上传后，立即停止假进度
+          stopFakeOnce();
+        }
+        // 上传中最高只展示到 99%，避免先到 100 后又被完成动画拉回造成闪烁
+        const runtimeProgress = task.progress >= 100 ? 99 : task.progress;
+        const v = Math.max(lastFakeProgressRef.value, runtimeProgress);
+        lastFakeProgressRef.value = v;
+        onProgress(item.id, v);
+      },
+    });
+    const task = await uploader.upload(item.file);
+    stopFakeOnce();
+    if (task.status === UploadStatus.COMPLETED && task.url) {
+      if (!hasRealUploadProgress) {
+        // 秒传：保持旧体验，走最小时长 + 收尾动画
         await ensureMinInitialProgressDisplay(
           fakeProgressStartTime,
           minInstantProgressDisplayMs,
@@ -374,9 +173,15 @@ const uploadVideo = async (
           onProgress,
           lastFakeProgressRef.value,
         );
-        return again.url;
+      } else {
+        // 普通分片上传：直接完成，不重复做收尾动画，避免“二次加载感”
+        onProgress(item.id, 100);
       }
+      return task.url;
     }
+    throw new Error(task.error || '视频上传失败');
+  } catch (e) {
+    stopFakeOnce();
     throw e;
   }
 };
@@ -427,7 +232,12 @@ export const uploadVideoCover = async (
   const videoCover = videos.find((v) => v.coverFile)?.coverFile;
   if (!videoCover) return undefined;
 
-  const task = await createSimpleImageUploader('notes').upload(videoCover);
+  const uploader = new SimpleUploader({
+    type: FileType.IMAGE,
+    baseUrl: '',
+    imageBusinessPath: 'notes',
+  });
+  const task = await uploader.upload(videoCover);
   if (task.status !== UploadStatus.COMPLETED || !task.url) {
     throw new Error(task.error || '封面上传失败');
   }
@@ -475,7 +285,10 @@ export const calculateTotalProgress = (
   });
 
   if (completedItems < totalItems) {
-    return totalItems > 0 ? Math.round(totalProgress / totalItems) : 0;
+    if (totalItems <= 0) return 0;
+    // 未全部完成时，进度最多展示到 99，避免四舍五入到 100 后又回落造成闪烁
+    const avg = Math.floor(totalProgress / totalItems);
+    return Math.min(99, avg);
   }
 
   return 100;

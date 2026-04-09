@@ -4,6 +4,7 @@ import {
   PlayCircleOutlined,
   UploadOutlined,
 } from '@ant-design/icons';
+import classNames from 'classnames';
 import { MAX_IMAGES } from '../constants';
 import type { MediaItem } from '../types';
 
@@ -45,42 +46,50 @@ const MediaGrid: React.FC<MediaGridProps> = ({
   if (media.length === 0) {
     return (
       <div
-        className={`uploadPlaceholder ${isDragging ? 'dragging' : ''}`}
+        className={classNames('create-note__upload-placeholder', {
+          'create-note__upload-placeholder--dragging': isDragging,
+        })}
         onClick={onOpenSelectModal}
         onDragOver={onDragOver}
         onDragLeave={onDragLeave}
         onDrop={onDrop}
       >
-        <div className="uploadIcon">
+        <div className="create-note__upload-icon">
           <UploadOutlined />
         </div>
-        <span className="uploadText">上传图片/视频</span>
-        <span className="uploadHint">点击选择文件</span>
+        <span className="create-note__upload-text">上传图片/视频</span>
+        <span className="create-note__upload-hint">点击选择文件</span>
       </div>
     );
   }
 
   return (
-    <div className="mediaGrid">
+    <div className="create-note__media-grid">
       {videos.map((item) => (
         <div
           key={item.id}
-          className={`mediaItem videoItem ${isLandscape(item) ? 'landscape' : 'portrait'}`}
+          className={classNames(
+            'create-note__media-item',
+            'create-note__media-item--video',
+            isLandscape(item)
+              ? 'create-note__media-item--landscape'
+              : 'create-note__media-item--portrait',
+          )}
           onClick={() => onOpenVideoPreview(item.originalUrl || item.url)}
         >
-          <div className="mediaWrapper">
+          <div className="create-note__media-wrap">
             <img src={item.url} alt="" />
           </div>
-          <div className="playIcon">
+          <div className="create-note__media-play-icon">
             <PlayCircleOutlined />
           </div>
           {uploadingItems.get(item.id) !== undefined && (
-            <div className="mediaProgress">
+            <div className="create-note__media-progress">
               <Progress type="circle" percent={uploadingItems.get(item.id)} size={40} />
             </div>
           )}
           <div
-            className="removeBtn"
+            className="create-note__media-remove"
             onClick={(e) => {
               e.stopPropagation();
               onRemoveMedia(item.id);
@@ -101,10 +110,10 @@ const MediaGrid: React.FC<MediaGridProps> = ({
           {images.map((img, index) => (
             <div
               key={img.id}
-              className="mediaItem imageItem"
+              className="create-note__media-item create-note__media-item--image"
               onClick={() => onPreviewVisibleChange(true)}
             >
-              <div className="mediaWrapper">
+              <div className="create-note__media-wrap">
                 <Image
                   src={img.url}
                   style={{ objectFit: 'contain' }}
@@ -114,7 +123,7 @@ const MediaGrid: React.FC<MediaGridProps> = ({
                 />
               </div>
               {uploadingItems.get(img.id) !== undefined && (
-                <div className="mediaProgress">
+                <div className="create-note__media-progress">
                   <Progress
                     type="circle"
                     percent={uploadingItems.get(img.id)}
@@ -123,7 +132,7 @@ const MediaGrid: React.FC<MediaGridProps> = ({
                 </div>
               )}
               <div
-                className="removeBtn"
+                className="create-note__media-remove"
                 onClick={(e) => {
                   e.stopPropagation();
                   onRemoveMedia(img.id);
@@ -131,15 +140,15 @@ const MediaGrid: React.FC<MediaGridProps> = ({
               >
                 <CloseOutlined />
               </div>
-              {index === 0 && <div className="coverTag">封面</div>}
+              {index === 0 && <div className="create-note__media-cover-tag">封面</div>}
             </div>
           ))}
         </Image.PreviewGroup>
       )}
 
       {media.length < MAX_IMAGES && (
-        <div className="addMore" onClick={onOpenSelectModal}>
-          <div className="addMoreInner">
+        <div className="create-note__add-more" onClick={onOpenSelectModal}>
+          <div className="create-note__add-more-inner">
             <UploadOutlined />
             <span>添加</span>
           </div>

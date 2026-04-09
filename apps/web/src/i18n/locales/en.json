@@ -109,6 +109,8 @@
     "collectionNoteCount": "{{count}} notes",
     "createCollectionFailed": "Failed to create collection",
     "topicNotes": "Topic Notes",
+    "topicNotFound": "Topic not found",
+    "notes": "notes",
     "titlePlaceholderOptional": "Enter a title (optional)",
     "deleteNote": "Delete note",
     "deleteNoteConfirm": "Are you sure you want to delete this note?",

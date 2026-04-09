@@ -21,6 +21,7 @@ import { formatDistanceToNow } from '../../utils/date';
 import { useAuthCheck } from '@/hooks/useAuthCheck';
 import { useAuth } from '@/hooks/useAuth';
 import type { MomentDto } from '@services/generated/model';
+import classNames from 'classnames';
 import './index.less';
 
 type MomentDtoWithFavoriteCount = MomentDto & { favoriteCount?: number };
@@ -162,35 +163,46 @@ const MomentCard: React.FC<MomentCardProps> = ({
   // 优先显示昵称，没有则显示用户名
   const authorName = localMoment.author.nickname || localMoment.author.username;
 
+  const imagesCountClass =
+    localMoment.images?.length === 1
+      ? 'moment-card__images--count-1'
+      : localMoment.images?.length === 2
+        ? 'moment-card__images--count-2'
+        : localMoment.images?.length === 3
+          ? 'moment-card__images--count-3'
+          : localMoment.images && localMoment.images.length > 3
+            ? 'moment-card__images--count-many'
+            : '';
+
   return (
     <div className="moment-card" onClick={handleCardClick}>
-      <div className="moment-card-header">
-        <div className="author-info" onClick={handleAuthorClick}>
+      <div className="moment-card__header">
+        <div className="moment-card__author" onClick={handleAuthorClick}>
           <Avatar src={localMoment.author.avatar} size={40}>
             {authorName[0]}
           </Avatar>
-          <div className="author-details">
-            <div className="author-name">{authorName}</div>
-            <div className="moment-time">
+          <div className="moment-card__author-details">
+            <div className="moment-card__author-name">{authorName}</div>
+            <div className="moment-card__time">
               {formatDistanceToNow(new Date(localMoment.createdAt))}
             </div>
           </div>
         </div>
         {showActions && user?.id === localMoment.author.id && (
-          <div className="card-ops">
-            <EditOutlined className="edit-btn" onClick={handleEdit} />
-            <DeleteOutlined className="delete-btn" onClick={handleDelete} />
+          <div className="moment-card__ops">
+            <EditOutlined className="moment-card__edit" onClick={handleEdit} />
+            <DeleteOutlined className="moment-card__delete" onClick={handleDelete} />
           </div>
         )}
       </div>
 
-      <div className="moment-card-content">
-        <p className="moment-text" ref={textRef}>
+      <div className="moment-card__content">
+        <p className="moment-card__text" ref={textRef}>
           {localMoment.content}
         </p>
         {isOverflowing && (
           <span
-            className="moment-read-more"
+            className="moment-card__read-more"
             onClick={(e) => {
               e.stopPropagation();
               navigate(`/moments/${localMoment.id}`);
@@ -200,17 +212,7 @@ const MomentCard: React.FC<MomentCardProps> = ({
           </span>
         )}
         {localMoment.images && localMoment.images.length > 0 && (
-          <div
-            className={`moment-images count-${
-              localMoment.images.length === 1
-                ? '1'
-                : localMoment.images.length === 2
-                  ? '2'
-                  : localMoment.images.length === 3
-                    ? '3'
-                    : 'many'
-            }`}
-          >
+          <div className={classNames('moment-card__images', imagesCountClass)}>
             <Image.PreviewGroup>
               {localMoment.images.map((img, index) => (
                 <Image key={index} src={img} alt="" />
@@ -221,29 +223,32 @@ const MomentCard: React.FC<MomentCardProps> = ({
       </div>
 
       {localMoment.topic && (
-        <div className="moment-topic">
+        <div className="moment-card__topic">
           <Tag color="blue">#{localMoment.topic.name}</Tag>
         </div>
       )}
 
-      <div className="moment-card-footer">
-        <div className="moment-stats">
+      <div className="moment-card__footer">
+        <div className="moment-card__stats">
           <Space size={20}>
-            <span className="stat-item">
+            <span className="moment-card__stat">
               <EyeOutlined />
-              <span className="stat-count">{localMoment.viewCount}</span>
+              <span className="moment-card__stat-count">{localMoment.viewCount}</span>
             </span>
-            <span className="stat-item">
+            <span className="moment-card__stat">
               <CommentOutlined />
-              <span className="stat-count">{localMoment.commentCount}</span>
+              <span className="moment-card__stat-count">{localMoment.commentCount}</span>
             </span>
           </Space>
         </div>
 
-        <div className="moment-actions">
+        <div className="moment-card__actions">
           <Space size={16}>
             <button
-              className={`action-btn ${localMoment.isLiked ? 'active' : ''}`}
+              type="button"
+              className={classNames('moment-card__action', {
+                'moment-card__action--active': localMoment.isLiked,
+              })}
               onClick={handleLike}
               disabled={likeLoading}
             >
@@ -251,7 +256,10 @@ const MomentCard: React.FC<MomentCardProps> = ({
               <span>{localMoment.likeCount > 0 && localMoment.likeCount}</span>
             </button>
             <button
-              className={`action-btn ${localMoment.isFavorited ? 'active' : ''}`}
+              type="button"
+              className={classNames('moment-card__action', {
+                'moment-card__action--active': localMoment.isFavorited,
+              })}
               onClick={handleFavorite}
               disabled={favoriteLoading}
             >

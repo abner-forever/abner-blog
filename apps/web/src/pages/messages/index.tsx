@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import type { FC } from 'react';
 import {
   Layout,
@@ -65,7 +72,11 @@ const MessagesPage: FC = () => {
     },
   });
 
-  const { data: msgData, isLoading: msgLoading } = useQuery({
+  const {
+    data: msgData,
+    isLoading: msgLoading,
+    dataUpdatedAt: dmMessagesQueryUpdatedAt = 0,
+  } = useQuery({
     queryKey: ['direct-messages', selectedId, 1],
     queryFn: async () => {
       if (!selectedId) return null;
@@ -137,6 +148,21 @@ const MessagesPage: FC = () => {
     return [...list].reverse();
   }, [msgData?.list]);
 
+  /** 仅随消息 id 集合变化，避免列表 refetch 引用抖动拆掉已读订阅 */
+  const dmMessageIdsKey = useMemo(
+    () => messages.map((m) => m.id).join(','),
+    [messages],
+  );
+
+  /** 时间轴上最后一条（列表已按时间正序展示），用于滚到底时的已读兜底 */
+  const dmThreadTail = useMemo(() => {
+    if (!messages.length) return null;
+    const m = messages[messages.length - 1];
+    const createdMs = new Date(m.createdAt).getTime();
+    if (!Number.isFinite(createdMs)) return null;
+    return { id: m.id, createdMs };
+  }, [messages]);
+
   const onReadReceiptAck = useCallback(() => {
     void queryClient.invalidateQueries({ queryKey: ['conversations'] });
     void queryClient.invalidateQueries({ queryKey: ['social', 'dm-unread'] });
@@ -145,23 +171,29 @@ const MessagesPage: FC = () => {
   useDmThreadReadReceipt(
     threadScrollRef,
     selectedId,
-    messages,
+    dmMessageIdsKey,
     msgLoading,
+    selectedId ? dmMessagesQueryUpdatedAt : 0,
+    dmThreadTail,
     onReadReceiptAck,
   );
 
-  /** 新消息、发送后、切换会话：将滚动条滚到底部，避免最新气泡留在视口外 */
-  useEffect(() => {
+  /**
+   * 用 layout 阶段滚到底，保证随后 useEffect 里已读几何扫描落在正确视口上
+   *（若用 useEffect，会先扫到未滚动前的可视区，未读游标可能停在旧消息上）。
+   */
+  useLayoutEffect(() => {
     if (!selectedId || msgLoading) return;
     const el = threadScrollRef.current;
     if (!el) return;
     const run = () => {
       el.scrollTop = el.scrollHeight;
     };
+    run();
     requestAnimationFrame(run);
     const t = window.setTimeout(run, 50);
     return () => window.clearTimeout(t);
-  }, [selectedId, msgLoading, messages]);
+  }, [selectedId, msgLoading, dmMessageIdsKey]);
 
   const selectedConv = useMemo(
     () => conversations.find((c) => c.id === selectedId) ?? null,

@@ -250,12 +250,12 @@ const VideoPlayer = React.forwardRef<VideoPlayerRef, VideoPlayerProps>(
     }, [videoRef]);
 
     const enableRatioAdaptation = controlledShowControls !== false;
-    const playerClassName = classNames('videoPlayer', className, {
-      'videoPlayerFullscreen': isFullscreen,
-      'videoPlayerPortrait': isPortraitVideo,
-      'videoPlayerLandscape': !isPortraitVideo,
-      'videoPlayerRatioPortrait': enableRatioAdaptation && isPortraitVideo,
-      'videoPlayerRatioLandscape': enableRatioAdaptation && !isPortraitVideo,
+    const playerClassName = classNames('video-player', className, {
+      'video-player--fullscreen': isFullscreen,
+      'video-player--portrait': isPortraitVideo,
+      'video-player--landscape': !isPortraitVideo,
+      'video-player--ratio-portrait': enableRatioAdaptation && isPortraitVideo,
+      'video-player--ratio-landscape': enableRatioAdaptation && !isPortraitVideo,
     });
     const shouldRenderControls = controlledShowControls ?? (showControls || !state.playing);
 
@@ -321,18 +321,20 @@ const VideoPlayer = React.forwardRef<VideoPlayerRef, VideoPlayerProps>(
 
         {/* 封面图 + 播放按钮 */}
         <div
-          className={`videoPoster ${!showPoster ? 'hidden' : ''}`}
+          className={classNames('video-player__poster', {
+            'video-player__poster--hidden': !showPoster,
+          })}
           onClick={handlePosterClick}
         >
           {poster && <img src={poster} alt="video poster" />}
-          <div className="playButton">
-            <PlayCircleOutlined className="playIcon" />
+          <div className="video-player__play-btn">
+            <PlayCircleOutlined className="video-player__play-icon" />
           </div>
         </div>
 
         {/* Loading 遮罩 */}
         {state.isLoading && (
-          <div className="loadingOverlay">
+          <div className="video-player__loading">
             <Loading size="small" tip=" " />
           </div>
         )}

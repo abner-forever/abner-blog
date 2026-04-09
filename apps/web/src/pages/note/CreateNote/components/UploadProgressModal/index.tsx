@@ -56,7 +56,7 @@ interface RingProgressProps {
 const RingProgress: FC<RingProgressProps> = ({ progress, gradientId }) => (
   <>
     <svg
-      className="uploadProgressModal__svg"
+      className="upload-progress-modal__svg"
       width={132}
       height={132}
       viewBox="0 0 120 120"
@@ -75,13 +75,13 @@ const RingProgress: FC<RingProgressProps> = ({ progress, gradientId }) => (
         </linearGradient>
       </defs>
       <circle
-        className="uploadProgressModal__progressTrack"
+        className="upload-progress-modal__progress-track"
         cx="60"
         cy="60"
         r={RING_R}
       />
       <circle
-        className="uploadProgressModal__progressBar"
+        className="upload-progress-modal__progress-bar"
         cx="60"
         cy="60"
         r={RING_R}
@@ -90,7 +90,7 @@ const RingProgress: FC<RingProgressProps> = ({ progress, gradientId }) => (
         strokeDashoffset={RING_C * (1 - progress / 100)}
       />
     </svg>
-    <span className="uploadProgressModal__percent">{progress}%</span>
+    <span className="upload-progress-modal__percent">{progress}%</span>
   </>
 );
 
@@ -113,7 +113,7 @@ const LiquidProgress: FC<LiquidProgressProps> = ({
   return (
     <>
       <svg
-        className="uploadProgressModal__liquidSvg"
+        className="upload-progress-modal__liquid-svg"
         width={132}
         height={132}
         viewBox="0 0 100 100"
@@ -135,18 +135,18 @@ const LiquidProgress: FC<LiquidProgressProps> = ({
         </defs>
         {/* 空「容器」底色 */}
         <circle
-          className="uploadProgressModal__liquidTrack"
+          className="upload-progress-modal__liquid-track"
           cx="50"
           cy="50"
           r="46"
         />
         <g clipPath={`url(#${clipId})`}>
-          <g className="uploadProgressModal__liquidWaveGroup">
-            <path className="uploadProgressModal__liquidWavePath" d={d} fill={`url(#${gradId})`} />
+          <g className="upload-progress-modal__liquid-wave-group">
+            <path className="upload-progress-modal__liquid-wave-path" d={d} fill={`url(#${gradId})`} />
           </g>
-          <g className="uploadProgressModal__liquidWaveGroup uploadProgressModal__liquidWaveGroup--secondary">
+          <g className="upload-progress-modal__liquid-wave-group upload-progress-modal__liquid-wave-group--secondary">
             <path
-              className="uploadProgressModal__liquidWavePath"
+              className="upload-progress-modal__liquid-wave-path"
               d={d}
               fill={`url(#${gradDeepId})`}
             />
@@ -154,14 +154,14 @@ const LiquidProgress: FC<LiquidProgressProps> = ({
         </g>
         {/* 内圈高光边 */}
         <circle
-          className="uploadProgressModal__liquidRim"
+          className="upload-progress-modal__liquid-rim"
           cx="50"
           cy="50"
           r="46"
           fill="none"
         />
       </svg>
-      <span className="uploadProgressModal__percent uploadProgressModal__liquidPercent">
+      <span className="upload-progress-modal__percent upload-progress-modal__liquid-percent">
         {progress}%
       </span>
     </>
@@ -191,17 +191,17 @@ const UploadProgressModal: FC<UploadProgressModalProps> = ({
       closable={false}
       centered
       width={400}
-      rootClassName="uploadProgressModal"
+      rootClassName="upload-progress-modal"
     >
-      <div className="uploadProgressModal__accent" aria-hidden />
+      <div className="upload-progress-modal__accent" aria-hidden />
       <div
-        className="uploadProgressModal__body"
+        className="upload-progress-modal__body"
         role="status"
         aria-live="polite"
         aria-atomic="true"
       >
         <div
-          className={`uploadProgressModal__ringWrap${!isDone ? ' is-uploading' : ''}${progressVisual === 'liquid' ? ' uploadProgressModal__ringWrap--liquid' : ''}`}
+          className={`upload-progress-modal__ring-wrap${!isDone ? ' is-uploading' : ''}${progressVisual === 'liquid' ? ' upload-progress-modal__ring-wrap--liquid' : ''}`}
         >
           {!isDone ? (
             progressVisual === 'liquid' ? (
@@ -215,28 +215,28 @@ const UploadProgressModal: FC<UploadProgressModalProps> = ({
               <RingProgress progress={progress} gradientId={ringGradientId} />
             )
           ) : (
-            <CheckCircleFilled className="uploadProgressModal__doneIcon" aria-hidden />
+            <CheckCircleFilled className="upload-progress-modal__done-icon" aria-hidden />
           )}
         </div>
 
-        <h3 className="uploadProgressModal__title">
+        <h3 className="upload-progress-modal__title">
           {isDone ? t('note.publishSuccess') : t('note.uploadProgressPublishing')}
         </h3>
         {!isDone && videoCount > 0 && (
-          <p className="uploadProgressModal__subtitle">
+          <p className="upload-progress-modal__subtitle">
             {t('note.uploadProgressHint')}
           </p>
         )}
 
         {(imageCount > 0 || videoCount > 0) && (
-          <div className="uploadProgressModal__chips">
+          <div className="upload-progress-modal__chips">
             {imageCount > 0 && (
-              <span className="uploadProgressModal__chip">
+              <span className="upload-progress-modal__chip">
                 {t('note.uploadProgressImages', { count: imageCount })}
               </span>
             )}
             {videoCount > 0 && (
-              <span className="uploadProgressModal__chip">
+              <span className="upload-progress-modal__chip">
                 {t('note.uploadProgressVideos', { count: videoCount })}
               </span>
             )}

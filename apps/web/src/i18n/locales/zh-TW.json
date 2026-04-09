@@ -109,6 +109,8 @@
     "collectionNoteCount": "{{count}} 篇筆記",
     "createCollectionFailed": "建立收藏夾失敗",
     "topicNotes": "話題筆記",
+    "topicNotFound": "話題不存在",
+    "notes": "篇筆記",
     "titlePlaceholderOptional": "請輸入標題（可選）",
     "deleteNote": "刪除筆記",
     "deleteNoteConfirm": "確定要刪除這則筆記嗎？",

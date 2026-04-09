@@ -79,14 +79,14 @@ const VideoProgress: React.FC<VideoProgressProps> = ({
   return (
     <div
       ref={progressRef}
-      className="videoProgress"
+      className="video-player__progress"
       onClick={handleClick}
       onMouseDown={handleMouseDown}
       onTouchStart={handleTouchStart}
     >
-      <div className="progressBuffer" style={{ width: `${bufferProgress}%` }} />
-      <div className="progressPlayed" style={{ width: `${progress}%` }} />
-      <div className="progressThumb" style={{ left: `${progress}%` }} />
+      <div className="video-player__progress-buffer" style={{ width: `${bufferProgress}%` }} />
+      <div className="video-player__progress-played" style={{ width: `${progress}%` }} />
+      <div className="video-player__progress-thumb" style={{ left: `${progress}%` }} />
     </div>
   );
 };

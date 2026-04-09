@@ -45,6 +45,7 @@ interface PendingUpload {
 export class ChunkUploader extends Uploader {
   private baseUrl: string;
   private pendingUploads: Map<string, PendingUpload> = new Map();
+  private readonly resumeKeyPrefix = 'upload:video-resume:';
 
   constructor(options: ChunkUploadOptions) {
     super(options);
@@ -64,6 +65,10 @@ export class ChunkUploader extends Uploader {
       return (json as { data: T }).data;
     }
     return json as T;
+  }
+
+  private getResumeStorageKey(fileHash: string, fileSize: number): string {
+    return `${this.resumeKeyPrefix}${fileHash}:${fileSize}`;
   }
 
   /**
@@ -88,26 +93,53 @@ export class ChunkUploader extends Uploader {
     task.status = UploadStatus.UPLOADING;
     task.id = '';
 
-    // 初始化上传
-    const initResponse = await this.initUpload(
-      file.name,
-      file.size,
-      fileHash,
-      totalChunks,
-      file.type,
-    );
+    const resumeStorageKey = this.getResumeStorageKey(fileHash, file.size);
+    const uploadedChunks = new Set<number>();
+    let uploadId = '';
 
-    // 秒传成功
-    if (initResponse.skipUpload && initResponse.url) {
-      task.status = UploadStatus.COMPLETED;
-      task.url = initResponse.url;
-      task.progress = 100;
-      this.options.onComplete?.(task);
-      return task;
+    const rawResume = localStorage.getItem(resumeStorageKey);
+    if (rawResume) {
+      try {
+        const parsed = JSON.parse(rawResume) as { uploadId?: string };
+        if (parsed.uploadId) {
+          const status = await this.queryStatus(parsed.uploadId);
+          if (status.totalChunks === totalChunks) {
+            uploadId = parsed.uploadId;
+            status.chunks?.forEach((i) => uploadedChunks.add(i));
+          } else {
+            localStorage.removeItem(resumeStorageKey);
+          }
+        }
+      } catch {
+        localStorage.removeItem(resumeStorageKey);
+      }
     }
 
-    const uploadId = initResponse.uploadId;
+    if (!uploadId) {
+      const initResponse = await this.initUpload(
+        file.name,
+        file.size,
+        fileHash,
+        totalChunks,
+        file.type,
+      );
+
+      // 秒传成功
+      if (initResponse.skipUpload && initResponse.url) {
+        task.status = UploadStatus.COMPLETED;
+        task.url = initResponse.url;
+        task.progress = 100;
+        localStorage.removeItem(resumeStorageKey);
+        this.options.onProgress?.(task);
+        this.options.onComplete?.(task);
+        return task;
+      }
+
+      uploadId = initResponse.uploadId;
+    }
+
     task.id = uploadId;
+    localStorage.setItem(resumeStorageKey, JSON.stringify({ uploadId }));
 
     // 保存状态到 localStorage
     saveUploadState({
@@ -116,7 +148,7 @@ export class ChunkUploader extends Uploader {
       fileName: file.name,
       fileSize: file.size,
       totalChunks,
-      uploadedChunks: [],
+      uploadedChunks: Array.from(uploadedChunks),
       status: UploadStatus.UPLOADING,
       type: fileType,
     });
@@ -126,7 +158,7 @@ export class ChunkUploader extends Uploader {
       task,
       fileHash,
       totalChunks,
-      uploadedChunks: new Set(),
+      uploadedChunks,
       isPaused: false,
       isCancelled: false,
       abortController: new AbortController(),
@@ -134,12 +166,15 @@ export class ChunkUploader extends Uploader {
 
     this.pendingUploads.set(uploadId, pending);
 
-    // 获取已上传的分片（断点续传）
-    const status = await this.queryStatus(uploadId);
-    status.chunks?.forEach((i) => pending.uploadedChunks.add(i));
+    if (pending.uploadedChunks.size === 0) {
+      // 获取已上传的分片（断点续传）
+      const status = await this.queryStatus(uploadId);
+      status.chunks?.forEach((i) => pending.uploadedChunks.add(i));
+    }
 
     // 开始上传
     await this.uploadChunks(uploadId, file, chunkSize, pending);
+    localStorage.removeItem(resumeStorageKey);
 
     return task;
   }
@@ -307,13 +342,41 @@ export class ChunkUploader extends Uploader {
     await runConcurrency();
 
     // 全部上传完成，合并
-    if (!pending.isPaused && !pending.isCancelled && pending.uploadedChunks.size === pending.totalChunks) {
-      const merged = await this.mergeChunks(uploadId);
-      pending.task.status = UploadStatus.COMPLETED;
-      pending.task.progress = 100;
-      pending.task.url = merged.url;
-      removeUploadState(uploadId);
-      this.pendingUploads.delete(uploadId);
+    if (
+      !pending.isPaused &&
+      !pending.isCancelled &&
+      pending.uploadedChunks.size === pending.totalChunks
+    ) {
+      try {
+        const merged = await this.mergeChunks(uploadId);
+        pending.task.status = UploadStatus.COMPLETED;
+        pending.task.progress = 100;
+        pending.task.url = merged.url;
+      } catch (error) {
+        const message = error instanceof Error ? error.message : '';
+        if (message.includes('已上传完成')) {
+          const initResult = await this.initUpload(
+            pending.task.file.name,
+            pending.task.file.size,
+            pending.fileHash,
+            pending.totalChunks,
+            pending.task.file.type,
+          );
+          if (initResult.skipUpload && initResult.url) {
+            pending.task.status = UploadStatus.COMPLETED;
+            pending.task.progress = 100;
+            pending.task.url = initResult.url;
+          } else {
+            throw error;
+          }
+        } else {
+          throw error;
+        }
+      } finally {
+        removeUploadState(uploadId);
+        this.pendingUploads.delete(uploadId);
+      }
+      this.options.onProgress?.(pending.task);
       this.options.onComplete?.(pending.task);
     }
   }
@@ -332,7 +395,8 @@ export class ChunkUploader extends Uploader {
     });
 
     if (!response.ok) {
-      throw new Error(`合并分片失败: ${response.statusText}`);
+      const raw = (await response.text()).trim();
+      throw new Error(raw || `合并分片失败: ${response.statusText}`);
     }
 
     return this.parseApiResponse<{ url: string }>(response);

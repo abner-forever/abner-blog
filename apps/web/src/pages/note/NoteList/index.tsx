@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button, Input } from 'antd';
+import { Button, Input, Masonry } from 'antd';
 import { SearchOutlined, PlusOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { useInfiniteNotes, type NoteDetail } from '@/hooks/useNotes';
@@ -32,8 +32,15 @@ const NoteList: React.FC = () => {
     isFetchingNextPage,
   } = useInfiniteNotes(params);
 
-  const notes: NoteDetail[] = data?.pages.flatMap((page) => page.list) || [];
+  const notes = useMemo(
+    (): NoteDetail[] => data?.pages.flatMap((page) => page.list) ?? [],
+    [data],
+  );
   const total = data?.pages[0]?.total || 0;
+  const masonryItems = useMemo(
+    () => notes.map((note) => ({ key: note.id, data: note })),
+    [notes],
+  );
 
   useEffect(() => {
     const node = loadMoreRef.current;
@@ -65,14 +72,14 @@ const NoteList: React.FC = () => {
   };
 
   return (
-    <div className="noteList">
-      <div className="header">
-        <h1 className="title">{t('note.title')}</h1>
-        <div className="headerSearch">
+    <div className="note-list">
+      <div className="note-list__header">
+        <h1 className="note-list__title">{t('note.title')}</h1>
+        <div className="note-list__header-search">
           <Input
             prefix={<SearchOutlined />}
             placeholder={t('note.listSearchPlaceholder')}
-            className="searchInput"
+            className="note-list__search-input"
             value={searchKeyword}
             onChange={(e) => handleSearchChange(e.target.value)}
             allowClear
@@ -82,19 +89,23 @@ const NoteList: React.FC = () => {
           type="primary"
           icon={<PlusOutlined />}
           onClick={handleCreateNote}
-          className="createBtn"
+          className="note-list__create-btn"
         >
           {t('note.createNote')}
         </Button>
       </div>
-      <div className="container">
+      <div className="note-list__container">
         {notes.length === 0 && !isLoading ? (
           <CustomEmpty tip={t('note.noNotes')} />
         ) : (
-          <div className="waterfall">
-            {notes.map((note) => (
+          <Masonry<NoteDetail>
+            className="note-list__waterfall"
+            columns={{ xs: 2, md: 5 }}
+            gutter={[12, 12]}
+            items={masonryItems}
+            fresh
+            itemRender={({ data: note }) => (
               <NoteCard
-                key={note.id}
                 id={note.id}
                 avatar={note.author.avatar}
                 nickname={note.author.nickname}
@@ -109,20 +120,20 @@ const NoteList: React.FC = () => {
                 location={note.location}
                 time={new Date(note.createdAt).toLocaleDateString()}
               />
-            ))}
-          </div>
+            )}
+          />
         )}
         {isLoading && (
-          <div className="loading">
+          <div className="note-list__loading">
             <Loading size="small" tip={t('note.loading')} />
           </div>
         )}
         {!isLoading && notes.length >= total && notes.length > 0 && (
-          <div className="noMore">{t('note.noMore')}</div>
+          <div className="note-list__no-more">{t('note.noMore')}</div>
         )}
-        <div ref={loadMoreRef} className="infiniteLoadTrigger" />
+        <div ref={loadMoreRef} className="note-list__load-trigger" />
         {isFetchingNextPage && (
-          <div className="loading">
+          <div className="note-list__loading">
             <Loading size="small" tip={t('note.loading')} />
           </div>
         )}

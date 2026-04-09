@@ -45,33 +45,33 @@ const VideoPlayerControls: React.FC<VideoPlayerControlsProps> = ({
   onFullscreenToggle,
 }) => {
   return (
-    <div className="videoControls">
-      <div className="controlArea">
-        <div className="leftControls">
+    <div className="video-player__controls">
+      <div className="video-player__control-area">
+        <div className="video-player__control-left">
           <button
             type="button"
-            className="playPauseButton"
+            className="video-player__play-pause"
             onClick={onPlayPause}
             aria-label={playing ? '暂停' : '播放'}
           >
             {playing ? (
-              <PauseCircleOutlined className="icon" />
+              <PauseCircleOutlined className="video-player__icon" />
             ) : (
-              <PlayCircleOutlined className="icon" />
+              <PlayCircleOutlined className="video-player__icon" />
             )}
           </button>
         </div>
-        <div className="progressArea">
-          <div className="timeDisplay currentTime">{formatTime(currentTime)}</div>
+        <div className="video-player__progress-area">
+          <div className="video-player__time">{formatTime(currentTime)}</div>
           <VideoProgress
             currentTime={currentTime}
             duration={duration}
             buffer={buffer}
             onSeek={onSeek}
           />
-          <div className="timeDisplay totalTime">{formatTime(duration)}</div>
+          <div className="video-player__time">{formatTime(duration)}</div>
         </div>
-        <div className="rightControls">
+        <div className="video-player__control-right">
           <VolumeControl
             volume={volume}
             muted={muted}
@@ -80,14 +80,14 @@ const VideoPlayerControls: React.FC<VideoPlayerControlsProps> = ({
           />
           <button
             type="button"
-            className="fullscreenButton"
+            className="video-player__fullscreen-btn"
             onClick={onFullscreenToggle}
             aria-label={isFullscreen ? '退出全屏' : '进入全屏'}
           >
             {isFullscreen ? (
-              <CompressOutlined className="icon" />
+              <CompressOutlined className="video-player__icon" />
             ) : (
-              <ExpandOutlined className="icon" />
+              <ExpandOutlined className="video-player__icon" />
             )}
           </button>
         </div>

@@ -1,6 +1,6 @@
 // CreateNote 页面样式 - 小红书风格
 
-.createNote {
+.create-note {
   min-height: 100vh;
   background: var(--bg-color);
   display: flex;
@@ -9,7 +9,7 @@
 }
 
 // 头部
-.header {
+.create-note__header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -19,7 +19,8 @@
   top: 0;
   z-index: 100;
   border-radius: @border-radius-base;
-  .title {
+
+  .create-note__page-title {
     font-size: 17px;
     font-weight: 600;
     color: var(--text-main);
@@ -27,19 +28,19 @@
 }
 
 // 表单区域
-.form {
+.create-note__form {
   flex: 1;
   padding-top: 16px;
   overflow-y: auto;
 }
 
 // 媒体区域
-.mediaSection {
+.create-note__media {
   margin-bottom: 20px;
 }
 
 // 上传占位符
-.uploadPlaceholder {
+.create-note__upload-placeholder {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -52,43 +53,43 @@
   transition: all 0.2s ease;
 
   &:hover,
-  &.dragging {
+  &--dragging {
     border-color: #ff2442;
     background: rgba(255, 36, 66, 0.03);
 
-    .uploadIcon {
+    .create-note__upload-icon {
       color: #ff2442;
     }
   }
 
-  .uploadIcon {
+  .create-note__upload-icon {
     font-size: 48px;
     color: var(--text-muted);
     margin-bottom: 8px;
   }
 
-  .uploadText {
+  .create-note__upload-text {
     font-size: 15px;
     font-weight: 500;
     color: var(--text-main);
     margin-bottom: 4px;
   }
 
-  .uploadHint {
+  .create-note__upload-hint {
     font-size: 12px;
     color: var(--text-muted);
   }
 }
 
 // 媒体网格（每行 5 个，统一缩略图比例）
-.mediaGrid {
+.create-note__media-grid {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 6px;
   width: 100%;
   max-width: 100%;
 
-  .mediaItem {
+  .create-note__media-item {
     position: relative;
     border-radius: 8px;
     overflow: hidden;
@@ -97,11 +98,11 @@
     aspect-ratio: 1 / 1;
     min-width: 0;
 
-    &.imageItem {
+    &--image {
       grid-column: span 1;
     }
 
-    &.videoItem {
+    &--video {
       grid-column: span 1;
       grid-row: span 1;
 
@@ -121,7 +122,7 @@
       }
     }
 
-    .mediaWrapper {
+    .create-note__media-wrap {
       width: 100%;
       height: 100%;
       display: flex;
@@ -149,7 +150,7 @@
       }
     }
 
-    .playIcon {
+    .create-note__media-play-icon {
       position: absolute;
       top: 50%;
       left: 50%;
@@ -161,7 +162,7 @@
       z-index: 2;
     }
 
-    .mediaProgress {
+    .create-note__media-progress {
       position: absolute;
       top: 50%;
       left: 50%;
@@ -172,7 +173,7 @@
       z-index: 3;
     }
 
-    .removeBtn {
+    .create-note__media-remove {
       position: absolute;
       top: 6px;
       right: 6px;
@@ -197,7 +198,7 @@
       }
     }
 
-    .coverTag {
+    .create-note__media-cover-tag {
       position: absolute;
       bottom: 6px;
       left: 6px;
@@ -211,7 +212,7 @@
     }
   }
 
-  .addMore {
+  .create-note__add-more {
     aspect-ratio: 1 / 1;
     min-width: 0;
     border: none;
@@ -229,12 +230,12 @@
       background: linear-gradient(135deg, rgba(255, 36, 66, 0.05) 0%, rgba(255, 36, 66, 0.1) 100%);
       border-color: #ff2442;
 
-      .addMoreInner {
+      .create-note__add-more-inner {
         color: #ff2442;
       }
     }
 
-    .addMoreInner {
+    .create-note__add-more-inner {
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -254,12 +255,12 @@
 }
 
 // 内容区域
-.contentSection {
+.create-note__content {
   position: relative;
   margin-bottom: 20px;
 }
 
-.titleInput {
+.create-note__title-input {
   width: 100%;
   border: none;
   outline: none;
@@ -275,7 +276,7 @@
   }
 }
 
-.contentInput {
+.create-note__content-input {
   width: 100%;
   min-height: 120px;
   border: none;
@@ -292,7 +293,7 @@
   }
 }
 
-.wordCount {
+.create-note__word-count {
   position: absolute;
   bottom: 0;
   right: 0;
@@ -301,36 +302,36 @@
 }
 
 // 话题区域
-.topicSection {
+.create-note__topics-block {
   padding-top: 16px;
   border-top: 1px solid var(--border-color);
 }
 
-.topicHeader {
+.create-note__topics-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 12px;
 }
 
-.topicLabel {
+.create-note__topics-label {
   font-size: 15px;
   font-weight: 500;
   color: var(--text-main);
 }
 
-.topicCount {
+.create-note__topics-count {
   font-size: 12px;
   color: var(--text-muted);
 }
 
-.topicList {
+.create-note__topics-list {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
 }
 
-.topicItem {
+.create-note__topic-chip {
   padding: 6px 14px;
   border-radius: 16px;
   font-size: 13px;
@@ -345,7 +346,7 @@
     color: #ff2442;
   }
 
-  &.active {
+  &--active {
     background: rgba(255, 36, 66, 0.08);
     border-color: #ff2442;
     color: #ff2442;
@@ -353,15 +354,15 @@
 }
 
 // 底部
-.footer {
+.create-note__footer {
   padding: 12px 0;
   border-top: 1px solid var(--border-color);
   margin-top: 16px;
 }
 
 // 预览模式
-.previewMode {
-  .previewHeader {
+.create-note--preview {
+  .create-note__preview-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -373,31 +374,31 @@
     z-index: 100;
   }
 
-  .previewTitle {
+  .create-note__preview-title {
     font-size: 17px;
     font-weight: 600;
     color: var(--text-main);
   }
 
-  .previewContent {
+  .create-note__preview-content {
     padding: 16px;
     max-width: 1240px;
     margin: 0 auto;
     width: 100%;
   }
 
-  .previewLayout {
+  .create-note__preview-layout {
     display: flex;
     gap: 20px;
     align-items: flex-start;
   }
 
-  .previewLeftPanel {
+  .create-note__preview-left {
     flex: 1;
     min-width: 0;
   }
 
-  .previewRightPanel {
+  .create-note__preview-right {
     flex: 0 0 360px;
     width: 360px;
     padding: 16px;
@@ -410,15 +411,15 @@
     overflow-y: auto;
   }
 
-  .previewGallery {
+  .create-note__preview-gallery {
     margin-bottom: 0;
   }
 
-  .previewHiddenImages {
+  .create-note__preview-hidden-images {
     display: none;
   }
 
-  .previewMainMedia {
+  .create-note__preview-main {
     width: 100%;
     border-radius: 12px;
     overflow: hidden;
@@ -429,21 +430,21 @@
     justify-content: center;
     cursor: pointer;
 
-    &.media-image {
+    &--image {
       height: 460px;
     }
 
-    &.media-video {
+    &--video {
       height: 500px;
       background: #000;
     }
 
-    &.media-portrait {
+    &--portrait {
       :global(.ant-image) {
         max-width: min(100%, 380px);
       }
 
-      :global(.videoPlayer) {
+      :global(.video-player) {
         width: auto;
         max-width: 100%;
         height: 100%;
@@ -465,14 +466,14 @@
       object-fit: contain;
     }
 
-    :global(.videoPlayer) {
+    :global(.video-player) {
       width: 100%;
       height: 100%;
       background: #000;
     }
   }
 
-  .previewNavBtn {
+  .create-note__preview-nav {
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
@@ -493,16 +494,16 @@
       background: rgba(0, 0, 0, 0.58);
     }
 
-    &.prev {
+    &--prev {
       left: 10px;
     }
 
-    &.next {
+    &--next {
       right: 10px;
     }
   }
 
-  .playOverlay {
+  .create-note__preview-play-overlay {
     position: absolute;
     top: 0;
     left: 0;
@@ -519,7 +520,7 @@
     }
   }
 
-  .previewThumbnailList {
+  .create-note__preview-thumbs {
     display: flex;
     gap: 8px;
     margin-top: 12px;
@@ -527,7 +528,7 @@
     padding-bottom: 4px;
   }
 
-  .previewThumbnail {
+  .create-note__preview-thumb {
     width: 80px;
     height: 60px;
     border-radius: 6px;
@@ -541,11 +542,11 @@
     background: var(--card-bg);
 
     &:hover,
-    &.active {
+    &--active {
       opacity: 1;
     }
 
-    &.active {
+    &--active {
       border-color: var(--primary-color);
     }
 
@@ -560,12 +561,12 @@
       object-fit: cover;
     }
 
-    :global(.videoPlayer) {
+    :global(.video-player) {
       width: 100%;
       height: 100%;
     }
 
-    .videoThumbIcon {
+    .create-note__preview-video-icon {
       position: absolute;
       top: 50%;
       left: 50%;
@@ -576,7 +577,7 @@
     }
   }
 
-  .previewText {
+  .create-note__preview-text {
     font-size: 15px;
     line-height: 1.6;
     color: var(--text-main);
@@ -584,7 +585,7 @@
     margin-bottom: 16px;
   }
 
-  .previewTitleText {
+  .create-note__preview-title-text {
     font-size: 18px;
     font-weight: 600;
     line-height: 1.4;
@@ -592,13 +593,13 @@
     margin-bottom: 10px;
   }
 
-  .previewTopics {
+  .create-note__preview-topics {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
   }
 
-  .topicTag {
+  .create-note__preview-topic-tag {
     padding: 4px 12px;
     border-radius: 12px;
     font-size: 13px;
@@ -607,11 +608,11 @@
   }
 
   @media (max-width: 992px) {
-    .previewLayout {
+    .create-note__preview-layout {
       flex-direction: column;
     }
 
-    .previewRightPanel {
+    .create-note__preview-right {
       width: 100%;
       flex: 1 1 auto;
       position: static;
@@ -621,7 +622,7 @@
 }
 
 // 图片预览弹窗
-.imagePreviewModal {
+.create-note__image-preview-modal {
   background: transparent;
   box-shadow: none;
   max-width: 100vw;
@@ -658,7 +659,7 @@
 }
 
 // 视频预览弹窗
-.videoPreviewModal {
+.create-note__video-preview-modal {
   .ant-modal-mask {
     background: rgba(0, 0, 0, 0.9);
   }
@@ -727,7 +728,7 @@
     }
   }
 
-  .videoPreviewContainer {
+  .create-note__video-preview-container {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -736,7 +737,7 @@
     max-width: 90vw;
     max-height: 90vh;
 
-    .videoPlayer {
+    :global(.video-player) {
       max-width: 90vw;
       max-height: 90vh;
       width: min(90vw, 720px);

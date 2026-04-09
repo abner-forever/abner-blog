@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Image } from 'antd';
 import { HeartOutlined, MessageOutlined } from '@ant-design/icons';
+import classNames from 'classnames';
 import './index.less';
 
 export interface NoteCardProps {
@@ -28,6 +29,12 @@ const COVER_RATIO_PRESETS: Array<{ key: CoverRatioPreset; ratio: number }> = [
   { key: '4-3', ratio: 4 / 3 },
   { key: '3-4', ratio: 3 / 4 },
 ];
+
+const COVER_ASPECT_CLASS: Record<CoverRatioPreset, string> = {
+  '9-16': 'note-card__thumb--aspect-9-16',
+  '4-3': 'note-card__thumb--aspect-4-3',
+  '3-4': 'note-card__thumb--aspect-3-4',
+};
 
 const getClosestCoverRatio = (width: number, height: number): CoverRatioPreset => {
   if (!width || !height) {
@@ -96,7 +103,13 @@ const NoteCard: React.FC<NoteCardProps> = ({
   const renderImages = () => {
     if (cover) {
       return (
-        <div className={`singleImage coverImage ratio-${coverRatio}`}>
+        <div
+          className={classNames(
+            'note-card__thumb',
+            'note-card__thumb--cover',
+            COVER_ASPECT_CLASS[coverRatio],
+          )}
+        >
           <img src={cover} alt={title || content} loading="lazy" />
         </div>
       );
@@ -106,17 +119,17 @@ const NoteCard: React.FC<NoteCardProps> = ({
 
     if (images.length === 1) {
       return (
-        <div className="singleImage">
-          <Image src={images[0]} preview={false} />
+        <div className="note-card__thumb note-card__thumb--single">
+          <Image src={images[0]} preview={false} loading="lazy" />
         </div>
       );
     }
 
     if (images.length === 2) {
       return (
-        <div className="twoImages">
+        <div className="note-card__thumb-grid note-card__thumb-grid--two">
           {images.map((img, index) => (
-            <Image key={index} src={img} preview={false} />
+            <Image key={index} src={img} preview={false} loading="lazy" />
           ))}
         </div>
       );
@@ -124,11 +137,16 @@ const NoteCard: React.FC<NoteCardProps> = ({
 
     if (images.length === 3) {
       return (
-        <div className="threeImages">
-          <Image src={images[0]} preview={false} className="firstImage" />
-          <div className="subImages">
+        <div className="note-card__thumb-grid note-card__thumb-grid--three">
+          <Image
+            src={images[0]}
+            preview={false}
+            loading="lazy"
+            className="note-card__thumb-leading"
+          />
+          <div className="note-card__thumb-stack">
             {images.slice(1).map((img, index) => (
-              <Image key={index} src={img} preview={false} />
+              <Image key={index} src={img} preview={false} loading="lazy" />
             ))}
           </div>
         </div>
@@ -136,12 +154,12 @@ const NoteCard: React.FC<NoteCardProps> = ({
     }
 
     return (
-      <div className="fourImages">
+      <div className="note-card__thumb-grid note-card__thumb-grid--four">
         {images.slice(0, 4).map((img, index) => (
-          <div key={index} className="imageWrapper">
-            <Image src={img} preview={false} />
+          <div key={index} className="note-card__thumb-cell">
+            <Image src={img} preview={false} loading="lazy" />
             {index === 3 && images.length > 4 && (
-              <div className="moreOverlay">+{images.length - 4}</div>
+              <div className="note-card__thumb-more">+{images.length - 4}</div>
             )}
           </div>
         ))}
@@ -150,32 +168,32 @@ const NoteCard: React.FC<NoteCardProps> = ({
   };
 
   return (
-    <div className={`noteCard ${className || ''}`} onClick={handleClick}>
-      <div className="imageContainer">
+    <div className={classNames('note-card', className)} onClick={handleClick}>
+      <div className="note-card__media">
         {renderImages()}
-        <div className="imageOverlay">
-          <div className="noteCardActions">
-            <div className="noteCardActionItem" onClick={handleActionClick}>
+        <div className="note-card__overlay">
+          <div className="note-card__actions">
+            <div className="note-card__action" onClick={handleActionClick}>
               <HeartOutlined />
               <span>{likes}</span>
             </div>
-            <div className="noteCardActionItem" onClick={handleActionClick}>
+            <div className="note-card__action" onClick={handleActionClick}>
               <MessageOutlined />
               <span>{comments}</span>
             </div>
           </div>
         </div>
       </div>
-      <div className="content">
+      <div className="note-card__body">
         {(title?.trim() || content.trim()) && (
-          <p className="cardDesc">{title?.trim() || content.trim()}</p>
+          <p className="note-card__excerpt">{title?.trim() || content.trim()}</p>
         )}
         {topics.length > 0 && (
-          <div className="topics">
+          <div className="note-card__topics">
             {topics.map((topic, index) => (
               <span
                 key={index}
-                className="topic"
+                className="note-card__topic-tag"
                 onClick={(e) => handleTopicClick(e, topicId)}
               >
                 #{topic}
@@ -184,22 +202,22 @@ const NoteCard: React.FC<NoteCardProps> = ({
           </div>
         )}
         {location && (
-          <div className="location">
-            <span className="locationIcon">📍</span>
+          <div className="note-card__location">
+            <span className="note-card__location-icon">📍</span>
             <span>{location}</span>
           </div>
         )}
-        <div className="userInfo">
-          <div className="avatar">
+        <div className="note-card__author">
+          <div className="note-card__avatar">
             {avatar ? (
               <img src={avatar} alt={nickname} loading="lazy" />
             ) : (
-              <div className="defaultAvatar">
+              <div className="note-card__avatar-fallback">
                 {nickname.charAt(0).toUpperCase()}
               </div>
             )}
           </div>
-          <span className="nickname">{nickname}</span>
+          <span className="note-card__nickname">{nickname}</span>
         </div>
       </div>
     </div>

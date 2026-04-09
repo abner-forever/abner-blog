@@ -1,16 +1,16 @@
-.topicDetail {
+.topic-detail {
   min-height: 100vh;
   background: @bg-color;
 
-  .loadingContainer,
-  .emptyContainer {
+  .topic-detail__loading,
+  .topic-detail__empty {
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 50vh;
   }
 
-  .topicHeader {
+  .topic-detail__header {
     background: @card-bg;
     padding: 16px;
     position: sticky;
@@ -21,7 +21,7 @@
     gap: 12px;
     border-bottom: 1px solid @border-color;
 
-    .backBtn {
+    .topic-detail__back {
       width: 36px;
       height: 36px;
       display: flex;
@@ -38,14 +38,14 @@
       }
     }
 
-    .topicInfo {
+    .topic-detail__info {
       display: flex;
       align-items: center;
       gap: 12px;
       flex: 1;
     }
 
-    .topicIcon {
+    .topic-detail__icon {
       width: 48px;
       height: 48px;
       border-radius: 12px;
@@ -55,31 +55,31 @@
       font-size: 24px;
     }
 
-    .topicMeta {
+    .topic-detail__meta {
       flex: 1;
 
-      .topicName {
+      .topic-detail__name {
         font-size: 18px;
         font-weight: 600;
         color: @text-main;
         margin: 0;
       }
 
-      .topicDesc {
+      .topic-detail__desc {
         font-size: 13px;
         color: @text-secondary;
         margin: 4px 0 0;
       }
 
-      .topicCount {
+      .topic-detail__count {
         font-size: 12px;
         color: @text-muted;
       }
     }
   }
 
-  .notesSection {
-    .sectionTitle {
+  .topic-detail__notes {
+    .topic-detail__section-title {
       font-size: 16px;
       font-weight: 600;
       color: @text-main;
@@ -87,13 +87,19 @@
       margin: 0;
     }
 
-    .container {
+    .topic-detail__container {
       padding: 0 16px 16px;
     }
 
-    .loadMore {
+    .topic-detail__load-more {
       text-align: center;
       padding: 16px 0;
+    }
+
+    .topic-detail__masonry {
+      @media (max-width: 768px) {
+        padding-bottom: 16px;
+      }
     }
   }
 }

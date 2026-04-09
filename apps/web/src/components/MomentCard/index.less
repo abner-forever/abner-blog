@@ -8,62 +8,62 @@
     background: rgba(var(--primary-rgb, 139, 92, 246), 0.02);
   }
 
-  .moment-card-header {
+  .moment-card__header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 16px;
 
-    .author-info {
+    .moment-card__author {
       display: flex;
       gap: 12px;
       cursor: pointer;
 
-      .author-details {
+      .moment-card__author-details {
         display: flex;
         flex-direction: column;
         justify-content: center;
 
-        .author-name {
+        .moment-card__author-name {
           font-weight: 600;
           color: var(--text-color);
           margin-bottom: 4px;
         }
 
-        .moment-time {
+        .moment-card__time {
           font-size: 12px;
           color: var(--text-secondary);
         }
       }
     }
 
-    .card-ops {
+    .moment-card__ops {
       display: inline-flex;
       align-items: center;
       gap: 10px;
 
-      .edit-btn,
-      .delete-btn {
+      .moment-card__edit,
+      .moment-card__delete {
         font-size: 16px;
         color: var(--text-secondary);
         cursor: pointer;
         transition: color 0.3s;
       }
 
-      .edit-btn:hover {
+      .moment-card__edit:hover {
         color: var(--skin-primary);
       }
 
-      .delete-btn:hover {
+      .moment-card__delete:hover {
         color: var(--error-color, #ff4d4f);
       }
     }
   }
 
-  .moment-card-content {
+  .moment-card__content {
     margin-bottom: 12px;
 
-    .moment-text {
+    .moment-card__text {
       color: var(--text-color);
       line-height: 1.6;
       margin-bottom: 0;
@@ -72,7 +72,7 @@
       .text-ellipsis-multiple(6);
     }
 
-    .moment-read-more {
+    .moment-card__read-more {
       display: inline-block;
       margin-top: 4px;
       margin-bottom: 12px;
@@ -90,14 +90,14 @@
       }
     }
 
-    .moment-images {
+    .moment-card__images {
       display: grid;
       gap: 4px;
       margin-top: 10px;
       border-radius: 8px;
       overflow: hidden;
 
-      &.count-1 {
+      &--count-1 {
         grid-template-columns: 1fr;
         max-width: 320px;
 
@@ -106,7 +106,7 @@
         }
       }
 
-      &.count-2 {
+      &--count-2 {
         grid-template-columns: repeat(2, 1fr);
 
         :global(.ant-image) {
@@ -114,8 +114,8 @@
         }
       }
 
-      &.count-3,
-      &.count-many {
+      &--count-3,
+      &--count-many {
         grid-template-columns: repeat(3, 1fr);
 
         :global(.ant-image) {
@@ -138,19 +138,19 @@
     }
   }
 
-  .moment-topic {
+  .moment-card__topic {
     margin-bottom: 12px;
   }
 
-  .moment-card-footer {
+  .moment-card__footer {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding-top: 12px;
     border-top: 1px solid transparent;
 
-    .moment-stats {
-      .stat-item {
+    .moment-card__stats {
+      .moment-card__stat {
         display: inline-flex;
         align-items: center;
         gap: 4px;
@@ -161,14 +161,14 @@
           font-size: 16px;
         }
 
-        .stat-count {
+        .moment-card__stat-count {
           font-size: 13px;
         }
       }
     }
 
-    .moment-actions {
-      .action-btn {
+    .moment-card__actions {
+      .moment-card__action {
         display: inline-flex;
         align-items: center;
         gap: 4px;
@@ -186,7 +186,7 @@
           background: var(--bg-hover, rgba(0, 0, 0, 0.04));
         }
 
-        &.active {
+        &--active {
           color: var(--primary-color);
         }
 

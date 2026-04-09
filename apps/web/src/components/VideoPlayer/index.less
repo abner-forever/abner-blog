@@ -9,7 +9,7 @@
 @video-player-progress-loaded: rgba(255, 255, 255, 0.5);
 
 // 播放器容器
-.videoPlayer {
+.video-player {
   position: relative;
   width: 100%;
   height: 100%;
@@ -26,7 +26,7 @@
   }
 
   // 封面图 + 播放按钮
-  .videoPoster {
+  .video-player__poster {
     position: absolute;
     top: 0;
     left: 0;
@@ -45,7 +45,7 @@
       object-fit: contain;
     }
 
-    .playButton {
+    .video-player__play-btn {
       position: absolute;
       top: 50%;
       left: 50%;
@@ -59,7 +59,7 @@
       justify-content: center;
       transition: all 0.3s ease;
 
-      .playIcon {
+      .video-player__play-icon {
         font-size: 36px;
         color: #f5f5f5;
       }
@@ -70,14 +70,14 @@
       }
     }
 
-    &.hidden {
+    &--hidden {
       opacity: 0;
       pointer-events: none;
     }
   }
 
   // 控制栏
-  .videoControls {
+  .video-player__controls {
     position: absolute;
     bottom: 0;
     left: 0;
@@ -88,47 +88,42 @@
     transition: opacity 0.3s ease;
     z-index: 10;
 
-    &.hidden {
+    &--hidden {
       opacity: 0;
     }
 
-    // 进度条区域
-    // 控制按钮区域（单行）
-    .controlArea {
+    .video-player__control-area {
       display: flex;
       align-items: center;
       gap: 10px;
     }
 
-    // 左侧控制（播放/音量/时间）
-    .leftControls {
+    .video-player__control-left {
       display: flex;
       align-items: center;
       gap: 8px;
       flex-shrink: 0;
     }
 
-    .progressArea {
+    .video-player__progress-area {
       flex: 1;
       min-width: 60px;
       display: flex;
       align-items: center;
       gap: 8px;
 
-      .videoProgress {
+      .video-player__progress {
         flex: 1;
       }
     }
 
-    // 右侧控制（全屏）
-    .rightControls {
+    .video-player__control-right {
       display: flex;
       align-items: center;
       flex-shrink: 0;
     }
 
-    // 时间显示
-    .timeDisplay {
+    .video-player__time {
       font-size: 12px;
       color: @video-player-text;
       min-width: 44px;
@@ -138,8 +133,7 @@
     }
   }
 
-  // 播放/暂停按钮
-  .playPauseButton {
+  .video-player__play-pause {
     width: 36px;
     height: 36px;
     border-radius: 50%;
@@ -160,13 +154,12 @@
       transform: scale(0.95);
     }
 
-    .icon {
+    .video-player__icon {
       font-size: 18px;
     }
   }
 
-  // 全屏按钮
-  .fullscreenButton {
+  .video-player__fullscreen-btn {
     width: 36px;
     height: 36px;
     border-radius: 50%;
@@ -187,13 +180,12 @@
       transform: scale(0.95);
     }
 
-    .icon {
+    .video-player__icon {
       font-size: 16px;
     }
   }
 
-  // 进度条
-  .videoProgress {
+  .video-player__progress {
     flex: 1;
     height: 4px;
     background: @video-player-progress-bg;
@@ -204,12 +196,12 @@
     &:hover {
       height: 6px;
 
-      .progressThumb {
+      .video-player__progress-thumb {
         opacity: 1;
       }
     }
 
-    .progressBuffer {
+    .video-player__progress-buffer {
       position: absolute;
       top: 0;
       left: 0;
@@ -219,7 +211,7 @@
       pointer-events: none;
     }
 
-    .progressPlayed {
+    .video-player__progress-played {
       position: absolute;
       top: 0;
       left: 0;
@@ -229,7 +221,7 @@
       pointer-events: none;
     }
 
-    .progressThumb {
+    .video-player__progress-thumb {
       position: absolute;
       top: 50%;
       width: 12px;
@@ -244,14 +236,13 @@
     }
   }
 
-  // 音量控制
-  .volumeControl {
+  .video-player__volume {
     position: relative;
     display: inline-flex;
     align-items: center;
     justify-content: center;
 
-    .volumeButton {
+    .video-player__volume-btn {
       width: 28px;
       height: 28px;
       border-radius: 50%;
@@ -268,12 +259,12 @@
         background: rgba(255, 255, 255, 0.1);
       }
 
-      .icon {
+      .video-player__icon {
         font-size: 16px;
       }
     }
 
-    .volumeSlider {
+    .video-player__volume-slider {
       position: absolute;
       left: 50%;
       bottom: calc(100% + 8px);
@@ -290,12 +281,12 @@
       border-radius: 14px;
       padding: 8px 0;
 
-      &.expanded {
+      &--expanded {
         opacity: 1;
         pointer-events: auto;
       }
 
-      .sliderTrack {
+      .video-player__slider-track {
         width: 4px;
         height: 76px;
         background: @video-player-progress-bg;
@@ -303,7 +294,7 @@
         cursor: pointer;
         position: relative;
 
-        .sliderFill {
+        .video-player__slider-fill {
           position: absolute;
           bottom: 0;
           left: 0;
@@ -312,7 +303,7 @@
           border-radius: 2px;
         }
 
-        .sliderThumb {
+        .video-player__slider-thumb {
           position: absolute;
           left: 50%;
           width: 10px;
@@ -326,8 +317,7 @@
     }
   }
 
-  // Loading 状态
-  .loadingOverlay {
+  .video-player__loading {
     position: absolute;
     top: 0;
     left: 0;
@@ -340,8 +330,7 @@
     z-index: 5;
   }
 
-  // 双击提示
-  .doubleTapHint {
+  .video-player__double-tap-hint {
     position: absolute;
     top: 50%;
     left: 50%;
@@ -352,19 +341,19 @@
     color: #fff;
     font-size: 14px;
     pointer-events: none;
-    animation: fadeInOut 1s ease forwards;
+    animation: video-player-fade-in-out 1s ease forwards;
     z-index: 20;
 
-    &.left {
+    &--left {
       left: 25%;
     }
 
-    &.right {
+    &--right {
       left: 75%;
     }
   }
 
-  @keyframes fadeInOut {
+  @keyframes video-player-fade-in-out {
     0% {
       opacity: 0;
       transform: translate(-50%, -50%) scale(0.8);
@@ -384,25 +373,25 @@
   }
 }
 
-.videoPlayerPortrait {
+.video-player--portrait {
   video {
     object-fit: cover;
   }
 
-  .videoPoster {
+  .video-player__poster {
     img {
       object-fit: cover;
     }
   }
 }
 
-.videoPlayerLandscape {
+.video-player--landscape {
   video {
     object-fit: contain;
   }
 }
 
-.videoPlayerRatioPortrait {
+.video-player--ratio-portrait {
   width: auto !important;
   height: 100% !important;
   max-width: 100%;
@@ -411,7 +400,7 @@
   flex-shrink: 0;
 }
 
-.videoPlayerRatioLandscape {
+.video-player--ratio-landscape {
   width: min(100%, 920px) !important;
   height: auto !important;
   max-width: 100%;
@@ -420,8 +409,7 @@
   flex-shrink: 0;
 }
 
-// 全屏模式
-.videoPlayerFullscreen {
+.video-player--fullscreen {
   position: fixed;
   top: 0;
   left: 0;
@@ -432,58 +420,57 @@
   z-index: 9999;
   border-radius: 0;
 
-  .videoControls {
+  .video-player__controls {
     padding: 20px 24px;
   }
 
-  .videoProgress {
+  .video-player__progress {
     height: 6px;
   }
 
-  .playPauseButton {
+  .video-player__play-pause {
     width: 48px;
     height: 48px;
 
-    .icon {
+    .video-player__icon {
       font-size: 24px;
     }
   }
 
-  .fullscreenButton {
+  .video-player__fullscreen-btn {
     width: 48px;
     height: 48px;
   }
 }
 
-// 移动端适配
 @media (max-width: 576px) {
-  .videoPlayer {
-    .videoControls {
+  .video-player {
+    .video-player__controls {
       padding: 8px 12px;
     }
 
-    .playPauseButton {
+    .video-player__play-pause {
       width: 44px;
       height: 44px;
     }
 
-    .fullscreenButton {
+    .video-player__fullscreen-btn {
       width: 44px;
       height: 44px;
     }
 
-    .timeDisplay {
+    .video-player__time {
       font-size: 11px;
       min-width: 40px;
     }
 
-    .volumeControl {
-      .volumeSlider {
-        &.expanded {
+    .video-player__volume {
+      .video-player__volume-slider {
+        &--expanded {
           height: 88px;
         }
 
-        .sliderTrack {
+        .video-player__slider-track {
           height: 68px;
         }
       }

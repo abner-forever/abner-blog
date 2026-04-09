@@ -34,45 +34,40 @@ const ActionSheet: React.FC<ActionSheetProps> = ({
     onClose();
   };
 
-  // Handle touch/mouse start for dragging
   const handleDragStart = useCallback((clientY: number) => {
     setIsDragging(true);
     startYRef.current = clientY;
   }, []);
 
-  // Handle touch/mouse move for dragging
-  const handleDragMove = useCallback((clientY: number) => {
-    if (!isDragging) return;
-    const deltaY = clientY - startYRef.current;
-    // Only allow dragging down (positive delta)
-    if (deltaY > 0) {
-      setDragY(deltaY);
-    }
-  }, [isDragging]);
+  const handleDragMove = useCallback(
+    (clientY: number) => {
+      if (!isDragging) return;
+      const deltaY = clientY - startYRef.current;
+      if (deltaY > 0) {
+        setDragY(deltaY);
+      }
+    },
+    [isDragging]
+  );
 
-  // Handle touch/mouse end for dragging
   const handleDragEnd = useCallback(() => {
     if (!isDragging) return;
 
     const drawerHeight = drawerRef.current?.offsetHeight || 300;
     const closeThreshold = drawerHeight / 2;
 
-    // If dragged down more than half the drawer height, close
     if (dragY > closeThreshold) {
       setIsDragging(false);
       onClose();
       setDragY(0);
     } else {
-      // First remove dragging class to enable CSS transition
       setIsDragging(false);
-      // Then reset position after a small delay for smooth animation
       setTimeout(() => {
         setDragY(0);
       }, 10);
     }
   }, [isDragging, dragY, onClose]);
 
-  // Add global event listeners for drag
   useEffect(() => {
     if (!isDragging) return;
 
@@ -102,7 +97,6 @@ const ActionSheet: React.FC<ActionSheetProps> = ({
     };
   }, [isDragging, handleDragMove, handleDragEnd]);
 
-  // Reset drag state when closed
   useEffect(() => {
     if (!visible) {
       setDragY(0);
@@ -110,26 +104,24 @@ const ActionSheet: React.FC<ActionSheetProps> = ({
     }
   }, [visible]);
 
-  // Handle click on handle bar to close
   const handleHandleClick = () => {
     onClose();
   };
 
-  // 移动端：底部抽屉样式
   if (deviceType === 'mobile' || deviceType === 'tablet') {
     return (
       <div
-        className={`actionSheetOverlay ${visible ? 'visible' : ''}`}
+        className={`action-sheet__overlay${visible ? ' action-sheet__overlay--visible' : ''}`}
         onClick={onClose}
       >
         <div
           ref={drawerRef}
-          className={`actionSheetDrawer ${visible ? 'visible' : ''} ${isDragging ? 'dragging' : ''}`}
+          className={`action-sheet__drawer${visible ? ' action-sheet__drawer--visible' : ''}${isDragging ? ' action-sheet__drawer--dragging' : ''}`}
           onClick={(e) => e.stopPropagation()}
           style={isDragging ? { transform: `translateY(${dragY}px)` } : undefined}
         >
           <div
-            className="actionSheetHeader"
+            className="action-sheet__header"
             onMouseDown={(e) => handleDragStart(e.clientY)}
             onTouchStart={(e) => {
               if (e.touches.length > 0) {
@@ -137,36 +129,38 @@ const ActionSheet: React.FC<ActionSheetProps> = ({
               }
             }}
           >
-            <div className="actionSheetHandle" onClick={handleHandleClick} />
-            <span className="actionSheetTitle">{title}</span>
+            <div className="action-sheet__handle" onClick={handleHandleClick} />
+            <span className="action-sheet__title">{title}</span>
           </div>
 
-          <div className="actionSheetContent">
+          <div className="action-sheet__content">
             {items.map((item) => (
               <div
                 key={item.key}
-                className={`actionSheetItem ${item.disabled ? 'disabled' : ''} ${item.danger ? 'danger' : ''}`}
+                className={`action-sheet__item${item.disabled ? ' action-sheet__item--disabled' : ''}${item.danger ? ' action-sheet__item--danger' : ''}`}
                 onClick={() => handleItemClick(item)}
               >
                 {item.icon && (
-                  <div className={`actionSheetItemIcon ${item.danger ? 'dangerIcon' : ''}`}>
+                  <div
+                    className={`action-sheet__item-icon${item.danger ? ' action-sheet__item-icon--danger' : ''}`}
+                  >
                     {item.icon}
                   </div>
                 )}
-                <div className="actionSheetItemInfo">
-                  <span className="actionSheetItemTitle">{item.title}</span>
+                <div className="action-sheet__item-info">
+                  <span className="action-sheet__item-title">{item.title}</span>
                   {item.description && (
-                    <span className="actionSheetItemDesc">{item.description}</span>
+                    <span className="action-sheet__item-desc">{item.description}</span>
                   )}
                 </div>
                 {item.badge !== undefined && (
-                  <div className="actionSheetItemBadge">{item.badge}</div>
+                  <div className="action-sheet__item-badge">{item.badge}</div>
                 )}
               </div>
             ))}
           </div>
 
-          <div className="actionSheetFooter">
+          <div className="action-sheet__footer">
             <Button block size="large" onClick={onClose}>
               {cancelText}
             </Button>
@@ -176,7 +170,6 @@ const ActionSheet: React.FC<ActionSheetProps> = ({
     );
   }
 
-  // PC 端：居中模态框样式
   return (
     <Modal
       open={visible}
@@ -185,36 +178,38 @@ const ActionSheet: React.FC<ActionSheetProps> = ({
       centered
       closable={false}
       width={400}
-      className="actionSheetModal"
+      className="action-sheet-modal"
     >
-      <div className="actionSheetModalContent">
-        <div className="actionSheetHeader">
-          <span className="actionSheetTitle">{title}</span>
-          <div className="actionSheetClose" onClick={onClose}>
+      <div className="action-sheet__modal-content">
+        <div className="action-sheet__header">
+          <span className="action-sheet__title">{title}</span>
+          <div className="action-sheet__close" onClick={onClose}>
             <CloseOutlined />
           </div>
         </div>
 
-        <div className="actionSheetContent">
+        <div className="action-sheet__content">
           {items.map((item) => (
             <div
               key={item.key}
-              className={`actionSheetItem ${item.disabled ? 'disabled' : ''} ${item.danger ? 'danger' : ''}`}
+              className={`action-sheet__item${item.disabled ? ' action-sheet__item--disabled' : ''}${item.danger ? ' action-sheet__item--danger' : ''}`}
               onClick={() => handleItemClick(item)}
             >
               {item.icon && (
-                <div className={`actionSheetItemIcon ${item.danger ? 'dangerIcon' : ''}`}>
+                <div
+                  className={`action-sheet__item-icon${item.danger ? ' action-sheet__item-icon--danger' : ''}`}
+                >
                   {item.icon}
                 </div>
               )}
-              <div className="actionSheetItemInfo">
-                <span className="actionSheetItemTitle">{item.title}</span>
+              <div className="action-sheet__item-info">
+                <span className="action-sheet__item-title">{item.title}</span>
                 {item.description && (
-                  <span className="actionSheetItemDesc">{item.description}</span>
+                  <span className="action-sheet__item-desc">{item.description}</span>
                 )}
               </div>
               {item.badge !== undefined && (
-                <div className="actionSheetItemBadge">{item.badge}</div>
+                <div className="action-sheet__item-badge">{item.badge}</div>
               )}
             </div>
           ))}

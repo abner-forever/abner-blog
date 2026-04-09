@@ -51,37 +51,39 @@ const VolumeControl: React.FC<VolumeControlProps> = ({
 
   const getVolumeIcon = () => {
     if (muted || volume === 0) {
-      return <MutedOutlined className="icon" />;
+      return <MutedOutlined className="video-player__icon" />;
     }
     if (volume < 0.5) {
-      return <SoundOutlined className="icon" />;
+      return <SoundOutlined className="video-player__icon" />;
     }
-    return <SoundFilled className="icon" />;
+    return <SoundFilled className="video-player__icon" />;
   };
 
   return (
     <div
-      className="volumeControl"
+      className="video-player__volume"
       onMouseEnter={() => setIsExpanded(true)}
       onMouseLeave={() => setIsExpanded(false)}
     >
       <button
         type="button"
-        className="volumeButton"
+        className="video-player__volume-btn"
         onClick={onMuteToggle}
         aria-label={muted || volume === 0 ? '取消静音' : '静音'}
       >
         {getVolumeIcon()}
       </button>
-      <div className={`volumeSlider ${isExpanded ? 'expanded' : ''}`}>
+      <div
+        className={`video-player__volume-slider${isExpanded ? ' video-player__volume-slider--expanded' : ''}`}
+      >
         <div
           ref={sliderRef}
-          className="sliderTrack"
+          className="video-player__slider-track"
           onClick={handleSliderClick}
           onMouseDown={handleMouseDown}
         >
-          <div className="sliderFill" style={{ height: `${displayVolume * 100}%` }} />
-          <div className="sliderThumb" style={{ bottom: `${displayVolume * 100}%` }} />
+          <div className="video-player__slider-fill" style={{ height: `${displayVolume * 100}%` }} />
+          <div className="video-player__slider-thumb" style={{ bottom: `${displayVolume * 100}%` }} />
         </div>
       </div>
     </div>

@@ -109,6 +109,8 @@
     "collectionNoteCount": "{{count}} 篇笔记",
     "createCollectionFailed": "创建收藏夹失败",
     "topicNotes": "话题笔记",
+    "topicNotFound": "话题不存在",
+    "notes": "篇笔记",
     "titlePlaceholderOptional": "请输入标题（可选）",
     "deleteNote": "删除笔记",
     "deleteNoteConfirm": "确定要删除这条笔记吗？",

@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Image, Button, Modal } from 'antd';
 import { LeftOutlined, PlayCircleOutlined, RightOutlined } from '@ant-design/icons';
+import classNames from 'classnames';
 import VideoPlayer from '@components/VideoPlayer';
 import { topics } from '../constants';
 import type { MediaItem } from '../types';
@@ -80,19 +81,19 @@ const PreviewMode: React.FC<PreviewModeProps> = ({
   };
 
   return (
-    <div className="createNote previewMode">
-      <div className="previewHeader">
+    <div className="create-note create-note--preview">
+      <div className="create-note__preview-header">
         <Button onClick={onBackEdit}>返回编辑</Button>
-        <span className="previewTitle">预览</span>
+        <span className="create-note__preview-title">预览</span>
         <Button type="primary" onClick={onPublish} loading={uploading}>
           发布
         </Button>
       </div>
-      <div className="previewContent">
-        <div className="previewLayout">
-          <div className="previewLeftPanel">
+      <div className="create-note__preview-content">
+        <div className="create-note__preview-layout">
+          <div className="create-note__preview-left">
             {media.length > 0 && currentMedia && (
-              <div className="previewGallery">
+              <div className="create-note__preview-gallery">
                 <Image.PreviewGroup
                   preview={{
                     open: previewVisible,
@@ -101,7 +102,7 @@ const PreviewMode: React.FC<PreviewModeProps> = ({
                     onChange: (index) => setCurrentImageIndex(index),
                   }}
                 >
-                  <div className="previewHiddenImages">
+                  <div className="create-note__preview-hidden-images">
                     {images.map((img) => (
                       <Image key={img.id} src={img.url} preview={true} />
                     ))}
@@ -109,15 +110,19 @@ const PreviewMode: React.FC<PreviewModeProps> = ({
                 </Image.PreviewGroup>
 
                 <div
-                  className={`previewMainMedia ${isCurrentVideo ? 'media-video' : 'media-image'} ${
-                    isLandscape(currentMedia) ? 'media-landscape' : 'media-portrait'
-                  }`}
+                  className={classNames(
+                    'create-note__preview-main',
+                    isCurrentVideo ? 'create-note__preview-main--video' : 'create-note__preview-main--image',
+                    isLandscape(currentMedia)
+                      ? 'create-note__preview-main--landscape'
+                      : 'create-note__preview-main--portrait',
+                  )}
                   onClick={handleMainMediaClick}
                 >
                   {totalMediaCount > 1 && (
                     <button
                       type="button"
-                      className="previewNavBtn prev"
+                      className="create-note__preview-nav create-note__preview-nav--prev"
                       onClick={(e) => {
                         e.stopPropagation();
                         handlePrevMedia();
@@ -146,7 +151,7 @@ const PreviewMode: React.FC<PreviewModeProps> = ({
                         loop
                         showControls={false}
                       />
-                      <div className="playOverlay">
+                      <div className="create-note__preview-play-overlay">
                         <PlayCircleOutlined />
                       </div>
                     </>
@@ -155,7 +160,7 @@ const PreviewMode: React.FC<PreviewModeProps> = ({
                   {totalMediaCount > 1 && (
                     <button
                       type="button"
-                      className="previewNavBtn next"
+                      className="create-note__preview-nav create-note__preview-nav--next"
                       onClick={(e) => {
                         e.stopPropagation();
                         handleNextMedia();
@@ -168,13 +173,14 @@ const PreviewMode: React.FC<PreviewModeProps> = ({
                 </div>
 
                 {totalMediaCount > 1 && (
-                  <div className="previewThumbnailList">
+                  <div className="create-note__preview-thumbs">
                     {mediaList.map((item, index) => (
                       <div
                         key={item.id}
-                        className={`previewThumbnail ${index === currentMediaIndex ? 'active' : ''} ${
-                          item.isVideo ? 'videoThumb' : ''
-                        }`}
+                        className={classNames('create-note__preview-thumb', {
+                          'create-note__preview-thumb--active': index === currentMediaIndex,
+                          'create-note__preview-thumb--video': item.isVideo,
+                        })}
                         onClick={() => setCurrentMediaIndex(index)}
                       >
                         {!item.isVideo ? (
@@ -190,7 +196,7 @@ const PreviewMode: React.FC<PreviewModeProps> = ({
                               playing={false}
                               showControls={false}
                             />
-                            <div className="videoThumbIcon">
+                            <div className="create-note__preview-video-icon">
                               <PlayCircleOutlined />
                             </div>
                           </>
@@ -203,15 +209,15 @@ const PreviewMode: React.FC<PreviewModeProps> = ({
             )}
           </div>
 
-          <div className="previewRightPanel">
-            {title.trim() && <div className="previewTitleText">{title}</div>}
-            <div className="previewText">{content || '分享你的想法...'}</div>
+          <div className="create-note__preview-right">
+            {title.trim() && <div className="create-note__preview-title-text">{title}</div>}
+            <div className="create-note__preview-text">{content || '分享你的想法...'}</div>
             {selectedTopics.length > 0 && (
-              <div className="previewTopics">
+              <div className="create-note__preview-topics">
                 {selectedTopics.map((id) => {
                   const topic = topics.find((t) => t.id === id);
                   return (
-                    <span key={id} className="topicTag">
+                    <span key={id} className="create-note__preview-topic-tag">
                       #{topic?.name}
                     </span>
                   );
@@ -228,10 +234,10 @@ const PreviewMode: React.FC<PreviewModeProps> = ({
         onCancel={onCloseVideoPreview}
         width="100%"
         centered
-        rootClassName="videoPreviewModal"
+        rootClassName="create-note__video-preview-modal"
         destroyOnHidden
       >
-        <div className="videoPreviewContainer">
+        <div className="create-note__video-preview-container">
           <VideoPlayer src={currentVideoUrl} autoPlay />
         </div>
       </Modal>
