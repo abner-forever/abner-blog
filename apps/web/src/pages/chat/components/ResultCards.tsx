@@ -37,10 +37,10 @@ export type AssistantCard =
           completed: number;
           pending: number;
           overdueCount: number;
-          distribution: string;
-          priorityItems: string[];
-          summary: string;
-          suggestion: string;
+          distribution?: '均匀' | '集中' | '稀疏';
+          priorityItems?: string[];
+          summary?: string;
+          suggestion?: string;
         };
       };
     }
@@ -101,10 +101,10 @@ const ScheduleQueryCard = memo<{
     completed: number;
     pending: number;
     overdueCount: number;
-    distribution: string;
-    priorityItems: string[];
-    summary: string;
-    suggestion: string;
+    distribution?: '均匀' | '集中' | '稀疏';
+    priorityItems?: string[];
+    summary?: string;
+    suggestion?: string;
   };
 }>(({ summary, events, todos, items, analysis }) => {
   const safeEvents = events || [];
@@ -139,7 +139,7 @@ const ScheduleQueryCard = memo<{
             )}
           </div>
 
-          {analysis.priorityItems.length > 0 && (
+          {analysis.priorityItems && analysis.priorityItems.length > 0 && (
             <div className="ai-schedule-analysis__priority">
               <span className="ai-schedule-analysis__priority-label">🔥 优先处理：</span>
               {analysis.priorityItems.join('、')}
@@ -318,6 +318,7 @@ const getWeatherVisual = (
 };
 
 const AssistantCardRenderer = memo<{ card: AssistantCard }>(({ card }) => {
+  console.log('AssistantCardRenderer', card)
   switch (card.type) {
     case 'todo_created':
       return (

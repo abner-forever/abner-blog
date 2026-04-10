@@ -267,7 +267,7 @@ export class SimpleMiniMaxLLM extends UniversalChatLLM {
       provider: 'minimax',
       model:
         fields?.modelName ?? process.env.OPENAI_API_MODEL ?? 'MiniMax-M2.7',
-      apiKey: fields?.apiKey ?? process.env.OPENAI_API_KEY ?? '',
+      apiKey: fields?.apiKey ?? process.env.MINIMAX_API_KEY ?? '',
       temperature: fields?.temperature ?? 7,
       maxTokens: fields?.maxTokens ?? 4096,
     });

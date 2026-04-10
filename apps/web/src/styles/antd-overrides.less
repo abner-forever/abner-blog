@@ -2,7 +2,6 @@
  * Ant Design 全局覆盖（不含移动端，见 mobile.less）
  * 顺序：组件外观 → CSS 变量与背景对齐（后者覆盖前者中的 background 等属性）
  */
-
 .ant-layout {
   background: transparent !important;
 }
@@ -33,14 +32,13 @@
 }
 
 .ant-card-body {
-  padding: 24px !important;
-  color: var(--text-secondary) !important;
+  padding: 24px;
+  color: var(--text-secondary);
 }
 
 .ant-btn {
-  border-radius: 10px !important;
-  font-weight: 500 !important;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  font-weight: 500;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Link 按钮全局去边框（hover / focus / active） */

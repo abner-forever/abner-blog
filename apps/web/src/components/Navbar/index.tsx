@@ -89,7 +89,6 @@ const Navbar: React.FC = () => {
     { key: '/moments', label: t('nav.moments') },
     { key: '/notes', label: t('nav.notes') },
     { key: '/news', label: t('nav.news') },
-    { key: '/chat', label: t('nav.chat') },
     { key: '/tools', label: t('nav.tools') },
     { key: '/todos', label: t('nav.todos') },
   ];

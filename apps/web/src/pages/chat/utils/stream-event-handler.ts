@@ -128,7 +128,8 @@ export function handleChatStreamEvent({
   if (streamEvent.event === 'todo_created') {
     stopTypeWriter();
     const title =
-      (streamEvent.payload?.data as { title?: string } | undefined)?.title || '';
+      (streamEvent.payload?.data as { title?: string } | undefined)?.title ||
+      '';
     const text = `✅ 已创建待办事项：${title}`;
     setMessages((prev) =>
       prev.map((msg) =>
@@ -149,7 +150,8 @@ export function handleChatStreamEvent({
   if (streamEvent.event === 'todo_updated') {
     stopTypeWriter();
     const title =
-      (streamEvent.payload?.data as { title?: string } | undefined)?.title || '';
+      (streamEvent.payload?.data as { title?: string } | undefined)?.title ||
+      '';
     const text = `✏️ 已更新待办事项：${title}`;
     setMessages((prev) =>
       prev.map((msg) =>
@@ -170,7 +172,8 @@ export function handleChatStreamEvent({
   if (streamEvent.event === 'todo_deleted') {
     stopTypeWriter();
     const title =
-      (streamEvent.payload?.data as { title?: string } | undefined)?.title || '';
+      (streamEvent.payload?.data as { title?: string } | undefined)?.title ||
+      '';
     const text = `🗑️ 已删除待办事项：${title}`;
     setMessages((prev) =>
       prev.map((msg) =>
@@ -213,7 +216,10 @@ export function handleChatStreamEvent({
               content: text,
               displayContent: text,
               isComplete: true,
-              card: { type: 'event_updated', data: { title, timeText, locationText } },
+              card: {
+                type: 'event_updated',
+                data: { title, timeText, locationText },
+              },
             }
           : msg,
       ),
@@ -312,7 +318,9 @@ export function handleChatStreamEvent({
       .filter((item) => item.type === 'event')
       .map((item) => ({
         title: item.title,
-        dateText: item.startDate ? new Date(item.startDate).toLocaleDateString() : undefined,
+        dateText: item.startDate
+          ? new Date(item.startDate).toLocaleDateString()
+          : undefined,
       }));
     const todos = scheduleItems
       .filter((item) => item.type === 'todo')
@@ -320,17 +328,21 @@ export function handleChatStreamEvent({
         title: item.title,
         completed: Boolean(item.completed),
       }));
-    const analysisData = (streamEvent.payload?.analysis as {
-      completionRate?: number;
-      total?: number;
-      completed?: number;
-      pending?: number;
-      overdueCount?: number;
-      distribution?: string;
-      priorityItems?: string[];
-      summary?: string;
-      suggestion?: string;
-    } | undefined);
+    const analysisData = streamEvent.payload?.analysis as
+      | {
+          completionRate?: number;
+          total?: number;
+          completed?: number;
+          pending?: number;
+          overdueCount?: number;
+          distribution?: string;
+          priorityItems?: string[];
+          summary?: string;
+          suggestion?: string;
+        }
+      | undefined;
+    type Distribution = '均匀' | '集中' | '稀疏';
+    const validDistributions: Distribution[] = ['均匀', '集中', '稀疏'];
     const analysis = analysisData
       ? {
           completionRate: analysisData.completionRate ?? 0,
@@ -338,7 +350,11 @@ export function handleChatStreamEvent({
           completed: analysisData.completed ?? 0,
           pending: analysisData.pending ?? 0,
           overdueCount: analysisData.overdueCount ?? 0,
-          distribution: analysisData.distribution ?? '均匀',
+          distribution: validDistributions.includes(
+            analysisData.distribution as Distribution,
+          )
+            ? (analysisData.distribution as Distribution)
+            : '均匀',
           priorityItems: analysisData.priorityItems ?? [],
           summary: analysisData.summary ?? '',
           suggestion: analysisData.suggestion ?? '',
@@ -393,9 +409,7 @@ export function handleChatStreamEvent({
     const finalType = streamEvent.payload?.type as string | undefined;
     if (finalType === 'chat' && runtime.accumulatedText) {
       if (runtime.detectedIntent === 'query_weather') {
-        const cleanText = stripRedactedThinkingBlocks(
-          runtime.accumulatedText,
-        );
+        const cleanText = stripRedactedThinkingBlocks(runtime.accumulatedText);
         const weatherData = parseWeatherCardData(cleanText);
         streamCompletedRef.current = true;
         setMessages((prev) =>
@@ -448,16 +462,18 @@ export function handleChatStreamEvent({
         ),
       );
     } else {
+      // Handle other final types like query_schedule, query_weather, etc.
+      // Only update status fields - don't overwrite content/card already set by previous events
       streamCompletedRef.current = true;
       setMessages((prev) =>
         prev.map((msg) =>
           msg.id === assistantMessageId
-            ? finishWebSearchLoading({
+            ? {
                 ...msg,
                 thinkingStatus: 'done',
-                answerStatus:
-                  msg.answerStatus === 'streaming' ? 'streaming' : 'done',
-              })
+                answerStatus: 'done',
+                isComplete: true,
+              }
             : msg,
         ),
       );

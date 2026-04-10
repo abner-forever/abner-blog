@@ -45,7 +45,7 @@ jobs:
           DB_DATABASE: ${{ secrets.DB_DATABASE_QA }}
           REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD_QA }}
           SMTP_PASS: ${{ secrets.SMTP_PASS_QA }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY_QA }}
+          MINIMAX_API_KEY: ${{ secrets.MINIMAX_API_KEY_QA }}
           CORS_ORIGINS: ${{ secrets.CORS_ORIGINS_QA }}
 
       - name: Deploy to Alibaba Cloud (QA)
@@ -95,7 +95,7 @@ jobs:
           DB_DATABASE: ${{ secrets.DB_DATABASE_ONLINE }}
           REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD_ONLINE }}
           SMTP_PASS: ${{ secrets.SMTP_PASS_ONLINE }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY_ONLINE }}
+          MINIMAX_API_KEY: ${{ secrets.MINIMAX_API_KEY_ONLINE }}
           CORS_ORIGINS: ${{ secrets.CORS_ORIGINS_ONLINE }}
 
       - name: Deploy to Alibaba Cloud (Online)

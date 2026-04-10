@@ -63,6 +63,15 @@ import { SocialModule } from './social/social.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { TrackEvent } from './entities/track-event.entity';
 import { PerformanceMetric } from './entities/performance-metric.entity';
+import { ShareSession } from './entities/share-session.entity';
+import { ChatShareModule } from './chat-share/chat-share.module';
+import { KnowledgeBaseModule } from './knowledge-base/knowledge-base.module';
+import { KnowledgeBase } from './entities/knowledge-base.entity';
+import { KnowledgeChunk } from './entities/knowledge-chunk.entity';
+import { MCPServersModule } from './mcp-servers/mcp-servers.module';
+import { MCPServer } from './entities/mcp-server.entity';
+import { SkillsModule } from './skills/skills.module';
+import { Skill } from './entities/skill.entity';
 
 @Module({
   imports: [
@@ -76,6 +85,7 @@ import { PerformanceMetric } from './entities/performance-metric.entity';
       username: process.env.DB_USERNAME || 'root',
       password: process.env.DB_PASSWORD || 'root',
       database: process.env.DB_DATABASE || 'blog',
+      charset: 'utf8mb4',
       entities: [
         User,
         UserResume,
@@ -112,6 +122,11 @@ import { PerformanceMetric } from './entities/performance-metric.entity';
         SystemAnnouncement,
         TrackEvent,
         PerformanceMetric,
+        ShareSession,
+        KnowledgeBase,
+        KnowledgeChunk,
+        MCPServer,
+        Skill,
       ],
       synchronize: process.env.NODE_ENV !== 'production',
     }),
@@ -136,6 +151,10 @@ import { PerformanceMetric } from './entities/performance-metric.entity';
     McpModule,
     SocialModule,
     AnalyticsModule,
+    ChatShareModule,
+    KnowledgeBaseModule,
+    MCPServersModule,
+    SkillsModule,
   ],
   controllers: [AppController],
   providers: [

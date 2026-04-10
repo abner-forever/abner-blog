@@ -30,8 +30,8 @@ const TopicDetail: React.FC = () => {
     queryKey: ['topicDetail', topicId],
     queryFn: async ({ pageParam }) => {
       const res = await topicsControllerFindOne(topicId, {
-        page: pageParam,
-        pageSize: PAGE_SIZE,
+        page: String(pageParam),
+        pageSize: String(PAGE_SIZE),
       });
       return res;
     },

@@ -5,6 +5,7 @@ import { AnalyticsModule } from '../../analytics/analytics.module';
 import { AuthModule } from '../../auth/auth.module';
 import { BlogsModule } from '../../blogs/blogs.module';
 import { CalendarModule } from '../../calendar/calendar.module';
+import { ChatShareModule } from '../../chat-share/chat-share.module';
 import { CommentsModule } from '../../comments/comments.module';
 import { FavoritesModule } from '../../favorites/favorites.module';
 import { HotsearchModule } from '../../hotsearch/hotsearch.module';
@@ -43,6 +44,7 @@ export const SWAGGER_PUBLIC_MODULES: Type<unknown>[] = [
   NoteCollectionsModule,
   AIModule,
   SocialModule,
+  ChatShareModule,
 ];
 
 /** 供「管理后台」独立 Swagger 文档扫描的模块 */

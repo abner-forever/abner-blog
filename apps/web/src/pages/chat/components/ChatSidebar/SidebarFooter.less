@@ -1,0 +1,152 @@
+.sidebar-footer {
+  padding: 8px 12px;
+
+  .sidebar-footer-divider {
+    height: 1px;
+    background: var(--skin-border-color, #e5e5e5);
+    margin-bottom: 8px;
+  }
+
+  .sidebar-footer-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .sidebar-user-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    color: var(--antd-colorTextSecondary, #666);
+    font-size: 13px;
+    width: 100%;
+    justify-content: flex-start;
+    height: auto;
+
+    &:hover {
+      background: rgba(0, 0, 0, 0.04);
+      color: var(--antd-colorText, #1a1a1a);
+    }
+
+    .user-avatar {
+      flex-shrink: 0;
+      background: var(--chat-primary, #10a37f);
+    }
+
+    .user-name {
+      flex: 1;
+      text-align: left;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  .sidebar-footer-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    color: var(--antd-colorTextSecondary, #666);
+    font-size: 13px;
+    justify-content: flex-start;
+
+    &:hover {
+      background: rgba(0, 0, 0, 0.04);
+      color: var(--antd-colorText, #1a1a1a);
+    }
+
+    &.active {
+      background: rgba(16, 163, 127, 0.1);
+      color: var(--chat-primary, #10a37f);
+    }
+  }
+}
+
+// User dropdown menu styles
+.user-dropdown-overlay {
+  .ant-dropdown-menu {
+    padding: 4px;
+    min-width: 200px;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+  }
+
+  .ant-dropdown-menu-item {
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-size: 13px;
+
+    &:hover {
+      background: rgba(0, 0, 0, 0.04);
+    }
+
+    &-danger {
+      color: #ef4444;
+
+      &:hover {
+        background: rgba(239, 68, 68, 0.08);
+      }
+    }
+  }
+
+  .theme-toggle-item,
+  .language-toggle-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-width: 120px;
+  }
+}
+
+// Collapsed sidebar user button (when sidebar is collapsed to just the toggle)
+.chat-sidebar.collapsed {
+  .sidebar-footer {
+    display: none;
+  }
+}
+
+// Collapsed state with toggle visible
+.chat-sidebar.collapsed ~ .sidebar-user-collapsed {
+  display: flex;
+}
+
+// Dark theme
+[data-theme="dark"] {
+  .sidebar-footer {
+    .sidebar-footer-divider {
+      background: #334155;
+    }
+
+    .sidebar-user-btn {
+      color: #94a3b8;
+
+      &:hover {
+        background: rgba(79, 70, 229, 0.15);
+        color: #e2e8f0;
+      }
+
+      .user-avatar {
+        background: rgba(79, 70, 229, 0.3);
+      }
+    }
+
+    .sidebar-footer-btn {
+      color: #94a3b8;
+
+      &:hover {
+        background: rgba(79, 70, 229, 0.15);
+        color: #e2e8f0;
+      }
+
+      &.active {
+        background: rgba(79, 70, 229, 0.2);
+        color: #818cf8;
+      }
+    }
+  }
+}

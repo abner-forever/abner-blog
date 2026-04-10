@@ -115,7 +115,7 @@ export const useAuth = () => {
         typeof window !== 'undefined'
           ? localStorage.getItem(AUTH_REFRESH_TOKEN_KEY)
           : null;
-      await authControllerLogout(rt ? { refresh_token: rt } : undefined);
+      await authControllerLogout({ refresh_token: rt || undefined });
     } catch {
       // 接口失败仍清除本地态，避免用户无法退出
     } finally {

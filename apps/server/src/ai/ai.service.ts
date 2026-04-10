@@ -27,6 +27,7 @@ import {
   type ThinkTagSplitState,
 } from './utils/think-tag-split';
 import { McpService } from '../mcp/mcp.service';
+import { KnowledgeBaseService } from '../knowledge-base/knowledge-base.service';
 
 export interface AIStreamEvent {
   event:
@@ -66,8 +67,34 @@ export class AIService {
     private readonly chatResponseService: AIChatResponseService,
     private readonly webSearchService: AIWebSearchService,
     private readonly mcpService: McpService,
+    private readonly knowledgeBaseService: KnowledgeBaseService,
   ) {
     // 兼容旧部署：允许通过用户配置或请求内 apiKey 注入。
+  }
+
+  /**
+   * 搜索用户知识库并构建上下文字符串
+   */
+  private async buildKnowledgeBaseContext(
+    message: string,
+    userId: number,
+  ): Promise<string> {
+    try {
+      const results = await this.knowledgeBaseService.search(
+        { query: message, topK: 3 },
+        userId,
+      );
+      if (results.length === 0) {
+        return '';
+      }
+      const contextParts = results.map(
+        (r, i) => `[知识库${i + 1}] ${r.content}`,
+      );
+      return `以下是知识库中相关信息，请结合回答：\n${contextParts.join('\n')}`;
+    } catch (error) {
+      this.logger.warn(`Knowledge base search failed: ${error}`);
+      return '';
+    }
   }
 
   /**
@@ -274,7 +301,14 @@ export class AIService {
           }
           promptForLlm = prepared.prompt;
         } else {
-          promptForLlm = this.chatResponseService.buildPrompt(message);
+          const kbContext = await this.buildKnowledgeBaseContext(
+            message,
+            userId,
+          );
+          const basePrompt = this.chatResponseService.buildPrompt(message);
+          promptForLlm = kbContext
+            ? `${kbContext}\n\n${basePrompt}`
+            : basePrompt;
         }
         const sessionKey = this.chatSessionService.getSessionKey(
           userId,

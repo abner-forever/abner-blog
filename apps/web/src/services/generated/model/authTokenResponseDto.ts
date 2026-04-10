@@ -8,9 +8,9 @@
 import type { UserProfileDto } from './userProfileDto';
 
 export interface AuthTokenResponseDto {
-  /** JWT 访问令牌 */
+  /** JWT 访问令牌（短期） */
   access_token: string;
-  /** JWT 刷新令牌 */
+  /** JWT 刷新令牌（长期，用于换取新的 access/refresh） */
   refresh_token: string;
   /** 用户信息 */
   user: UserProfileDto;

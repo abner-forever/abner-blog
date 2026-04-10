@@ -13,6 +13,7 @@ import { AIWeatherService } from './services/ai-weather.service';
 import { AIChatResponseService } from './services/ai-chat-response.service';
 import { AIWebSearchService } from './services/ai-web-search.service';
 import { McpModule } from '../mcp/mcp.module';
+import { KnowledgeBaseModule } from '../knowledge-base/knowledge-base.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { McpModule } from '../mcp/mcp.module';
     TodosModule,
     WeatherModule,
     McpModule,
+    KnowledgeBaseModule,
     TypeOrmModule.forFeature([UserAIConfig]),
   ],
   controllers: [AIController],

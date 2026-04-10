@@ -1,115 +1,30 @@
 .chat-page {
-  max-width: 1400px;
-  margin: 0 auto;
-  height: calc(100vh - 64px - 50px);
+  // Full width ChatGPT-style layout (no max-width, no padding)
+  width: 100vw;
+  height: 100vh;
   display: flex;
-  gap: 8px;
+  gap: 0;
   box-sizing: border-box;
   overflow: hidden;
-  padding: 24px;
 
   &.sidebar-collapsed {
-    .chat-container {
-      max-width: 1000px;
-      margin: 0 auto;
-    }
-  }
-}
-
-// 左侧边栏
-.chat-sidebar {
-  width: 280px;
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  background: var(--skin-card-bg, var(--antd-colorBgContainer, #fff));
-  border: 1px solid var(--skin-border-color, #e5e7eb);
-  border-radius: 12px;
-  overflow: hidden;
-  transition: width 0.2s ease;
-
-  &.collapsed {
-    width: 48px;
-
-    .sidebar-toggle {
-      justify-content: center;
-    }
-  }
-
-  .sidebar-toggle {
-    display: flex;
-    padding: 8px;
-    border-bottom: 1px solid var(--skin-border-color, #e5e7eb);
-
-    .ant-btn {
+    .chat-main {
       width: 100%;
     }
   }
-
-  .sidebar-content {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-
-  .sidebar-header {
-    padding: 12px;
-    border-bottom: 1px solid var(--skin-border-color, #e5e7eb);
-  }
-
-  .sidebar-list {
-    flex: 1;
-    overflow-y: auto;
-    padding: 8px;
-  }
-
-  .sidebar-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 12px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background 0.2s;
-    margin-bottom: 4px;
-
-    &:hover {
-      background: rgba(79, 70, 229, 0.08);
-
-      .sidebar-item-delete {
-        opacity: 1;
-      }
-    }
-
-    &.active {
-      background: rgba(79, 70, 229, 0.12);
-      color: var(--skin-primary, #4f46e5);
-    }
-
-    .sidebar-item-content {
-      flex: 1;
-      min-width: 0;
-
-      .sidebar-item-title {
-        font-size: 14px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-    }
-
-    .sidebar-item-delete {
-      opacity: 0;
-      transition: opacity 0.2s;
-      color: var(--antd-colorTextSecondary, #9ca3af);
-
-      &:hover {
-        color: #ef4444;
-      }
-    }
-  }
 }
+
+// Main chat area (replaces .chat-container)
+.chat-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  min-width: 0;
+}
+
+// 左侧边栏样式已移至 ChatSidebar.less
 
 // 设置聊天容器高度
 .chat-page {
@@ -123,32 +38,7 @@
   }
 }
 
-// 暗色主题下的边栏
-[data-theme="dark"] {
-  .chat-sidebar {
-    background: #1e293b;
-    border-color: #334155;
-
-    .sidebar-toggle {
-      border-color: #334155;
-    }
-
-    .sidebar-header {
-      border-color: #334155;
-    }
-
-    .sidebar-item {
-      &:hover {
-        background: rgba(79, 70, 229, 0.15);
-      }
-
-      &.active {
-        background: rgba(79, 70, 229, 0.2);
-        color: #818cf8;
-      }
-    }
-  }
-}
+// 暗色主题下的边栏样式已移至 ChatSidebar.less
 
 .chat-container {
   flex: 1;
@@ -174,9 +64,31 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 4px 8px;
-  border-bottom: 1px solid var(--skin-border-color, var(--antd-colorBorder, #e5e7eb));
+  padding: 0 16px;
+  height: 56px;
+  min-height: 56px;
+  border-bottom: 1px solid var(--skin-border-color, #e5e5e5);
   background: var(--antd-colorBgContainer, #fff);
+
+  .chat-header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .chat-header-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .model-selector {
+    min-width: 200px;
+
+    .ant-select-selector {
+      border-radius: 6px;
+    }
+  }
 
   .chat-title {
     display: flex;
@@ -221,17 +133,23 @@
   }
 
   .header-btn {
-    color: var(--antd-colorTextSecondary, #6b7280);
+    color: var(--antd-colorTextSecondary, #666);
     border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    .btn-text {
+      font-size: 13px;
+    }
 
     &:hover {
-      color: var(--skin-primary, #4f46e5);
-      background: rgba(79, 70, 229, 0.08);
+      color: var(--antd-colorText, #1a1a1a);
+      background: rgba(0, 0, 0, 0.04);
     }
 
     &.active {
-      color: var(--skin-primary, #4f46e5);
-      background: rgba(79, 70, 229, 0.12);
+      color: var(--chat-primary, #10a37f);
     }
   }
 }
@@ -1219,6 +1137,29 @@
   height: 0;
   opacity: 0;
   pointer-events: none;
+}
+
+.knowledge-base-panel-wrapper {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 380px;
+  height: 100vh;
+  z-index: 100;
+  animation: slideInRight 0.2s ease-out;
+
+  @media (max-width: 768px) {
+    width: 100%;
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
 }
 
 .chat-input-area {

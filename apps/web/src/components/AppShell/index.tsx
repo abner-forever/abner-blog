@@ -17,6 +17,9 @@ import { routeConfig } from '@/routes';
 
 const { Content } = Layout;
 
+/** 独立页面路径（无导航栏、无宽度限制） */
+const STANDALONE_PATHS = ['/chat', '/chat/share'] as const;
+
 export interface AppShellProps {
   i18n: i18n;
   loginModalState: { open: boolean };
@@ -36,38 +39,69 @@ const AppShell: React.FC<AppShellProps> = ({
   const hasCustomMobileHeader = CUSTOM_MOBILE_HEADER_PATHS.some((path) =>
     location.pathname.startsWith(path),
   );
+  const isStandalonePage = STANDALONE_PATHS.some((path) =>
+    location.pathname.startsWith(path),
+  );
 
   return (
     <Layout className="app-layout">
-      {isMobile && !isTabPage && !hasCustomMobileHeader && <MobilePageHeader />}
-      {!isMobile && <Navbar />}
-      <Content className={`app-content ${isMobile && isTabPage ? 'no-header' : ''}`}>
-        <div className="main-container">
+      {isMobile && !isTabPage && !hasCustomMobileHeader && !isStandalonePage && <MobilePageHeader />}
+      {!isMobile && !isStandalonePage && <Navbar />}
+      <Content className={`app-content ${isMobile && isTabPage ? 'no-header' : ''} ${isStandalonePage ? 'standalone' : ''}`}>
+        {isStandalonePage ? (
           <ErrorBoundary resetKey={navKey}>
             <Suspense fallback={<Loading page tip={i18n.t('common.loading')} />}>
               <PageTransition>
                 <Routes>
-                  {routeConfig.map((route) => (
-                    <Route
-                      key={route.path}
-                      path={route.path}
-                      element={
-                        route.requireAuth ? (
-                          <PrivateRoute>{route.element}</PrivateRoute>
-                        ) : (
-                          route.element
-                        )
-                      }
-                    />
-                  ))}
-                  <Route path="*" element={<div>404</div>} />
+                  {routeConfig
+                    .filter((route) => route.path.startsWith('/chat'))
+                    .map((route) => (
+                      <Route
+                        key={route.path}
+                        path={route.path}
+                        element={
+                          route.requireAuth ? (
+                            <PrivateRoute>{route.element}</PrivateRoute>
+                          ) : (
+                            route.element
+                          )
+                        }
+                      />
+                    ))}
                 </Routes>
               </PageTransition>
             </Suspense>
           </ErrorBoundary>
-        </div>
+        ) : (
+          <div className="main-container">
+            <ErrorBoundary resetKey={navKey}>
+              <Suspense fallback={<Loading page tip={i18n.t('common.loading')} />}>
+                <PageTransition>
+                  <Routes>
+                    {routeConfig
+                      .filter((route) => !route.path.startsWith('/chat'))
+                      .map((route) => (
+                        <Route
+                          key={route.path}
+                          path={route.path}
+                          element={
+                            route.requireAuth ? (
+                              <PrivateRoute>{route.element}</PrivateRoute>
+                            ) : (
+                              route.element
+                            )
+                          }
+                        />
+                      ))}
+                    <Route path="*" element={<div>404</div>} />
+                  </Routes>
+                </PageTransition>
+              </Suspense>
+            </ErrorBoundary>
+          </div>
+        )}
       </Content>
-      <SiteFooter />
+      {!isStandalonePage && <SiteFooter />}
       {isMobile && isTabPage && <MobileTabBar />}
       <LoginModal open={loginModalState.open} onClose={onCloseLoginModal} />
     </Layout>
