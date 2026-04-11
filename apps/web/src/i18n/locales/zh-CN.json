@@ -226,7 +226,8 @@
     "chocolate": "浓郁巧克力",
     "mint": "清新薄荷",
     "lavender": "浪漫薰衣草",
-    "claude-code": "Claude Code"
+    "claude-code": "Claude Code",
+    "github-chatgpt": "GitHub ChatGPT"
   },
   "interview": {
     "title": "前端面试复习大纲",
@@ -670,6 +671,7 @@
     "namePlaceholder": "请输入知识库名称",
     "description": "描述",
     "descriptionPlaceholder": "请输入知识库描述",
+    "noDescription": "暂无描述",
     "mcpServers": "MCP 服务器",
     "installedServers": "已安装",
     "marketplace": "市场",
@@ -688,11 +690,13 @@
     "loadFailed": "加载失败",
     "createSuccess": "创建成功",
     "createFailed": "创建失败",
+    "updateSuccess": "更新成功",
     "deleteSuccess": "删除成功",
     "deleteFailed": "删除失败",
     "uploadSuccess": "上传成功",
     "uploadFailed": "上传失败",
     "searchFailed": "搜索失败",
+    "relevance": "相关度",
     "installSuccess": "安装成功",
     "installFailed": "安装失败",
     "uninstallSuccess": "卸载成功",

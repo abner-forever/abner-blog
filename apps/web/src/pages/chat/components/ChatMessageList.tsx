@@ -1,6 +1,6 @@
 import React, { memo } from 'react';
-import { Avatar, Spin } from 'antd';
-import { RobotOutlined, UserOutlined } from '@ant-design/icons';
+import { Spin, Tooltip } from 'antd';
+import { CopyOutlined, ReloadOutlined } from '@ant-design/icons';
 import AssistantCardRenderer from './ResultCards';
 import MarkdownRenderer from './MarkdownRenderer';
 import ThinkingTypingView from './ThinkingTypingView';
@@ -9,33 +9,35 @@ import type { Message } from '../types';
 interface Props {
   messages: Message[];
   loading: boolean;
-  userAvatar?: string;
   isDark: boolean;
   expandedThinkingMessageIds: Set<string>;
   onToggleThinkingExpanded: (messageId: string) => void;
   onCopyMessage: (content: string, e: React.MouseEvent) => void;
+  onRegenerateMessage: (assistantMessageId: string) => void;
   messagesEndRef: React.Ref<HTMLDivElement>;
   thinkingProcessLabel: string;
   webSearchRetrievingLabel: string;
   expandThinkingAriaLabel: string;
   collapseThinkingAriaLabel: string;
-  copyLabel: string;
+  copyAriaLabel: string;
+  regenerateAriaLabel: string;
 }
 
 const ChatMessageList: React.FC<Props> = memo(function ChatMessageList({
   messages,
   loading,
-  userAvatar,
   isDark,
   expandedThinkingMessageIds,
   onToggleThinkingExpanded,
   onCopyMessage,
+  onRegenerateMessage,
   messagesEndRef,
   thinkingProcessLabel,
   webSearchRetrievingLabel,
   expandThinkingAriaLabel,
   collapseThinkingAriaLabel,
-  copyLabel,
+  copyAriaLabel,
+  regenerateAriaLabel,
 }) {
   return (
     <div className="chat-messages">
@@ -44,22 +46,6 @@ const ChatMessageList: React.FC<Props> = memo(function ChatMessageList({
           key={message.id}
           className={`message ${message.role === 'user' ? 'user' : 'assistant'}`}
         >
-          <div className="message-avatar">
-            {message.role === 'user' ? (
-              <Avatar
-                size={36}
-                src={userAvatar || undefined}
-                icon={<UserOutlined />}
-                style={{ backgroundColor: '#95ec69' }}
-              />
-            ) : (
-              <Avatar
-                size={36}
-                icon={<RobotOutlined />}
-                style={{ backgroundColor: '#10b981' }}
-              />
-            )}
-          </div>
           <div className="message-content">
             <div
               className={`message-bubble ${
@@ -157,12 +143,24 @@ const ChatMessageList: React.FC<Props> = memo(function ChatMessageList({
               message.content &&
               message.isComplete !== false && (
                 <div className="message-toolbar">
-                  <button
-                    className="msg-copy-btn"
-                    onClick={(e) => onCopyMessage(message.content, e)}
-                  >
-                    {copyLabel}
-                  </button>
+                  <Tooltip title={regenerateAriaLabel}>
+                    <button
+                      className="msg-copy-btn"
+                      onClick={() => onRegenerateMessage(message.id)}
+                      aria-label={regenerateAriaLabel}
+                    >
+                      <ReloadOutlined />
+                    </button>
+                  </Tooltip>
+                  <Tooltip title={copyAriaLabel}>
+                    <button
+                      className="msg-copy-btn"
+                      onClick={(e) => onCopyMessage(message.content, e)}
+                      aria-label={copyAriaLabel}
+                    >
+                      <CopyOutlined />
+                    </button>
+                  </Tooltip>
                 </div>
               )}
           </div>

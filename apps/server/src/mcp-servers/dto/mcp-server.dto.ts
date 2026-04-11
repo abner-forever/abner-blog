@@ -73,6 +73,9 @@ export class MCPServerResponseDto {
   @ApiProperty({ description: '可用工具列表' })
   allowedTools: string[];
 
+  @ApiPropertyOptional({ description: '配置信息' })
+  config?: Record<string, unknown>;
+
   @ApiProperty({ description: '创建时间' })
   createdAt: Date;
 }
@@ -92,6 +95,12 @@ export class MarketplaceMCPServerDto {
 
   @ApiProperty({ description: '可用工具列表' })
   tools: string[];
+
+  @ApiProperty({
+    description: '来源（builtin=系统内置，marketplace=市场下载）',
+    enum: ['builtin', 'marketplace'],
+  })
+  source: 'builtin' | 'marketplace';
 
   @ApiProperty({ description: '是否已安装' })
   isInstalled: boolean;

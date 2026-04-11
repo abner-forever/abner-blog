@@ -18,7 +18,8 @@ export type SkinType =
   | 'chocolate'
   | 'mint'
   | 'lavender'
-  | 'claude-code';
+  | 'claude-code'
+  | 'github-chatgpt';
 
 interface ThemeState {
   theme: ThemeType;
@@ -57,6 +58,7 @@ const getInitialSkin = (): SkinType => {
     'mint',
     'lavender',
     'claude-code',
+    'github-chatgpt',
   ];
   if (savedSkin && validSkins.includes(savedSkin)) {
     return savedSkin;
@@ -94,6 +96,7 @@ export const skinCategories = {
       'mint',
       'lavender',
       'claude-code',
+      'github-chatgpt',
     ] as SkinType[],
   },
 };

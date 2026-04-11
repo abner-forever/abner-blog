@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { McpController } from './mcp.controller';
+import { McpGithubController } from './mcp-github.controller';
 import { McpService } from './mcp.service';
 import {
   McpOauthCompatController,
@@ -24,7 +25,12 @@ import { AuthModule } from '../auth/auth.module';
     UsersModule,
     AuthModule,
   ],
-  controllers: [McpController, McpOauthController, McpOauthCompatController],
+  controllers: [
+    McpController,
+    McpGithubController,
+    McpOauthController,
+    McpOauthCompatController,
+  ],
   providers: [
     McpService,
     McpRequestContextService,

@@ -49,18 +49,25 @@
     align-items: center;
     gap: 8px;
     padding: 8px 12px;
-    border-radius: 6px;
+    border-radius: 10px;
+    border: 1px solid transparent;
     color: var(--antd-colorTextSecondary, #666);
     font-size: 13px;
     justify-content: flex-start;
 
     &:hover {
-      background: rgba(0, 0, 0, 0.04);
+      background: color-mix(in srgb, var(--skin-primary) 8%, transparent);
+      border-color: color-mix(in srgb, var(--skin-primary) 20%, transparent);
       color: var(--antd-colorText, #1a1a1a);
     }
 
     &.active {
-      background: rgba(16, 163, 127, 0.1);
+      background: linear-gradient(
+        135deg,
+        color-mix(in srgb, var(--skin-primary) 18%, transparent) 0%,
+        color-mix(in srgb, var(--skin-primary) 10%, transparent) 100%
+      );
+      border-color: color-mix(in srgb, var(--skin-primary) 30%, transparent);
       color: var(--chat-primary, #10a37f);
     }
   }
@@ -126,12 +133,12 @@
       color: #94a3b8;
 
       &:hover {
-        background: rgba(79, 70, 229, 0.15);
+        background: color-mix(in srgb, var(--skin-primary) 20%, transparent);
         color: #e2e8f0;
       }
 
       .user-avatar {
-        background: rgba(79, 70, 229, 0.3);
+        background: color-mix(in srgb, var(--skin-primary) 30%, transparent);
       }
     }
 
@@ -139,13 +146,19 @@
       color: #94a3b8;
 
       &:hover {
-        background: rgba(79, 70, 229, 0.15);
+        background: color-mix(in srgb, var(--skin-primary) 20%, transparent);
+        border-color: color-mix(in srgb, var(--skin-primary) 34%, transparent);
         color: #e2e8f0;
       }
 
       &.active {
-        background: rgba(79, 70, 229, 0.2);
-        color: #818cf8;
+        background: linear-gradient(
+          135deg,
+          color-mix(in srgb, var(--skin-primary) 34%, transparent),
+          color-mix(in srgb, var(--skin-primary) 20%, transparent)
+        );
+        border-color: color-mix(in srgb, var(--skin-primary) 44%, transparent);
+        color: color-mix(in srgb, var(--skin-primary) 78%, white);
       }
     }
   }

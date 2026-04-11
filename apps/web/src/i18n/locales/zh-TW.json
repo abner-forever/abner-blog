@@ -226,7 +226,8 @@
     "chocolate": "濃郁巧克力",
     "mint": "清新薄荷",
     "lavender": "浪漫薰衣草",
-    "claude-code": "Claude Code"
+    "claude-code": "Claude Code",
+    "github-chatgpt": "GitHub ChatGPT"
   },
   "common": {
     "loading": "頁面載入中...",
@@ -668,6 +669,7 @@
     "namePlaceholder": "請輸入知識庫名稱",
     "description": "描述",
     "descriptionPlaceholder": "請輸入描述",
+    "noDescription": "暫無描述",
     "mcpServers": "MCP 服務器",
     "installedServers": "已安裝",
     "marketplace": "市場",
@@ -686,11 +688,13 @@
     "loadFailed": "載入失敗",
     "createSuccess": "創建成功",
     "createFailed": "創建失敗",
+    "updateSuccess": "更新成功",
     "deleteSuccess": "刪除成功",
     "deleteFailed": "刪除失敗",
     "uploadSuccess": "上傳成功",
     "uploadFailed": "上傳失敗",
     "searchFailed": "檢索失敗",
+    "relevance": "相關度",
     "installSuccess": "安裝成功",
     "installFailed": "安裝失敗",
     "uninstallSuccess": "卸載成功",

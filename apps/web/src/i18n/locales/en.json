@@ -226,7 +226,8 @@
     "chocolate": "Chocolate",
     "mint": "Mint",
     "lavender": "Lavender",
-    "claude-code": "Claude Code"
+    "claude-code": "Claude Code",
+    "github-chatgpt": "GitHub ChatGPT"
   },
   "common": {
     "loading": "Loading...",
@@ -669,6 +670,7 @@
     "namePlaceholder": "Enter knowledge base name",
     "description": "Description",
     "descriptionPlaceholder": "Enter description",
+    "noDescription": "No description",
     "mcpServers": "MCP Servers",
     "installedServers": "Installed",
     "marketplace": "Marketplace",
@@ -687,11 +689,13 @@
     "loadFailed": "Failed to load",
     "createSuccess": "Created successfully",
     "createFailed": "Failed to create",
+    "updateSuccess": "Updated successfully",
     "deleteSuccess": "Deleted successfully",
     "deleteFailed": "Failed to delete",
     "uploadSuccess": "Uploaded successfully",
     "uploadFailed": "Failed to upload",
     "searchFailed": "Search failed",
+    "relevance": "Relevance",
     "installSuccess": "Installed successfully",
     "installFailed": "Failed to install",
     "uninstallSuccess": "Uninstalled successfully",

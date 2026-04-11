@@ -14,10 +14,46 @@ const CAPTCHA_OK_CODE = 1;
 @Injectable()
 export class TencentCaptchaService {
   private readonly logger = new Logger(TencentCaptchaService.name);
+  private runtimeBypassUntilMs = 0;
 
   constructor(private readonly configService: ConfigService) {}
 
+  /**
+   * 显式关闭人机验证（套餐过期等场景）：
+   * - TENCENT_CAPTCHA_DISABLED=true / 1 / yes / on
+   * - TENCENT_CAPTCHA_ENABLED=false / 0 / no / off
+   * 此时 /auth/captcha-config 返回 enabled:false，登录/发码不再要求 ticket。
+   */
+  private isExplicitlyDisabled(): boolean {
+    const disabled = this.configService
+      .get<string>('TENCENT_CAPTCHA_DISABLED')
+      ?.trim()
+      .toLowerCase();
+    if (disabled && ['true', '1', 'yes', 'on'].includes(disabled)) {
+      return true;
+    }
+    const enabled = this.configService
+      .get<string>('TENCENT_CAPTCHA_ENABLED')
+      ?.trim()
+      .toLowerCase();
+    if (enabled && ['false', '0', 'no', 'off'].includes(enabled)) {
+      return true;
+    }
+    return false;
+  }
+
+  private isRuntimeBypassed(): boolean {
+    return this.runtimeBypassUntilMs > Date.now();
+  }
+
+  private markRuntimeBypass(minutes = 30): void {
+    this.runtimeBypassUntilMs = Date.now() + minutes * 60 * 1000;
+  }
+
   isEnabled(): boolean {
+    if (this.isExplicitlyDisabled() || this.isRuntimeBypassed()) {
+      return false;
+    }
     const secretId = this.configService.get<string>('TENCENTCLOUD_SECRET_ID');
     const secretKey = this.configService.get<string>('TENCENTCLOUD_SECRET_KEY');
     const appId = this.configService.get<string>('TENCENT_CAPTCHA_APP_ID');
@@ -44,9 +80,10 @@ export class TencentCaptchaService {
   }
 
   getPublicConfig(): CaptchaConfigResponseDto {
+    const enabled = this.isEnabled();
     return {
-      enabled: this.isEnabled(),
-      captchaAppId: this.isEnabled() ? this.getCaptchaAppId() : null,
+      enabled,
+      captchaAppId: enabled ? this.getCaptchaAppId() : null,
     };
   }
 
@@ -110,6 +147,15 @@ export class TencentCaptchaService {
       });
 
       if (res.CaptchaCode !== CAPTCHA_OK_CODE) {
+        const codeText = String(res.CaptchaCode ?? '');
+        const msgText = String(res.CaptchaMsg ?? '');
+        if (this.shouldBypassForQuotaOrServiceIssue(`${codeText} ${msgText}`)) {
+          this.markRuntimeBypass();
+          this.logger.warn(
+            `Captcha quota/service issue detected from response, bypass and disable captcha for 30 minutes: code=${codeText} msg=${msgText}`,
+          );
+          return;
+        }
         this.logger.warn(
           `Captcha verify failed: code=${String(res.CaptchaCode)} msg=${res.CaptchaMsg ?? ''}`,
         );
@@ -118,6 +164,13 @@ export class TencentCaptchaService {
     } catch (err: unknown) {
       if (err instanceof BadRequestException) {
         throw err;
+      }
+      if (this.shouldBypassForQuotaOrServiceIssue(err)) {
+        this.markRuntimeBypass();
+        this.logger.warn(
+          `Captcha service unavailable or quota expired, bypass verification and disable captcha for 30 minutes: ${this.stringifyCaptchaError(err)}`,
+        );
+        return;
       }
       const errDetail =
         err instanceof Error
@@ -128,5 +181,39 @@ export class TencentCaptchaService {
       this.logger.error('Tencent DescribeCaptchaResult error', errDetail);
       throw new BadRequestException('人机验证校验失败，请稍后重试');
     }
+  }
+
+  private shouldBypassForQuotaOrServiceIssue(input: unknown): boolean {
+    const message = this.stringifyCaptchaError(input).toLowerCase();
+    return (
+      message.includes('resourceinsufficient') ||
+      message.includes('insufficient') ||
+      message.includes('quota') ||
+      message.includes('balance') ||
+      message.includes('套餐') ||
+      message.includes('余量') ||
+      message.includes('额度') ||
+      message.includes('欠费') ||
+      message.includes('captchaservice') ||
+      message.includes('service unavailable')
+    );
+  }
+
+  private stringifyCaptchaError(err: unknown): string {
+    if (err instanceof Error) {
+      return `${err.name}: ${err.message}`;
+    }
+    if (typeof err === 'object' && err !== null) {
+      try {
+        return JSON.stringify(err);
+      } catch {
+        return 'captcha_error_object';
+      }
+    }
+    if (typeof err === 'string') return err;
+    if (typeof err === 'number' || typeof err === 'boolean') {
+      return `${err}`;
+    }
+    return 'unknown_error';
   }
 }

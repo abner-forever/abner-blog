@@ -34,6 +34,7 @@ const skinOptions: { value: SkinType; label: string; emoji: string }[] = [
   { value: 'mint', label: '清新薄荷', emoji: '🌿' },
   { value: 'lavender', label: '浪漫薰衣草', emoji: '💜' },
   { value: 'claude-code', label: 'Claude Code', emoji: '🧡' },
+  { value: 'github-chatgpt', label: 'GitHub ChatGPT', emoji: '🐙' },
 ];
 
 const skinPreviewStyles: Record<
@@ -55,6 +56,7 @@ const skinPreviewStyles: Record<
   mint: { gradient: 'linear-gradient(135deg, #00d9a5 0%, #7bed9f 50%, #70a1ff 100%)', glow: '0 0 40px rgba(0, 217, 165, 0.3)' },
   lavender: { gradient: 'linear-gradient(135deg, #a855f7 0%, #c084fc 50%, #e879f9 100%)', glow: '0 0 40px rgba(168, 85, 247, 0.3)' },
   'claude-code': { gradient: 'linear-gradient(135deg, #d97757 0%, #c96442 100%)', glow: '0 0 28px rgba(217, 119, 87, 0.22)' },
+  'github-chatgpt': { gradient: 'linear-gradient(135deg, #218bff 0%, #0969da 100%)', glow: '0 0 24px rgba(9, 105, 218, 0.24)' },
 };
 
 const SkinPicker: React.FC<SkinPickerProps> = ({ visible, onClose }) => {

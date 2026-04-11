@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useLayoutEffect, useMemo, useRef, memo } from 'react';
 import {
   Button,
   Input,
@@ -11,6 +11,7 @@ import {
   Empty,
   Spin,
   Progress,
+  Tooltip,
 } from 'antd';
 import {
   DatabaseOutlined,
@@ -19,6 +20,7 @@ import {
   SearchOutlined,
   PlusOutlined,
   FileTextOutlined,
+  EditOutlined,
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import {
@@ -27,6 +29,7 @@ import {
   type KnowledgeChunkResponse,
   type SearchResult,
 } from '@services/knowledge-base';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import './KnowledgeBasePanel.less';
 
 interface Props {
@@ -48,6 +51,124 @@ const fixFilenameEncoding = (filename: string): string => {
   return filename;
 };
 
+/** 首帧估算行高（含底部间距）；真实高度由 measureElement 测量 */
+const CHUNK_ROW_ESTIMATE_HEIGHT = 96;
+
+/**
+ * 列表可视区高度：用视口算，不用量 DOM。
+ * 旧方案用 ResizeObserver 量 virtual-host 时，VirtualList 先按较小 height 渲染会把 flex 父级压扁，读数常卡在 ~220px，和大屏无关。
+ */
+const CHUNKS_LIST_VIEWPORT_MIN = 320;
+const CHUNKS_LIST_VIEWPORT_MAX = 780;
+const CHUNKS_LIST_HEIGHT_OFFSET = 200;
+
+const resolveChunksListViewportHeight = (): number => {
+  if (typeof window === 'undefined') {
+    return 560;
+  }
+  return Math.min(
+    CHUNKS_LIST_VIEWPORT_MAX,
+    Math.max(CHUNKS_LIST_VIEWPORT_MIN, Math.floor(window.innerHeight - CHUNKS_LIST_HEIGHT_OFFSET)),
+  );
+};
+
+const getChunkListTitle = (chunk: KnowledgeChunkResponse): string => {
+  const fallback = `文本块 #${chunk.chunkIndex + 1}`;
+  if (!chunk.metadata) {
+    return fallback;
+  }
+  try {
+    const raw = JSON.parse(chunk.metadata) as { fileName?: string };
+    const name = typeof raw.fileName === 'string' ? fixFilenameEncoding(raw.fileName) : '';
+    return name.trim() ? name : fallback;
+  } catch {
+    return fallback;
+  }
+};
+
+interface KnowledgeChunksVirtualListProps {
+  chunks: KnowledgeChunkResponse[];
+  height: number;
+  onDeleteChunk: (chunkId: string) => void;
+}
+
+const KnowledgeChunksVirtualList: React.FC<KnowledgeChunksVirtualListProps> = memo(
+  function KnowledgeChunksVirtualList({ chunks, height, onDeleteChunk }) {
+    const { t } = useTranslation();
+    const scrollRef = useRef<HTMLDivElement>(null);
+
+    const overscan = useMemo(
+      () => Math.min(48, Math.max(10, Math.ceil(height / CHUNK_ROW_ESTIMATE_HEIGHT) + 6)),
+      [height],
+    );
+
+    const virtualizer = useVirtualizer({
+      count: chunks.length,
+      getScrollElement: () => scrollRef.current,
+      estimateSize: () => CHUNK_ROW_ESTIMATE_HEIGHT,
+      overscan,
+      getItemKey: (index) => chunks[index]?.id ?? index,
+    });
+
+    return (
+      <div
+        ref={scrollRef}
+        className="kb-chunks-tanstack-scroll"
+        style={{ height, width: '100%' }}
+      >
+        <div
+          className="kb-chunks-tanstack-inner"
+          style={{
+            height: virtualizer.getTotalSize(),
+            width: '100%',
+            position: 'relative',
+          }}
+        >
+          {virtualizer.getVirtualItems().map((virtualRow) => {
+            const chunk = chunks[virtualRow.index];
+            return (
+              <div
+                key={virtualRow.key}
+                ref={virtualizer.measureElement}
+                data-index={virtualRow.index}
+                className="kb-chunks-virtual-row"
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  transform: `translateY(${virtualRow.start}px)`,
+                }}
+              >
+                <div className="kb-chunks-virtual-row__shell">
+                  <div className="kb-chunks-virtual-row__body">
+                    <div className="kb-chunks-virtual-row__title">{getChunkListTitle(chunk)}</div>
+                    <div className="kb-chunks-virtual-row__snippet">
+                      {chunk.content.length > 200 ? `${chunk.content.slice(0, 200)}...` : chunk.content}
+                    </div>
+                  </div>
+                  <div className="kb-chunks-virtual-row__actions">
+                    <Popconfirm
+                      title={t('chat.deleteChunkConfirm') || '确定删除？'}
+                      onConfirm={() => onDeleteChunk(chunk.id)}
+                      okText={t('common.ok')}
+                      cancelText={t('common.cancel')}
+                    >
+                      <Button size="small" danger icon={<DeleteOutlined />}>
+                        {t('common.delete')}
+                      </Button>
+                    </Popconfirm>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  },
+);
+
 const KnowledgeBasePanel: React.FC<Props> = ({ onClose }) => {
   const { t } = useTranslation();
   const [knowledgeBases, setKnowledgeBases] = useState<KnowledgeBaseResponse[]>([]);
@@ -56,6 +177,9 @@ const KnowledgeBasePanel: React.FC<Props> = ({ onClose }) => {
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [searching, setSearching] = useState(false);
   const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editingKb, setEditingKb] = useState<KnowledgeBaseResponse | null>(null);
+  const [savingEdit, setSavingEdit] = useState(false);
   const [selectedKb, setSelectedKb] = useState<KnowledgeBaseResponse | null>(null);
   const [chunksModalOpen, setChunksModalOpen] = useState(false);
   const [chunks, setChunks] = useState<KnowledgeChunkResponse[]>([]);
@@ -63,13 +187,20 @@ const KnowledgeBasePanel: React.FC<Props> = ({ onClose }) => {
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [uploadingKbId, setUploadingKbId] = useState<string | null>(null);
   const [form] = Form.useForm();
+  const [editForm] = Form.useForm();
+  const [chunksListViewportHeight, setChunksListViewportHeight] = useState(resolveChunksListViewportHeight);
+
+  const formatRelevance = (score: number): string => {
+    const normalizedScore = Number.isFinite(score) ? Math.min(1, Math.max(0, score)) : 0;
+    return `${(normalizedScore * 100).toFixed(1)}%`;
+  };
 
   const loadKnowledgeBases = useCallback(async () => {
     setLoading(true);
     try {
       const data = await knowledgeBaseService.getAll();
       setKnowledgeBases(data);
-    } catch (err) {
+    } catch (_err) {
       message.error(t('chat.loadFailed') || '加载知识库失败');
     } finally {
       setLoading(false);
@@ -80,6 +211,18 @@ const KnowledgeBasePanel: React.FC<Props> = ({ onClose }) => {
     loadKnowledgeBases();
   }, [loadKnowledgeBases]);
 
+  useLayoutEffect(() => {
+    if (!chunksModalOpen || chunksLoading || chunks.length === 0) {
+      return undefined;
+    }
+    const update = () => {
+      setChunksListViewportHeight(resolveChunksListViewportHeight());
+    };
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, [chunksModalOpen, chunksLoading, chunks.length]);
+
   const handleCreate = async (values: { name: string; description?: string }) => {
     try {
       await knowledgeBaseService.create(values);
@@ -87,7 +230,7 @@ const KnowledgeBasePanel: React.FC<Props> = ({ onClose }) => {
       setCreateModalOpen(false);
       form.resetFields();
       loadKnowledgeBases();
-    } catch (err) {
+    } catch (_err) {
       message.error(t('chat.createFailed') || '创建失败');
     }
   };
@@ -100,8 +243,48 @@ const KnowledgeBasePanel: React.FC<Props> = ({ onClose }) => {
       if (selectedKb?.id === kb.id) {
         setSelectedKb(null);
       }
-    } catch (err) {
+    } catch (_err) {
       message.error(t('chat.deleteFailed') || '删除失败');
+    }
+  };
+
+  const handleOpenEditModal = (kb: KnowledgeBaseResponse) => {
+    setEditingKb(kb);
+    editForm.setFieldsValue({
+      name: kb.name,
+      description: kb.description || '',
+    });
+    setEditModalOpen(true);
+  };
+
+  const handleSubmitEdit = async (values: { name: string; description?: string }) => {
+    if (!editingKb) return;
+    const nextName = values.name.trim();
+    const nextDescription = (values.description || '').trim();
+    if (!nextName) {
+      message.warning(t('chat.nameRequired') || '请输入知识库名称');
+      return;
+    }
+    setSavingEdit(true);
+    try {
+      await knowledgeBaseService.update(editingKb.id, {
+        name: nextName,
+        description: nextDescription,
+      });
+      message.success(t('chat.updateSuccess') || '更新成功');
+      setEditModalOpen(false);
+      setEditingKb(null);
+      editForm.resetFields();
+      await loadKnowledgeBases();
+      if (selectedKb?.id === editingKb.id) {
+        setSelectedKb((prev) =>
+          prev ? { ...prev, name: nextName, description: nextDescription } : prev
+        );
+      }
+    } catch (_err) {
+      message.error(t('chat.updateFailed') || '更新失败');
+    } finally {
+      setSavingEdit(false);
     }
   };
 
@@ -162,7 +345,7 @@ const KnowledgeBasePanel: React.FC<Props> = ({ onClose }) => {
         topK: 5,
       });
       setSearchResults(results);
-    } catch (err) {
+    } catch (_err) {
       message.error(t('chat.searchFailed') || '搜索失败');
     } finally {
       setSearching(false);
@@ -174,7 +357,7 @@ const KnowledgeBasePanel: React.FC<Props> = ({ onClose }) => {
     try {
       const data = await knowledgeBaseService.getChunks(kbId);
       setChunks(data);
-    } catch (err) {
+    } catch (_err) {
       message.error(t('chat.loadChunksFailed') || '加载chunks失败');
     } finally {
       setChunksLoading(false);
@@ -197,7 +380,7 @@ const KnowledgeBasePanel: React.FC<Props> = ({ onClose }) => {
         const updated = await knowledgeBaseService.getAll();
         setKnowledgeBases(updated);
       }
-    } catch (err) {
+    } catch (_err) {
       message.error(t('chat.deleteChunkFailed') || '删除失败');
     }
   };
@@ -245,7 +428,9 @@ const KnowledgeBasePanel: React.FC<Props> = ({ onClose }) => {
                     <FileTextOutlined />
                     <span className="result-kb-name">{result.knowledgeBaseName}</span>
                     <span className="result-file-name">{result.metadata ? fixFilenameEncoding(JSON.parse(result.metadata).fileName) : ''}</span>
-                    <span className="result-score">{(result.score * 100).toFixed(1)}%</span>
+                    <span className="result-score">
+                      {t('chat.relevance')}: {formatRelevance(result.score)}
+                    </span>
                   </div>
                   <div className="result-content">{result.content}</div>
                 </div>
@@ -284,64 +469,88 @@ const KnowledgeBasePanel: React.FC<Props> = ({ onClose }) => {
                   className={`kb-item ${selectedKb?.id === kb.id ? 'selected' : ''}`}
                   onClick={() => setSelectedKb(kb)}
                 >
-                  <List.Item.Meta
-                    avatar={<DatabaseOutlined />}
-                    title={kb.name}
-                    description={
-                      <span>
-                        {kb.chunkCount} 文本块 |{' '}
-                        <span className={`status-badge status-${kb.status}`}>
-                          {kb.status === 'active' ? t('common.active') : t('common.inactive')}
-                        </span>
-                      </span>
-                    }
-                  />
-                  <div className="kb-actions">
-                    <Button
-                      size="small"
-                      icon={<FileTextOutlined />}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        void handleViewChunks(kb);
-                      }}
-                    >
-                      {t('chat.viewChunks')}
-                    </Button>
-                    <Upload
-                      showUploadList={false}
-                      beforeUpload={(file) => {
-                        void handleUpload(kb.id, file);
-                        return false;
-                      }}
-                      accept=".pdf,.txt,.md,.docx"
-                    >
-                      <Button size="small" icon={<UploadOutlined />}>
-                        {t('chat.upload')}
-                      </Button>
-                    </Upload>
-                    <Popconfirm
-                      title={t('chat.deleteConfirm')}
-                      onConfirm={(e) => {
-                        e.stopPropagation();
-                        void handleDelete(kb);
-                      }}
-                      okText={t('common.ok')}
-                      cancelText={t('common.cancel')}
-                    >
+                  <div className="kb-card">
+                    <div className="kb-main">
+                      <div className="kb-icon">
+                        <DatabaseOutlined />
+                      </div>
+                      <div className="kb-content">
+                        <div className="kb-title-row">
+                          <span className="kb-title">{kb.name}</span>
+                          <Tooltip title={t('common.edit')}>
+                            <Button
+                              type="text"
+                              size="small"
+                              icon={<EditOutlined />}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenEditModal(kb);
+                              }}
+                            />
+                          </Tooltip>
+                        </div>
+                        <div className="kb-description-text">
+                          {kb.description?.trim() || t('chat.noDescription')}
+                        </div>
+                        <div className="kb-meta-row">
+                          <span className="kb-meta-pill">
+                            {kb.chunkCount} 文本块
+                          </span>
+                          <span className={`status-badge status-${kb.status}`}>
+                            {kb.status === 'active' ? t('common.active') : t('common.inactive')}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="kb-actions">
                       <Button
+                        type="primary"
                         size="small"
-                        danger
-                        icon={<DeleteOutlined />}
-                        onClick={(e) => e.stopPropagation()}
+                        icon={<FileTextOutlined />}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          void handleViewChunks(kb);
+                        }}
                       >
-                        {t('common.delete')}
+                        {t('chat.viewChunks')}
                       </Button>
-                    </Popconfirm>
+                      <Upload
+                        showUploadList={false}
+                        beforeUpload={(file) => {
+                          void handleUpload(kb.id, file);
+                          return false;
+                        }}
+                        accept=".pdf,.txt,.md,.docx"
+                      >
+                        <Button size="small" icon={<UploadOutlined />}>
+                          {t('chat.upload')}
+                        </Button>
+                      </Upload>
+                      <Popconfirm
+                        title={t('chat.deleteConfirm')}
+                        onConfirm={(e) => {
+                          e?.stopPropagation();
+                          void handleDelete(kb);
+                        }}
+                        okText={t('common.ok')}
+                        cancelText={t('common.cancel')}
+                      >
+                        <Button
+                          size="small"
+                          danger
+                          icon={<DeleteOutlined />}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {t('common.delete')}
+                        </Button>
+                      </Popconfirm>
+                    </div>
                   </div>
                   {uploadingKbId === kb.id && (
                     <Progress
                       percent={uploadProgress}
-                      size="small"
+                        size="small"
                       showInfo={false}
                       className="upload-progress"
                     />
@@ -385,51 +594,71 @@ const KnowledgeBasePanel: React.FC<Props> = ({ onClose }) => {
       </Modal>
 
       <Modal
+        title={t('common.edit')}
+        open={editModalOpen}
+        onCancel={() => {
+          setEditModalOpen(false);
+          setEditingKb(null);
+          editForm.resetFields();
+        }}
+        footer={null}
+      >
+        <Form form={editForm} onFinish={handleSubmitEdit} layout="vertical">
+          <Form.Item
+            name="name"
+            label={t('chat.name')}
+            rules={[{ required: true, message: t('chat.nameRequired') || '请输入知识库名称' }]}
+          >
+            <Input placeholder={t('chat.namePlaceholder')} maxLength={60} />
+          </Form.Item>
+          <Form.Item
+            name="description"
+            label={t('chat.description')}
+          >
+            <Input.TextArea
+              placeholder={t('chat.descriptionPlaceholder')}
+              rows={3}
+              maxLength={300}
+            />
+          </Form.Item>
+          <Form.Item>
+            <Button type="primary" htmlType="submit" block loading={savingEdit}>
+              {t('common.save')}
+            </Button>
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      <Modal
         title={`${t('chat.chunksManage')} - ${selectedKb?.name || ''}`}
         open={chunksModalOpen}
         onCancel={() => setChunksModalOpen(false)}
         footer={null}
         width={700}
+        centered
+        wrapClassName="kb-chunks-manage-modal"
       >
-        {chunksLoading ? (
-          <Spin />
-        ) : chunks.length === 0 ? (
-          <Empty description={t('chat.noChunks')} image={Empty.PRESENTED_IMAGE_SIMPLE} />
-        ) : (
-          <List
-            className="chunk-list"
-            dataSource={chunks}
-            renderItem={(chunk) => (
-              <List.Item
-                className="chunk-item"
-                actions={[
-                  <Popconfirm
-                    key="delete"
-                    title={t('chat.deleteChunkConfirm') || '确定删除？'}
-                    onConfirm={() => handleDeleteChunk(chunk.id)}
-                    okText={t('common.ok')}
-                    cancelText={t('common.cancel')}
-                  >
-                    <Button size="small" danger icon={<DeleteOutlined />}>
-                      {t('common.delete')}
-                    </Button>
-                  </Popconfirm>,
-                ]}
-              >
-                <List.Item.Meta
-                  title={chunk.metadata ? fixFilenameEncoding(JSON.parse(chunk.metadata).fileName) || `文本块 #${chunk.chunkIndex + 1}` : `文本块 #${chunk.chunkIndex + 1}`}
-                  description={
-                    <div className="chunk-content">
-                      {chunk.content.length > 200
-                        ? `${chunk.content.slice(0, 200)}...`
-                        : chunk.content}
-                    </div>
-                  }
+        <div className="kb-chunks-modal-stack">
+          {chunksLoading ? (
+            <div className="kb-chunks-modal-loading">
+              <Spin />
+            </div>
+          ) : chunks.length === 0 ? (
+            <div className="kb-chunks-modal-empty">
+              <Empty description={t('chat.noChunks')} image={Empty.PRESENTED_IMAGE_SIMPLE} />
+            </div>
+          ) : (
+            <div className="kb-chunks-modal-body">
+              <div className="kb-chunks-virtual-host">
+                <KnowledgeChunksVirtualList
+                  chunks={chunks}
+                  height={chunksListViewportHeight}
+                  onDeleteChunk={handleDeleteChunk}
                 />
-              </List.Item>
-            )}
-          />
-        )}
+              </div>
+            </div>
+          )}
+        </div>
       </Modal>
     </div>
   );

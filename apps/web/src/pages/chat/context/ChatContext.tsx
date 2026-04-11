@@ -112,6 +112,29 @@ const initialState: ChatState = {
   showChatSettings: false,
 };
 
+const normalizeHydratedMessages = (messages: Message[]): Message[] =>
+  messages.map((m) => ({
+    ...m,
+    displayContent: m.displayContent ?? m.content,
+    isComplete: true,
+    thinkingStatus: m.thinkingStatus === 'streaming' ? 'done' : m.thinkingStatus,
+    answerStatus: m.answerStatus === 'streaming' ? 'done' : m.answerStatus,
+    webSearchStatus: m.webSearchStatus === 'searching' ? 'done' : m.webSearchStatus,
+  }));
+
+const isSessionEmpty = (session: ChatSession): boolean => {
+  if (!Array.isArray(session.messages) || session.messages.length === 0) {
+    return true;
+  }
+
+  return !session.messages.some((msg) => {
+    if (msg.role !== 'user') return false;
+    const hasText = Boolean(msg.content?.trim());
+    const hasImages = Array.isArray(msg.images) && msg.images.length > 0;
+    return hasText || hasImages;
+  });
+};
+
 function chatReducer(state: ChatState, action: ChatAction): ChatState {
   switch (action.type) {
     case 'SET_SESSIONS':
@@ -212,6 +235,8 @@ interface ChatContextValue {
   sendMessage: () => Promise<void>;
   stopGeneration: () => void;
   handleCopy: (content: string) => void;
+  deleteMessage: (messageId: string) => void;
+  regenerateMessage: (assistantMessageId: string) => Promise<void>;
   handleSaveSettings: () => Promise<void>;
   // Refs
   messagesEndRef: React.RefObject<HTMLDivElement | null>;
@@ -254,18 +279,18 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       try {
         const parsed = JSON.parse(savedSessions);
         if (parsed.length > 0) {
-          dispatch({ type: 'SET_SESSIONS', payload: parsed });
+          const normalizedSessions = parsed.map((session: ChatSession) => ({
+            ...session,
+            messages: normalizeHydratedMessages(session.messages || []),
+          }));
           dispatch({
             type: 'SET_CURRENT_SESSION',
             payload: {
-              sessionId: parsed[0].id,
-              messages: parsed[0].messages.map((m: Message) => ({
-                ...m,
-                displayContent: m.content,
-                isComplete: true,
-              })),
+              sessionId: normalizedSessions[0].id,
+              messages: normalizedSessions[0].messages,
             },
           });
+          dispatch({ type: 'SET_SESSIONS', payload: normalizedSessions });
         } else {
           createNewSessionInternal();
         }
@@ -312,6 +337,18 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const createNewSession = useCallback(() => {
+    const existingEmptySession = stateRef.current.sessions.find(isSessionEmpty);
+    if (existingEmptySession) {
+      dispatch({
+        type: 'SET_CURRENT_SESSION',
+        payload: {
+          sessionId: existingEmptySession.id,
+          messages: normalizeHydratedMessages(existingEmptySession.messages || []),
+        },
+      });
+      return;
+    }
+
     const welcomeContent = t('chat.welcome', {
       defaultValue: '你好！我是 AI 助手，有什么可以帮助你的吗？',
     });
@@ -341,9 +378,10 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   const switchSession = useCallback((sessionId: string) => {
     const session = stateRef.current.sessions.find((s) => s.id === sessionId);
     if (session) {
+      const normalizedMessages = normalizeHydratedMessages(session.messages || []);
       dispatch({
         type: 'SET_CURRENT_SESSION',
-        payload: { sessionId, messages: session.messages },
+        payload: { sessionId, messages: normalizedMessages },
       });
     }
   }, []);
@@ -409,6 +447,22 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     return fallback || t('chat.streamErrorFallback');
   }, [t]);
 
+  const formatErrorReasonForDisplay = useCallback((reason: string): string => {
+    const raw = reason.trim();
+    const jsonStartIndex = raw.indexOf('{');
+    if (jsonStartIndex <= 0) return raw;
+
+    const prefix = raw.slice(0, jsonStartIndex).trimEnd();
+    const maybeJson = raw.slice(jsonStartIndex).trim();
+    try {
+      const parsed = JSON.parse(maybeJson) as unknown;
+      const prettyJson = JSON.stringify(parsed, null, 2);
+      return `${prefix}\n\n\`\`\`json\n${prettyJson}\n\`\`\``;
+    } catch {
+      return raw;
+    }
+  }, []);
+
   const sendMessage = useCallback(async () => {
     const { input, pendingImages, loading, vendor, model, temperature, maxTokens, contextWindow, enableThinking, thinkingBudget, useMcpTools, currentSessionId, messages } = stateRef.current;
     const imageSnapshot = [...pendingImages];
@@ -441,6 +495,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     };
 
     const newMessages = [...messages, userMessage, assistantMessage];
+    let finalMessagesOverride: Message[] | null = null;
     dispatch({ type: 'SET_MESSAGES', payload: newMessages });
     dispatch({ type: 'SET_INPUT', payload: '' });
     dispatch({ type: 'SET_PENDING_IMAGES', payload: [] });
@@ -525,18 +580,23 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     } catch (error: unknown) {
       if ((error as Error).name === 'AbortError') {
         stopTypeWriter();
+        const stopUpdates = {
+          content: (stateRef.current.messages.find(m => m.id === assistantMessageId)?.content || '') + '\n\n[已停止生成]',
+          displayContent: (stateRef.current.messages.find(m => m.id === assistantMessageId)?.displayContent || '') + '\n\n[已停止生成]',
+          isComplete: true,
+          thinkingStatus: 'done' as const,
+          answerStatus: 'done' as const,
+          webSearchStatus: 'done' as const,
+        };
+        const stopMessages = stateRef.current.messages.map((m) =>
+          m.id === assistantMessageId ? { ...m, ...stopUpdates } : m
+        );
+        finalMessagesOverride = stopMessages;
         dispatch({
           type: 'UPDATE_MESSAGE',
           payload: {
             id: assistantMessageId,
-            updates: {
-              content: (stateRef.current.messages.find(m => m.id === assistantMessageId)?.content || '') + '\n\n[已停止生成]',
-              displayContent: (stateRef.current.messages.find(m => m.id === assistantMessageId)?.displayContent || '') + '\n\n[已停止生成]',
-              isComplete: true,
-              thinkingStatus: 'done',
-              answerStatus: 'done',
-              webSearchStatus: 'done',
-            },
+            updates: stopUpdates,
           },
         });
         message.info('已停止生成');
@@ -546,18 +606,24 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       const errorMsg = (error as Error).message || t('chat.streamErrorFallback');
       message.error(errorMsg);
       stopTypeWriter();
+      const errorReasonForDisplay = formatErrorReasonForDisplay(errorMsg);
+      const errorUpdates = {
+        content: t('chat.requestFailedWithReason', { reason: errorReasonForDisplay }),
+        displayContent: t('chat.requestFailedWithReason', { reason: errorReasonForDisplay }),
+        isComplete: true,
+        thinkingStatus: 'done' as const,
+        answerStatus: 'done' as const,
+        webSearchStatus: 'done' as const,
+      };
+      const errorMessages = stateRef.current.messages.map((m) =>
+        m.id === assistantMessageId ? { ...m, ...errorUpdates } : m
+      );
+      finalMessagesOverride = errorMessages;
       dispatch({
         type: 'UPDATE_MESSAGE',
         payload: {
           id: assistantMessageId,
-          updates: {
-            content: t('chat.requestFailedWithReason', { reason: errorMsg }),
-            displayContent: t('chat.requestFailedWithReason', { reason: errorMsg }),
-            isComplete: true,
-            thinkingStatus: 'done',
-            answerStatus: 'done',
-            webSearchStatus: 'done',
-          },
+          updates: errorUpdates,
         },
       });
     } finally {
@@ -566,7 +632,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       // Update the session with the latest messages from stateRef
       // This ensures the session is saved with all stream updates (card, isComplete, etc.)
       const currentSid = stateRef.current.currentSessionId;
-      const finalMessages = stateRef.current.messages;
+      const finalMessages = finalMessagesOverride ?? stateRef.current.messages;
       const updatedSessions = stateRef.current.sessions.map((s) => {
         // Update the session where message was sent
         if (s.id === sid) {
@@ -580,7 +646,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       });
       saveSessions(updatedSessions);
     }
-  }, [t, stopTypeWriter, runTypeWriter, formatAiStreamErrorPayload, saveSessions]);
+  }, [t, stopTypeWriter, runTypeWriter, formatAiStreamErrorPayload, formatErrorReasonForDisplay, saveSessions]);
 
   const stopGeneration = useCallback(() => {
     stopTypeWriter();
@@ -593,6 +659,74 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     navigator.clipboard.writeText(content);
     message.success('已复制');
   }, []);
+
+  const deleteMessage = useCallback((messageId: string) => {
+    const { currentSessionId, messages } = stateRef.current;
+    if (!currentSessionId) return;
+    const nextMessages = messages.filter((m) => m.id !== messageId);
+    dispatch({ type: 'SET_MESSAGES', payload: nextMessages });
+    const updatedSessions = stateRef.current.sessions.map((s) =>
+      s.id === currentSessionId
+        ? { ...s, messages: nextMessages, timestamp: Date.now() }
+        : s
+    );
+    saveSessions(updatedSessions);
+  }, [saveSessions]);
+
+  const regenerateMessage = useCallback(async (assistantMessageId: string) => {
+    if (stateRef.current.loading) return;
+    const { currentSessionId, messages } = stateRef.current;
+    if (!currentSessionId || messages.length === 0) return;
+
+    const latestAssistantIndex = [...messages]
+      .map((m, idx) => ({ m, idx }))
+      .filter(({ m }) => m.role === 'assistant')
+      .at(-1)?.idx;
+
+    const targetIndex = messages.findIndex(
+      (m) => m.id === assistantMessageId && m.role === 'assistant'
+    );
+
+    if (targetIndex < 0 || latestAssistantIndex !== targetIndex) {
+      message.info('暂仅支持重新生成最后一条助手消息');
+      return;
+    }
+
+    let userIndex = -1;
+    for (let i = targetIndex - 1; i >= 0; i -= 1) {
+      if (messages[i].role === 'user') {
+        userIndex = i;
+        break;
+      }
+    }
+    if (userIndex < 0) {
+      message.warning('未找到可重试的用户消息');
+      return;
+    }
+
+    const userMessage = messages[userIndex];
+    const baseMessages = messages.slice(0, userIndex);
+    dispatch({ type: 'SET_MESSAGES', payload: baseMessages });
+    dispatch({ type: 'SET_INPUT', payload: userMessage.content || '' });
+    dispatch({ type: 'SET_PENDING_IMAGES', payload: [] });
+
+    const updatedSessions = stateRef.current.sessions.map((s) =>
+      s.id === currentSessionId
+        ? { ...s, messages: baseMessages, timestamp: Date.now() }
+        : s
+    );
+    saveSessions(updatedSessions);
+
+    stateRef.current = {
+      ...stateRef.current,
+      messages: baseMessages,
+      input: userMessage.content || '',
+      pendingImages: [],
+      sessions: updatedSessions,
+    };
+
+    await sendMessage();
+  }, [saveSessions, sendMessage]);
 
   const handleSaveSettings = useCallback(async () => {
     const { vendor, model, temperature, maxTokens, contextWindow, enableThinking, thinkingBudget, useMcpTools, apiKeys } = stateRef.current;
@@ -661,7 +795,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  const value: ChatContextValue = {
+  const value = useMemo<ChatContextValue>(() => ({
     state,
     dispatch,
     createNewSession,
@@ -670,12 +804,14 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     sendMessage,
     stopGeneration,
     handleCopy,
+    deleteMessage,
+    regenerateMessage,
     handleSaveSettings,
     messagesEndRef,
     fileInputRef,
     theme,
     isDark,
-  };
+  }), [state, dispatch, createNewSession, switchSession, deleteSession, sendMessage, stopGeneration, handleCopy, deleteMessage, regenerateMessage, handleSaveSettings, theme, isDark]);
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;
 }

@@ -10,7 +10,6 @@ import type { ChatLLM } from './langchain/model';
 import { detectIntent, extractWeatherQueryContext } from './langchain/chains';
 import { IntentType, ChatResponseDto } from './dto/extraction-result.dto';
 import { CHAT_STREAM_CHUNK_SIZE } from './constants';
-import { buildScheduleSummary } from './utils/response-builders';
 import { splitTextToChunks } from './utils/text';
 import { AICommandService } from './services/ai-command.service';
 import { AIConfigService } from './services/ai-config.service';
@@ -26,8 +25,15 @@ import {
   splitThinkTaggedDelta,
   type ThinkTagSplitState,
 } from './utils/think-tag-split';
+import { buildIntentMemoryReply } from './utils/chat-history';
+import {
+  extractGithubIssueDraft,
+  extractGithubOwnerRepo,
+} from './utils/github-chat';
+import { toHistoryUserText, validateChatImages } from './utils/chat-images';
 import { McpService } from '../mcp/mcp.service';
 import { KnowledgeBaseService } from '../knowledge-base/knowledge-base.service';
+import { MCPServersService } from '../mcp-servers/mcp-servers.service';
 
 export interface AIStreamEvent {
   event:
@@ -47,8 +53,6 @@ export interface AIStreamEvent {
   payload?: Record<string, unknown>;
 }
 
-const MAX_CHAT_IMAGE_BYTES = 4 * 1024 * 1024;
-
 @Injectable()
 export class AIService {
   private readonly logger = new Logger(AIService.name);
@@ -67,6 +71,7 @@ export class AIService {
     private readonly chatResponseService: AIChatResponseService,
     private readonly webSearchService: AIWebSearchService,
     private readonly mcpService: McpService,
+    private readonly mcpServersService: MCPServersService,
     private readonly knowledgeBaseService: KnowledgeBaseService,
   ) {
     // 兼容旧部署：允许通过用户配置或请求内 apiKey 注入。
@@ -108,8 +113,8 @@ export class AIService {
     requestConfig?: ChatRequestDto,
   ): Promise<ChatResponseDto> {
     try {
-      this.validateChatImages(requestConfig?.images);
-      const { llm } = await this.buildLLM(userId, requestConfig);
+      validateChatImages(requestConfig?.images);
+      const { llm, useMcpTools } = await this.buildLLM(userId, requestConfig);
       const contextWindow =
         requestConfig?.contextWindow ?? this.maxHistoryMessages;
       const hasImages = Boolean(requestConfig?.images?.length);
@@ -125,10 +130,11 @@ export class AIService {
         sessionId,
         contextWindow,
         requestConfig?.images,
+        useMcpTools,
       );
       this.appendIntentResultToHistoryIfNeeded(
         intent,
-        this.toHistoryUserText(message, requestConfig?.images),
+        toHistoryUserText(message, requestConfig?.images),
         userId,
         sessionId,
         result,
@@ -157,7 +163,7 @@ export class AIService {
   ): AsyncGenerator<AIStreamEvent> {
     process.stderr.write(`[AI Stream] Received message: ${message}\n`);
     try {
-      this.validateChatImages(requestConfig?.images);
+      validateChatImages(requestConfig?.images);
       const { llm, thinkingEnabled, useMcpTools } = await this.buildLLM(
         userId,
         requestConfig,
@@ -178,249 +184,35 @@ export class AIService {
       yield { event: 'intent', payload: { intent } };
 
       if (intent === IntentType.QUERY_WEATHER) {
-        const sessionKey = this.chatSessionService.getSessionKey(
-          userId,
-          sessionId,
-        );
-        let weatherAnswer = '';
-
-        if (useMcpTools) {
-          const mcpWeatherFacts = await this.buildWeatherResponseViaMcp(
-            llm,
-            message,
-            currentDate,
-          );
-          const synthMessages =
-            this.weatherService.buildMcpWeatherUserReplyMessages(
-              message,
-              mcpWeatherFacts,
-            );
-          if (!synthMessages) {
-            weatherAnswer = mcpWeatherFacts;
-          } else {
-            const thinkTagState: ThinkTagSplitState = {
-              inThink: false,
-              pending: '',
-            };
-            let hasDelta = false;
-            try {
-              for await (const streamChunk of llm.invokeStream(synthMessages)) {
-                const tagged = splitThinkTaggedDelta(
-                  streamChunk.answerDelta,
-                  thinkTagState,
-                );
-                const delta = tagged.answerDelta;
-                if (!delta) continue;
-                const appendDelta =
-                  this.chatResponseService.extractIncrementalDelta(
-                    weatherAnswer,
-                    delta,
-                  );
-                if (!appendDelta) continue;
-                hasDelta = true;
-                weatherAnswer += appendDelta;
-                yield { event: 'chat_delta', payload: { delta: appendDelta } };
-              }
-            } catch (err) {
-              this.logger.warn(
-                `[AI Weather] stream synthesis failed, fallback to tool facts: ${String(err)}`,
-              );
-              weatherAnswer = mcpWeatherFacts;
-              for (const chunk of splitTextToChunks(
-                weatherAnswer,
-                CHAT_STREAM_CHUNK_SIZE,
-              )) {
-                yield { event: 'chat_delta', payload: { delta: chunk } };
-              }
-              hasDelta = true;
-            }
-            if (!hasDelta) {
-              weatherAnswer = mcpWeatherFacts;
-              for (const chunk of splitTextToChunks(
-                weatherAnswer,
-                CHAT_STREAM_CHUNK_SIZE,
-              )) {
-                yield { event: 'chat_delta', payload: { delta: chunk } };
-              }
-            }
-          }
-        } else {
-          const weatherContent = await this.weatherService.buildWeatherResponse(
-            llm,
-            message,
-            currentDate,
-          );
-          weatherAnswer = splitCompleteReplyThink(weatherContent).answer;
-          const chunks = splitTextToChunks(
-            weatherAnswer,
-            CHAT_STREAM_CHUNK_SIZE,
-          );
-          for (const chunk of chunks) {
-            yield { event: 'chat_delta', payload: { delta: chunk } };
-          }
-        }
-
-        const historyReply = this.chatResponseService.normalizeAssistantReply(
-          weatherAnswer.trim(),
-        );
-        this.chatSessionService.appendHistory(
-          sessionKey,
+        yield* this.streamWeatherIntent(
+          llm,
           message,
-          historyReply,
-          this.maxHistoryMessages,
+          userId,
+          currentDate,
+          sessionId,
+          useMcpTools,
         );
         yield { event: 'done', payload: { type: 'chat' } };
         return;
       }
 
       if (intent === IntentType.CHAT || intent === IntentType.WEB_SEARCH) {
-        let promptForLlm: string;
-        if (intent === IntentType.WEB_SEARCH) {
-          const prepared = await this.webSearchService.preparePrompt(message);
-          if (prepared.ok === false) {
-            const sessionKeyEarly = this.chatSessionService.getSessionKey(
-              userId,
-              sessionId,
-            );
-            const errText = prepared.message;
-            this.chatSessionService.appendHistory(
-              sessionKeyEarly,
-              this.toHistoryUserText(message, requestConfig?.images),
-              errText,
-              this.maxHistoryMessages,
-            );
-            const errChunks = splitTextToChunks(
-              errText,
-              CHAT_STREAM_CHUNK_SIZE,
-            );
-            for (const chunk of errChunks) {
-              yield { event: 'chat_delta', payload: { delta: chunk } };
-            }
-            yield { event: 'done', payload: { type: 'chat' } };
-            return;
-          }
-          promptForLlm = prepared.prompt;
-        } else {
-          const kbContext = await this.buildKnowledgeBaseContext(
-            message,
-            userId,
-          );
-          const basePrompt = this.chatResponseService.buildPrompt(message);
-          promptForLlm = kbContext
-            ? `${kbContext}\n\n${basePrompt}`
-            : basePrompt;
-        }
-        const sessionKey = this.chatSessionService.getSessionKey(
+        const handled = await this.streamChatOrSearchIntent(
+          llm,
+          intent,
+          message,
           userId,
           sessionId,
+          useMcpTools,
+          requestConfig,
+          contextWindow,
+          thinkingEnabled,
         );
-        const history = this.chatSessionService.getHistoryMessages(sessionKey);
-        const scopedHistory = history.slice(-contextWindow);
-        let hasDelta = false;
-        let fullReply = '';
-        const generationStart = Date.now();
-        let firstDeltaLogged = false;
-        const thinkTagState: ThinkTagSplitState = {
-          inThink: false,
-          pending: '',
-        };
-        const userHuman = buildChatHumanMessage(
-          promptForLlm,
-          intent === IntentType.CHAT ? requestConfig?.images : undefined,
-        );
-        const imageCount =
-          intent === IntentType.WEB_SEARCH
-            ? 0
-            : (requestConfig?.images?.length ?? 0);
-        this.logger.log(
-          `[AI Chat] stream_start userId=${userId} provider=${requestConfig?.provider ?? '?'} model=${requestConfig?.model ?? '?'} images=${imageCount} messageLen=${message.length}`,
-        );
-        for await (const streamChunk of llm.invokeStream([
-          ...scopedHistory,
-          userHuman,
-        ])) {
-          const tagged = splitThinkTaggedDelta(
-            streamChunk.answerDelta,
-            thinkTagState,
-          );
-          const answerDeltaFromContent = tagged.answerDelta;
-          const thinkingDeltaFromContent = tagged.reasoningDelta;
-          const thinkingDeltaRaw = streamChunk.reasoningDelta;
-          const thinkingDelta = thinkingDeltaFromContent + thinkingDeltaRaw;
-          if (thinkingEnabled && thinkingDelta) {
-            yield {
-              event: 'thinking_delta',
-              payload: { delta: thinkingDelta },
-            };
-          }
-          const delta = answerDeltaFromContent;
-          if (!delta) continue;
-          const appendDelta = this.chatResponseService.extractIncrementalDelta(
-            fullReply,
-            delta,
-          );
-          if (!appendDelta) continue;
-          if (!firstDeltaLogged) {
-            firstDeltaLogged = true;
-            process.stderr.write(
-              `[AI Stream] First chat delta in ${Date.now() - generationStart}ms\n`,
-            );
-          }
-          hasDelta = true;
-          fullReply += appendDelta;
-          yield { event: 'chat_delta', payload: { delta: appendDelta } };
+        if (handled) {
+          yield* handled;
+          yield { event: 'done', payload: { type: 'chat' } };
+          return;
         }
-
-        if (!hasDelta) {
-          this.logger.warn(
-            `[AI Chat] stream_no_delta → 将走 invoke 回退（MiniMax M2 请确认流式 delta 是否在 reasoning_content） fullReplyLen=${fullReply.length}`,
-          );
-          const fallback = await this.handleChat(
-            llm,
-            message,
-            userId,
-            sessionId,
-            contextWindow,
-            intent === IntentType.CHAT ? requestConfig?.images : undefined,
-            intent === IntentType.WEB_SEARCH ? promptForLlm : undefined,
-          );
-          const content = this.chatResponseService.normalizeAssistantReply(
-            (fallback.content || '').trim(),
-          );
-          const fallbackSplit = splitThinkTaggedDelta(content, {
-            inThink: false,
-            pending: '',
-          });
-          if (thinkingEnabled && fallbackSplit.reasoningDelta) {
-            const thinkingChunks = splitTextToChunks(
-              fallbackSplit.reasoningDelta,
-              CHAT_STREAM_CHUNK_SIZE,
-            );
-            for (const chunk of thinkingChunks) {
-              yield { event: 'thinking_delta', payload: { delta: chunk } };
-            }
-          }
-          const answerContent = fallbackSplit.answerDelta || content;
-          const chunks = splitTextToChunks(
-            answerContent,
-            CHAT_STREAM_CHUNK_SIZE,
-          );
-          for (const chunk of chunks) {
-            yield { event: 'chat_delta', payload: { delta: chunk } };
-          }
-        } else {
-          this.chatSessionService.appendHistory(
-            sessionKey,
-            this.toHistoryUserText(message, requestConfig?.images),
-            this.chatResponseService.normalizeAssistantReply(fullReply.trim()),
-            this.maxHistoryMessages,
-          );
-        }
-        this.logger.log(
-          `[AI Chat] stream_end hasDelta=${hasDelta} replyLen=${hasDelta ? fullReply.trim().length : 'n/a'}`,
-        );
-        yield { event: 'done', payload: { type: 'chat' } };
-        return;
       }
 
       const result = await this.processByIntent(
@@ -432,10 +224,11 @@ export class AIService {
         sessionId,
         contextWindow,
         requestConfig?.images,
+        useMcpTools,
       );
       this.appendIntentResultToHistoryIfNeeded(
         intent,
-        this.toHistoryUserText(message, requestConfig?.images),
+        toHistoryUserText(message, requestConfig?.images),
         userId,
         sessionId,
         result,
@@ -462,11 +255,273 @@ export class AIService {
     }
   }
 
+  private async *streamWeatherIntent(
+    llm: ChatLLM,
+    message: string,
+    userId: number,
+    currentDate: string,
+    sessionId: string | undefined,
+    useMcpTools: boolean,
+  ): AsyncGenerator<AIStreamEvent> {
+    const sessionKey = this.chatSessionService.getSessionKey(userId, sessionId);
+    let weatherAnswer = '';
+
+    if (useMcpTools) {
+      const mcpWeatherFacts = await this.buildWeatherResponseViaMcp(
+        llm,
+        message,
+        currentDate,
+        userId,
+      );
+      const synthMessages =
+        this.weatherService.buildMcpWeatherUserReplyMessages(
+          message,
+          mcpWeatherFacts,
+        );
+      if (!synthMessages) {
+        weatherAnswer = mcpWeatherFacts;
+      } else {
+        const thinkTagState: ThinkTagSplitState = {
+          inThink: false,
+          pending: '',
+        };
+        let hasDelta = false;
+        try {
+          for await (const streamChunk of llm.invokeStream(synthMessages)) {
+            const tagged = splitThinkTaggedDelta(
+              streamChunk.answerDelta,
+              thinkTagState,
+            );
+            const delta = tagged.answerDelta;
+            if (!delta) continue;
+            const appendDelta =
+              this.chatResponseService.extractIncrementalDelta(
+                weatherAnswer,
+                delta,
+              );
+            if (!appendDelta) continue;
+            hasDelta = true;
+            weatherAnswer += appendDelta;
+            yield { event: 'chat_delta', payload: { delta: appendDelta } };
+          }
+        } catch (err) {
+          this.logger.warn(
+            `[AI Weather] stream synthesis failed, fallback to tool facts: ${String(err)}`,
+          );
+          weatherAnswer = mcpWeatherFacts;
+          yield* this.emitChatDeltaChunks(weatherAnswer);
+          hasDelta = true;
+        }
+        if (!hasDelta) {
+          weatherAnswer = mcpWeatherFacts;
+          yield* this.emitChatDeltaChunks(weatherAnswer);
+        }
+      }
+    } else {
+      const weatherContent = await this.weatherService.buildWeatherResponse(
+        llm,
+        message,
+        currentDate,
+      );
+      weatherAnswer = splitCompleteReplyThink(weatherContent).answer;
+      yield* this.emitChatDeltaChunks(weatherAnswer);
+    }
+
+    const historyReply = this.chatResponseService.normalizeAssistantReply(
+      weatherAnswer.trim(),
+    );
+    this.chatSessionService.appendHistory(
+      sessionKey,
+      message,
+      historyReply,
+      this.maxHistoryMessages,
+    );
+  }
+
+  private async streamChatOrSearchIntent(
+    llm: ChatLLM,
+    intent: IntentType.CHAT | IntentType.WEB_SEARCH,
+    message: string,
+    userId: number,
+    sessionId: string | undefined,
+    useMcpTools: boolean,
+    requestConfig: ChatRequestDto | undefined,
+    contextWindow: number,
+    thinkingEnabled: boolean,
+  ): Promise<AsyncIterable<AIStreamEvent> | Iterable<AIStreamEvent> | null> {
+    if (intent === IntentType.CHAT && useMcpTools) {
+      const githubResult = await this.tryHandleGithubChatViaMcp(
+        message,
+        userId,
+        sessionId,
+      );
+      if (githubResult) {
+        return this.emitChatDeltaChunks(githubResult.content);
+      }
+    }
+    return this.streamGeneralChatIntent(
+      llm,
+      intent,
+      message,
+      userId,
+      sessionId,
+      requestConfig,
+      contextWindow,
+      thinkingEnabled,
+    );
+  }
+
+  private async *streamGeneralChatIntent(
+    llm: ChatLLM,
+    intent: IntentType.CHAT | IntentType.WEB_SEARCH,
+    message: string,
+    userId: number,
+    sessionId: string | undefined,
+    requestConfig: ChatRequestDto | undefined,
+    contextWindow: number,
+    thinkingEnabled: boolean,
+  ): AsyncGenerator<AIStreamEvent> {
+    let promptForLlm: string;
+    if (intent === IntentType.WEB_SEARCH) {
+      const prepared = await this.webSearchService.preparePrompt(message);
+      if (prepared.ok === false) {
+        const sessionKeyEarly = this.chatSessionService.getSessionKey(
+          userId,
+          sessionId,
+        );
+        const errText = prepared.message;
+        this.chatSessionService.appendHistory(
+          sessionKeyEarly,
+          toHistoryUserText(message, requestConfig?.images),
+          errText,
+          this.maxHistoryMessages,
+        );
+        yield* this.emitChatDeltaChunks(errText);
+        return;
+      }
+      promptForLlm = prepared.prompt;
+    } else {
+      const kbContext = await this.buildKnowledgeBaseContext(message, userId);
+      const basePrompt = this.chatResponseService.buildPrompt(message);
+      promptForLlm = kbContext ? `${kbContext}\n\n${basePrompt}` : basePrompt;
+    }
+
+    const sessionKey = this.chatSessionService.getSessionKey(userId, sessionId);
+    const history = this.chatSessionService.getHistoryMessages(sessionKey);
+    const scopedHistory = history.slice(-contextWindow);
+    let hasDelta = false;
+    let fullReply = '';
+    const generationStart = Date.now();
+    let firstDeltaLogged = false;
+    const thinkTagState: ThinkTagSplitState = {
+      inThink: false,
+      pending: '',
+    };
+    const userHuman = buildChatHumanMessage(
+      promptForLlm,
+      intent === IntentType.CHAT ? requestConfig?.images : undefined,
+    );
+    const imageCount =
+      intent === IntentType.WEB_SEARCH
+        ? 0
+        : (requestConfig?.images?.length ?? 0);
+    this.logger.log(
+      `[AI Chat] stream_start userId=${userId} provider=${requestConfig?.provider ?? '?'} model=${requestConfig?.model ?? '?'} images=${imageCount} messageLen=${message.length}`,
+    );
+    for await (const streamChunk of llm.invokeStream([
+      ...scopedHistory,
+      userHuman,
+    ])) {
+      const tagged = splitThinkTaggedDelta(
+        streamChunk.answerDelta,
+        thinkTagState,
+      );
+      const answerDeltaFromContent = tagged.answerDelta;
+      const thinkingDeltaFromContent = tagged.reasoningDelta;
+      const thinkingDeltaRaw = streamChunk.reasoningDelta;
+      const thinkingDelta = thinkingDeltaFromContent + thinkingDeltaRaw;
+      if (thinkingEnabled && thinkingDelta) {
+        yield { event: 'thinking_delta', payload: { delta: thinkingDelta } };
+      }
+      const delta = answerDeltaFromContent;
+      if (!delta) continue;
+      const appendDelta = this.chatResponseService.extractIncrementalDelta(
+        fullReply,
+        delta,
+      );
+      if (!appendDelta) continue;
+      if (!firstDeltaLogged) {
+        firstDeltaLogged = true;
+        process.stderr.write(
+          `[AI Stream] First chat delta in ${Date.now() - generationStart}ms\n`,
+        );
+      }
+      hasDelta = true;
+      fullReply += appendDelta;
+      yield { event: 'chat_delta', payload: { delta: appendDelta } };
+    }
+
+    if (!hasDelta) {
+      this.logger.warn(
+        `[AI Chat] stream_no_delta → 将走 invoke 回退（MiniMax M2 请确认流式 delta 是否在 reasoning_content） fullReplyLen=${fullReply.length}`,
+      );
+      const fallback = await this.handleChat(
+        llm,
+        message,
+        userId,
+        sessionId,
+        contextWindow,
+        intent === IntentType.CHAT ? requestConfig?.images : undefined,
+        intent === IntentType.WEB_SEARCH ? promptForLlm : undefined,
+      );
+      const content = this.chatResponseService.normalizeAssistantReply(
+        (fallback.content || '').trim(),
+      );
+      const fallbackSplit = splitThinkTaggedDelta(content, {
+        inThink: false,
+        pending: '',
+      });
+      if (thinkingEnabled && fallbackSplit.reasoningDelta) {
+        const thinkingChunks = splitTextToChunks(
+          fallbackSplit.reasoningDelta,
+          CHAT_STREAM_CHUNK_SIZE,
+        );
+        for (const chunk of thinkingChunks) {
+          yield { event: 'thinking_delta', payload: { delta: chunk } };
+        }
+      }
+      const answerContent = fallbackSplit.answerDelta || content;
+      yield* this.emitChatDeltaChunks(answerContent);
+      this.logger.log(
+        `[AI Chat] stream_end hasDelta=${hasDelta} replyLen=${hasDelta ? fullReply.trim().length : 'n/a'}`,
+      );
+      return;
+    }
+
+    this.chatSessionService.appendHistory(
+      sessionKey,
+      toHistoryUserText(message, requestConfig?.images),
+      this.chatResponseService.normalizeAssistantReply(fullReply.trim()),
+      this.maxHistoryMessages,
+    );
+    this.logger.log(
+      `[AI Chat] stream_end hasDelta=${hasDelta} replyLen=${hasDelta ? fullReply.trim().length : 'n/a'}`,
+    );
+  }
+
+  private *emitChatDeltaChunks(content: string): Generator<AIStreamEvent> {
+    const chunks = splitTextToChunks(content, CHAT_STREAM_CHUNK_SIZE);
+    for (const chunk of chunks) {
+      yield { event: 'chat_delta', payload: { delta: chunk } };
+    }
+  }
+
   private async handleDeleteTodo(
     message: string,
     userId: number,
+    useMcpTools = false,
   ): Promise<ChatResponseDto> {
-    return this.aiCommandService.handleDeleteTodo(message, userId);
+    return this.aiCommandService.handleDeleteTodo(message, userId, useMcpTools);
   }
 
   private async handleDeleteEvent(
@@ -474,20 +529,23 @@ export class AIService {
     message: string,
     userId: number,
     currentDate: string,
+    useMcpTools = false,
   ): Promise<ChatResponseDto> {
     return this.aiCommandService.handleDeleteEvent(
       llm,
       message,
       userId,
       currentDate,
+      useMcpTools,
     );
   }
 
   private async handleUpdateTodo(
     message: string,
     userId: number,
+    useMcpTools = false,
   ): Promise<ChatResponseDto> {
-    return this.aiCommandService.handleUpdateTodo(message, userId);
+    return this.aiCommandService.handleUpdateTodo(message, userId, useMcpTools);
   }
 
   private async handleUpdateEvent(
@@ -495,12 +553,14 @@ export class AIService {
     message: string,
     userId: number,
     currentDate: string,
+    useMcpTools = false,
   ): Promise<ChatResponseDto> {
     return this.aiCommandService.handleUpdateEvent(
       llm,
       message,
       userId,
       currentDate,
+      useMcpTools,
     );
   }
 
@@ -511,8 +571,14 @@ export class AIService {
     llm: ChatLLM,
     message: string,
     userId: number,
+    useMcpTools = false,
   ): Promise<ChatResponseDto> {
-    return this.aiCommandService.handleCreateTodo(llm, message, userId);
+    return this.aiCommandService.handleCreateTodo(
+      llm,
+      message,
+      userId,
+      useMcpTools,
+    );
   }
 
   /**
@@ -523,12 +589,14 @@ export class AIService {
     message: string,
     userId: number,
     currentDate: string,
+    useMcpTools = false,
   ): Promise<ChatResponseDto> {
     return this.aiCommandService.handleCreateEvent(
       llm,
       message,
       userId,
       currentDate,
+      useMcpTools,
     );
   }
 
@@ -538,8 +606,9 @@ export class AIService {
   private async handleQuerySchedule(
     llm: ChatLLM,
     userId: number,
+    useMcpTools = false,
   ): Promise<ChatResponseDto> {
-    return this.aiCommandService.handleQuerySchedule(llm, userId);
+    return this.aiCommandService.handleQuerySchedule(llm, userId, useMcpTools);
   }
 
   /**
@@ -582,7 +651,7 @@ export class AIService {
     );
     this.chatSessionService.appendHistory(
       sessionKey,
-      this.toHistoryUserText(message, images),
+      toHistoryUserText(message, images),
       finalContent,
       this.maxHistoryMessages,
     );
@@ -629,6 +698,7 @@ export class AIService {
     llm: ChatLLM,
     message: string,
     currentDate: string,
+    userId: number,
   ): Promise<string> {
     const protocolVersion = AIService.mcpProtocolVersion;
     const mcpUrl =
@@ -646,13 +716,19 @@ export class AIService {
 
     try {
       if (this.shouldUseInProcessMcpTransport(mcpUrl)) {
-        const result = await this.mcpService.callTool('get_weather', {
-          city,
-          date: targetDate,
-        });
+        const result = await this.mcpServersService.callToolForUser(
+          userId,
+          'get_weather',
+          {
+            city,
+            date: targetDate,
+          },
+        );
         const firstContent = result.content?.[0];
         const localText =
-          firstContent?.type === 'text' ? firstContent.text : '获取天气信息失败';
+          firstContent?.type === 'text'
+            ? firstContent.text
+            : '获取天气信息失败';
         this.logger.log(
           `[MCP Weather][in-process] City: ${city}, Result: ${localText.substring(0, 50)}...`,
         );
@@ -815,7 +891,7 @@ export class AIService {
     ) {
       return;
     }
-    const assistantReply = this.buildIntentMemoryReply(result);
+    const assistantReply = buildIntentMemoryReply(result);
     if (!assistantReply) return;
     const sessionKey = this.chatSessionService.getSessionKey(userId, sessionId);
     this.chatSessionService.appendHistory(
@@ -824,61 +900,6 @@ export class AIService {
       assistantReply,
       this.maxHistoryMessages,
     );
-  }
-
-  private buildIntentMemoryReply(result: ChatResponseDto): string | null {
-    const data = result.data || {};
-    const title = this.getStringField(data, 'title');
-    const id = this.getNumberField(data, 'id');
-
-    switch (result.type) {
-      case 'todo_created':
-        return title ? `已创建待办：${title}。` : '已创建一个新的待办事项。';
-      case 'event_created':
-        return title ? `已创建日程：${title}。` : '已创建一个新的日程。';
-      case 'todo_updated':
-        return title ? `已更新待办：${title}。` : '已更新一个待办事项。';
-      case 'event_updated':
-        return title ? `已更新日程：${title}。` : '已更新一个日程。';
-      case 'todo_deleted':
-        if (title) return `已删除待办：${title}。`;
-        if (typeof id === 'number') return `已删除待办（ID：${id}）。`;
-        return '已删除一个待办事项。';
-      case 'event_deleted':
-        if (title) return `已删除日程：${title}。`;
-        if (typeof id === 'number') return `已删除日程（ID：${id}）。`;
-        return '已删除一个日程。';
-      case 'schedule_query':
-        return buildScheduleSummary(result.scheduleData);
-      case 'clarification_needed': {
-        const suggestion = result.clarification?.suggestion?.trim();
-        if (suggestion) return `我需要你补充信息后才能继续：${suggestion}`;
-        return '我需要补充信息后才能继续处理这个请求。';
-      }
-      case 'error':
-        return result.error?.trim()
-          ? `处理该请求时遇到问题：${result.error.trim()}`
-          : '处理该请求时遇到问题。';
-      case 'chat':
-      default:
-        return null;
-    }
-  }
-
-  private getStringField(
-    data: Record<string, unknown>,
-    key: string,
-  ): string | null {
-    const value = data[key];
-    return typeof value === 'string' && value.trim() ? value.trim() : null;
-  }
-
-  private getNumberField(
-    data: Record<string, unknown>,
-    key: string,
-  ): number | null {
-    const value = data[key];
-    return typeof value === 'number' && Number.isFinite(value) ? value : null;
   }
 
   /**
@@ -893,22 +914,41 @@ export class AIService {
     sessionId?: string,
     contextWindow = this.maxHistoryMessages,
     images?: ChatImageDto[],
+    useMcpTools = false,
   ): Promise<ChatResponseDto> {
     switch (intent) {
       case IntentType.CREATE_TODO:
-        return this.handleCreateTodo(llm, message, userId);
+        return this.handleCreateTodo(llm, message, userId, useMcpTools);
       case IntentType.CREATE_EVENT:
-        return this.handleCreateEvent(llm, message, userId, currentDate);
+        return this.handleCreateEvent(
+          llm,
+          message,
+          userId,
+          currentDate,
+          useMcpTools,
+        );
       case IntentType.UPDATE_TODO:
-        return this.handleUpdateTodo(message, userId);
+        return this.handleUpdateTodo(message, userId, useMcpTools);
       case IntentType.UPDATE_EVENT:
-        return this.handleUpdateEvent(llm, message, userId, currentDate);
+        return this.handleUpdateEvent(
+          llm,
+          message,
+          userId,
+          currentDate,
+          useMcpTools,
+        );
       case IntentType.DELETE_TODO:
-        return this.handleDeleteTodo(message, userId);
+        return this.handleDeleteTodo(message, userId, useMcpTools);
       case IntentType.DELETE_EVENT:
-        return this.handleDeleteEvent(llm, message, userId, currentDate);
+        return this.handleDeleteEvent(
+          llm,
+          message,
+          userId,
+          currentDate,
+          useMcpTools,
+        );
       case IntentType.QUERY_SCHEDULE:
-        return this.handleQuerySchedule(llm, userId);
+        return this.handleQuerySchedule(llm, userId, useMcpTools);
       case IntentType.QUERY_WEATHER:
         return this.handleQueryWeather(
           llm,
@@ -934,6 +974,16 @@ export class AIService {
       }
       case IntentType.CHAT:
       default:
+        if (useMcpTools) {
+          const githubResult = await this.tryHandleGithubChatViaMcp(
+            message,
+            userId,
+            sessionId,
+          );
+          if (githubResult) {
+            return githubResult;
+          }
+        }
         return this.handleChat(
           llm,
           message,
@@ -945,25 +995,112 @@ export class AIService {
     }
   }
 
-  private validateChatImages(images?: ChatImageDto[]): void {
-    if (!images?.length) return;
-    for (const img of images) {
-      const buf = Buffer.from(img.dataBase64, 'base64');
-      if (!buf.length || buf.length > MAX_CHAT_IMAGE_BYTES) {
-        throw new BadRequestException(
-          `单张图片过大或无效，请压缩后重试（最大 ${MAX_CHAT_IMAGE_BYTES / 1024 / 1024}MB）`,
-        );
-      }
-    }
-  }
+  private async tryHandleGithubChatViaMcp(
+    message: string,
+    userId: number,
+    sessionId?: string,
+  ): Promise<ChatResponseDto | null> {
+    const ownerRepoMatch = extractGithubOwnerRepo(message);
+    if (!ownerRepoMatch) return null;
 
-  private toHistoryUserText(message: string, images?: ChatImageDto[]): string {
-    const text = message.trim();
-    if (images?.length) {
-      const tag = `[图片×${images.length}]`;
-      return text ? `${tag} ${text}` : tag;
+    const owner = ownerRepoMatch.owner;
+    const repo = ownerRepoMatch.repo;
+    const lower = message.toLowerCase();
+    const askIssue =
+      lower.includes('issue') ||
+      message.includes('问题单') ||
+      message.includes('缺陷');
+    const createIssueIntent =
+      (lower.includes('issue') &&
+        (lower.includes('create') ||
+          lower.includes('open') ||
+          lower.includes('file'))) ||
+      message.includes('提个问题') ||
+      message.includes('提个issue') ||
+      message.includes('提 issue') ||
+      message.includes('创建issue') ||
+      message.includes('创建 issue') ||
+      message.includes('新建issue') ||
+      message.includes('报个 bug') ||
+      message.includes('报bug');
+    const askPr =
+      /\bpr\b/.test(lower) ||
+      lower.includes('pull request') ||
+      message.includes('合并请求');
+    const askRepo =
+      lower.includes('repo') ||
+      lower.includes('repository') ||
+      message.includes('仓库');
+    const hasGithubHint =
+      lower.includes('github') ||
+      askIssue ||
+      askPr ||
+      askRepo ||
+      message.includes('仓库');
+    if (!hasGithubHint) return null;
+
+    let toolName = askIssue ? 'list_issues' : askPr ? 'list_prs' : 'get_repo';
+    let params: Record<string, unknown> = {
+      owner,
+      repo,
+      ...(askIssue || askPr ? { state: 'open', per_page: 10 } : {}),
+    };
+
+    if (createIssueIntent) {
+      const draft = extractGithubIssueDraft(message);
+      if (!draft?.title) {
+        return {
+          type: 'chat',
+          content:
+            '我已识别到你想创建 GitHub Issue，请补充标题，例如：在 owner/repo 提个 issue，标题是“首页无法访问”，内容是“访问 / 返回 404”。',
+        };
+      }
+      toolName = 'create_issue';
+      params = {
+        owner,
+        repo,
+        title: draft.title,
+        body: draft.body || undefined,
+      };
     }
-    return text;
+
+    try {
+      const result = await this.mcpServersService.callToolForUser(
+        userId,
+        toolName,
+        params,
+      );
+      const first = result.content.find((item) => item.type === 'text');
+      const content =
+        first?.text?.trim() ||
+        `已通过 GitHub MCP 调用 ${toolName}，但未返回可展示文本。`;
+      const normalized =
+        this.chatResponseService.normalizeAssistantReply(content);
+      const sessionKey = this.chatSessionService.getSessionKey(
+        userId,
+        sessionId,
+      );
+      this.chatSessionService.appendHistory(
+        sessionKey,
+        message,
+        normalized,
+        this.maxHistoryMessages,
+      );
+      return { type: 'chat', content: normalized };
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : '调用失败';
+      if (msg.includes('未找到可用的 MCP 工具')) {
+        return {
+          type: 'chat',
+          content:
+            '检测到你在查询 GitHub 信息，但当前未安装或未启用 GitHub MCP 工具。请到 MCP 面板安装并启用 GitHub 集成后重试。',
+        };
+      }
+      return {
+        type: 'chat',
+        content: `已识别为 GitHub 请求，但 MCP 调用失败：${msg}`,
+      };
+    }
   }
 
   async getUserAIConfig(userId: number) {

@@ -49,12 +49,14 @@ export class TransformInterceptor<T>
     const request = context.switchToHttp().getRequest<{ path?: string }>();
     return next.handle().pipe(
       map((data) => {
-        // MCP 路由直接返回原始响应，不经过响应包装
-        // MCP 使用标准 JSON-RPC 协议，不需要响应包装
-        // MCP 路由直接返回原始响应，不经过响应包装
-        // MCP 使用标准 JSON-RPC 协议，不需要响应包装
-        // 注意：实际路径是 /api/mcp
-        if (request.path?.includes('/mcp')) {
+        // 仅 MCP JSON-RPC 协议端点（/api/mcp）返回原始响应，不走统一包装。
+        // 注意不要误伤 /api/mcp-servers 这类业务 REST 路由。
+        const path = request.path || '';
+        const isRawMcpRpcPath =
+          path === '/api/mcp' ||
+          path.startsWith('/api/mcp/') ||
+          path.startsWith('/api/mcp?');
+        if (isRawMcpRpcPath) {
           return data as unknown as Response<T>;
         }
         return {

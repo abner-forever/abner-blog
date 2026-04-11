@@ -10,6 +10,7 @@ export interface MCPServerResponse {
   status: string;
   lastError?: string;
   allowedTools: string[];
+  config?: Record<string, unknown>;
   createdAt: string;
 }
 
@@ -19,19 +20,20 @@ export interface MarketplaceMCPServer {
   description: string;
   icon: string;
   tools: string[];
+  source: 'builtin' | 'marketplace';
   isInstalled: boolean;
 }
 
 export interface InstallMCPServerDto {
   marketplaceId: string;
   name?: string;
-  config?: Record<string, any>;
+  config?: Record<string, unknown>;
   allowedTools?: string[];
 }
 
 export interface UpdateMCPServerDto {
   name?: string;
-  config?: Record<string, any>;
+  config?: Record<string, unknown>;
   status?: 'active' | 'inactive' | 'error';
   allowedTools?: string[];
 }
@@ -45,22 +47,27 @@ class MCPServersService {
   }
 
   async getOne(id: string): Promise<MCPServerResponse> {
-    const response = await httpService.get<MCPServerResponse>(`${this.baseUrl}/${id}`);
+    const response = await httpService.get<MCPServerResponse>(
+      `${this.baseUrl}/${id}`,
+    );
     return response.data;
   }
 
   async install(dto: InstallMCPServerDto): Promise<MCPServerResponse> {
     const response = await httpService.post<MCPServerResponse>(
       `${this.baseUrl}/install`,
-      dto
+      dto,
     );
     return response.data;
   }
 
-  async update(id: string, dto: UpdateMCPServerDto): Promise<MCPServerResponse> {
+  async update(
+    id: string,
+    dto: UpdateMCPServerDto,
+  ): Promise<MCPServerResponse> {
     const response = await httpService.put<MCPServerResponse>(
       `${this.baseUrl}/${id}`,
-      dto
+      dto,
     );
     return response.data;
   }
@@ -69,17 +76,58 @@ class MCPServersService {
     await httpService.delete(`${this.baseUrl}/${id}`);
   }
 
-  async getMarketplace(): Promise<MarketplaceMCPServer[]> {
+  async getCatalog(): Promise<MarketplaceMCPServer[]> {
     const response = await httpService.get<MarketplaceMCPServer[]>(
-      `${this.baseUrl}/marketplace/list`
+      `${this.baseUrl}/catalog`,
     );
     return response.data;
   }
 
   async getStatus(id: string): Promise<{ status: string; lastError?: string }> {
-    const response = await httpService.get<{ status: string; lastError?: string }>(
-      `${this.baseUrl}/${id}/status`
-    );
+    const response = await httpService.get<{
+      status: string;
+      lastError?: string;
+    }>(`${this.baseUrl}/${id}/status`);
+    return response.data;
+  }
+
+  async testConnection(
+    id: string,
+    config?: Record<string, unknown>,
+  ): Promise<{ success: boolean; message: string }> {
+    const response = await httpService.post<{
+      success: boolean;
+      message: string;
+    }>(`${this.baseUrl}/${id}/test-connection`, { config });
+    return response.data;
+  }
+
+  async syncTools(
+    id: string,
+  ): Promise<{ success: boolean; tools: string[]; message: string }> {
+    const response = await httpService.post<{
+      success: boolean;
+      tools: string[];
+      message: string;
+    }>(`${this.baseUrl}/${id}/sync-tools`);
+    return response.data;
+  }
+
+  async diagnoseConnection(
+    id: string,
+    config?: Record<string, unknown>,
+  ): Promise<{
+    success: boolean;
+    message: string;
+    steps: Array<{ step: string; ok: boolean; detail: string }>;
+    sampleTool?: string;
+  }> {
+    const response = await httpService.post<{
+      success: boolean;
+      message: string;
+      steps: Array<{ step: string; ok: boolean; detail: string }>;
+      sampleTool?: string;
+    }>(`${this.baseUrl}/${id}/diagnose`, { config });
     return response.data;
   }
 }

@@ -1,29 +1,41 @@
 /**
  * Ant Design 全局覆盖（不含移动端，见 mobile.less）
- * 顺序：组件外观 → CSS 变量与背景对齐（后者覆盖前者中的 background 等属性）
+ * 目标：仅做主题对齐与交互优化，保持项目皮肤变量为单一事实来源。
  */
-.ant-layout {
+
+/* ===== 基础容器 ===== */
+.ant-layout,
+.ant-layout-footer,
+.ant-menu,
+.ant-menu-dark,
+.ant-form-item {
   background: transparent !important;
 }
 
+.ant-layout-header,
+.ant-layout-sider {
+  background: var(--antd-colorBgContainer) !important;
+}
+
+/* ===== 卡片 ===== */
 .ant-card {
-  background: var(--card-bg) !important;
-  border-radius: 16px !important;
+  background: var(--antd-colorBgContainer) !important;
   border: 1px solid var(--border-color) !important;
+  border-radius: 16px !important;
   box-shadow: var(--shadow-sm) !important;
   overflow: hidden;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
 
   &:hover {
-    box-shadow: var(--shadow-sm) !important;
     border-color: var(--skin-border-color) !important;
+    box-shadow: var(--shadow-sm) !important;
   }
 }
 
 .ant-card-head {
+  background: transparent !important;
   border-bottom: 1px solid var(--divider-color) !important;
   padding: 0 24px !important;
-  background: transparent !important;
 
   .ant-card-head-title {
     color: var(--text-main) !important;
@@ -32,21 +44,38 @@
 }
 
 .ant-card-body {
-  padding: 24px;
   color: var(--text-secondary);
+  padding: 24px;
 }
 
+/* ===== 按钮 ===== */
 .ant-btn {
   font-weight: 500;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Link 按钮全局去边框（hover / focus / active） */
+/* Link / Text 语义按钮不应出现边框（兼容 AntD v5/v6 类名） */
 .ant-btn-link,
+.ant-btn-text,
+.ant-btn-variant-link,
+.ant-btn-variant-text,
 .ant-btn-link:hover,
 .ant-btn-link:focus,
 .ant-btn-link:focus-visible,
-.ant-btn-link:active {
+.ant-btn-link:active,
+.ant-btn-text:hover,
+.ant-btn-text:focus,
+.ant-btn-text:focus-visible,
+.ant-btn-text:active,
+.ant-btn-variant-link:hover,
+.ant-btn-variant-link:focus,
+.ant-btn-variant-link:focus-visible,
+.ant-btn-variant-link:active,
+.ant-btn-variant-text:hover,
+.ant-btn-variant-text:focus,
+.ant-btn-variant-text:focus-visible,
+.ant-btn-variant-text:active {
+  border: 0 !important;
   border-color: transparent !important;
   box-shadow: none !important;
   outline: none !important;
@@ -55,8 +84,8 @@
 .ant-btn-primary {
   background: var(--skin-primary) !important;
   border-color: var(--skin-primary) !important;
-  color: #fff !important;
   box-shadow: none !important;
+  color: #fff !important;
 
   &:hover,
   &:focus {
@@ -71,9 +100,9 @@
 
   &.ant-btn-background-ghost {
     background: transparent !important;
-    color: var(--skin-primary) !important;
     border-color: var(--skin-primary) !important;
     box-shadow: none !important;
+    color: var(--skin-primary) !important;
 
     &:hover {
       background: var(--skin-gradient-bg) !important;
@@ -81,11 +110,17 @@
   }
 }
 
+.ant-btn:not(.ant-btn-primary):not(.ant-btn-link):hover {
+  border-color: var(--skin-primary) !important;
+  color: var(--skin-primary) !important;
+}
+
+/* ===== 输入类控件 ===== */
 .ant-input,
 .ant-input-affix-wrapper {
-  border-radius: @border-radius-sm !important;
+  background: var(--antd-colorBgContainer) !important;
   border-color: var(--border-color) !important;
-  background: var(--card-bg) !important;
+  border-radius: @border-radius-sm !important;
   color: var(--text-main) !important;
   transition: all 0.3s ease !important;
 
@@ -96,93 +131,46 @@
     box-shadow: 0 0 0 3px var(--skin-gradient-bg) !important;
   }
 
-  /* 勿对 autofill 强制透明，否则与 UA 填充层冲突；单独规则见 input-autofill.less */
+  /* 勿对 autofill 强制透明，否则会与 UA 填充层冲突。 */
   input:not(:-webkit-autofill):not(:autofill) {
     background: transparent !important;
     color: inherit !important;
   }
 }
 
-/* 优化按钮 hover 效果 */
-.ant-btn:not(.ant-btn-primary):not(.ant-btn-link):hover {
-  border-color: var(--skin-primary) !important;
-  color: var(--skin-primary) !important;
-}
-
-/* ======================= Ant Design CSS 变量与组件背景对齐 ======================= */
-
+/* ===== 主题桥接（AntD 变量映射到项目变量） ===== */
 :root {
   --ant-modal-content-padding: 0 !important;
-  --antd-colorBgContainer: #ffffff;
-  --antd-colorBgElevated: #ffffff;
-  --antd-colorBgLayout: #f8fafc;
-  --antd-colorBgSpotlight: #f8fafc;
-  --antd-colorBorder: #e2e8f0;
-  --antd-colorBorderSecondary: #f1f5f9;
-  --antd-colorText: #0f172a;
-  --antd-colorTextSecondary: #475569;
-  --antd-colorTextTertiary: #94a3b8;
-  --antd-colorTextQuaternary: #cbd5e1;
-  --antd-colorFill: #f1f5f9;
-  --antd-colorFillSecondary: #f8fafc;
-  --antd-colorFillTertiary: #f1f5f9;
-  --antd-colorFillQuaternary: #e2e8f0;
+  --antd-colorBgContainer: var(--card-bg);
+  --antd-colorBgElevated: var(--card-bg);
+  --antd-colorBgLayout: var(--bg-color);
+  --antd-colorBgSpotlight: var(--card-bg);
+  --antd-colorBorder: var(--border-color);
+  --antd-colorBorderSecondary: var(--divider-color);
+  --antd-colorText: var(--text-main);
+  --antd-colorTextSecondary: var(--text-secondary);
+  --antd-colorTextTertiary: var(--text-muted);
+  --antd-colorTextQuaternary: var(--text-muted);
+  --antd-colorFill: var(--divider-color);
+  --antd-colorFillSecondary: var(--bg-color);
+  --antd-colorFillTertiary: var(--divider-color);
+  --antd-colorFillQuaternary: var(--border-color);
 }
 
-[data-theme='dark'] {
-  --antd-colorBgContainer: #1e293b;
-  --antd-colorBgElevated: #1e293b;
-  --antd-colorBgLayout: #0f172a;
-  --antd-colorBgSpotlight: #1e293b;
-  --antd-colorBorder: #334155;
-  --antd-colorBorderSecondary: #1e293b;
-  --antd-colorText: #f1f5f9;
-  --antd-colorTextSecondary: #cbd5e1;
-  --antd-colorTextTertiary: #64748b;
-  --antd-colorTextQuaternary: #475569;
-  --antd-colorFill: #1e293b;
-  --antd-colorFillSecondary: #0f172a;
-  --antd-colorFillTertiary: #1e293b;
-  --antd-colorFillQuaternary: #334155;
-}
-
-.ant-layout-header {
+/* ===== 悬浮层 / 弹层 ===== */
+.ant-modal-content,
+.ant-modal-header,
+.ant-drawer-content,
+.ant-drawer-header,
+.ant-drawer-footer {
   background: var(--antd-colorBgContainer) !important;
 }
 
-.ant-layout-footer {
-  background: transparent !important;
-}
-
-.ant-layout-sider {
-  background: var(--antd-colorBgContainer) !important;
-}
-
-.ant-card {
-  background: var(--antd-colorBgContainer) !important;
-}
-
-.ant-modal-content {
-  background: var(--antd-colorBgContainer) !important;
-}
-
-.ant-modal-header {
-  background: var(--antd-colorBgContainer) !important;
-}
-
-.ant-drawer-content {
-  background: var(--antd-colorBgContainer) !important;
-}
-
-.ant-popover-inner {
-  background: var(--antd-colorBgElevated) !important;
-}
-
-.ant-select-dropdown {
-  background: var(--antd-colorBgElevated) !important;
-}
-
-.ant-dropdown-menu {
+.ant-popover-inner,
+.ant-select-dropdown,
+.ant-dropdown-menu,
+.ant-picker-dropdown,
+.ant-picker-panel-container {
   background: var(--antd-colorBgElevated) !important;
 }
 
@@ -190,16 +178,12 @@
   background: var(--antd-colorBgSpotlight) !important;
 }
 
-/* 静态 message/notification 挂在 body 上，易与 ConfigProvider 主题脱节；文字与背景统一走 --antd-*，随 data-theme 切换 */
+/* 静态 message/notification 挂在 body，手动与主题变量对齐。 */
 .ant-message {
   color: var(--antd-colorText) !important;
 }
 
-.ant-message-notice-content {
-  background: var(--antd-colorBgElevated) !important;
-  color: var(--antd-colorText) !important;
-}
-
+.ant-message-notice-content,
 .ant-notification-notice {
   background: var(--antd-colorBgElevated) !important;
   color: var(--antd-colorText) !important;
@@ -213,91 +197,12 @@
   color: var(--antd-colorTextSecondary) !important;
 }
 
-.ant-input {
-  background: var(--antd-colorBgContainer) !important;
-}
 
-.ant-input-affix-wrapper {
-  background: var(--antd-colorBgContainer) !important;
-}
-
-.ant-select-selector {
-  background: var(--antd-colorBgContainer) !important;
-}
-
-.ant-picker {
-  background: var(--antd-colorBgContainer) !important;
-}
-
-.ant-picker-dropdown {
-  background: var(--antd-colorBgElevated) !important;
-}
-
-.ant-picker-panel-container {
-  background: var(--antd-colorBgElevated) !important;
-}
-
-.ant-picker-header {
-  background: var(--antd-colorBgContainer) !important;
-}
-
-.ant-picker-content th,
-.ant-picker-content td {
-  background: var(--antd-colorBgContainer) !important;
-}
-
-.ant-picker-cell {
-  background: var(--antd-colorBgContainer) !important;
-}
-
-.ant-picker-cell-in-view .ant-picker-cell-inner {
-  background: var(--antd-colorBgContainer) !important;
-}
-
-.ant-tabs-card > .ant-tabs-nav .ant-tabs-tab {
+.ant-tabs-card > .ant-tabs-nav .ant-tabs-tab,
+.ant-table-thead > tr > th {
   background: var(--antd-colorFillSecondary) !important;
 }
 
 .ant-tabs-card > .ant-tabs-nav .ant-tabs-tab-active {
   background: var(--antd-colorBgContainer) !important;
-}
-
-.ant-menu {
-  background: transparent !important;
-}
-
-.ant-menu-dark {
-  background: transparent !important;
-}
-
-.ant-list {
-  background: var(--antd-colorBgContainer) !important;
-}
-
-.ant-list-item {
-  background: var(--antd-colorBgContainer) !important;
-}
-
-.ant-table {
-  background: var(--antd-colorBgContainer) !important;
-}
-
-.ant-table-thead > tr > th {
-  background: var(--antd-colorFillSecondary) !important;
-}
-
-.ant-table-tbody > tr > td {
-  background: var(--antd-colorBgContainer) !important;
-}
-
-.ant-drawer-header {
-  background: var(--antd-colorBgContainer) !important;
-}
-
-.ant-drawer-footer {
-  background: var(--antd-colorBgContainer) !important;
-}
-
-.ant-form-item {
-  background: transparent !important;
 }

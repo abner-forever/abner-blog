@@ -6,7 +6,6 @@ import {
   Delete,
   Body,
   Param,
-  Query,
   UseGuards,
   Request,
   UseInterceptors,
@@ -47,7 +46,10 @@ export class KnowledgeBaseController {
   @ApiOperation({ summary: '创建知识库' })
   @ApiResponse({ status: 201, type: KnowledgeBaseResponseDto })
   @Post()
-  create(@Body() dto: CreateKnowledgeBaseDto, @Request() req: AuthenticatedRequest) {
+  create(
+    @Body() dto: CreateKnowledgeBaseDto,
+    @Request() req: AuthenticatedRequest,
+  ) {
     return this.knowledgeBaseService.create(dto, req.user.userId);
   }
 
@@ -109,14 +111,20 @@ export class KnowledgeBaseController {
   @ApiOperation({ summary: '删除chunk' })
   @ApiResponse({ status: 200 })
   @Delete('chunks/:chunkId')
-  deleteChunk(@Param('chunkId') chunkId: string, @Request() req: AuthenticatedRequest) {
+  deleteChunk(
+    @Param('chunkId') chunkId: string,
+    @Request() req: AuthenticatedRequest,
+  ) {
     return this.knowledgeBaseService.deleteChunk(chunkId, req.user.userId);
   }
 
   @ApiOperation({ summary: '搜索知识库' })
   @ApiResponse({ status: 200, type: [SearchResultDto] })
   @Post('search')
-  search(@Body() dto: SearchKnowledgeBaseDto, @Request() req: AuthenticatedRequest) {
+  search(
+    @Body() dto: SearchKnowledgeBaseDto,
+    @Request() req: AuthenticatedRequest,
+  ) {
     return this.knowledgeBaseService.search(dto, req.user.userId);
   }
 }

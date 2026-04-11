@@ -25,8 +25,13 @@ const CodeBlock = memo<{
   return (
     <div className={`code-block ${isDark ? 'dark' : ''}`}>
       <div className="code-header">
-        <span className="code-lang">{language}</span>
+        <span className="code-traffic-lights" aria-hidden>
+          <i />
+          <i />
+          <i />
+        </span>
         <div className="code-actions">
+          <span className="code-lang">{language}</span>
           {codeString.split('\n').length > 6 && (
             <button onClick={onToggle}>{isCollapsed ? '展开' : '收起'}</button>
           )}
@@ -39,9 +44,10 @@ const CodeBlock = memo<{
         PreTag="div"
         customStyle={{
           margin: 0,
-          padding: '12px',
-          borderRadius: '0 0 6px 6px',
-          fontSize: '13px',
+          padding: '14px',
+          borderRadius: '0 0 8px 8px',
+          fontSize: '14px',
+          lineHeight: 1.6,
           maxHeight: isCollapsed ? '60px' : 'none',
           overflow: isCollapsed ? 'hidden' : 'auto',
         }}

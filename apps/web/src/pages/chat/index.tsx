@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ChatProvider, useChat } from './context/ChatContext';
-import { useAppSelector } from '@/store/reduxHooks';
 import ChatSidebar from './components/ChatSidebar';
 import ChatHeader from './components/ChatHeader';
 import ChatInput from './components/ChatInput';
@@ -28,6 +27,7 @@ const ChatPageContent: React.FC = () => {
     sendMessage,
     stopGeneration,
     handleCopy,
+    regenerateMessage,
     isDark,
   } = useChat();
 
@@ -48,8 +48,6 @@ const ChatPageContent: React.FC = () => {
     showMCPServer,
     showSkill,
   } = state;
-
-  const userAvatar = useAppSelector((s) => s.auth.user?.avatar);
 
   // Add files to pending
   const addFilesToPending = useCallback(
@@ -202,17 +200,18 @@ const ChatPageContent: React.FC = () => {
         <ChatMessageList
           messages={messages}
           loading={loading}
-          userAvatar={userAvatar || undefined}
           isDark={isDark}
           expandedThinkingMessageIds={expandedThinkingMessageIds}
           onToggleThinkingExpanded={toggleThinkingExpanded}
           onCopyMessage={handleCopy}
+          onRegenerateMessage={(assistantMessageId) => { void regenerateMessage(assistantMessageId); }}
           messagesEndRef={messagesEndRef as React.RefObject<HTMLDivElement>}
           thinkingProcessLabel={t('chat.thinkingProcess')}
           webSearchRetrievingLabel={t('chat.webSearchRetrieving')}
           expandThinkingAriaLabel="expand thinking"
           collapseThinkingAriaLabel="collapse thinking"
-          copyLabel="复制"
+          copyAriaLabel="复制"
+          regenerateAriaLabel="重新生成"
         />
 
         <ChatInput

@@ -24,6 +24,8 @@
   --border-color: #e2e8f0;
   --divider-color: #f1f5f9;
   --bg-layout: #f8fafc;
+  --hover-bg: #f1f5f9;
+  --active-bg: #e2e8f0;
   
   --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
@@ -314,6 +316,33 @@
   --glass-border: rgba(209, 207, 197, 0.44);
 }
 
+/* GitHub ChatGPT - GitHub 深浅灰 + ChatGPT 绿点缀 */
+:root[data-skin="github-chatgpt"] {
+  --skin-primary: #0969da;
+  --skin-primary-hover: #0860ca;
+  --skin-gradient: linear-gradient(135deg, #218bff 0%, #0969da 100%);
+  --skin-gradient-reverse: linear-gradient(135deg, #0969da 0%, #218bff 100%);
+  --skin-gradient-bg: linear-gradient(135deg, #218bff1a 0%, #0969da1a 100%);
+  --skin-glow: 0 0 24px rgba(9, 105, 218, 0.22);
+  --skin-card-bg: linear-gradient(145deg, rgba(255, 255, 255, 0.94) 0%, rgba(246, 248, 250, 0.92) 100%);
+  --skin-border-color: rgba(208, 215, 222, 0.85);
+  --primary-color: #0969da;
+  --primary-hover: #0860ca;
+  --bg-color: #f6f8fa;
+  --card-bg: #ffffff;
+  --text-main: #1f2328;
+  --text-secondary: #57606a;
+  --text-muted: #6e7781;
+  --border-color: #d0d7de;
+  --divider-color: #eaeef2;
+  --bg-layout: #f6f8fa;
+  --shadow-sm: 0 1px 2px 0 rgba(31, 35, 40, 0.08);
+  --shadow-md: 0 6px 14px -6px rgba(31, 35, 40, 0.14);
+  --shadow-lg: 0 16px 30px -12px rgba(31, 35, 40, 0.18);
+  --glass-bg: rgba(255, 255, 255, 0.9);
+  --glass-border: rgba(208, 215, 222, 0.5);
+}
+
 /* ======================= Dark Mode ======================= */
 
 /* 确保 dark 模式变量在 html[data-theme='dark'] 下生效 */
@@ -327,6 +356,8 @@ html[data-theme='dark'],
   --border-color: #334155;
   --divider-color: #1e293b;
   --bg-layout: #0f172a;
+  --hover-bg: #1e293b;
+  --active-bg: #334155;
   
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
@@ -417,6 +448,26 @@ html[data-theme='dark'][data-skin="claude-code"],
   --glass-border: rgba(194, 192, 182, 0.2);
 }
 
+/* GitHub ChatGPT - 暗黑模式（GitHub dark + tech blue） */
+html[data-theme='dark'][data-skin="github-chatgpt"],
+[data-theme='dark'][data-skin="github-chatgpt"] {
+  --skin-primary: #2f81f7;
+  --skin-primary-hover: #1f6feb;
+  --skin-glow: 0 0 26px rgba(47, 129, 247, 0.3);
+  --skin-card-bg: linear-gradient(145deg, rgba(47, 129, 247, 0.12) 0%, rgba(13, 17, 23, 0.78) 100%);
+  --skin-border-color: rgba(48, 54, 61, 0.9);
+  --bg-color: #0d1117;
+  --card-bg: #161b22;
+  --text-main: #e6edf3;
+  --text-secondary: #9da7b3;
+  --text-muted: #7d8590;
+  --border-color: #30363d;
+  --divider-color: #21262d;
+  --bg-layout: #0d1117;
+  --glass-bg: rgba(22, 27, 34, 0.9);
+  --glass-border: rgba(48, 54, 61, 0.65);
+}
+
 /* 酷炫主题在 light 模式下的适配 - 使用浅色文字 */
 :root[data-skin="cyberpunk"],
 :root[data-skin="aurora"],
@@ -455,7 +506,6 @@ html[data-theme='dark'][data-skin="lavender"] {
 
 .md-editor {
   background-color: var(--card-bg) !important;
-  
   .md-editor-toolbar-wrapper,
   .md-editor-content,
   .md-editor-footer,

@@ -64,7 +64,11 @@ export function sessionsForLocalStorage(sessions: ChatSession[]): ChatSession[] 
   return sessions.map((s) => ({
     ...s,
     messages: s.messages.map(
-      ({ images: _i, webSearchStatus: _w, ...m }) => m,
+      ({ images: _i, webSearchStatus: _w, ...m }) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { thinkingStatus: _ts, ...rest } = m as typeof m & { thinkingStatus?: string };
+        return { ...rest, thinkingStatus: 'done' as const };
+      },
     ),
   }));
 }

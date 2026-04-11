@@ -29,6 +29,7 @@ const EMBEDDING_MODEL = 'embo-01';
 const EMBEDDING_DIMENSIONS = 1536;
 const CHUNK_SIZE = 500;
 const CHUNK_OVERLAP = 50;
+type EmbeddingType = 'db' | 'query';
 
 interface ChromaMetadata {
   kbId?: string;
@@ -186,7 +187,7 @@ export class KnowledgeBaseService {
 
     // Store in ChromaDB
     try {
-      await this.addToChroma(kbId, kb.name, chunks, embeddings);
+      await this.addToChroma(kbId, kb.name, chunkEntities, embeddings);
       kb.indexedAt = new Date();
     } catch (e) {
       console.error('Failed to add to ChromaDB:', e);
@@ -234,6 +235,9 @@ export class KnowledgeBaseService {
     kb.chunkCount = await this.chunkRepository.count({
       where: { knowledgeBaseId: kb.id },
     });
+
+    // Keep vector index in sync after deleting chunk.
+    await this.syncKnowledgeBaseIndex(kb.id, kb.name);
     await this.kbRepository.save(kb);
   }
 
@@ -347,7 +351,10 @@ export class KnowledgeBaseService {
     return chunks;
   }
 
-  private async generateEmbeddings(texts: string[]): Promise<number[][]> {
+  private async generateEmbeddings(
+    texts: string[],
+    embeddingType: EmbeddingType = 'db',
+  ): Promise<number[][]> {
     const apiKey = process.env.MINIMAX_API_KEY || '';
     if (!apiKey) {
       throw new BadRequestException('MiniMax API key not configured');
@@ -357,26 +364,40 @@ export class KnowledgeBaseService {
       process.env.MINIMAX_API_BASE?.trim() || 'https://api.minimax.io';
     const url = `${baseUrl.replace(/\/$/, '')}/v1/embeddings`;
 
+    const normalizedTexts = texts
+      .map((text) => text.trim())
+      .filter((text) => text.length > 0);
+    if (normalizedTexts.length === 0) {
+      throw new BadRequestException('Embedding text cannot be empty');
+    }
+
+    // MiniMax embedding API requires "texts"; keep "input" for compatibility.
+    const requestBody = {
+      model: EMBEDDING_MODEL,
+      type: embeddingType,
+      texts: normalizedTexts,
+      input: normalizedTexts,
+    };
+
     const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${apiKey}`,
       },
-      body: JSON.stringify({
-        model: EMBEDDING_MODEL,
-        texts: texts,
-        type: 'db',
-        dimensions: EMBEDDING_DIMENSIONS,
-      }),
+      body: JSON.stringify(requestBody),
     });
 
     const raw = await response.text();
     if (!response.ok) {
-      throw new BadRequestException(`Embedding API error: ${raw}`);
+      console.error('Embedding API error:', response.status, raw);
+      throw new BadRequestException(
+        `Embedding API error: ${response.status} - ${raw}`,
+      );
     }
 
     const data = JSON.parse(raw) as Record<string, unknown>;
+    // console.log('Embedding response:', JSON.stringify(data).slice(0, 500));
 
     // Check MiniMax API error response first
     const baseResp = data.base_resp as
@@ -390,34 +411,25 @@ export class KnowledgeBaseService {
 
     // MiniMax embedding API returns { vectors: [[...]] }
     const vectorsField = data.vectors;
-    if (Array.isArray(vectorsField)) {
+    if (Array.isArray(vectorsField) && vectorsField.length > 0) {
       return vectorsField as number[][];
     }
 
     // Fallback: OpenAI-compatible format { data: [{ embedding: [...], index: 0 }] }
     const dataField = data.data;
-    if (Array.isArray(dataField)) {
+    if (Array.isArray(dataField) && dataField.length > 0) {
       return dataField.map(
         (item): number[] => (item as { embedding: number[] }).embedding,
       );
     }
 
-    // Fallback: maybe it's { embeddings: [[...]] }
-    const embeddingsField = data.embeddings;
-    if (Array.isArray(embeddingsField)) {
-      return embeddingsField as number[][];
-    }
-
-    // Fallback: maybe it's { data: { embedding: [...] } } (single)
-    const singleData = data.data as { embedding?: number[] } | undefined;
-    if (singleData?.embedding) {
-      return [singleData.embedding];
-    }
-
     // If vectors is null but API returned success, return empty (chunks saved without embeddings)
-    if (vectorsField === null) {
+    if (
+      vectorsField === null ||
+      (Array.isArray(vectorsField) && vectorsField.length === 0)
+    ) {
       console.warn(
-        'Embedding API returned null vectors, storing chunks without vector index',
+        'Embedding API returned null/empty vectors, storing chunks without vector index',
       );
       return [];
     }
@@ -426,7 +438,10 @@ export class KnowledgeBaseService {
   }
 
   private async generateSingleEmbedding(text: string): Promise<number[]> {
-    const embeddings = await this.generateEmbeddings([text]);
+    const embeddings = await this.generateEmbeddings([text], 'query');
+    if (!embeddings[0]) {
+      throw new BadRequestException('Failed to generate embedding for query');
+    }
     return embeddings[0];
   }
 
@@ -493,12 +508,12 @@ export class KnowledgeBaseService {
   private async addToChroma(
     kbId: string,
     kbName: string,
-    chunks: string[],
+    chunks: KnowledgeChunk[],
     embeddings: number[][],
   ): Promise<void> {
     const collectionId = await this.ensureCollection();
 
-    const ids = chunks.map((_, i) => `${kbId}_chunk_${i}_${Date.now()}`);
+    const ids = chunks.map((chunk) => chunk.id);
 
     await fetch(this.getCollectionUrl(`/${collectionId}/add`), {
       method: 'POST',
@@ -506,11 +521,13 @@ export class KnowledgeBaseService {
       body: JSON.stringify({
         ids,
         embeddings: embeddings.map((e) => e.slice(0, EMBEDDING_DIMENSIONS)),
-        documents: chunks,
-        metadatas: chunks.map((_, i) => ({
+        documents: chunks.map((chunk) => chunk.content),
+        metadatas: chunks.map((chunk) => ({
           kbId,
           kbName,
-          chunkIndex: i,
+          chunkId: chunk.id,
+          chunkIndex: chunk.chunkIndex,
+          contentHash: chunk.contentHash,
         })),
       }),
     });
@@ -531,6 +548,33 @@ export class KnowledgeBaseService {
     } catch (e) {
       console.error('Failed to delete from ChromaDB:', e);
     }
+  }
+
+  private async syncKnowledgeBaseIndex(
+    kbId: string,
+    kbName: string,
+  ): Promise<void> {
+    const chunks = await this.chunkRepository.find({
+      where: { knowledgeBaseId: kbId },
+      order: { chunkIndex: 'ASC' },
+    });
+
+    await this.deleteFromChroma(kbId);
+    if (chunks.length === 0) {
+      return;
+    }
+
+    const embeddings = await this.generateEmbeddings(
+      chunks.map((chunk) => chunk.content),
+      'db',
+    );
+    if (embeddings.length !== chunks.length) {
+      throw new Error(
+        `Embedding count mismatch during reindex: expected ${chunks.length}, got ${embeddings.length}`,
+      );
+    }
+
+    await this.addToChroma(kbId, kbName, chunks, embeddings);
   }
 
   private async searchChroma(
@@ -575,7 +619,10 @@ export class KnowledgeBaseService {
       .take(topK * 2)
       .getMany();
 
-    const queryWords = query.toLowerCase().split(/\s+/);
+    const queryWords = query
+      .toLowerCase()
+      .split(/\s+/)
+      .filter((word) => word.length > 0);
     const scored = chunks.map((chunk) => {
       const contentLower = chunk.content.toLowerCase();
       let score = 0;
@@ -597,7 +644,7 @@ export class KnowledgeBaseService {
         id: s.chunk.id,
         content: s.chunk.content,
         metadata: s.chunk.metadata,
-        score: s.score,
+        score: this.normalizeRatioScore(s.score, queryWords.length),
         knowledgeBaseId: s.chunk.knowledgeBaseId,
         knowledgeBaseName: kbMap.get(s.chunk.knowledgeBaseId)?.name || '',
       }));
@@ -615,15 +662,31 @@ export class KnowledgeBaseService {
 
     return results.ids[0].map((id, i) => {
       const metadata = results.metadatas?.[0]?.[i] || {};
+      const distance = results.distances?.[0]?.[i];
       return {
         id,
         content: results.documents?.[0]?.[i] || '',
         metadata: JSON.stringify(metadata),
-        score: 1 - (results.distances?.[0]?.[i] || 0), // Convert distance to similarity
+        score: this.distanceToSimilarityScore(distance),
         knowledgeBaseId: metadata.kbId || '',
         knowledgeBaseName: kbMap.get(metadata.kbId)?.name || '',
       };
     });
+  }
+
+  private distanceToSimilarityScore(distance?: number): number {
+    if (typeof distance !== 'number' || Number.isNaN(distance)) {
+      return 0;
+    }
+    // Convert [0, +inf) distance to (0, 1] similarity for stable UI display.
+    return 1 / (1 + Math.max(0, distance));
+  }
+
+  private normalizeRatioScore(matchCount: number, totalTerms: number): number {
+    if (totalTerms <= 0) {
+      return 0;
+    }
+    return Math.min(1, Math.max(0, matchCount / totalTerms));
   }
 
   private toResponseDto(entity: KnowledgeBase): KnowledgeBaseResponseDto {

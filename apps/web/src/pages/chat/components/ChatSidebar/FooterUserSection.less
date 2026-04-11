@@ -1,0 +1,53 @@
+.footer-user-section {
+  margin-top: auto;
+  padding: 8px 12px 12px;
+
+  .footer-user-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    height: auto;
+    transition: background 0.18s ease, border-color 0.18s ease;
+
+    &:hover {
+      background: color-mix(in srgb, var(--skin-primary) 8%, transparent);
+      border-color: color-mix(in srgb, var(--skin-primary) 22%, transparent);
+    }
+  }
+
+  .footer-user-avatar {
+    flex-shrink: 0;
+    background: var(--chat-primary, #10a37f);
+  }
+
+  .footer-user-name {
+    flex: 1;
+    text-align: left;
+    font-size: 14px;
+    color: var(--antd-colorText, #1a1a1a);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+// Dark theme
+[data-theme="dark"] {
+  .footer-user-section {
+    .footer-user-btn:hover {
+      background: color-mix(in srgb, var(--skin-primary) 20%, transparent);
+    }
+
+    .footer-user-avatar {
+      background: color-mix(in srgb, var(--skin-primary) 30%, transparent);
+    }
+
+    .footer-user-name {
+      color: #e2e8f0;
+    }
+  }
+}

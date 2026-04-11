@@ -1,22 +1,17 @@
 import React, { memo, useCallback } from 'react';
-import { Button, Dropdown, Avatar } from 'antd';
-import type { MenuProps } from 'antd';
-import { PlusOutlined, MenuFoldOutlined, MenuUnfoldOutlined, UserOutlined } from '@ant-design/icons';
-import { useTranslation } from 'react-i18next';
+import { Button } from 'antd';
+import { PlusOutlined, MenuFoldOutlined, MenuUnfoldOutlined } from '@ant-design/icons';
 import { useChat } from '../../context/ChatContext';
-import { useAppSelector } from '@/store/reduxHooks';
 import SidebarSearch from './SidebarSearch';
 import SidebarSessionList from './SidebarSessionList';
 import SidebarFooter from './SidebarFooter';
+import FooterUserSection from './FooterUserSection';
 import { isMobile } from '@/utils/device';
 import './ChatSidebar.less';
 
 const ChatSidebar: React.FC = memo(function ChatSidebar() {
-  const { t } = useTranslation();
   const { state, dispatch, createNewSession, switchSession } = useChat();
   const { sidebarCollapsed } = state;
-  const user = useAppSelector((s) => s.auth.user);
-  const theme = useAppSelector((s) => s.theme.theme);
 
   const handleToggleCollapsed = useCallback(() => {
     dispatch({ type: 'SET_SIDEBAR_COLLAPSED', payload: !sidebarCollapsed });
@@ -42,30 +37,6 @@ const ChatSidebar: React.FC = memo(function ChatSidebar() {
     [dispatch]
   );
 
-  // User menu items for collapsed state
-  const userMenuItems: MenuProps['items'] = [
-    {
-      key: 'profile',
-      icon: <UserOutlined />,
-      label: t('nav.profile'),
-      onClick: () => {
-        window.location.href = '/profile';
-      },
-    },
-    {
-      key: 'theme',
-      label: theme === 'dark' ? t('nav.theme.light') : t('nav.theme.dark'),
-    },
-    {
-      key: 'logout',
-      label: t('nav.logout'),
-      danger: true,
-      onClick: () => {
-        window.location.href = '/login';
-      },
-    },
-  ];
-
   if (isMobile()) {
     return (
       <div className={`chat-sidebar mobile-drawer ${sidebarCollapsed ? 'collapsed' : ''}`}>
@@ -83,6 +54,7 @@ const ChatSidebar: React.FC = memo(function ChatSidebar() {
         <SidebarSearch onResultClick={handleSearchResultClick} />
         <SidebarSessionList onDeleteSession={handleDeleteSession} />
         <SidebarFooter />
+        <FooterUserSection />
       </div>
     );
   }
@@ -98,24 +70,6 @@ const ChatSidebar: React.FC = memo(function ChatSidebar() {
           className="toggle-btn"
         />
       </div>
-
-      {/* User section when collapsed */}
-      {sidebarCollapsed && (
-        <div className="sidebar-collapsed-user">
-          <Dropdown
-            menu={{ items: userMenuItems }}
-            trigger={['click']}
-            placement="topLeft"
-            overlayClassName="user-dropdown-overlay"
-          >
-            <Avatar
-              src={user?.avatar}
-              icon={<UserOutlined />}
-              className="collapsed-user-avatar"
-            />
-          </Dropdown>
-        </div>
-      )}
 
       {/* Full sidebar content */}
       {!sidebarCollapsed && (
@@ -136,6 +90,9 @@ const ChatSidebar: React.FC = memo(function ChatSidebar() {
           <SidebarFooter />
         </div>
       )}
+
+      {/* User section - always at bottom */}
+      <FooterUserSection />
     </div>
   );
 });

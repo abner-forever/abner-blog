@@ -1,5 +1,6 @@
 export * from './mcp.module';
 export * from './mcp.controller';
+export * from './mcp-github.controller';
 export * from './mcp.service';
 export * from './services';
 export * from './oauth';
