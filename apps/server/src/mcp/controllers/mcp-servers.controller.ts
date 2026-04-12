@@ -15,14 +15,14 @@ import {
   ApiBearerAuth,
   ApiResponse,
 } from '@nestjs/swagger';
-import { MCPServersService } from './mcp-servers.service';
+import { MCPServersService } from '../services/mcp-servers.service';
 import {
   InstallMCPServerDto,
   UpdateMCPServerDto,
   MCPServerResponseDto,
   MarketplaceMCPServerDto,
-} from './dto/mcp-server.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+} from '../dto/mcp-server.dto';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 
 interface AuthenticatedRequest extends Request {
   user: {

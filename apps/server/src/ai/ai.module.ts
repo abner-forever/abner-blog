@@ -11,19 +11,20 @@ import { AIConfigService } from './services/ai-config.service';
 import { AIChatSessionService } from './services/ai-chat-session.service';
 import { AIWeatherService } from './services/ai-weather.service';
 import { AIChatResponseService } from './services/ai-chat-response.service';
-import { AIWebSearchService } from './services/ai-web-search.service';
 import { McpModule } from '../mcp/mcp.module';
 import { KnowledgeBaseModule } from '../knowledge-base/knowledge-base.module';
-import { MCPServersModule } from '../mcp-servers/mcp-servers.module';
+import { WebSearchModule } from '../web-search/web-search.module';
+import { SkillsModule } from '../skills/skills.module';
 
 @Module({
   imports: [
     CalendarModule,
     TodosModule,
     WeatherModule,
+    WebSearchModule,
     McpModule,
-    MCPServersModule,
     KnowledgeBaseModule,
+    SkillsModule,
     TypeOrmModule.forFeature([UserAIConfig]),
   ],
   controllers: [AIController],
@@ -34,7 +35,6 @@ import { MCPServersModule } from '../mcp-servers/mcp-servers.module';
     AIChatSessionService,
     AIWeatherService,
     AIChatResponseService,
-    AIWebSearchService,
   ],
   exports: [AIService],
 })

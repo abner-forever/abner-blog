@@ -15,7 +15,7 @@ import {
 import type { ChatLLM } from '../langchain/model';
 import { buildIsoDateRangeAround } from '../utils/date-range';
 import { buildClarificationResponse } from '../utils/response-builders';
-import { MCPServersService } from '../../mcp-servers/mcp-servers.service';
+import { MCPServersService } from '../../mcp';
 
 @Injectable()
 export class AICommandService {

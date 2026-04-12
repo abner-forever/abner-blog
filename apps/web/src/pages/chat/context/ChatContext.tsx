@@ -9,6 +9,11 @@ import {
   isVendorType,
 } from '../constants';
 import { parseSSEChunk } from '../utils/stream-utils';
+import {
+  mergeBlogPublishDraftWithStrippedBody,
+  parseAbnerBlogPublishDraft,
+  stripAbnerBlogPublishBlock,
+} from '../utils/parse-blog-publish-block';
 import { handleChatStreamEvent } from '../utils/stream-event-handler';
 import { requestAIChatStream, saveAIConfig, getAIConfig } from '@services/ai';
 import { type ChatSession, type Message, type IntentName, type VendorType } from '../types';
@@ -41,7 +46,6 @@ interface ChatState {
   showKnowledgeBase: boolean;
   showMCPServer: boolean;
   showSkill: boolean;
-  activeSkillId: string | null;
   showChatSettings: boolean;
 }
 
@@ -74,7 +78,6 @@ type ChatAction =
   | { type: 'SET_SHOW_KNOWLEDGE_BASE'; payload: boolean }
   | { type: 'SET_SHOW_MCP_SERVER'; payload: boolean }
   | { type: 'SET_SHOW_SKILL'; payload: boolean }
-  | { type: 'SET_ACTIVE_SKILL_ID'; payload: string | null }
   | { type: 'SET_SHOW_CHAT_SETTINGS'; payload: boolean }
   | { type: 'ADD_SESSION'; payload: ChatSession }
   | { type: 'DELETE_SESSION'; payload: string }
@@ -108,7 +111,6 @@ const initialState: ChatState = {
   showKnowledgeBase: false,
   showMCPServer: false,
   showSkill: false,
-  activeSkillId: null,
   showChatSettings: false,
 };
 
@@ -140,7 +142,11 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
     case 'SET_SESSIONS':
       return { ...state, sessions: action.payload };
     case 'SET_CURRENT_SESSION':
-      return { ...state, currentSessionId: action.payload.sessionId, messages: action.payload.messages };
+      return {
+        ...state,
+        currentSessionId: action.payload.sessionId,
+        messages: action.payload.messages,
+      };
     case 'SET_MESSAGES':
       return { ...state, messages: action.payload };
     case 'UPDATE_MESSAGES':
@@ -205,8 +211,6 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
       return { ...state, showMCPServer: action.payload };
     case 'SET_SHOW_SKILL':
       return { ...state, showSkill: action.payload };
-    case 'SET_ACTIVE_SKILL_ID':
-      return { ...state, activeSkillId: action.payload };
     case 'SET_SHOW_CHAT_SETTINGS':
       return { ...state, showChatSettings: action.payload };
     case 'ADD_SESSION':
@@ -228,6 +232,11 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
 interface ChatContextValue {
   state: ChatState;
   dispatch: React.Dispatch<ChatAction>;
+  /** 将当前会话的 messages 写入 sessions 并落盘（例如发布成功后刷新仍保留状态） */
+  persistCurrentChatToStorage: (messagePatch?: {
+    id: string;
+    updates: Partial<Message>;
+  }) => void;
   // Actions
   createNewSession: () => void;
   switchSession: (sessionId: string) => void;
@@ -283,14 +292,15 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
             ...session,
             messages: normalizeHydratedMessages(session.messages || []),
           }));
+          const first = normalizedSessions[0];
+          dispatch({ type: 'SET_SESSIONS', payload: normalizedSessions });
           dispatch({
             type: 'SET_CURRENT_SESSION',
             payload: {
-              sessionId: normalizedSessions[0].id,
-              messages: normalizedSessions[0].messages,
+              sessionId: first.id,
+              messages: first.messages,
             },
           });
-          dispatch({ type: 'SET_SESSIONS', payload: normalizedSessions });
         } else {
           createNewSessionInternal();
         }
@@ -325,7 +335,10 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     dispatch({ type: 'SET_SESSIONS', payload: [newSession] });
     dispatch({
       type: 'SET_CURRENT_SESSION',
-      payload: { sessionId: newSession.id, messages: newSession.messages },
+      payload: {
+        sessionId: newSession.id,
+        messages: newSession.messages,
+      },
     });
     localStorage.setItem(STORAGE_KEY, JSON.stringify(sessionsForLocalStorage([newSession])));
   }, [t]);
@@ -335,6 +348,24 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     dispatch({ type: 'SET_SESSIONS', payload: limitedSessions });
     localStorage.setItem(STORAGE_KEY, JSON.stringify(sessionsForLocalStorage(limitedSessions)));
   }, []);
+
+  const persistCurrentChatToStorage = useCallback(
+    (messagePatch?: { id: string; updates: Partial<Message> }) => {
+      const { currentSessionId, sessions } = stateRef.current;
+      if (!currentSessionId) return;
+      let { messages } = stateRef.current;
+      if (messagePatch) {
+        messages = messages.map((m) =>
+          m.id === messagePatch.id ? { ...m, ...messagePatch.updates } : m,
+        );
+      }
+      const next = sessions.map((s) =>
+        s.id === currentSessionId ? { ...s, messages, timestamp: Date.now() } : s,
+      );
+      saveSessions(next);
+    },
+    [saveSessions],
+  );
 
   const createNewSession = useCallback(() => {
     const existingEmptySession = stateRef.current.sessions.find(isSessionEmpty);
@@ -371,7 +402,10 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     saveSessions([newSession, ...stateRef.current.sessions]);
     dispatch({
       type: 'SET_CURRENT_SESSION',
-      payload: { sessionId: newSession.id, messages: newSession.messages },
+      payload: {
+        sessionId: newSession.id,
+        messages: newSession.messages,
+      },
     });
   }, [t, saveSessions]);
 
@@ -381,7 +415,10 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       const normalizedMessages = normalizeHydratedMessages(session.messages || []);
       dispatch({
         type: 'SET_CURRENT_SESSION',
-        payload: { sessionId, messages: normalizedMessages },
+        payload: {
+          sessionId,
+          messages: normalizedMessages,
+        },
       });
     }
   }, []);
@@ -416,9 +453,25 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       if (!pendingTypeTextRef.current) {
         typeWriterTimerRef.current = null;
         if (streamCompletedRef.current && activeAssistantIdRef.current === assistantMessageId) {
+          const current = stateRef.current.messages.find((m) => m.id === assistantMessageId);
+          const updates: Partial<Message> = { isComplete: true };
+          if (current?.role === 'assistant' && current.content) {
+            const draftRaw = parseAbnerBlogPublishDraft(current.content);
+            if (draftRaw) {
+              const stripped = stripAbnerBlogPublishBlock(current.content);
+              updates.blogPublishDraft = mergeBlogPublishDraftWithStrippedBody(
+                draftRaw,
+                stripped,
+              );
+              if (stripped.trim()) {
+                updates.content = stripped;
+                updates.displayContent = stripped;
+              }
+            }
+          }
           dispatch({
             type: 'UPDATE_MESSAGE',
-            payload: { id: assistantMessageId, updates: { isComplete: true } },
+            payload: { id: assistantMessageId, updates },
           });
           streamCompletedRef.current = false;
         }
@@ -444,6 +497,12 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     if (code) {
       return t(`chat.errors.${code}`, { defaultValue: fallback || t('chat.streamErrorFallback') });
     }
+    if (
+      fallback &&
+      /new_sensitive|output new_sensitive|\(\s*1027\s*\)|\b1027\b/i.test(fallback)
+    ) {
+      return t('chat.errors.MINIMAX_OUTPUT_SENSITIVE');
+    }
     return fallback || t('chat.streamErrorFallback');
   }, [t]);
 
@@ -464,7 +523,21 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const sendMessage = useCallback(async () => {
-    const { input, pendingImages, loading, vendor, model, temperature, maxTokens, contextWindow, enableThinking, thinkingBudget, useMcpTools, currentSessionId, messages } = stateRef.current;
+    const {
+      input,
+      pendingImages,
+      loading,
+      vendor,
+      model,
+      temperature,
+      maxTokens,
+      contextWindow,
+      enableThinking,
+      thinkingBudget,
+      useMcpTools,
+      currentSessionId,
+      messages,
+    } = stateRef.current;
     const imageSnapshot = [...pendingImages];
     const inputVal = input;
     const canSendNow = Boolean(inputVal.trim()) || imageSnapshot.length > 0;
@@ -798,6 +871,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo<ChatContextValue>(() => ({
     state,
     dispatch,
+    persistCurrentChatToStorage,
     createNewSession,
     switchSession,
     deleteSession,
@@ -811,7 +885,22 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     fileInputRef,
     theme,
     isDark,
-  }), [state, dispatch, createNewSession, switchSession, deleteSession, sendMessage, stopGeneration, handleCopy, deleteMessage, regenerateMessage, handleSaveSettings, theme, isDark]);
+  }), [
+    state,
+    dispatch,
+    persistCurrentChatToStorage,
+    createNewSession,
+    switchSession,
+    deleteSession,
+    sendMessage,
+    stopGeneration,
+    handleCopy,
+    deleteMessage,
+    regenerateMessage,
+    handleSaveSettings,
+    theme,
+    isDark,
+  ]);
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;
 }

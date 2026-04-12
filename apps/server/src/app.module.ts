@@ -68,7 +68,6 @@ import { ChatShareModule } from './chat-share/chat-share.module';
 import { KnowledgeBaseModule } from './knowledge-base/knowledge-base.module';
 import { KnowledgeBase } from './entities/knowledge-base.entity';
 import { KnowledgeChunk } from './entities/knowledge-chunk.entity';
-import { MCPServersModule } from './mcp-servers/mcp-servers.module';
 import { MCPServer } from './entities/mcp-server.entity';
 import { SkillsModule } from './skills/skills.module';
 import { Skill } from './entities/skill.entity';
@@ -153,7 +152,6 @@ import { Skill } from './entities/skill.entity';
     AnalyticsModule,
     ChatShareModule,
     KnowledgeBaseModule,
-    MCPServersModule,
     SkillsModule,
   ],
   controllers: [AppController],

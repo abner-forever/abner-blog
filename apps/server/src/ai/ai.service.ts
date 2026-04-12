@@ -5,6 +5,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import axios from 'axios';
+import { SystemMessage, type BaseMessage } from '@langchain/core/messages';
 import { UniversalChatLLM } from './langchain/model';
 import type { ChatLLM } from './langchain/model';
 import { detectIntent, extractWeatherQueryContext } from './langchain/chains';
@@ -19,7 +20,9 @@ import { buildChatHumanMessage } from './utils/build-chat-human-message';
 import { AIChatSessionService } from './services/ai-chat-session.service';
 import { AIWeatherService } from './services/ai-weather.service';
 import { AIChatResponseService } from './services/ai-chat-response.service';
-import { AIWebSearchService } from './services/ai-web-search.service';
+import { WebSearchService } from '../web-search/web-search.service';
+import { shouldOfferWebSearchMcp } from './utils/web-search-mcp-trigger';
+import { mapLlmErrorForUser } from './utils/llm-user-facing-error';
 import {
   splitCompleteReplyThink,
   splitThinkTaggedDelta,
@@ -30,10 +33,14 @@ import {
   extractGithubIssueDraft,
   extractGithubOwnerRepo,
 } from './utils/github-chat';
-import { toHistoryUserText, validateChatImages } from './utils/chat-images';
-import { McpService } from '../mcp/mcp.service';
+import {
+  buildChatHistoryUserLine,
+  toHistoryUserText,
+  validateChatImages,
+} from './utils/chat-images';
 import { KnowledgeBaseService } from '../knowledge-base/knowledge-base.service';
-import { MCPServersService } from '../mcp-servers/mcp-servers.service';
+import { McpService, MCPServersService } from '../mcp';
+import { SkillsService } from '../skills/skills.service';
 
 export interface AIStreamEvent {
   event:
@@ -48,6 +55,7 @@ export interface AIStreamEvent {
     | 'schedule_query'
     | 'thinking_delta'
     | 'chat_delta'
+    | 'web_search_status'
     | 'done'
     | 'error';
   payload?: Record<string, unknown>;
@@ -69,17 +77,47 @@ export class AIService {
     private readonly chatSessionService: AIChatSessionService,
     private readonly weatherService: AIWeatherService,
     private readonly chatResponseService: AIChatResponseService,
-    private readonly webSearchService: AIWebSearchService,
+    private readonly webSearchCore: WebSearchService,
     private readonly mcpService: McpService,
     private readonly mcpServersService: MCPServersService,
     private readonly knowledgeBaseService: KnowledgeBaseService,
+    private readonly skillsService: SkillsService,
   ) {
     // 兼容旧部署：允许通过用户配置或请求内 apiKey 注入。
   }
 
   /**
+   * 取最近若干条 BaseMessage 供 LLM；保证条数为偶数，避免从半截 AIMessage 起截导致上下文错位。
+   */
+  private sliceHistoryForContext(
+    history: BaseMessage[],
+    contextWindow: number,
+  ): BaseMessage[] {
+    if (!history.length) return [];
+    const capped = Math.min(history.length, Math.max(1, contextWindow));
+    let take = capped % 2 === 0 ? capped : capped - 1;
+    if (take < 2 && history.length >= 2) take = 2;
+    if (take < 1) take = 1;
+    return history.slice(-take);
+  }
+
+  /**
    * 搜索用户知识库并构建上下文字符串
    */
+  /**
+   * 续问、总结类短句做知识库检索时，向量常命中无关旧片段（如历史笔记里的日期），
+   * 会盖过「当前会话 history」，导致模型总结成别的文档里的对话。
+   */
+  private shouldSkipKnowledgeBaseRag(message: string): boolean {
+    const t = message.trim();
+    if (!t) return true;
+    if (t.length > 120) return false;
+    if (/(知识库|文档片段|资料库|上传的)/i.test(t)) return false;
+    return /(总结|归纳|复述|上文|刚才|之前|上面|前面|上一轮|这一轮|这条|本对话|聊天记录|对话内容|再说|再讲|再说一遍|接着问|继续问|重说|重新|回顾一下|整理一下)/i.test(
+      t,
+    );
+  }
+
   private async buildKnowledgeBaseContext(
     message: string,
     userId: number,
@@ -100,6 +138,19 @@ export class AIService {
       this.logger.warn(`Knowledge base search failed: ${error}`);
       return '';
     }
+  }
+
+  private async buildSkillSystemMessage(
+    userId: number,
+    requestConfig: ChatRequestDto | undefined,
+    userMessage: string,
+  ): Promise<SystemMessage | null> {
+    const text = await this.skillsService.buildSystemPromptForChat(
+      userId,
+      requestConfig?.skillId,
+      userMessage,
+    );
+    return text ? new SystemMessage(text) : null;
   }
 
   /**
@@ -131,6 +182,7 @@ export class AIService {
         contextWindow,
         requestConfig?.images,
         useMcpTools,
+        requestConfig,
       );
       this.appendIntentResultToHistoryIfNeeded(
         intent,
@@ -146,7 +198,9 @@ export class AIService {
       if (error instanceof Error && error.name === 'AbortError') throw error;
       return {
         type: 'error',
-        error: error instanceof Error ? error.message : '处理消息时发生错误',
+        error: mapLlmErrorForUser(
+          error instanceof Error ? error.message : '处理消息时发生错误',
+        ),
       };
     }
   }
@@ -196,10 +250,9 @@ export class AIService {
         return;
       }
 
-      if (intent === IntentType.CHAT || intent === IntentType.WEB_SEARCH) {
-        const handled = await this.streamChatOrSearchIntent(
+      if (intent === IntentType.CHAT) {
+        yield* this.streamChatOrSearchIntent(
           llm,
-          intent,
           message,
           userId,
           sessionId,
@@ -208,11 +261,8 @@ export class AIService {
           contextWindow,
           thinkingEnabled,
         );
-        if (handled) {
-          yield* handled;
-          yield { event: 'done', payload: { type: 'chat' } };
-          return;
-        }
+        yield { event: 'done', payload: { type: 'chat' } };
+        return;
       }
 
       const result = await this.processByIntent(
@@ -225,6 +275,7 @@ export class AIService {
         contextWindow,
         requestConfig?.images,
         useMcpTools,
+        requestConfig,
       );
       this.appendIntentResultToHistoryIfNeeded(
         intent,
@@ -249,7 +300,9 @@ export class AIService {
       yield {
         event: 'error',
         payload: {
-          error: error instanceof Error ? error.message : '处理消息时发生错误',
+          error: mapLlmErrorForUser(
+            error instanceof Error ? error.message : '处理消息时发生错误',
+          ),
         },
       };
     }
@@ -338,9 +391,8 @@ export class AIService {
     );
   }
 
-  private async streamChatOrSearchIntent(
+  private async *streamChatOrSearchIntent(
     llm: ChatLLM,
-    intent: IntentType.CHAT | IntentType.WEB_SEARCH,
     message: string,
     userId: number,
     sessionId: string | undefined,
@@ -348,20 +400,65 @@ export class AIService {
     requestConfig: ChatRequestDto | undefined,
     contextWindow: number,
     thinkingEnabled: boolean,
-  ): Promise<AsyncIterable<AIStreamEvent> | Iterable<AIStreamEvent> | null> {
-    if (intent === IntentType.CHAT && useMcpTools) {
+  ): AsyncGenerator<AIStreamEvent> {
+    if (useMcpTools) {
       const githubResult = await this.tryHandleGithubChatViaMcp(
         message,
         userId,
         sessionId,
       );
       if (githubResult) {
-        return this.emitChatDeltaChunks(githubResult.content);
+        yield* this.emitChatDeltaChunks(githubResult.content);
+        return;
       }
     }
-    return this.streamGeneralChatIntent(
+
+    const showWebSearchUi = shouldOfferWebSearchMcp(message);
+    if (showWebSearchUi) {
+      yield { event: 'web_search_status', payload: { status: 'searching' } };
+    }
+
+    let webSearchResolved:
+      | { kind: 'digest'; text: string }
+      | { kind: 'blocked'; text: string }
+      | null;
+    try {
+      webSearchResolved = await this.resolveWebSearchDigestForUser(
+        message,
+        userId,
+        useMcpTools,
+      );
+    } catch (err) {
+      if (showWebSearchUi) {
+        yield { event: 'web_search_status', payload: { status: 'done' } };
+      }
+      throw err;
+    }
+
+    if (showWebSearchUi) {
+      yield { event: 'web_search_status', payload: { status: 'done' } };
+    }
+
+    if (webSearchResolved?.kind === 'blocked') {
+      yield* this.emitChatDeltaChunks(webSearchResolved.text);
+      return;
+    }
+    if (webSearchResolved?.kind === 'digest') {
+      yield* this.streamGeneralChatIntent(
+        llm,
+        message,
+        userId,
+        sessionId,
+        requestConfig,
+        contextWindow,
+        thinkingEnabled,
+        { searchDigestFromMcp: webSearchResolved.text },
+      );
+      return;
+    }
+
+    yield* this.streamGeneralChatIntent(
       llm,
-      intent,
       message,
       userId,
       sessionId,
@@ -373,42 +470,32 @@ export class AIService {
 
   private async *streamGeneralChatIntent(
     llm: ChatLLM,
-    intent: IntentType.CHAT | IntentType.WEB_SEARCH,
     message: string,
     userId: number,
     sessionId: string | undefined,
     requestConfig: ChatRequestDto | undefined,
     contextWindow: number,
     thinkingEnabled: boolean,
+    options?: { searchDigestFromMcp?: string },
   ): AsyncGenerator<AIStreamEvent> {
     let promptForLlm: string;
-    if (intent === IntentType.WEB_SEARCH) {
-      const prepared = await this.webSearchService.preparePrompt(message);
-      if (prepared.ok === false) {
-        const sessionKeyEarly = this.chatSessionService.getSessionKey(
-          userId,
-          sessionId,
-        );
-        const errText = prepared.message;
-        this.chatSessionService.appendHistory(
-          sessionKeyEarly,
-          toHistoryUserText(message, requestConfig?.images),
-          errText,
-          this.maxHistoryMessages,
-        );
-        yield* this.emitChatDeltaChunks(errText);
-        return;
-      }
-      promptForLlm = prepared.prompt;
+    if (options?.searchDigestFromMcp) {
+      promptForLlm = this.chatResponseService.buildWebSearchChatPrompt(
+        message,
+        options.searchDigestFromMcp,
+      );
     } else {
-      const kbContext = await this.buildKnowledgeBaseContext(message, userId);
+      let kbContext = '';
+      if (!this.shouldSkipKnowledgeBaseRag(message)) {
+        kbContext = await this.buildKnowledgeBaseContext(message, userId);
+      }
       const basePrompt = this.chatResponseService.buildPrompt(message);
       promptForLlm = kbContext ? `${kbContext}\n\n${basePrompt}` : basePrompt;
     }
 
     const sessionKey = this.chatSessionService.getSessionKey(userId, sessionId);
     const history = this.chatSessionService.getHistoryMessages(sessionKey);
-    const scopedHistory = history.slice(-contextWindow);
+    const scopedHistory = this.sliceHistoryForContext(history, contextWindow);
     let hasDelta = false;
     let fullReply = '';
     const generationStart = Date.now();
@@ -417,18 +504,22 @@ export class AIService {
       inThink: false,
       pending: '',
     };
-    const userHuman = buildChatHumanMessage(
-      promptForLlm,
-      intent === IntentType.CHAT ? requestConfig?.images : undefined,
+    const userImages = options?.searchDigestFromMcp
+      ? undefined
+      : requestConfig?.images;
+    const userHuman = buildChatHumanMessage(promptForLlm, userImages);
+    const imageCount = userImages?.length ?? 0;
+    const skillSystem = await this.buildSkillSystemMessage(
+      userId,
+      requestConfig,
+      message,
     );
-    const imageCount =
-      intent === IntentType.WEB_SEARCH
-        ? 0
-        : (requestConfig?.images?.length ?? 0);
+    const skillPrefix: BaseMessage[] = skillSystem ? [skillSystem] : [];
     this.logger.log(
       `[AI Chat] stream_start userId=${userId} provider=${requestConfig?.provider ?? '?'} model=${requestConfig?.model ?? '?'} images=${imageCount} messageLen=${message.length}`,
     );
     for await (const streamChunk of llm.invokeStream([
+      ...skillPrefix,
       ...scopedHistory,
       userHuman,
     ])) {
@@ -471,8 +562,10 @@ export class AIService {
         userId,
         sessionId,
         contextWindow,
-        intent === IntentType.CHAT ? requestConfig?.images : undefined,
-        intent === IntentType.WEB_SEARCH ? promptForLlm : undefined,
+        userImages,
+        options?.searchDigestFromMcp ? promptForLlm : undefined,
+        options?.searchDigestFromMcp,
+        requestConfig,
       );
       const content = this.chatResponseService.normalizeAssistantReply(
         (fallback.content || '').trim(),
@@ -500,7 +593,11 @@ export class AIService {
 
     this.chatSessionService.appendHistory(
       sessionKey,
-      toHistoryUserText(message, requestConfig?.images),
+      buildChatHistoryUserLine(
+        message,
+        userImages,
+        options?.searchDigestFromMcp,
+      ),
       this.chatResponseService.normalizeAssistantReply(fullReply.trim()),
       this.maxHistoryMessages,
     );
@@ -622,16 +719,29 @@ export class AIService {
     contextWindow = this.maxHistoryMessages,
     images?: ChatImageDto[],
     promptOverride?: string,
+    /** 联网检索 digest：写入会话历史用户侧，便于多轮追问仍带事实 */
+    searchDigestForHistory?: string,
+    requestConfig?: ChatRequestDto,
   ): Promise<ChatResponseDto> {
     const sessionKey = this.chatSessionService.getSessionKey(userId, sessionId);
     const history = this.chatSessionService.getHistoryMessages(sessionKey);
-    const scopedHistory = history.slice(-contextWindow);
+    const scopedHistory = this.sliceHistoryForContext(history, contextWindow);
 
     const userHuman = buildChatHumanMessage(
       promptOverride ?? this.chatResponseService.buildPrompt(message),
       images,
     );
-    const result = await llm.invoke([...scopedHistory, userHuman]);
+    const skillSystem = await this.buildSkillSystemMessage(
+      userId,
+      requestConfig,
+      message,
+    );
+    const skillPrefix: BaseMessage[] = skillSystem ? [skillSystem] : [];
+    const result = await llm.invoke([
+      ...skillPrefix,
+      ...scopedHistory,
+      userHuman,
+    ]);
 
     const content =
       typeof result.content === 'string'
@@ -651,7 +761,7 @@ export class AIService {
     );
     this.chatSessionService.appendHistory(
       sessionKey,
-      toHistoryUserText(message, images),
+      buildChatHistoryUserLine(message, images, searchDigestForHistory),
       finalContent,
       this.maxHistoryMessages,
     );
@@ -883,12 +993,8 @@ export class AIService {
     sessionId: string | undefined,
     result: ChatResponseDto,
   ): void {
-    // CHAT / QUERY_WEATHER / WEB_SEARCH 分支已在各自处理函数中写入历史，这里避免重复写入。
-    if (
-      intent === IntentType.CHAT ||
-      intent === IntentType.QUERY_WEATHER ||
-      intent === IntentType.WEB_SEARCH
-    ) {
+    // CHAT / QUERY_WEATHER 分支已在各自处理函数中写入历史，这里避免重复写入。
+    if (intent === IntentType.CHAT || intent === IntentType.QUERY_WEATHER) {
       return;
     }
     const assistantReply = buildIntentMemoryReply(result);
@@ -915,6 +1021,7 @@ export class AIService {
     contextWindow = this.maxHistoryMessages,
     images?: ChatImageDto[],
     useMcpTools = false,
+    requestConfig?: ChatRequestDto,
   ): Promise<ChatResponseDto> {
     switch (intent) {
       case IntentType.CREATE_TODO:
@@ -957,21 +1064,6 @@ export class AIService {
           currentDate,
           sessionId,
         );
-      case IntentType.WEB_SEARCH: {
-        const prep = await this.webSearchService.preparePrompt(message);
-        if (prep.ok === false) {
-          return { type: 'chat', content: prep.message };
-        }
-        return this.handleChat(
-          llm,
-          message,
-          userId,
-          sessionId,
-          contextWindow,
-          undefined,
-          prep.prompt,
-        );
-      }
       case IntentType.CHAT:
       default:
         if (useMcpTools) {
@@ -984,6 +1076,32 @@ export class AIService {
             return githubResult;
           }
         }
+        {
+          const webResolved = await this.resolveWebSearchDigestForUser(
+            message,
+            userId,
+            useMcpTools,
+          );
+          if (webResolved?.kind === 'blocked') {
+            return { type: 'chat', content: webResolved.text };
+          }
+          if (webResolved?.kind === 'digest') {
+            return this.handleChat(
+              llm,
+              message,
+              userId,
+              sessionId,
+              contextWindow,
+              undefined,
+              this.chatResponseService.buildWebSearchChatPrompt(
+                message,
+                webResolved.text,
+              ),
+              webResolved.text,
+              requestConfig,
+            );
+          }
+        }
         return this.handleChat(
           llm,
           message,
@@ -991,7 +1109,60 @@ export class AIService {
           sessionId,
           contextWindow,
           images,
+          undefined,
+          undefined,
+          requestConfig,
         );
+    }
+  }
+
+  /**
+   * CHAT 下按需走网页检索：优先 MCP `search`（与 GitHub 一致），否则回退直连 Tavily/Brave。
+   */
+  private async resolveWebSearchDigestForUser(
+    message: string,
+    userId: number,
+    useMcpTools: boolean,
+  ): Promise<
+    { kind: 'digest'; text: string } | { kind: 'blocked'; text: string } | null
+  > {
+    if (!shouldOfferWebSearchMcp(message)) {
+      return null;
+    }
+    const query = message.trim();
+
+    if (useMcpTools) {
+      try {
+        const result = await this.mcpServersService.callToolForUser(
+          userId,
+          'search',
+          { query },
+        );
+        const first = result.content.find((item) => item.type === 'text');
+        const text = first?.text?.trim();
+        if (text) {
+          return { kind: 'digest', text };
+        }
+      } catch (error) {
+        const msg = error instanceof Error ? error.message : '调用失败';
+        if (msg.includes('未找到可用的 MCP 工具')) {
+          return {
+            kind: 'blocked',
+            text: '检测到你需要联网检索，但未安装或未启用「网页检索」MCP。请到 MCP 面板安装并启用网页检索能力后重试。',
+          };
+        }
+        this.logger.warn(
+          `[AI WebSearch] MCP search failed, fallback to direct API: ${msg}`,
+        );
+      }
+    }
+
+    try {
+      const digest = await this.webSearchCore.searchDigest(query);
+      return { kind: 'digest', text: digest };
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
+      return { kind: 'blocked', text: msg };
     }
   }
 

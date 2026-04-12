@@ -25,10 +25,9 @@ import './SkillPanel.less';
 
 interface Props {
   onClose: () => void;
-  onSelectSkill?: (skillId: string) => void;
 }
 
-const SkillPanel: React.FC<Props> = ({ onClose, onSelectSkill }) => {
+const SkillPanel: React.FC<Props> = ({ onClose }) => {
   const { t } = useTranslation();
   const [installedSkills, setInstalledSkills] = useState<SkillResponse[]>([]);
   const [marketplaceSkills, setMarketplaceSkills] = useState<MarketplaceSkill[]>([]);
@@ -44,8 +43,8 @@ const SkillPanel: React.FC<Props> = ({ onClose, onSelectSkill }) => {
       ]);
       setInstalledSkills(installed);
       setMarketplaceSkills(marketplace);
-    } catch (err) {
-      message.error(t('chat.loadFailed') || '加载技能失败');
+    } catch (_err) {
+      message.error(t('chat.loadFailed'));
     } finally {
       setLoading(false);
     }
@@ -58,40 +57,40 @@ const SkillPanel: React.FC<Props> = ({ onClose, onSelectSkill }) => {
   const handleInstall = async (marketplaceSkill: MarketplaceSkill) => {
     try {
       await skillsService.install(marketplaceSkill.id);
-      message.success(t('chat.installSuccess') || `${marketplaceSkill.name} 安装成功`);
+      message.success(t('chat.installSuccess', { name: marketplaceSkill.name }));
       loadData();
-    } catch (err) {
-      message.error(t('chat.installFailed') || '安装失败');
+    } catch (_err) {
+      message.error(t('chat.installFailed'));
     }
   };
 
   const handleUninstall = async (id: string) => {
     try {
       await skillsService.remove(id);
-      message.success(t('chat.uninstallSuccess') || '卸载成功');
+      message.success(t('chat.uninstallSuccess'));
       loadData();
-    } catch (err) {
-      message.error(t('chat.uninstallFailed') || '卸载失败');
+    } catch (_err) {
+      message.error(t('chat.uninstallFailed'));
     }
   };
 
-  const handleToggleActive = async (skill: SkillResponse) => {
-    try {
-      if (skill.status === 'active') {
-        await skillsService.deactivate(skill.id);
-        message.success(t('chat.deactivated') || '技能已停用');
-      } else {
-        await skillsService.activate(skill.id);
-        message.success(t('chat.activated') || '技能已激活');
-        if (onSelectSkill) {
-          onSelectSkill(skill.id);
+  const handleToggleActive = useCallback(
+    async (skill: SkillResponse) => {
+      try {
+        if (skill.status === 'active') {
+          await skillsService.deactivate(skill.id);
+          message.success(t('chat.deactivated'));
+        } else {
+          await skillsService.activate(skill.id);
+          message.success(t('chat.activated'));
         }
+        loadData();
+      } catch (_err) {
+        message.error(t('chat.updateFailed'));
       }
-      loadData();
-    } catch (err) {
-      message.error(t('chat.updateFailed') || '更新失败');
-    }
-  };
+    },
+    [loadData, t],
+  );
 
   return (
     <div className="skill-panel">
@@ -120,6 +119,8 @@ const SkillPanel: React.FC<Props> = ({ onClose, onSelectSkill }) => {
           {t('chat.marketplace')}
         </div>
       </div>
+
+      <p className="skill-panel__hint">{t('chat.skillsAutoInjectHint')}</p>
 
       <div className="panel-content">
         {loading ? (

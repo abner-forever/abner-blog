@@ -82,6 +82,28 @@
     display: flex;
     align-items: center;
     gap: 12px;
+    flex-wrap: wrap;
+    min-width: 0;
+  }
+
+  .chat-active-skill {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    max-width: min(320px, 42vw);
+  }
+
+  .chat-active-skill-tag {
+    margin: 0;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .chat-active-skill-clear {
+    flex-shrink: 0;
+    color: var(--text-color-secondary, rgba(0, 0, 0, 0.45));
   }
 
   .chat-header-right {
@@ -2292,4 +2314,24 @@
       }
     }
   }
+}
+
+.share-modal-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  .share-url-input {
+    font-size: 13px;
+  }
+}
+
+.chat-header-share-capture-offscreen {
+  position: fixed;
+  left: -14000px;
+  top: 0;
+  width: 720px;
+  z-index: -5;
+  pointer-events: none;
+  overflow: visible;
 }

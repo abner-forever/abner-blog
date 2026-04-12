@@ -11,7 +11,11 @@ import { AIConfigService } from './services/ai-config.service';
 import { AIChatSessionService } from './services/ai-chat-session.service';
 import { AIWeatherService } from './services/ai-weather.service';
 import { AIChatResponseService } from './services/ai-chat-response.service';
-import { AIWebSearchService } from './services/ai-web-search.service';
+import { WebSearchService } from '../web-search/web-search.service';
+import { McpService } from '../mcp';
+import { MCPServersService } from '../mcp';
+import { KnowledgeBaseService } from '../knowledge-base/knowledge-base.service';
+import { SkillsService } from '../skills/skills.service';
 import {
   CalendarEvent,
   CalendarEventType,
@@ -59,6 +63,9 @@ describe('AIService Integration', () => {
 
     const mockWeatherService = {
       getWeather: jest.fn(),
+      getAirQuality: jest.fn().mockResolvedValue(null),
+      getWeatherIndices: jest.fn().mockResolvedValue(null),
+      getWeatherText: jest.fn().mockReturnValue('晴'),
     };
 
     todosCreateMock = mockTodosService.create;
@@ -75,11 +82,24 @@ describe('AIService Integration', () => {
       saveUserConfig: jest.fn(),
     };
 
-    const mockWebSearchService = {
-      preparePrompt: jest.fn().mockResolvedValue({
-        ok: false,
-        message: '未配置搜索密钥（测试占位）',
-      }),
+    const mockWebSearchCore = {
+      searchDigest: jest
+        .fn()
+        .mockRejectedValue(new Error('未配置搜索密钥（测试占位）')),
+    };
+
+    const mockMcpServersService = {
+      callToolForUser: jest.fn(),
+    };
+    const mockMcpService = {
+      callTool: jest.fn(),
+      listTools: jest.fn().mockReturnValue([]),
+    };
+    const mockKnowledgeBaseService = {
+      search: jest.fn().mockResolvedValue([]),
+    };
+    const mockSkillsService = {
+      buildSystemPromptForChat: jest.fn().mockResolvedValue(null),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -89,7 +109,11 @@ describe('AIService Integration', () => {
         AIChatSessionService,
         AIWeatherService,
         AIChatResponseService,
-        { provide: AIWebSearchService, useValue: mockWebSearchService },
+        { provide: WebSearchService, useValue: mockWebSearchCore },
+        { provide: McpService, useValue: mockMcpService },
+        { provide: MCPServersService, useValue: mockMcpServersService },
+        { provide: KnowledgeBaseService, useValue: mockKnowledgeBaseService },
+        { provide: SkillsService, useValue: mockSkillsService },
         { provide: CalendarService, useValue: mockCalendarService },
         { provide: TodosService, useValue: mockTodosService },
         { provide: WeatherService, useValue: mockWeatherService },
@@ -198,7 +222,21 @@ describe('AIService Integration', () => {
     });
 
     it('should detect query_schedule intent', async () => {
-      mockInvoke.mockResolvedValueOnce({ content: 'query_schedule' });
+      mockInvoke
+        .mockResolvedValueOnce({ content: 'query_schedule' })
+        .mockResolvedValueOnce({
+          content: JSON.stringify({
+            completionRate: 0,
+            total: 0,
+            completed: 0,
+            pending: 0,
+            overdueCount: 0,
+            distribution: '均匀',
+            priorityItems: [],
+            summary: '暂无数据',
+            suggestion: '',
+          }),
+        });
 
       calendarService.findAll.mockResolvedValue([]);
       todosService.findAll.mockResolvedValue({
@@ -247,6 +285,7 @@ describe('AIService Integration', () => {
       expect(getWeatherMock).toHaveBeenCalledWith(
         'unknown',
         '北京',
+        undefined,
         '2026-04-01',
       );
       expect(result.type).toBe('chat');
@@ -279,6 +318,7 @@ describe('AIService Integration', () => {
       expect(getWeatherMock).toHaveBeenCalledWith(
         'unknown',
         '上海',
+        undefined,
         '2026-04-02',
       );
       expect(result.type).toBe('chat');
@@ -311,6 +351,7 @@ describe('AIService Integration', () => {
       expect(getWeatherMock).toHaveBeenCalledWith(
         'unknown',
         '剑阁',
+        undefined,
         '2026-04-01',
       );
       expect(result.type).toBe('chat');
@@ -406,6 +447,7 @@ describe('AIService Integration', () => {
       expect(getWeatherMock).toHaveBeenCalledWith(
         'unknown',
         '北京',
+        undefined,
         '2026-04-02',
       );
       expect(events.some((e) => e.event === 'chat_delta')).toBe(true);

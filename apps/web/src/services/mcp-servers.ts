@@ -12,6 +12,8 @@ export interface MCPServerResponse {
   allowedTools: string[];
   config?: Record<string, unknown>;
   createdAt: string;
+  /** 远端类 MCP 是否仍缺少可用的 URL */
+  requiresConfig?: boolean;
 }
 
 export interface MarketplaceMCPServer {
@@ -22,6 +24,8 @@ export interface MarketplaceMCPServer {
   tools: string[];
   source: 'builtin' | 'marketplace';
   isInstalled: boolean;
+  /** 安装前：目录项是否缺少远端 URL（安装后仍需在已安装列表中查看） */
+  requiresConfig?: boolean;
 }
 
 export interface InstallMCPServerDto {

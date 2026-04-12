@@ -1,4 +1,12 @@
-import { memo, useCallback, useState } from 'react';
+import {
+  Fragment,
+  cloneElement,
+  isValidElement,
+  memo,
+  useCallback,
+  useState,
+  type ReactNode,
+} from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -63,6 +71,40 @@ const CodeBlock = memo<{
 
 CodeBlock.displayName = 'CodeBlock';
 
+/** 模型常在 GFM 表格单元格里写字面量 `<br>`；默认 Markdown 不会当 HTML 解析，此处转为真实换行。 */
+function renderLiteralBrInChildren(node: ReactNode): ReactNode {
+  if (node == null || typeof node === 'boolean') return node;
+  if (typeof node === 'number') return node;
+  if (typeof node === 'string') {
+    if (!/<br\s*\/?>/i.test(node)) return node;
+    const parts = node.split(/<br\s*\/?>/gi);
+    return parts.map((part, i) => (
+      <Fragment key={i}>
+        {i > 0 ? <br /> : null}
+        {part}
+      </Fragment>
+    ));
+  }
+  if (Array.isArray(node)) {
+    return node.map((child, i) => (
+      <Fragment key={i}>{renderLiteralBrInChildren(child)}</Fragment>
+    ));
+  }
+  if (isValidElement(node)) {
+    const elType = node.type;
+    if (elType === 'code' || elType === 'pre' || elType === CodeBlock) {
+      return node;
+    }
+    const props = node.props as { children?: ReactNode };
+    if (props.children === undefined) return node;
+    return cloneElement(node, {
+      ...node.props,
+      children: renderLiteralBrInChildren(props.children),
+    } as Record<string, unknown>);
+  }
+  return node;
+}
+
 const MarkdownRenderer = memo<{ content: string; isDark?: boolean }>(
   ({ content, isDark }) => {
     const [collapsedCodes, setCollapsedCodes] = useState<Set<string>>(new Set());
@@ -89,6 +131,22 @@ const MarkdownRenderer = memo<{ content: string; isDark?: boolean }>(
                 <table {...props}>{children}</table>
               </div>
             );
+          },
+          td({ children, ...props }) {
+            return (
+              <td {...props}>{renderLiteralBrInChildren(children)}</td>
+            );
+          },
+          th({ children, ...props }) {
+            return (
+              <th {...props}>{renderLiteralBrInChildren(children)}</th>
+            );
+          },
+          p({ children, ...props }) {
+            return <p {...props}>{renderLiteralBrInChildren(children)}</p>;
+          },
+          li({ children, ...props }) {
+            return <li {...props}>{renderLiteralBrInChildren(children)}</li>;
           },
           code({ node, className, children, ...props }) {
             const match = /language-(\w+)/.exec(className || '');

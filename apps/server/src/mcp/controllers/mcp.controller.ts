@@ -22,10 +22,10 @@ interface McpBearerJwtPayload {
   typ?: string;
   jti?: string;
 }
-import { McpService } from './mcp.service';
-import { McpRequestContextService, McpSessionAuthService } from './services';
+import { McpService } from '../services/mcp.service';
+import { McpRequestContextService, McpSessionAuthService } from '../services';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
-import type { JsonRpcRequest, ToolInfo } from './types';
+import type { JsonRpcRequest, ToolInfo } from '../types';
 
 @Controller('mcp')
 export class McpController implements OnApplicationBootstrap {

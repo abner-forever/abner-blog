@@ -78,6 +78,11 @@ export class MCPServerResponseDto {
 
   @ApiProperty({ description: '创建时间' })
   createdAt: Date;
+
+  @ApiPropertyOptional({
+    description: '远端是否仍缺少可连通的 URL（目录项或已安装实例）',
+  })
+  requiresConfig?: boolean;
 }
 
 export class MarketplaceMCPServerDto {
@@ -104,4 +109,9 @@ export class MarketplaceMCPServerDto {
 
   @ApiProperty({ description: '是否已安装' })
   isInstalled: boolean;
+
+  @ApiPropertyOptional({
+    description: '安装后是否仍需配置远端 URL 等才可调用',
+  })
+  requiresConfig?: boolean;
 }

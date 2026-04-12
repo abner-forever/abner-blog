@@ -6,27 +6,17 @@ import {
   MCPServer,
   MCPServerStatus,
   MCPServerType,
-} from '../entities/mcp-server.entity';
+} from '../../entities/mcp-server.entity';
 import {
   InstallMCPServerDto,
   UpdateMCPServerDto,
   MCPServerResponseDto,
   MarketplaceMCPServerDto,
-} from './dto/mcp-server.dto';
-import { McpService } from '../mcp';
-import type { ToolCallParams } from '../mcp/types';
-
-type MCPServerCatalogSource = 'builtin' | 'marketplace';
-
-interface MCPServerCatalogItem {
-  id: string;
-  name: string;
-  description: string;
-  icon: string;
-  tools: string[];
-  source: MCPServerCatalogSource;
-  defaultConfig?: Record<string, unknown>;
-}
+} from '../dto/mcp-server.dto';
+import { McpService } from './mcp.service';
+import type { ToolCallParams } from '../types';
+import { McpCapabilityCatalogBuilder } from './mcp-capability-catalog.builder';
+import type { MCPServerCatalogItem } from '../catalog/mcp-capability-catalog.types';
 
 interface RemoteMcpConfig {
   url?: string;
@@ -42,97 +32,26 @@ interface McpDiagnoseStep {
   detail: string;
 }
 
-interface BuiltinGroupMeta {
-  id: string;
-  name: string;
-  description: string;
-  icon: string;
+function remoteUrlLooksConfigured(url: string): boolean {
+  const t = url.trim();
+  return t.length > 0 && !t.includes('your-server.com');
 }
 
-const BUILTIN_GROUP_META: Record<string, BuiltinGroupMeta> = {
-  weather: {
-    id: 'weather',
-    name: '天气助手',
-    description: '查询天气与空气质量（系统内置）',
-    icon: 'cloud',
-  },
-  calendar: {
-    id: 'calendar',
-    name: '日程助手',
-    description: '管理个人日程（系统内置）',
-    icon: 'calendar',
-  },
-  todo: {
-    id: 'todo',
-    name: '待办助手',
-    description: '管理待办事项（系统内置）',
-    icon: 'check-square',
-  },
-};
+function catalogEntryRequiresRemoteConfig(item: MCPServerCatalogItem): boolean {
+  if (item.source !== 'marketplace') return false;
+  const url =
+    typeof item.defaultConfig?.url === 'string' ? item.defaultConfig.url : '';
+  return !remoteUrlLooksConfigured(url);
+}
 
-// 市场 MCP：当前仅为可安装目录元数据，尚未接入真实执行器
-const MARKETPLACE_MCP_SERVERS: MCPServerCatalogItem[] = [
-  {
-    id: 'github',
-    name: 'GitHub 集成',
-    description: '仓库、Issue、PR 等 GitHub 能力（市场扩展）',
-    icon: 'github',
-    tools: ['get_repo', 'create_issue', 'list_issues', 'list_prs', 'create_pr'],
-    source: 'marketplace',
-    defaultConfig: {
-      url: 'https://your-server.com/api/mcp/github',
-      bearerToken: '',
-      timeoutMs: 12000,
-      headers: {},
-    },
-  },
-  {
-    id: 'slack',
-    name: 'Slack 集成',
-    description: '消息发送与频道管理能力（市场扩展）',
-    icon: 'slack',
-    tools: ['send_message', 'list_channels', 'get_channel_info'],
-    source: 'marketplace',
-  },
-  {
-    id: 'filesystem',
-    name: '文件系统',
-    description: '文件读写与目录管理能力（市场扩展）',
-    icon: 'folder',
-    tools: ['read_file', 'write_file', 'list_directory', 'create_directory'],
-    source: 'marketplace',
-  },
-  {
-    id: 'web-search',
-    name: '网页检索',
-    description: '联网搜索与网页内容抓取能力（市场扩展）',
-    icon: 'search',
-    tools: ['search', 'get_page_content'],
-    source: 'marketplace',
-  },
-  {
-    id: 'database',
-    name: '数据库',
-    description: 'SQL 查询与表结构读取能力（市场扩展）',
-    icon: 'database',
-    tools: ['execute_query', 'list_tables', 'describe_table'],
-    source: 'marketplace',
-  },
-  {
-    id: 'figma',
-    name: 'Figma 集成',
-    description: '读取 Figma 设计信息与截图能力（市场扩展）',
-    icon: 'figma',
-    tools: [
-      'get_design_context',
-      'get_screenshot',
-      'get_metadata',
-      'get_figjam',
-      'generate_diagram',
-    ],
-    source: 'marketplace',
-  },
-];
+function installedServerRequiresConfig(server: MCPServer): boolean {
+  if (server.type === MCPServerType.BUILTIN) return false;
+  const url =
+    typeof (server.config || {}).url === 'string'
+      ? ((server.config || {}) as { url: string }).url
+      : '';
+  return !remoteUrlLooksConfigured(url);
+}
 
 @Injectable()
 export class MCPServersService {
@@ -141,6 +60,7 @@ export class MCPServersService {
     private readonly mcpServerRepository: Repository<MCPServer>,
     private readonly mcpService: McpService,
     private readonly jwtService: JwtService,
+    private readonly capabilityCatalog: McpCapabilityCatalogBuilder,
   ) {}
 
   async callToolForUser(
@@ -164,7 +84,6 @@ export class MCPServersService {
       );
     }
 
-    // 内置 MCP：走本地工具执行器
     if (targetServer.type === MCPServerType.BUILTIN) {
       const result = await this.mcpService.callTool(toolName, params);
       const structuredContent =
@@ -186,7 +105,6 @@ export class MCPServersService {
       };
     }
 
-    // 市场/自定义 MCP：按配置转发到远端 MCP 服务器
     return this.callRemoteMcpTool(targetServer, toolName, params, userId);
   }
 
@@ -212,15 +130,13 @@ export class MCPServersService {
     dto: InstallMCPServerDto,
     userId: number,
   ): Promise<MCPServerResponseDto> {
-    const catalog = this.buildCatalog();
+    const catalog = this.capabilityCatalog.buildCatalog();
     const catalogDef = catalog.find((m) => m.id === dto.marketplaceId);
 
-    // Check if already installed
     const existing = await this.mcpServerRepository.findOne({
       where: { userId, marketplaceId: dto.marketplaceId },
     });
     if (existing) {
-      // Update existing instead
       existing.name = dto.name || existing.name;
       const shouldApplyDefaultConfig =
         (!existing.config || Object.keys(existing.config).length === 0) &&
@@ -299,14 +215,13 @@ export class MCPServersService {
   }
 
   async getCatalog(userId: number): Promise<MarketplaceMCPServerDto[]> {
-    // Get user's installed servers
     const installed = await this.mcpServerRepository.find({
       where: { userId },
       select: ['marketplaceId'],
     });
     const installedIds = new Set(installed.map((s) => s.marketplaceId));
 
-    return this.buildCatalog().map((m) => ({
+    return this.capabilityCatalog.buildCatalog().map((m) => ({
       id: m.id,
       name: m.name,
       description: m.description,
@@ -314,14 +229,8 @@ export class MCPServersService {
       tools: m.tools,
       source: m.source,
       isInstalled: installedIds.has(m.id),
+      requiresConfig: catalogEntryRequiresRemoteConfig(m),
     }));
-  }
-
-  private buildCatalog(): MCPServerCatalogItem[] {
-    return [
-      ...this.buildBuiltinCatalogFromRuntime(),
-      ...MARKETPLACE_MCP_SERVERS,
-    ];
   }
 
   private async callRemoteMcpTool(
@@ -428,51 +337,6 @@ export class MCPServersService {
         : undefined;
 
     return { content, structuredContent };
-  }
-
-  private buildBuiltinCatalogFromRuntime(): MCPServerCatalogItem[] {
-    const tools = this.mcpService.listTools().map((tool) => tool.name);
-    const groups = new Map<string, string[]>();
-
-    for (const toolName of tools) {
-      const groupId = this.resolveBuiltinGroupId(toolName);
-      if (!groupId) continue;
-      const prev = groups.get(groupId) || [];
-      groups.set(groupId, [...prev, toolName]);
-    }
-
-    const catalog: MCPServerCatalogItem[] = [];
-    for (const [groupId, groupedTools] of groups.entries()) {
-      const meta = BUILTIN_GROUP_META[groupId];
-      if (!meta || groupedTools.length === 0) continue;
-      catalog.push({
-        id: meta.id,
-        name: meta.name,
-        description: meta.description,
-        icon: meta.icon,
-        tools: groupedTools,
-        source: 'builtin',
-      });
-    }
-    return catalog;
-  }
-
-  private resolveBuiltinGroupId(
-    toolName: string,
-  ): keyof typeof BUILTIN_GROUP_META | null {
-    if (
-      toolName.startsWith('get_weather') ||
-      toolName.startsWith('get_air_quality')
-    ) {
-      return 'weather';
-    }
-    if (toolName === 'list_events' || toolName.endsWith('_event')) {
-      return 'calendar';
-    }
-    if (toolName === 'list_todos' || toolName.endsWith('_todo')) {
-      return 'todo';
-    }
-    return null;
   }
 
   async getStatus(
@@ -815,6 +679,7 @@ export class MCPServersService {
     }
 
     try {
+      const diagArgs = this.diagnosticToolArguments(server, sampleTool);
       const callRes = await fetch(url, {
         method: 'POST',
         headers: callHeaders,
@@ -822,7 +687,7 @@ export class MCPServersService {
           jsonrpc: '2.0',
           id: 4,
           method: 'tools/call',
-          params: { name: sampleTool, arguments: {} },
+          params: { name: sampleTool, arguments: diagArgs },
         }),
         signal: AbortSignal.timeout(timeoutMs),
       });
@@ -867,6 +732,25 @@ export class MCPServersService {
     return { steps };
   }
 
+  /**
+   * 连接诊断里 tools/call 需要最小合法参数，否则如 web-search「search」会因空 query 失败。
+   */
+  private diagnosticToolArguments(
+    server: MCPServer,
+    toolName: string,
+  ): Record<string, unknown> {
+    const mid = server.marketplaceId || '';
+    if (mid === 'web-search') {
+      if (toolName === 'search') {
+        return { query: 'MCP connectivity check' };
+      }
+      if (toolName === 'get_page_content') {
+        return { url: 'https://www.example.com/' };
+      }
+    }
+    return {};
+  }
+
   private isLikelyArgumentError(message: string): boolean {
     const lower = message.toLowerCase();
     return (
@@ -875,7 +759,9 @@ export class MCPServersService {
       lower.includes('missing') ||
       lower.includes('invalid') ||
       lower.includes('validation') ||
-      lower.includes('bad request')
+      lower.includes('bad request') ||
+      message.includes('请输入检索关键词') ||
+      message.includes('未配置联网搜索')
     );
   }
 
@@ -903,8 +789,19 @@ export class MCPServersService {
   private shouldUseInternalUserToken(server: MCPServer, url?: string): boolean {
     const trimmed = url?.trim() || '';
     if (!trimmed) return false;
-    if (server.marketplaceId !== 'github') return false;
-    return trimmed.includes('/api/mcp/github');
+    if (
+      server.marketplaceId === 'github' &&
+      trimmed.includes('/api/mcp/github')
+    ) {
+      return true;
+    }
+    if (
+      server.marketplaceId === 'web-search' &&
+      trimmed.includes('/api/mcp/web-search')
+    ) {
+      return true;
+    }
+    return false;
   }
 
   private toResponseDto(entity: MCPServer): MCPServerResponseDto {
@@ -920,6 +817,7 @@ export class MCPServersService {
       allowedTools: entity.allowedTools || [],
       config: entity.config || undefined,
       createdAt: entity.createdAt,
+      requiresConfig: installedServerRequiresConfig(entity),
     };
   }
 }

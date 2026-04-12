@@ -1,19 +1,41 @@
-import React, { memo } from 'react';
+import React, { memo, useCallback, useMemo, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Spin, Result, Button, Avatar, message } from 'antd';
-import { UserOutlined, RobotOutlined, CopyOutlined } from '@ant-design/icons';
+import { useTranslation } from 'react-i18next';
+import { Spin, Result, Button, message } from 'antd';
+import { CopyOutlined, PictureOutlined, DownloadOutlined } from '@ant-design/icons';
+import { useAppSelector } from '@/store/reduxHooks';
 import { useChatShareControllerFindOne } from '@services/generated/chat-share/chat-share';
-
-interface ShareMessage {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-  timestamp: number;
-}
+import ChatConversationPreview, {
+  type ChatPreviewMessage,
+} from '../components/ChatConversationPreview';
+import {
+  MAX_SESSIONS,
+  STORAGE_KEY,
+  sessionsForLocalStorage,
+} from '../constants';
+import type { ChatSession, Message } from '../types';
+import { stripAbnerBlogPublishBlock } from '../utils/parse-blog-publish-block';
+import {
+  copyElementImageToClipboard,
+  downloadElementImageAsPng,
+  logChatCopyImageFailure,
+  sanitizeChatImageFilename,
+} from '../utils/export-chat-image';
+import './share.less';
 
 const ChatSharePage: React.FC = memo(function ChatSharePage() {
+  const { t } = useTranslation();
   const { shareId } = useParams<{ shareId: string }>();
   const navigate = useNavigate();
+  const theme = useAppSelector((s) => s.theme.theme);
+
+  const isDark = useMemo(() => {
+    return (
+      theme === 'dark' ||
+      (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+    );
+  }, [theme]);
 
   const { data, isLoading, isError } = useChatShareControllerFindOne(shareId || '', {
     query: {
@@ -21,13 +43,184 @@ const ChatSharePage: React.FC = memo(function ChatSharePage() {
     },
   });
 
-  const [, setCopiedIdx] = React.useState<number | null>(null);
+  const captureOffscreenRef = useRef<HTMLDivElement>(null);
+  const [imageExporting, setImageExporting] = useState(false);
+  const [imageDownloading, setImageDownloading] = useState(false);
+  const [exportMount, setExportMount] = useState(false);
+  const imageBusy = imageExporting || imageDownloading;
+
+  const messages: ChatPreviewMessage[] = useMemo(() => {
+    if (!data?.messages || !Array.isArray(data.messages)) return [];
+    const raw = data.messages as unknown[];
+    if (raw.length === 0) return [];
+    if (typeof raw[0] === 'string') {
+      try {
+        return (raw as string[]).map((m, idx) => {
+          const parsed = typeof m === 'string' ? JSON.parse(m) : m;
+          return {
+            id: String((parsed as { id?: string }).id || `msg-${idx}`),
+            role: (parsed as { role: 'user' | 'assistant' }).role,
+            content: String((parsed as { content?: string }).content || ''),
+            timestamp: Number((parsed as { timestamp?: number }).timestamp) || 0,
+          };
+        });
+      } catch {
+        return [];
+      }
+    }
+    return (raw as ChatPreviewMessage[]).map((m, idx) => ({
+      id: m.id || `msg-${idx}`,
+      role: m.role,
+      content: m.content,
+      timestamp: m.timestamp,
+    }));
+  }, [data]);
+
+  const shareTitle = data?.title || t('chat.shareDefaultTitle');
+
+  const handleCopyToChat = () => {
+    try {
+      const mappedMessages: Message[] = messages.map((m) => {
+        const content = m.content;
+        const display =
+          m.role === 'assistant' ? stripAbnerBlogPublishBlock(content) : content;
+        return {
+          id: m.id,
+          role: m.role,
+          content,
+          displayContent: display,
+          images: [],
+          timestamp: m.timestamp ?? Date.now(),
+          isComplete: true,
+        };
+      });
+
+      const sharedSession: ChatSession = {
+        id: `shared-${Date.now()}`,
+        title: shareTitle,
+        messages: mappedMessages,
+        timestamp: Date.now(),
+        model: 'gpt-5-chat-latest',
+      };
+
+      const existing = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]') as ChatSession[];
+      const next = sessionsForLocalStorage(
+        [sharedSession, ...existing].slice(0, MAX_SESSIONS),
+      );
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+
+      message.success(t('chat.shareCopyToChatDone'));
+      navigate('/chat');
+    } catch {
+      message.error(t('chat.shareCopyToChatFailed'));
+    }
+  };
+
+  const handleCopyOne = useCallback(({ content }: { id: string; content: string }) => {
+    void navigator.clipboard.writeText(content);
+    message.success(t('chat.shareMessageCopyDone'));
+  }, [t]);
+
+  const handleDownloadImage = useCallback(async () => {
+    if (messages.length === 0) {
+      message.warning(t('chat.shareNoMessagesToExport'));
+      return;
+    }
+    setImageExporting(true);
+    message.loading({ content: t('chat.shareImageGenerating'), key: 'share-img', duration: 0 });
+    try {
+      flushSync(() => {
+        setExportMount(true);
+      });
+      await new Promise<void>((r) => {
+        requestAnimationFrame(() => requestAnimationFrame(() => r()));
+      });
+      const el = captureOffscreenRef.current;
+      if (!el) {
+        logChatCopyImageFailure('ChatSharePage.handleDownloadImage', new Error('capture root missing'), {
+          exportMount: true,
+          messageCount: messages.length,
+          shareId,
+        });
+        throw new Error('capture root missing');
+      }
+      await copyElementImageToClipboard(el);
+      message.destroy('share-img');
+      message.success(t('chat.shareImageCopied'));
+    } catch (err) {
+      logChatCopyImageFailure('ChatSharePage.handleDownloadImage', err, {
+        derivedCode: err instanceof Error ? err.message : '',
+        messageCount: messages.length,
+        shareId,
+      });
+      message.destroy('share-img');
+      const code = err instanceof Error ? err.message : '';
+      if (
+        code === 'clipboard_write_unavailable' ||
+        code === 'clipboard_item_unsupported'
+      ) {
+        message.error(t('chat.shareImageClipboardUnsupported'));
+      } else if (code === 'clipboard_not_allowed') {
+        message.error(t('chat.shareImageCopyNotAllowed'));
+      } else {
+        message.error(t('chat.shareImageFailed'));
+      }
+    } finally {
+      setExportMount(false);
+      setImageExporting(false);
+    }
+  }, [messages.length, shareId, t]);
+
+  const handleDownloadImageToFile = useCallback(async () => {
+    if (messages.length === 0) {
+      message.warning(t('chat.shareNoMessagesToExport'));
+      return;
+    }
+    setImageDownloading(true);
+    message.loading({ content: t('chat.shareImageGenerating'), key: 'share-img-dl', duration: 0 });
+    try {
+      flushSync(() => {
+        setExportMount(true);
+      });
+      await new Promise<void>((r) => {
+        requestAnimationFrame(() => requestAnimationFrame(() => r()));
+      });
+      const el = captureOffscreenRef.current;
+      if (!el) {
+        logChatCopyImageFailure(
+          'ChatSharePage.handleDownloadImageToFile',
+          new Error('capture root missing'),
+          {
+            exportMount: true,
+            messageCount: messages.length,
+            shareId,
+          },
+        );
+        throw new Error('capture root missing');
+      }
+      const base = sanitizeChatImageFilename(shareId || 'chat');
+      await downloadElementImageAsPng(el, `chat-share-${base}.png`);
+      message.destroy('share-img-dl');
+      message.success(t('chat.shareImageDownloaded'));
+    } catch (err) {
+      logChatCopyImageFailure('ChatSharePage.handleDownloadImageToFile', err, {
+        derivedCode: err instanceof Error ? err.message : '',
+        messageCount: messages.length,
+        shareId,
+      });
+      message.destroy('share-img-dl');
+      message.error(t('chat.shareImageDownloadFailed'));
+    } finally {
+      setExportMount(false);
+      setImageDownloading(false);
+    }
+  }, [messages.length, shareId, t]);
 
   if (isLoading) {
     return (
       <div className="chat-share-page">
-        <div className="share-container">
-          <Spin size="large" tip="正在加载分享内容..." />
+        <div className="chat-share-page__container chat-share-page__container--centered">
+          <Spin size="large" tip={t('chat.sharePageLoading')} />
         </div>
       </div>
     );
@@ -36,17 +229,17 @@ const ChatSharePage: React.FC = memo(function ChatSharePage() {
   if (isError || !data) {
     return (
       <div className="chat-share-page">
-        <div className="share-container">
+        <div className="chat-share-page__container chat-share-page__container--centered">
           <Result
             status="error"
-            title="加载失败"
-            subTitle="该分享链接可能已失效或不存在"
+            title={t('chat.shareLoadErrorTitle')}
+            subTitle={t('chat.shareLoadErrorDesc')}
             extra={[
               <Button type="primary" key="chat" onClick={() => navigate('/chat')}>
-                开始新对话
+                {t('chat.shareStartNewChat')}
               </Button>,
               <Button key="home" onClick={() => navigate('/')}>
-                返回首页
+                {t('chat.shareBackHome')}
               </Button>,
             ]}
           />
@@ -55,224 +248,60 @@ const ChatSharePage: React.FC = memo(function ChatSharePage() {
     );
   }
 
-  // Parse messages - the API returns messages as string[] (JSON stringified) or ShareMessage[]
-  let messages: ShareMessage[] = [];
-  if (data.messages && Array.isArray(data.messages)) {
-    if (typeof data.messages[0] === 'string') {
-      // Messages are JSON stringified
-      try {
-        messages = (data.messages as unknown as string[]).map((m, idx) => {
-          const parsed = typeof m === 'string' ? JSON.parse(m) : m;
-          return { id: `msg-${idx}`, ...parsed };
-        });
-      } catch {
-        messages = [];
-      }
-    } else {
-      // Messages are already objects
-      messages = (data.messages as unknown as ShareMessage[]).map((m, idx) => ({
-        id: m.id || `msg-${idx}`,
-        role: m.role,
-        content: m.content,
-        timestamp: m.timestamp,
-      }));
-    }
-  }
-
-  const handleCopyToChat = () => {
-    try {
-      const sharedData = {
-        id: `shared-${Date.now()}`,
-        title: data.title || '分享的对话',
-        messages: messages.map((m) => ({
-          id: m.id,
-          role: m.role,
-          content: m.content,
-          images: [],
-          displayContent: m.content,
-          timestamp: m.timestamp,
-        })),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        isShared: true,
-      };
-
-      const existingSessions = JSON.parse(localStorage.getItem('chat-sessions') || '[]');
-      const newSessions = [sharedData, ...existingSessions];
-      localStorage.setItem('chat-sessions', JSON.stringify(newSessions));
-      localStorage.setItem('chat-shared-session', JSON.stringify(sharedData));
-
-      message.success('已复制到对话，可开始新对话');
-      navigate('/chat');
-    } catch {
-      message.error('复制失败');
-    }
-  };
-
-  const handleCopyContent = (content: string, idx: number) => {
-    navigator.clipboard.writeText(content);
-    setCopiedIdx(idx);
-    message.success('已复制内容');
-    setTimeout(() => setCopiedIdx(null), 2000);
-  };
-
   return (
     <div className="chat-share-page">
-      <div className="share-header">
-        <h1 className="share-title">{data.title || '分享的对话'}</h1>
-        <div className="share-actions">
+      <div className="chat-share-page__header">
+        <h1 className="chat-share-page__title">{shareTitle}</h1>
+        <div className="chat-share-page__actions">
+          <Button
+            icon={<PictureOutlined />}
+            loading={imageExporting}
+            onClick={() => void handleDownloadImage()}
+            disabled={messages.length === 0 || imageBusy}
+          >
+            {t('chat.shareCopyImage')}
+          </Button>
+          <Button
+            icon={<DownloadOutlined />}
+            loading={imageDownloading}
+            onClick={() => void handleDownloadImageToFile()}
+            disabled={messages.length === 0 || imageBusy}
+          >
+            {t('chat.shareDownloadImage')}
+          </Button>
           <Button type="primary" icon={<CopyOutlined />} onClick={handleCopyToChat}>
-            复制到我的对话
+            {t('chat.shareCopyToChat')}
           </Button>
         </div>
       </div>
 
-      <div className="share-container">
-        <div className="share-messages">
-          {messages.map((msg, idx) => (
-            <div key={msg.id || idx} className={`message-item message-${msg.role}`}>
-              <div className="message-avatar">
-                {msg.role === 'user' ? (
-                  <Avatar icon={<UserOutlined />} className="user-avatar" />
-                ) : (
-                  <Avatar icon={<RobotOutlined />} className="ai-avatar" />
-                )}
-              </div>
-              <div className="message-content-wrapper">
-                <div className="message-bubble">
-                  <div className="message-content">{msg.content}</div>
-                </div>
-                <Button
-                  type="text"
-                  size="small"
-                  icon={<CopyOutlined />}
-                  className="copy-btn"
-                  onClick={() => handleCopyContent(msg.content, idx)}
-                />
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {messages.length === 0 && (
-          <Result status="info" title="空对话" subTitle="该分享内容为空" />
+      <div className="chat-share-page__container">
+        {messages.length === 0 ? (
+          <Result status="info" title={t('chat.shareEmptyTitle')} subTitle={t('chat.shareEmptyDesc')} />
+        ) : (
+          <ChatConversationPreview
+            title={shareTitle}
+            messages={messages}
+            isDark={isDark}
+            showCopyActions
+            copyLabel={t('chat.shareCopyMessage')}
+            onCopyMessage={handleCopyOne}
+          />
         )}
       </div>
 
-      <style>{`
-        .chat-share-page {
-          min-height: 100vh;
-          background: var(--bg-color, #f5f5f5);
-          padding: 20px;
-        }
-
-        .share-header {
-          max-width: 800px;
-          margin: 0 auto 20px;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 16px 24px;
-          background: white;
-          border-radius: 12px;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-        }
-
-        .share-title {
-          margin: 0;
-          font-size: 18px;
-          font-weight: 600;
-          color: var(--text-color, #333);
-        }
-
-        .share-container {
-          max-width: 800px;
-          margin: 0 auto;
-          background: white;
-          border-radius: 12px;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-          padding: 24px;
-          min-height: 400px;
-        }
-
-        .share-messages {
-          display: flex;
-          flex-direction: column;
-          gap: 20px;
-        }
-
-        .message-item {
-          display: flex;
-          gap: 12px;
-          padding: 12px;
-          border-radius: 8px;
-        }
-
-        .message-item:hover {
-          background: var(--hover-bg, #fafafa);
-        }
-
-        .message-user {
-          flex-direction: row;
-        }
-
-        .message-assistant {
-          flex-direction: row;
-          background: var(--ai-message-bg, #f0f7ff);
-        }
-
-        .message-avatar {
-          flex-shrink: 0;
-        }
-
-        .user-avatar {
-          background: var(--user-avatar-bg, #1890ff);
-        }
-
-        .ai-avatar {
-          background: var(--ai-avatar-bg, #722ed1);
-        }
-
-        .message-content-wrapper {
-          flex: 1;
-          display: flex;
-          align-items: flex-start;
-          gap: 8px;
-          position: relative;
-        }
-
-        .message-bubble {
-          flex: 1;
-          padding: 12px 16px;
-          border-radius: 12px;
-          background: var(--message-bubble-bg, #f5f5f5);
-          position: relative;
-        }
-
-        .message-user .message-bubble {
-          background: var(--user-bubble-bg, #e6f7ff);
-        }
-
-        .message-assistant .message-bubble {
-          background: var(--ai-bubble-bg, #f0f7ff);
-        }
-
-        .message-content {
-          white-space: pre-wrap;
-          word-break: break-word;
-          line-height: 1.6;
-          color: var(--text-color, #333);
-        }
-
-        .copy-btn {
-          opacity: 0;
-          transition: opacity 0.2s;
-        }
-
-        .message-item:hover .copy-btn {
-          opacity: 1;
-        }
-      `}</style>
+      {exportMount ? (
+        <div className="chat-share-page__offscreen" aria-hidden>
+          <div ref={captureOffscreenRef}>
+            <ChatConversationPreview
+              title={shareTitle}
+              messages={messages}
+              isDark={isDark}
+              captureMode
+            />
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 });

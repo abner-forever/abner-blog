@@ -44,6 +44,23 @@ export class SkillsController {
     return this.skillsService.findAll(req.user.userId);
   }
 
+  @ApiOperation({ summary: '获取技能市场' })
+  @ApiResponse({ status: 200, type: [MarketplaceSkillDto] })
+  @Get('marketplace/list')
+  getMarketplace(@Request() req: AuthenticatedRequest) {
+    return this.skillsService.getMarketplace(req.user.userId);
+  }
+
+  @ApiOperation({ summary: '从市场安装技能' })
+  @ApiResponse({ status: 201, type: SkillResponseDto })
+  @Post('install/:marketplaceId')
+  install(
+    @Param('marketplaceId') marketplaceId: string,
+    @Request() req: AuthenticatedRequest,
+  ) {
+    return this.skillsService.install(marketplaceId, req.user.userId);
+  }
+
   @ApiOperation({ summary: '获取技能详情' })
   @ApiResponse({ status: 200, type: SkillResponseDto })
   @Get(':id')
@@ -76,16 +93,6 @@ export class SkillsController {
     return this.skillsService.remove(id, req.user.userId);
   }
 
-  @ApiOperation({ summary: '从市场安装技能' })
-  @ApiResponse({ status: 201, type: SkillResponseDto })
-  @Post('install/:marketplaceId')
-  install(
-    @Param('marketplaceId') marketplaceId: string,
-    @Request() req: AuthenticatedRequest,
-  ) {
-    return this.skillsService.install(marketplaceId, req.user.userId);
-  }
-
   @ApiOperation({ summary: '激活技能' })
   @ApiResponse({ status: 200, type: SkillResponseDto })
   @Post(':id/activate')
@@ -98,12 +105,5 @@ export class SkillsController {
   @Post(':id/deactivate')
   deactivate(@Param('id') id: string, @Request() req: AuthenticatedRequest) {
     return this.skillsService.deactivate(id, req.user.userId);
-  }
-
-  @ApiOperation({ summary: '获取技能市场' })
-  @ApiResponse({ status: 200, type: [MarketplaceSkillDto] })
-  @Get('marketplace/list')
-  getMarketplace(@Request() req: AuthenticatedRequest) {
-    return this.skillsService.getMarketplace(req.user.userId);
   }
 }

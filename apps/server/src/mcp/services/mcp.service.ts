@@ -11,12 +11,12 @@ import {
   CreateTodoSchema,
   UpdateTodoSchema,
   DeleteTodoSchema,
-} from './schemas';
-import { WeatherTools } from './tools/weather.tools';
-import { CalendarTools } from './tools/calendar.tools';
-import { TodoTools } from './tools/todo.tools';
-import type { McpToolResult, ToolCallParams, ToolDefinition } from './types';
-import { MCP_TOOL_METADATA } from './utils/mcp-tool-metadata';
+} from '../schemas';
+import { WeatherTools } from '../tools/weather.tools';
+import { CalendarTools } from '../tools/calendar.tools';
+import { TodoTools } from '../tools/todo.tools';
+import type { McpToolResult, ToolCallParams, ToolDefinition } from '../types';
+import { MCP_TOOL_METADATA } from '../utils/mcp-tool-metadata';
 import type { ZodType } from 'zod';
 
 @Injectable()

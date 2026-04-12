@@ -26,3 +26,21 @@ export function toHistoryUserText(
   }
   return text;
 }
+
+/** 联网轮次写入会话历史：保留用户原话 + 截断后的检索摘要，便于多轮追问「总结上文」时仍有事实依据 */
+const MAX_SEARCH_DIGEST_IN_HISTORY_CHARS = 4500;
+
+export function buildChatHistoryUserLine(
+  message: string,
+  images: ChatImageDto[] | undefined,
+  searchDigest?: string,
+): string {
+  const base = toHistoryUserText(message, images);
+  const d = searchDigest?.trim();
+  if (!d) return base;
+  const clipped =
+    d.length > MAX_SEARCH_DIGEST_IN_HISTORY_CHARS
+      ? `${d.slice(0, MAX_SEARCH_DIGEST_IN_HISTORY_CHARS)}…`
+      : d;
+  return `${base}\n\n【检索摘要（供后续多轮引用）】\n${clipped}`;
+}

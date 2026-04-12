@@ -5,6 +5,11 @@ import {
   parseWeatherCardData,
   stripRedactedThinkingBlocks,
 } from './stream-utils';
+import {
+  mergeBlogPublishDraftWithStrippedBody,
+  parseAbnerBlogPublishDraft,
+  stripAbnerBlogPublishBlock,
+} from './parse-blog-publish-block';
 
 function finishWebSearchLoading<M extends Pick<Message, 'webSearchStatus'>>(
   msg: M,
@@ -49,15 +54,22 @@ export function handleChatStreamEvent({
   if (streamEvent.event === 'intent') {
     runtime.detectedIntent =
       (streamEvent.payload?.intent as IntentName | undefined) || null;
-    if (runtime.detectedIntent === 'web_search') {
-      setMessages((prev) =>
-        prev.map((msg) =>
-          msg.id === assistantMessageId
-            ? { ...msg, webSearchStatus: 'searching' }
-            : msg,
-        ),
-      );
-    }
+    return;
+  }
+
+  if (streamEvent.event === 'web_search_status') {
+    const status = streamEvent.payload?.status as
+      | 'searching'
+      | 'done'
+      | undefined;
+    if (status !== 'searching' && status !== 'done') return;
+    setMessages((prev) =>
+      prev.map((msg) =>
+        msg.id === assistantMessageId
+          ? { ...msg, webSearchStatus: status }
+          : msg,
+      ),
+    );
     return;
   }
 
@@ -83,8 +95,7 @@ export function handleChatStreamEvent({
     if (
       runtime.detectedIntent &&
       runtime.detectedIntent !== 'chat' &&
-      runtime.detectedIntent !== 'query_weather' &&
-      runtime.detectedIntent !== 'web_search'
+      runtime.detectedIntent !== 'query_weather'
     ) {
       return;
     }
@@ -450,32 +461,54 @@ export function handleChatStreamEvent({
     } else if (finalType === 'chat') {
       streamCompletedRef.current = false;
       setMessages((prev) =>
-        prev.map((msg) =>
-          msg.id === assistantMessageId
-            ? finishWebSearchLoading({
-                ...msg,
-                isComplete: true,
-                thinkingStatus: 'done',
-                answerStatus: 'done',
-              })
-            : msg,
-        ),
+        prev.map((msg): Message => {
+          if (msg.id !== assistantMessageId) return msg;
+          const base = finishWebSearchLoading({
+            ...msg,
+            isComplete: true,
+            thinkingStatus: 'done' as const,
+            answerStatus: 'done' as const,
+          });
+          const raw = base.content || '';
+          const draftRaw = parseAbnerBlogPublishDraft(raw);
+          if (!draftRaw) return base as Message;
+          const stripped = stripAbnerBlogPublishBlock(raw);
+          const draft = mergeBlogPublishDraftWithStrippedBody(draftRaw, stripped);
+          return {
+            ...base,
+            blogPublishDraft: draft,
+            ...(stripped.trim()
+              ? { content: stripped, displayContent: stripped }
+              : {}),
+          } as Message;
+        }),
       );
     } else {
       // Handle other final types like query_schedule, query_weather, etc.
       // Only update status fields - don't overwrite content/card already set by previous events
       streamCompletedRef.current = true;
       setMessages((prev) =>
-        prev.map((msg) =>
-          msg.id === assistantMessageId
-            ? {
-                ...msg,
-                thinkingStatus: 'done',
-                answerStatus: 'done',
-                isComplete: true,
-              }
-            : msg,
-        ),
+        prev.map((msg): Message => {
+          if (msg.id !== assistantMessageId) return msg;
+          const base = {
+            ...msg,
+            thinkingStatus: 'done' as const,
+            answerStatus: 'done' as const,
+            isComplete: true,
+          };
+          const raw = base.content || '';
+          const draftRaw = parseAbnerBlogPublishDraft(raw);
+          if (!draftRaw) return base as Message;
+          const stripped = stripAbnerBlogPublishBlock(raw);
+          const draft = mergeBlogPublishDraftWithStrippedBody(draftRaw, stripped);
+          return {
+            ...base,
+            blogPublishDraft: draft,
+            ...(stripped.trim()
+              ? { content: stripped, displayContent: stripped }
+              : {}),
+          } as Message;
+        }),
       );
     }
   }

@@ -451,6 +451,9 @@ importers:
       md-editor-rt:
         specifier: ^4.21.2
         version: 4.21.4(react-dom@18.3.1)(react@18.3.1)
+      modern-screenshot:
+        specifier: ^4.6.8
+        version: 4.6.8
       postcss-px-to-viewport:
         specifier: ^1.1.1
         version: 1.1.1
@@ -13532,6 +13535,10 @@ packages:
       pkg-types: 1.3.1
       ufo: 1.6.3
     dev: true
+
+  /modern-screenshot@4.6.8:
+    resolution: {integrity: sha512-GJkv/yWPOJTlxj1LZDU2k474cDyOWL+LVaqTdDWQwQ5d8zIuTz1892+1cV9V0ZpK6HYZFo/+BNLBbierO9d2TA==}
+    dev: false
 
   /moment@2.30.1:
     resolution: {integrity: sha512-uEmtNhbDOrWPFS+hdjFCBfy9f2YoyzRpwcl+DqpC6taX21FzsTLQVbMV/W7PzNSX6x/bhC1zA3c2UQ5NzH6how==}

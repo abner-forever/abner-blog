@@ -368,6 +368,11 @@ const MCPServerPanel: React.FC<Props> = ({ onClose }) => {
                     title={
                       <div className="server-title">
                         {server.name}
+                        {server.requiresConfig ? (
+                          <Tag color="warning" className="server-title__tag">
+                            {t('chat.mcpNeedsConfig')}
+                          </Tag>
+                        ) : null}
                         {getStatusIcon(server.status)}
                       </div>
                     }
@@ -397,9 +402,11 @@ const MCPServerPanel: React.FC<Props> = ({ onClose }) => {
                         {t('chat.uninstall')}
                       </Button>
                     </Popconfirm>
-                    <Button size="small" onClick={() => handleOpenConfig(server)}>
-                      配置
-                    </Button>
+                    {server.type !== 'builtin' ? (
+                      <Button size="small" onClick={() => handleOpenConfig(server)}>
+                        {t('chat.configureMcp')}
+                      </Button>
+                    ) : null}
                   </div>
                 </List.Item>
               )}
@@ -408,7 +415,7 @@ const MCPServerPanel: React.FC<Props> = ({ onClose }) => {
         ) : (
           <>
             <div className="server-section-title">
-              {t('chat.builtinServers', { defaultValue: '系统内置' })}
+              {t('chat.builtinServers')}
             </div>
             <List
               className="server-list"
@@ -463,7 +470,7 @@ const MCPServerPanel: React.FC<Props> = ({ onClose }) => {
             />
 
             <div className="server-section-title">
-              {t('chat.marketplaceServers', { defaultValue: '市场扩展' })}
+              {t('chat.marketplaceServers')}
             </div>
             <List
               className="server-list"
@@ -500,6 +507,11 @@ const MCPServerPanel: React.FC<Props> = ({ onClose }) => {
                     description={
                       <div className="server-description">
                         <span>{server.description}</span>
+                        {server.requiresConfig ? (
+                          <div className="server-requires-config-hint">
+                            {t('chat.mcpRemoteUrlHint')}
+                          </div>
+                        ) : null}
                         <div className="server-tools-list">
                           {server.tools.slice(0, 3).map((tool) => (
                             <Tag key={tool} className="tool-tag">

@@ -1,70 +1,107 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { AIChatResponseService } from './ai-chat-response.service';
+import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 
 const SEARCH_TIMEOUT_MS = 25_000;
+const PAGE_FETCH_TIMEOUT_MS = 20_000;
+const MAX_PAGE_BYTES = 512 * 1024;
 const MAX_SNIPPET_CHARS = 480;
 const MAX_RESULTS = 8;
-
-export type WebSearchPrepareOk = { ok: true; prompt: string };
-export type WebSearchPrepareErr = { ok: false; message: string };
+const MAX_PAGE_TEXT = 12_000;
 
 @Injectable()
-export class AIWebSearchService {
-  private readonly logger = new Logger(AIWebSearchService.name);
-
-  constructor(private readonly chatResponse: AIChatResponseService) {}
+export class WebSearchService {
+  constructor(private readonly configService: ConfigService) {}
 
   /**
-   * 执行联网检索并生成可直接送入多轮对话的完整用户侧 Prompt（含系统约束与摘要）。
+   * 使用 Tavily（优先）或 Brave 返回检索摘要文本（不含对话包装）。
    */
-  async preparePrompt(
-    userQuestion: string,
-  ): Promise<WebSearchPrepareOk | WebSearchPrepareErr> {
-    const trimmed = userQuestion.trim();
+  async searchDigest(rawQuery: string): Promise<string> {
+    const trimmed = rawQuery.trim();
     if (!trimmed) {
-      return { ok: false, message: '请输入要检索的问题。' };
+      throw new Error('请输入检索关键词。');
     }
-    const query = this.normalizeSearchQuery(trimmed);
-    const tavilyKey = process.env.TAVILY_API_KEY?.trim();
-    const braveKey = process.env.BRAVE_SEARCH_API_KEY?.trim();
+    const q = this.normalizeSearchQuery(trimmed);
+    const tavilyKey =
+      this.configService.get<string>('TAVILY_API_KEY')?.trim() || '';
+    const braveKey =
+      this.configService.get<string>('BRAVE_SEARCH_API_KEY')?.trim() || '';
 
     if (!tavilyKey && !braveKey) {
-      return {
-        ok: false,
-        message:
-          '服务端未配置联网搜索密钥：请在环境变量中设置 TAVILY_API_KEY（推荐）或 BRAVE_SEARCH_API_KEY。',
-      };
+      throw new Error(
+        '服务端未配置联网搜索密钥：请设置 TAVILY_API_KEY（推荐）或 BRAVE_SEARCH_API_KEY。',
+      );
     }
 
+    if (tavilyKey) {
+      return this.searchTavily(q, tavilyKey);
+    }
+    return this.searchBrave(q, braveKey);
+  }
+
+  /** 抓取网页正文片段（仅 http/https，带简单 SSRF 限制）。 */
+  async fetchPagePreview(rawUrl: string): Promise<string> {
+    const urlStr = rawUrl.trim();
+    let url: URL;
     try {
-      let digest: string;
-      if (tavilyKey) {
-        digest = await this.searchTavily(query, tavilyKey);
+      url = new URL(urlStr);
+    } catch {
+      throw new Error('无效的 URL');
+    }
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+      throw new Error('仅支持 http/https 链接');
+    }
+    const host = url.hostname.toLowerCase();
+    if (
+      host === 'localhost' ||
+      host === '127.0.0.1' ||
+      host.endsWith('.local') ||
+      host === '0.0.0.0' ||
+      host.startsWith('10.') ||
+      host.startsWith('192.168.') ||
+      /^172\.(1[6-9]|2\d|3[01])\./.test(host)
+    ) {
+      throw new Error('不允许抓取该地址');
+    }
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), PAGE_FETCH_TIMEOUT_MS);
+    try {
+      const res = await fetch(url.toString(), {
+        method: 'GET',
+        redirect: 'follow',
+        headers: {
+          Accept:
+            'text/html,application/xhtml+xml,text/plain;q=0.9,*/*;q=0.8',
+          'User-Agent':
+            'abner-blog-web-search-mcp/1.0 (+https://github.com/modelcontextprotocol)',
+        },
+        signal: controller.signal,
+      });
+      const lenHeader = res.headers.get('content-length');
+      if (lenHeader) {
+        const n = parseInt(lenHeader, 10);
+        if (Number.isFinite(n) && n > MAX_PAGE_BYTES) {
+          throw new Error('页面体积过大，已拒绝下载');
+        }
+      }
+      const buf = await res.arrayBuffer();
+      if (buf.byteLength > MAX_PAGE_BYTES) {
+        throw new Error('页面体积过大，已截断前仍超限');
+      }
+      const text = new TextDecoder('utf-8', { fatal: false }).decode(buf);
+      const contentType = (res.headers.get('content-type') || '').toLowerCase();
+      let body = text;
+      if (contentType.includes('text/html')) {
+        body = this.stripHtmlToText(text);
       } else {
-        digest = await this.searchBrave(query, braveKey);
+        body = text.replace(/\s+/g, ' ').trim();
       }
-      if (!digest.trim()) {
-        return {
-          ok: false,
-          message: '未检索到可用摘要，请换种说法或稍后再试。',
-        };
-      }
-      const prompt = this.chatResponse.buildWebSearchChatPrompt(
-        trimmed,
-        digest,
-      );
-      return { ok: true, prompt };
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e);
-      this.logger.warn(`Web search failed: ${msg}`);
-      return {
-        ok: false,
-        message: `联网搜索暂时失败：${msg}`,
-      };
+      return this.truncate(body, MAX_PAGE_TEXT);
+    } finally {
+      clearTimeout(timer);
     }
   }
 
-  /** 去掉常见口语前缀，得到更适合搜索引擎的 query */
   normalizeSearchQuery(raw: string): string {
     let q = raw.trim();
     q = q.replace(/^(请|麻烦|能否|可不可以)?(你)?(帮我|帮助我)?/u, '');
@@ -78,6 +115,16 @@ export class AIWebSearchService {
     q = q.replace(/^(web\s*search|search\s+the\s+web)[:：\s]*/iu, '');
     const out = q.trim();
     return out || raw.trim();
+  }
+
+  private stripHtmlToText(html: string): string {
+    let s = html
+      .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+      .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+      .replace(/<noscript[\s\S]*?<\/noscript>/gi, ' ');
+    s = s.replace(/<[^>]+>/g, ' ');
+    s = s.replace(/\s+/g, ' ').trim();
+    return s;
   }
 
   private async searchTavily(query: string, apiKey: string): Promise<string> {

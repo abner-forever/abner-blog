@@ -1,4 +1,5 @@
 import type { AssistantCard } from './components/ResultCards';
+import type { CreateBlogDto } from '@services/generated/model';
 
 export enum VendorType {
   OPENAI = 'openai',
@@ -17,12 +18,16 @@ export interface Message {
   thinkingContent?: string;
   thinkingStatus?: 'idle' | 'streaming' | 'done';
   answerStatus?: 'idle' | 'streaming' | 'done';
-  /** 联网检索阶段（intent=web_search 后、首条正文流式前） */
+  /** 联网检索阶段（预留：首条正文流式前展示检索态） */
   webSearchStatus?: 'idle' | 'searching' | 'done';
   timestamp: number;
   isComplete?: boolean;
   card?: AssistantCard;
   images?: Array<{ mimeType: string; previewUrl: string }>;
+  /** 从 ```abner-blog-publish``` 解析，用于对话内发帖确认 */
+  blogPublishDraft?: CreateBlogDto | null;
+  /** 用户已通过聊天内按钮成功发布 */
+  blogPublished?: { id: number; title: string } | null;
 }
 
 export interface ChatSession {
@@ -51,6 +56,7 @@ export type StreamEventName =
   | 'schedule_query'
   | 'thinking_delta'
   | 'chat_delta'
+  | 'web_search_status'
   | 'done'
   | 'error';
 
@@ -68,5 +74,4 @@ export type IntentName =
   | 'delete_event'
   | 'query_schedule'
   | 'query_weather'
-  | 'web_search'
   | 'chat';

@@ -17,6 +17,8 @@ interface ChatStreamRequest {
   useMcpTools?: boolean;
   /** 随消息上传的图片（Base64，与后端 ChatImageDto 一致） */
   images?: ChatStreamImagePart[];
+  /** 可选：仅注入指定技能；不传则由服务端合并该用户所有「已激活」技能 */
+  skillId?: string;
   signal?: AbortSignal;
 }
 
@@ -127,6 +129,7 @@ export const requestAIChatStream = async ({
   thinkingBudget,
   useMcpTools,
   images,
+  skillId,
   signal,
 }: ChatStreamRequest): Promise<Response> => {
   const headers = await getChatStreamHeaders();
@@ -147,6 +150,7 @@ export const requestAIChatStream = async ({
       thinkingEnabled,
       thinkingBudget,
       useMcpTools,
+      ...(skillId ? { skillId } : {}),
     }),
     signal,
   });

@@ -12,6 +12,7 @@ import {
   Spin,
   Progress,
   Tooltip,
+  Switch,
 } from 'antd';
 import {
   DatabaseOutlined,
@@ -186,6 +187,7 @@ const KnowledgeBasePanel: React.FC<Props> = ({ onClose }) => {
   const [chunksLoading, setChunksLoading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [uploadingKbId, setUploadingKbId] = useState<string | null>(null);
+  const [togglingKbId, setTogglingKbId] = useState<string | null>(null);
   const [form] = Form.useForm();
   const [editForm] = Form.useForm();
   const [chunksListViewportHeight, setChunksListViewportHeight] = useState(resolveChunksListViewportHeight);
@@ -253,11 +255,39 @@ const KnowledgeBasePanel: React.FC<Props> = ({ onClose }) => {
     editForm.setFieldsValue({
       name: kb.name,
       description: kb.description || '',
+      useInChat: kb.status === 'active',
     });
     setEditModalOpen(true);
   };
 
-  const handleSubmitEdit = async (values: { name: string; description?: string }) => {
+  const handleToggleKbChatRetrieval = async (
+    kb: KnowledgeBaseResponse,
+    enabled: boolean,
+  ) => {
+    const nextStatus = enabled ? 'active' : 'inactive';
+    if (kb.status === nextStatus) return;
+    setTogglingKbId(kb.id);
+    try {
+      const updated = await knowledgeBaseService.update(kb.id, {
+        status: nextStatus,
+      });
+      setKnowledgeBases((prev) => prev.map((k) => (k.id === kb.id ? updated : k)));
+      if (selectedKb?.id === kb.id) {
+        setSelectedKb(updated);
+      }
+      message.success(t('chat.updateSuccess'));
+    } catch (_err) {
+      message.error(t('chat.updateFailed'));
+    } finally {
+      setTogglingKbId(null);
+    }
+  };
+
+  const handleSubmitEdit = async (values: {
+    name: string;
+    description?: string;
+    useInChat?: boolean;
+  }) => {
     if (!editingKb) return;
     const nextName = values.name.trim();
     const nextDescription = (values.description || '').trim();
@@ -267,9 +297,10 @@ const KnowledgeBasePanel: React.FC<Props> = ({ onClose }) => {
     }
     setSavingEdit(true);
     try {
-      await knowledgeBaseService.update(editingKb.id, {
+      const updated = await knowledgeBaseService.update(editingKb.id, {
         name: nextName,
         description: nextDescription,
+        status: values.useInChat === false ? 'inactive' : 'active',
       });
       message.success(t('chat.updateSuccess') || '更新成功');
       setEditModalOpen(false);
@@ -277,9 +308,7 @@ const KnowledgeBasePanel: React.FC<Props> = ({ onClose }) => {
       editForm.resetFields();
       await loadKnowledgeBases();
       if (selectedKb?.id === editingKb.id) {
-        setSelectedKb((prev) =>
-          prev ? { ...prev, name: nextName, description: nextDescription } : prev
-        );
+        setSelectedKb(updated);
       }
     } catch (_err) {
       message.error(t('chat.updateFailed') || '更新失败');
@@ -466,7 +495,7 @@ const KnowledgeBasePanel: React.FC<Props> = ({ onClose }) => {
               dataSource={knowledgeBases}
               renderItem={(kb) => (
                 <List.Item
-                  className={`kb-item ${selectedKb?.id === kb.id ? 'selected' : ''}`}
+                  className={`kb-item ${selectedKb?.id === kb.id ? 'selected' : ''} ${kb.status !== 'active' ? 'kb-item--rag-off' : ''}`}
                   onClick={() => setSelectedKb(kb)}
                 >
                   <div className="kb-card">
@@ -477,17 +506,39 @@ const KnowledgeBasePanel: React.FC<Props> = ({ onClose }) => {
                       <div className="kb-content">
                         <div className="kb-title-row">
                           <span className="kb-title">{kb.name}</span>
-                          <Tooltip title={t('common.edit')}>
-                            <Button
-                              type="text"
-                              size="small"
-                              icon={<EditOutlined />}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleOpenEditModal(kb);
-                              }}
-                            />
-                          </Tooltip>
+                          <div
+                            className="kb-title-actions"
+                            role="presentation"
+                            onClick={(e) => e.stopPropagation()}
+                            onKeyDown={(e) => e.stopPropagation()}
+                          >
+                            <Tooltip title={t('chat.kbChatRetrievalHint')}>
+                              <span className="kb-title-rag">
+                                <span className="kb-title-rag__label">
+                                  {t('chat.kbChatRetrieval')}
+                                </span>
+                                <Switch
+                                  size="small"
+                                  checked={kb.status === 'active'}
+                                  loading={togglingKbId === kb.id}
+                                  onChange={(checked) => {
+                                    void handleToggleKbChatRetrieval(kb, checked);
+                                  }}
+                                />
+                              </span>
+                            </Tooltip>
+                            <Tooltip title={t('common.edit')}>
+                              <Button
+                                type="text"
+                                size="small"
+                                icon={<EditOutlined />}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleOpenEditModal(kb);
+                                }}
+                              />
+                            </Tooltip>
+                          </div>
                         </div>
                         <div className="kb-description-text">
                           {kb.description?.trim() || t('chat.noDescription')}
@@ -620,6 +671,14 @@ const KnowledgeBasePanel: React.FC<Props> = ({ onClose }) => {
               rows={3}
               maxLength={300}
             />
+          </Form.Item>
+          <Form.Item
+            name="useInChat"
+            valuePropName="checked"
+            label={t('chat.kbChatRetrieval')}
+            tooltip={t('chat.kbChatRetrievalHint')}
+          >
+            <Switch />
           </Form.Item>
           <Form.Item>
             <Button type="primary" htmlType="submit" block loading={savingEdit}>

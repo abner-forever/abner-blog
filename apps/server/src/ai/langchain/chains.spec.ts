@@ -68,7 +68,6 @@ describe('IntentType enum', () => {
     expect(IntentType.DELETE_EVENT).toBe('delete_event');
     expect(IntentType.QUERY_SCHEDULE).toBe('query_schedule');
     expect(IntentType.QUERY_WEATHER).toBe('query_weather');
-    expect(IntentType.WEB_SEARCH).toBe('web_search');
     expect(IntentType.CHAT).toBe('chat');
   });
 });
@@ -136,21 +135,28 @@ describe('detectIntent', () => {
     expect(llm.invoke).toHaveBeenCalledTimes(1);
   });
 
-  it('should detect news query as web_search without llm', async () => {
+  it('should detect news query as chat (web search handled via MCP in chat path)', async () => {
     const llm = createMockLlm('chat');
     const intent = await detectIntent(llm as never, '今天有什么新闻');
-    expect(intent).toBe(IntentType.WEB_SEARCH);
-    expect(llm.invoke).not.toHaveBeenCalled();
+    expect(intent).toBe(IntentType.CHAT);
+    expect(llm.invoke).toHaveBeenCalledTimes(1);
   });
 
-  it('should detect 帮我总结新闻 as web_search without fast-path chat', async () => {
+  it('should detect 帮我总结新闻 as chat without fast-path web_search intent', async () => {
     const llm = createMockLlm('chat');
     const intent = await detectIntent(
       llm as never,
       '帮我总结一下今天的科技新闻',
     );
-    expect(intent).toBe(IntentType.WEB_SEARCH);
-    expect(llm.invoke).not.toHaveBeenCalled();
+    expect(intent).toBe(IntentType.CHAT);
+    expect(llm.invoke).toHaveBeenCalledTimes(1);
+  });
+
+  it('should strip redacted_thinking from intent model output before mapping', async () => {
+    const llm = createMockLlm('<think>分析中</think>\n\nchat');
+    const intent = await detectIntent(llm as never, '查询一下最新新闻');
+    expect(intent).toBe(IntentType.CHAT);
+    expect(llm.invoke).toHaveBeenCalledTimes(1);
   });
 });
 

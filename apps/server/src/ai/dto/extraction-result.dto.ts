@@ -9,8 +9,6 @@ export enum IntentType {
   DELETE_EVENT = 'delete_event',
   QUERY_SCHEDULE = 'query_schedule',
   QUERY_WEATHER = 'query_weather',
-  /** 联网检索 + 基于摘要回答 */
-  WEB_SEARCH = 'web_search',
   CHAT = 'chat',
 }
 

@@ -190,4 +190,12 @@ export class ChatRequestDto {
   @IsOptional()
   @IsBoolean()
   useMcpTools?: boolean;
+
+  @ApiPropertyOptional({
+    description:
+      '可选：仅注入指定技能 ID（须已激活）。不传时自动合并该用户在库中所有「已激活」技能的名称/说明/工具标签写入系统提示，由模型按用户问题选用，无需前端携带 skillId。',
+  })
+  @IsOptional()
+  @IsString()
+  skillId?: string;
 }

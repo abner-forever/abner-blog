@@ -3,6 +3,7 @@ import { IntentType } from '../dto/extraction-result.dto';
 import type { ChatLLM } from './model';
 import { getTextContent } from './parsers';
 import { INTENT_PROMPT } from './prompts';
+import { splitCompleteReplyThink } from '../utils/think-tag-split';
 
 export async function detectIntent(
   llm: ChatLLM,
@@ -25,13 +26,14 @@ export async function detectIntent(
       new HumanMessage(prompt),
     ]);
 
-    const content = getTextContent(result);
-    process.stderr.write(`[AI Intent] LLM Response: "${content}"\n`);
+    const raw = getTextContent(result);
+    const { answer, thinking } = splitCompleteReplyThink(raw);
+    const intentSource = (answer.trim() || raw.trim()).toLowerCase();
+    process.stderr.write(
+      `[AI Intent] LLM raw len=${raw.length} thinkLen=${thinking.length} intentText="${intentSource.slice(0, 80)}${intentSource.length > 80 ? '…' : ''}"\n`,
+    );
 
-    const trimmed = content.trim().toLowerCase();
-    process.stderr.write(`[AI Intent] Trimmed: "${trimmed}"\n`);
-
-    const mappedIntent = mapIntentFromText(trimmed);
+    const mappedIntent = mapIntentFromText(intentSource);
     if (mappedIntent) return mappedIntent;
 
     process.stderr.write('[AI Intent] No match found, returning CHAT\n');
@@ -61,7 +63,6 @@ function mapIntentFromText(text: string): IntentType | null {
     delete_event: IntentType.DELETE_EVENT,
     query_schedule: IntentType.QUERY_SCHEDULE,
     query_weather: IntentType.QUERY_WEATHER,
-    web_search: IntentType.WEB_SEARCH,
     chat: IntentType.CHAT,
   };
 
@@ -81,8 +82,6 @@ function mapIntentFromText(text: string): IntentType | null {
     删除日程: IntentType.DELETE_EVENT,
     查询日程: IntentType.QUERY_SCHEDULE,
     查询天气: IntentType.QUERY_WEATHER,
-    联网搜索: IntentType.WEB_SEARCH,
-    网上搜索: IntentType.WEB_SEARCH,
     聊天: IntentType.CHAT,
   };
   if (chineseMap[normalized]) return chineseMap[normalized];
@@ -91,8 +90,15 @@ function mapIntentFromText(text: string): IntentType | null {
   const intentFieldMatch = normalized.match(
     /"intent"\s*:\s*"(create_todo|create_event|update_todo|update_event|delete_todo|delete_event|query_schedule|query_weather|web_search|chat)"/,
   );
-  if (intentFieldMatch && strictIntentMap[intentFieldMatch[1]]) {
-    return strictIntentMap[intentFieldMatch[1]];
+  if (intentFieldMatch) {
+    if (intentFieldMatch[1] === 'web_search') return IntentType.CHAT;
+    if (strictIntentMap[intentFieldMatch[1]]) {
+      return strictIntentMap[intentFieldMatch[1]];
+    }
+  }
+
+  if (normalized === 'web_search' || firstToken === 'web_search') {
+    return IntentType.CHAT;
   }
 
   return null;
@@ -153,45 +159,6 @@ function detectIntentByRules(userInput: string): RuleIntentResult | null {
       intent: IntentType.QUERY_WEATHER,
       confidence: 0.76,
       rule: 'weather_keyword',
-    };
-  }
-
-  const hasNewsOrPublicInfo =
-    /(新闻|资讯|热点|头条|时事|快讯|要闻|最新消息|今日要闻|国内消息|国际消息|热搜)/i.test(
-      text,
-    );
-  if (hasNewsOrPublicInfo) {
-    return {
-      intent: IntentType.WEB_SEARCH,
-      confidence: 0.82,
-      rule: 'news_or_public_info',
-    };
-  }
-
-  const hasTaskOrWeatherNoun =
-    /(待办|todo|任务|日程|安排|行程|天气|气温|温度|下雨|降雨|晴天|风力|风速)/i.test(
-      text,
-    );
-  const hasExplicitWebSearch =
-    /(联网搜索|联网查|网上搜索|网上查|上网搜|用搜索引擎|search\s+the\s+web|web\s*search)/i.test(
-      text,
-    );
-  const hasLooseWebSearchVerb =
-    /(搜一下|搜索一下|帮我搜|检索一下|查一下网上|上网查|百度一下|google一下)/i.test(
-      text,
-    );
-  if (hasExplicitWebSearch) {
-    return {
-      intent: IntentType.WEB_SEARCH,
-      confidence: 0.9,
-      rule: 'explicit_web_search',
-    };
-  }
-  if (hasLooseWebSearchVerb && !hasTaskOrWeatherNoun) {
-    return {
-      intent: IntentType.WEB_SEARCH,
-      confidence: 0.72,
-      rule: 'search_verb_no_task',
     };
   }
 

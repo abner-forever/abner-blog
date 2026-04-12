@@ -133,6 +133,10 @@
             box-shadow: var(--shadow-sm);
           }
 
+          &.kb-item--rag-off {
+            opacity: 0.94;
+          }
+
           .kb-card {
             display: flex;
             flex-direction: column;
@@ -167,9 +171,9 @@
 
           .kb-title-row {
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             justify-content: space-between;
-            gap: 8px;
+            gap: 10px;
             margin-bottom: 6px;
 
             .kb-title {
@@ -178,7 +182,30 @@
               font-size: 14px;
               font-weight: 600;
               color: var(--text-color);
+              line-height: 22px;
               .text-ellipsis();
+            }
+
+            .kb-title-actions {
+              display: flex;
+              flex-shrink: 0;
+              align-items: center;
+              gap: 4px;
+            }
+
+            .kb-title-rag {
+              display: inline-flex;
+              align-items: center;
+              gap: 6px;
+              padding: 0 4px 0 0;
+              border-right: 1px solid var(--border-color);
+              margin-right: 2px;
+            }
+
+            .kb-title-rag__label {
+              font-size: 11px;
+              color: var(--text-color-secondary);
+              white-space: nowrap;
             }
 
             .ant-btn {

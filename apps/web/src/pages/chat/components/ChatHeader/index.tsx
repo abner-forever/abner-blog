@@ -1,17 +1,50 @@
-import React, { memo, useMemo, useCallback } from 'react';
-import { Button, Popover, Modal, Input, message, Select, Spin } from 'antd';
-import { ShareAltOutlined, SettingOutlined, CopyOutlined, CheckOutlined } from '@ant-design/icons';
+import React, { memo, useMemo, useCallback, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
+import { useTranslation } from 'react-i18next';
+import {
+  Button,
+  Popover,
+  Modal,
+  Input,
+  message,
+  Select,
+  Spin,
+} from 'antd';
+import {
+  ShareAltOutlined,
+  SettingOutlined,
+  CopyOutlined,
+  CheckOutlined,
+  PictureOutlined,
+  DownloadOutlined,
+} from '@ant-design/icons';
 import { useChat } from '../../context/ChatContext';
 import { MODEL_VENDORS } from '../../constants';
+import type { ChatSession } from '../../types';
 import ChatSettingsPanel from '../ChatSettingsPanel';
+import ChatConversationPreview from '../ChatConversationPreview';
 import { useChatShareControllerCreate } from '@services/generated/chat-share/chat-share';
+import {
+  copyElementImageToClipboard,
+  downloadElementImageAsPng,
+  logChatCopyImageFailure,
+  sanitizeChatImageFilename,
+} from '../../utils/export-chat-image';
 
 const ChatHeader: React.FC = memo(function ChatHeader() {
-  const { state, dispatch, handleSaveSettings } = useChat();
+  const { t } = useTranslation();
+  const { state, dispatch, handleSaveSettings, isDark } = useChat();
   const { model, showSettings, sessions, currentSessionId } = state;
-  const [shareModalOpen, setShareModalOpen] = React.useState(false);
-  const [shareUrl, setShareUrl] = React.useState('');
-  const [copied, setCopied] = React.useState(false);
+  const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [shareUrl, setShareUrl] = useState('');
+  const [copied, setCopied] = useState(false);
+  const [shareLoading, setShareLoading] = useState(false);
+  const [sharePreviewSession, setSharePreviewSession] = useState<ChatSession | null>(null);
+  const [imageExporting, setImageExporting] = useState(false);
+  const [imageDownloading, setImageDownloading] = useState(false);
+  const [exportMount, setExportMount] = useState(false);
+  const imageBusy = imageExporting || imageDownloading;
+  const captureOffscreenRef = useRef<HTMLDivElement>(null);
 
   const modelOptions = useMemo(() => {
     return MODEL_VENDORS.flatMap((v) =>
@@ -19,7 +52,7 @@ const ChatHeader: React.FC = memo(function ChatHeader() {
         label: `${v.label} - ${m.label}`,
         value: m.value,
         vendor: v.value,
-      }))
+      })),
     );
   }, []);
 
@@ -28,7 +61,7 @@ const ChatHeader: React.FC = memo(function ChatHeader() {
       const selectedModel = MODEL_VENDORS.flatMap((v) => v.models).find((m) => m.value === value);
       if (selectedModel) {
         const selectedVendor = MODEL_VENDORS.find((v) =>
-          v.models.some((m) => m.value === value)
+          v.models.some((m) => m.value === value),
         );
         if (selectedVendor) {
           dispatch({ type: 'SET_VENDOR', payload: selectedVendor.value });
@@ -36,21 +69,33 @@ const ChatHeader: React.FC = memo(function ChatHeader() {
         dispatch({ type: 'SET_MODEL', payload: value });
       }
     },
-    [dispatch]
+    [dispatch],
   );
-
-  const [shareLoading, setShareLoading] = React.useState(false);
 
   const { mutateAsync: createShare } = useChatShareControllerCreate();
 
+  const previewMessages = useMemo(() => {
+    if (!sharePreviewSession?.messages?.length) return [];
+    return sharePreviewSession.messages.map((m) => ({
+      id: m.id,
+      role: m.role,
+      content: m.role === 'assistant' ? (m.displayContent || m.content) : m.content,
+      timestamp: m.timestamp,
+    }));
+  }, [sharePreviewSession]);
+
   const handleShare = useCallback(async () => {
     if (!currentSessionId) {
-      message.warning('请先选择一个会话');
+      message.warning(t('chat.shareSelectSessionFirst'));
       return;
     }
     const session = sessions.find((s) => s.id === currentSessionId);
     if (!session) return;
 
+    setSharePreviewSession(session);
+    setShareModalOpen(true);
+    setShareUrl('');
+    setCopied(false);
     setShareLoading(true);
     try {
       const result = await createShare({
@@ -59,7 +104,7 @@ const ChatHeader: React.FC = memo(function ChatHeader() {
           messages: session.messages.map((m) => ({
             id: m.id,
             role: m.role,
-            content: m.content,
+            content: m.role === 'assistant' ? (m.displayContent || m.content) : m.content,
             timestamp: m.timestamp,
           })),
           title: session.title,
@@ -67,26 +112,129 @@ const ChatHeader: React.FC = memo(function ChatHeader() {
       });
       const shareLink = `${window.location.origin}/chat/share/${result.id}`;
       setShareUrl(shareLink);
-      setShareModalOpen(true);
-    } catch (error) {
-      message.error('创建分享链接失败');
+    } catch {
+      message.error(t('chat.shareCreateFailed'));
+      setShareModalOpen(false);
+      setSharePreviewSession(null);
     } finally {
       setShareLoading(false);
     }
-  }, [currentSessionId, sessions, createShare]);
+  }, [currentSessionId, sessions, createShare, t]);
 
   const handleCopyShareUrl = useCallback(() => {
-    navigator.clipboard.writeText(shareUrl);
+    void navigator.clipboard.writeText(shareUrl);
     setCopied(true);
-    message.success('已复制分享链接');
+    message.success(t('chat.shareLinkCopied'));
     setTimeout(() => setCopied(false), 2000);
-  }, [shareUrl]);
+  }, [shareUrl, t]);
 
   const handleCloseShareModal = useCallback(() => {
     setShareModalOpen(false);
     setShareUrl('');
     setCopied(false);
+    setSharePreviewSession(null);
+    setExportMount(false);
   }, []);
+
+  const handleExportImage = useCallback(async () => {
+    if (previewMessages.length === 0) {
+      message.warning(t('chat.shareNoMessagesToExport'));
+      return;
+    }
+    setImageExporting(true);
+    message.loading({
+      content: t('chat.shareImageGenerating'),
+      key: 'chat-share-img',
+      duration: 0,
+    });
+    try {
+      flushSync(() => {
+        setExportMount(true);
+      });
+      await new Promise<void>((r) => {
+        requestAnimationFrame(() => requestAnimationFrame(() => r()));
+      });
+      const el = captureOffscreenRef.current;
+      if (!el) {
+        logChatCopyImageFailure('ChatHeader.handleExportImage', new Error('capture root missing'), {
+          exportMount: true,
+          previewMessageCount: previewMessages.length,
+        });
+        throw new Error('capture root missing');
+      }
+      await copyElementImageToClipboard(el);
+      message.destroy('chat-share-img');
+      message.success(t('chat.shareImageCopied'));
+    } catch (err) {
+      logChatCopyImageFailure('ChatHeader.handleExportImage', err, {
+        derivedCode: err instanceof Error ? err.message : '',
+        previewMessageCount: previewMessages.length,
+      });
+      message.destroy('chat-share-img');
+      const code = err instanceof Error ? err.message : '';
+      if (
+        code === 'clipboard_write_unavailable' ||
+        code === 'clipboard_item_unsupported'
+      ) {
+        message.error(t('chat.shareImageClipboardUnsupported'));
+      } else if (code === 'clipboard_not_allowed') {
+        message.error(t('chat.shareImageCopyNotAllowed'));
+      } else {
+        message.error(t('chat.shareImageFailed'));
+      }
+    } finally {
+      setExportMount(false);
+      setImageExporting(false);
+    }
+  }, [previewMessages.length, t]);
+
+  const handleDownloadImageToFile = useCallback(async () => {
+    if (previewMessages.length === 0) {
+      message.warning(t('chat.shareNoMessagesToExport'));
+      return;
+    }
+    setImageDownloading(true);
+    message.loading({
+      content: t('chat.shareImageGenerating'),
+      key: 'chat-share-img-dl',
+      duration: 0,
+    });
+    try {
+      flushSync(() => {
+        setExportMount(true);
+      });
+      await new Promise<void>((r) => {
+        requestAnimationFrame(() => requestAnimationFrame(() => r()));
+      });
+      const el = captureOffscreenRef.current;
+      if (!el) {
+        logChatCopyImageFailure(
+          'ChatHeader.handleDownloadImageToFile',
+          new Error('capture root missing'),
+          {
+            exportMount: true,
+            previewMessageCount: previewMessages.length,
+          },
+        );
+        throw new Error('capture root missing');
+      }
+      const sid = sharePreviewSession?.id || 'chat';
+      const base = sanitizeChatImageFilename(sid);
+      await downloadElementImageAsPng(el, `chat-${base}.png`);
+      message.destroy('chat-share-img-dl');
+      message.success(t('chat.shareImageDownloaded'));
+    } catch (err) {
+      logChatCopyImageFailure('ChatHeader.handleDownloadImageToFile', err, {
+        derivedCode: err instanceof Error ? err.message : '',
+        previewMessageCount: previewMessages.length,
+      });
+      message.destroy('chat-share-img-dl');
+      message.error(t('chat.shareImageDownloadFailed'));
+    } finally {
+      setExportMount(false);
+      setImageDownloading(false);
+    }
+  }, [previewMessages.length, sharePreviewSession?.id, t]);
 
   const settingsContent = useMemo(
     () => (
@@ -102,26 +250,27 @@ const ChatHeader: React.FC = memo(function ChatHeader() {
         useMcpTools={state.useMcpTools}
         hasApiKeyByProvider={state.hasApiKeyByProvider}
         onApiKeysChange={(keysOrFn) => {
-          const newKeys = typeof keysOrFn === 'function'
-            ? keysOrFn(state.apiKeys)
-            : keysOrFn;
+          const newKeys =
+            typeof keysOrFn === 'function' ? keysOrFn(state.apiKeys) : keysOrFn;
           dispatch({ type: 'SET_API_KEYS', payload: newKeys });
         }}
         onVendorChange={(v) => dispatch({ type: 'SET_VENDOR', payload: v })}
         onModelChange={(m) => dispatch({ type: 'SET_MODEL', payload: m })}
-        onTemperatureChange={(t) => dispatch({ type: 'SET_TEMPERATURE', payload: t })}
-        onMaxTokensChange={(t) => dispatch({ type: 'SET_MAX_TOKENS', payload: t })}
+        onTemperatureChange={(temp) => dispatch({ type: 'SET_TEMPERATURE', payload: temp })}
+        onMaxTokensChange={(tok) => dispatch({ type: 'SET_MAX_TOKENS', payload: tok })}
         onContextWindowChange={(c) => dispatch({ type: 'SET_CONTEXT_WINDOW', payload: c })}
         onEnableThinkingChange={(e) => dispatch({ type: 'SET_ENABLE_THINKING', payload: e })}
-        onThinkingBudgetChange={(t) => dispatch({ type: 'SET_THINKING_BUDGET', payload: t })}
+        onThinkingBudgetChange={(b) => dispatch({ type: 'SET_THINKING_BUDGET', payload: b })}
         onUseMcpToolsChange={(u) => dispatch({ type: 'SET_USE_MCP_TOOLS', payload: u })}
         onSave={handleSaveSettings}
         apiKeyConfiguredText="当前厂商已配置密钥（服务器端加密存储）"
         apiKeyNotConfiguredText="当前厂商未配置密钥"
       />
     ),
-    [state, dispatch, handleSaveSettings]
+    [state, dispatch, handleSaveSettings],
   );
+
+  const sharePreviewTitle = sharePreviewSession?.title || t('chat.shareDefaultTitle');
 
   return (
     <div className="chat-header">
@@ -132,17 +281,17 @@ const ChatHeader: React.FC = memo(function ChatHeader() {
           options={modelOptions}
           className="model-selector"
           popupMatchSelectWidth={false}
-          placeholder="选择模型"
+          placeholder={t('chat.selectModelPlaceholder')}
         />
       </div>
       <div className="chat-header-right">
         <Button
           type="text"
           icon={<ShareAltOutlined />}
-          onClick={handleShare}
+          onClick={() => void handleShare()}
           className="header-btn"
         >
-          <span className="btn-text">分享</span>
+          <span className="btn-text">{t('chat.shareAction')}</span>
         </Button>
         <Popover
           content={settingsContent}
@@ -157,34 +306,71 @@ const ChatHeader: React.FC = memo(function ChatHeader() {
             icon={<SettingOutlined />}
             className={`header-btn ${showSettings ? 'active' : ''}`}
           >
-            <span className="btn-text">设置</span>
+            <span className="btn-text">{t('chat.settings')}</span>
           </Button>
         </Popover>
       </div>
 
       <Modal
-        title="分享会话"
+        title={t('chat.shareDialogTitle')}
         open={shareModalOpen}
         onCancel={handleCloseShareModal}
         footer={[
-          <Button key="copy" type="primary" icon={copied ? <CheckOutlined /> : <CopyOutlined />} onClick={handleCopyShareUrl} disabled={!shareUrl}>
-            {copied ? '已复制' : '复制链接'}
+          <Button
+            key="img"
+            icon={<PictureOutlined />}
+            loading={imageExporting}
+            disabled={shareLoading || previewMessages.length === 0 || imageBusy}
+            onClick={() => void handleExportImage()}
+          >
+            {t('chat.shareCopyImage')}
+          </Button>,
+          <Button
+            key="img-dl"
+            icon={<DownloadOutlined />}
+            loading={imageDownloading}
+            disabled={shareLoading || previewMessages.length === 0 || imageBusy}
+            onClick={() => void handleDownloadImageToFile()}
+          >
+            {t('chat.shareDownloadImage')}
+          </Button>,
+          <Button
+            key="copy"
+            type="primary"
+            icon={copied ? <CheckOutlined /> : <CopyOutlined />}
+            onClick={handleCopyShareUrl}
+            disabled={!shareUrl}
+          >
+            {copied ? t('chat.shareCopiedShort') : t('chat.shareCopyLink')}
           </Button>,
         ]}
       >
         <div className="share-modal-content">
           {shareLoading ? (
             <div style={{ textAlign: 'center', padding: '20px' }}>
-              <Spin tip="正在创建分享链接..." />
+              <Spin tip={t('chat.shareCreatingLink')} />
             </div>
           ) : (
             <>
-              <p>复制以下链接分享此会话：</p>
+              <p>{t('chat.shareLinkHint')}</p>
               <Input value={shareUrl} readOnly className="share-url-input" />
             </>
           )}
         </div>
       </Modal>
+
+      {exportMount && shareModalOpen ? (
+        <div className="chat-header-share-capture-offscreen" aria-hidden>
+          <div ref={captureOffscreenRef}>
+            <ChatConversationPreview
+              title={sharePreviewTitle}
+              messages={previewMessages}
+              isDark={isDark}
+              captureMode
+            />
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 });

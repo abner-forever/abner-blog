@@ -8,6 +8,8 @@ import {
 export enum SkillType {
   BUILTIN = 'builtin',
   MARKETPLACE = 'marketplace',
+  /** 用户通过 API 自定义创建的技能 */
+  CUSTOM = 'custom',
 }
 
 export enum SkillStatus {

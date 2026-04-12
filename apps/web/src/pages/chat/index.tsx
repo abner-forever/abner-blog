@@ -24,6 +24,7 @@ const ChatPageContent: React.FC = () => {
     fileInputRef,
     createNewSession,
     switchSession,
+    deleteSession,
     sendMessage,
     stopGeneration,
     handleCopy,
@@ -143,9 +144,9 @@ const ChatPageContent: React.FC = () => {
   const handleDeleteSession = useCallback(
     (e: React.MouseEvent, sessionId: string) => {
       e.stopPropagation();
-      dispatch({ type: 'DELETE_SESSION', payload: sessionId });
+      deleteSession(sessionId);
     },
-    [dispatch]
+    [deleteSession]
   );
 
   const handleCloseSettings = useCallback(() => {

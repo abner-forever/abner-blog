@@ -3,8 +3,12 @@ import { Spin, Tooltip } from 'antd';
 import { CopyOutlined, ReloadOutlined } from '@ant-design/icons';
 import AssistantCardRenderer from './ResultCards';
 import MarkdownRenderer from './MarkdownRenderer';
+import BlogPublishDraftCard, {
+  BlogPublishedBanner,
+} from './BlogPublishDraftCard';
 import ThinkingTypingView from './ThinkingTypingView';
 import type { Message } from '../types';
+import { mergeBlogPublishDraftWithStrippedBody } from '../utils/parse-blog-publish-block';
 
 interface Props {
   messages: Message[];
@@ -112,6 +116,21 @@ const ChatMessageList: React.FC<Props> = memo(function ChatMessageList({
                       isDark={isDark}
                     />
                   )}
+                  {message.blogPublished ? (
+                    <BlogPublishedBanner
+                      blogId={message.blogPublished.id}
+                      title={message.blogPublished.title}
+                    />
+                  ) : null}
+                  {message.blogPublishDraft && !message.blogPublished ? (
+                    <BlogPublishDraftCard
+                      messageId={message.id}
+                      draft={mergeBlogPublishDraftWithStrippedBody(
+                        message.blogPublishDraft,
+                        message.content,
+                      )}
+                    />
+                  ) : null}
                   {!message.isComplete &&
                     loading &&
                     message.webSearchStatus !== 'searching' &&

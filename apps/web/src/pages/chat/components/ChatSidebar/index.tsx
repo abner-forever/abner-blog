@@ -10,7 +10,7 @@ import { isMobile } from '@/utils/device';
 import './ChatSidebar.less';
 
 const ChatSidebar: React.FC = memo(function ChatSidebar() {
-  const { state, dispatch, createNewSession, switchSession } = useChat();
+  const { state, dispatch, createNewSession, switchSession, deleteSession } = useChat();
   const { sidebarCollapsed } = state;
 
   const handleToggleCollapsed = useCallback(() => {
@@ -32,9 +32,9 @@ const ChatSidebar: React.FC = memo(function ChatSidebar() {
   const handleDeleteSession = useCallback(
     (e: React.MouseEvent, sessionId: string) => {
       e.stopPropagation();
-      dispatch({ type: 'DELETE_SESSION', payload: sessionId });
+      deleteSession(sessionId);
     },
-    [dispatch]
+    [deleteSession]
   );
 
   if (isMobile()) {
