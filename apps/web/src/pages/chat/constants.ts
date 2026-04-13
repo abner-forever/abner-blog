@@ -1,4 +1,5 @@
 import { VendorType, type ChatSession, type ModelVendor } from './types';
+import { canonicalAssistantMarkdown } from './utils/assistant-markdown';
 
 export const STORAGE_KEY = 'chat_sessions';
 export const MAX_SESSIONS = 50;
@@ -65,9 +66,13 @@ export function sessionsForLocalStorage(sessions: ChatSession[]): ChatSession[] 
     ...s,
     messages: s.messages.map(
       ({ images: _i, webSearchStatus: _w, ...m }) => {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { thinkingStatus: _ts, ...rest } = m as typeof m & { thinkingStatus?: string };
-        return { ...rest, thinkingStatus: 'done' as const };
+        void _ts;
+        const displayContent =
+          rest.role === 'assistant'
+            ? canonicalAssistantMarkdown(rest.content, rest.displayContent)
+            : (rest.displayContent ?? rest.content);
+        return { ...rest, displayContent, thinkingStatus: 'done' as const };
       },
     ),
   }));

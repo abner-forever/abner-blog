@@ -9,6 +9,7 @@ import BlogPublishDraftCard, {
 import ThinkingTypingView from './ThinkingTypingView';
 import type { Message } from '../types';
 import { mergeBlogPublishDraftWithStrippedBody } from '../utils/parse-blog-publish-block';
+import { assistantMarkdownForRender } from '../utils/assistant-markdown';
 
 interface Props {
   messages: Message[];
@@ -112,7 +113,7 @@ const ChatMessageList: React.FC<Props> = memo(function ChatMessageList({
                   ) : (
                     <MarkdownRenderer
                       key={message.id}
-                      content={message.displayContent || message.content}
+                      content={assistantMarkdownForRender(message)}
                       isDark={isDark}
                     />
                   )}

@@ -8,7 +8,11 @@ import {
   sessionsForLocalStorage,
   isVendorType,
 } from '../constants';
-import { parseSSEChunk } from '../utils/stream-utils';
+import {
+  parseSSEChunk,
+  parseWeatherCardData,
+  stripRedactedThinkingBlocks,
+} from '../utils/stream-utils';
 import {
   mergeBlogPublishDraftWithStrippedBody,
   parseAbnerBlogPublishDraft,
@@ -18,6 +22,7 @@ import { handleChatStreamEvent } from '../utils/stream-event-handler';
 import { requestAIChatStream, saveAIConfig, getAIConfig } from '@services/ai';
 import { type ChatSession, type Message, type IntentName, type VendorType } from '../types';
 import { type ChatImagePayload } from '../utils/chat-images';
+import { canonicalAssistantMarkdown } from '../utils/assistant-markdown';
 
 interface ChatState {
   sessions: ChatSession[];
@@ -115,14 +120,32 @@ const initialState: ChatState = {
 };
 
 const normalizeHydratedMessages = (messages: Message[]): Message[] =>
-  messages.map((m) => ({
-    ...m,
-    displayContent: m.displayContent ?? m.content,
-    isComplete: true,
-    thinkingStatus: m.thinkingStatus === 'streaming' ? 'done' : m.thinkingStatus,
-    answerStatus: m.answerStatus === 'streaming' ? 'done' : m.answerStatus,
-    webSearchStatus: m.webSearchStatus === 'searching' ? 'done' : m.webSearchStatus,
-  }));
+  messages.map((m) => {
+    let content = m.content;
+    let card = m.card;
+    if (m.role === 'assistant' && !card && (content || '').trim()) {
+      const clean = stripRedactedThinkingBlocks(content);
+      const weatherData = parseWeatherCardData(clean);
+      if (weatherData) {
+        card = { type: 'weather_query', data: weatherData };
+        content = clean;
+      }
+    }
+    const displayContent =
+      m.role === 'assistant'
+        ? canonicalAssistantMarkdown(content, m.displayContent)
+        : (m.displayContent ?? m.content);
+    return {
+      ...m,
+      content,
+      displayContent,
+      ...(card ? { card } : {}),
+      isComplete: true,
+      thinkingStatus: m.thinkingStatus === 'streaming' ? 'done' : m.thinkingStatus,
+      answerStatus: m.answerStatus === 'streaming' ? 'done' : m.answerStatus,
+      webSearchStatus: m.webSearchStatus === 'searching' ? 'done' : m.webSearchStatus,
+    };
+  });
 
 const isSessionEmpty = (session: ChatSession): boolean => {
   if (!Array.isArray(session.messages) || session.messages.length === 0) {
@@ -265,6 +288,8 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+  /** 流式 setMessages 同步快照：`finally` 落盘时 stateRef 可能尚未随 dispatch 更新，避免丢失 card 等末尾更新 */
+  const streamMessagesSnapshotRef = useRef<Message[] | null>(null);
   const typeWriterTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingTypeTextRef = useRef('');
   const streamCompletedRef = useRef(false);
@@ -569,6 +594,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
     const newMessages = [...messages, userMessage, assistantMessage];
     let finalMessagesOverride: Message[] | null = null;
+    streamMessagesSnapshotRef.current = newMessages;
     dispatch({ type: 'SET_MESSAGES', payload: newMessages });
     dispatch({ type: 'SET_INPUT', payload: '' });
     dispatch({ type: 'SET_PENDING_IMAGES', payload: [] });
@@ -622,8 +648,16 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       // so React calls it with the correct current state even when updates are batched
       const setMessagesStyle = (msgsOrFn: Message[] | ((prev: Message[]) => Message[])) => {
         if (typeof msgsOrFn === 'function') {
-          dispatch({ type: 'UPDATE_MESSAGES_BATCH', payload: msgsOrFn });
+          dispatch({
+            type: 'UPDATE_MESSAGES_BATCH',
+            payload: (prev) => {
+              const next = msgsOrFn(prev);
+              streamMessagesSnapshotRef.current = next;
+              return next;
+            },
+          });
         } else {
+          streamMessagesSnapshotRef.current = msgsOrFn;
           dispatch({ type: 'SET_MESSAGES', payload: msgsOrFn });
         }
       };
@@ -702,10 +736,13 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     } finally {
       dispatch({ type: 'SET_LOADING', payload: false });
       abortControllerRef.current = null;
-      // Update the session with the latest messages from stateRef
-      // This ensures the session is saved with all stream updates (card, isComplete, etc.)
+      // 优先用流式同步快照：stateRef 在 dispatch 后可能尚未重渲染，避免天气等 done 写入的 card 未落盘
       const currentSid = stateRef.current.currentSessionId;
-      const finalMessages = finalMessagesOverride ?? stateRef.current.messages;
+      const finalMessages =
+        finalMessagesOverride ??
+        streamMessagesSnapshotRef.current ??
+        stateRef.current.messages;
+      streamMessagesSnapshotRef.current = null;
       const updatedSessions = stateRef.current.sessions.map((s) => {
         // Update the session where message was sent
         if (s.id === sid) {

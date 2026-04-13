@@ -30,6 +30,7 @@ import {
   logChatCopyImageFailure,
   sanitizeChatImageFilename,
 } from '../../utils/export-chat-image';
+import { assistantMarkdownForRender } from '../../utils/assistant-markdown';
 
 const ChatHeader: React.FC = memo(function ChatHeader() {
   const { t } = useTranslation();
@@ -79,7 +80,7 @@ const ChatHeader: React.FC = memo(function ChatHeader() {
     return sharePreviewSession.messages.map((m) => ({
       id: m.id,
       role: m.role,
-      content: m.role === 'assistant' ? (m.displayContent || m.content) : m.content,
+      content: assistantMarkdownForRender(m),
       timestamp: m.timestamp,
     }));
   }, [sharePreviewSession]);
@@ -104,7 +105,7 @@ const ChatHeader: React.FC = memo(function ChatHeader() {
           messages: session.messages.map((m) => ({
             id: m.id,
             role: m.role,
-            content: m.role === 'assistant' ? (m.displayContent || m.content) : m.content,
+            content: assistantMarkdownForRender(m),
             timestamp: m.timestamp,
           })),
           title: session.title,

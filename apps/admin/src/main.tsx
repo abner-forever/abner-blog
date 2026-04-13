@@ -54,7 +54,7 @@ store.subscribe(() => {
 
   if (currentToken && currentToken !== lastToken) {
     lastToken = currentToken;
-    const userId = state.auth?.user?.id;
+    const userId = state.auth?.user?.userId;
     if (userId) {
       setUserId(userId);
     }

@@ -1,12 +1,12 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
-import type { PreRenderedAsset, PreRenderedChunk } from 'rollup';
+import type { PreRenderedAsset, PreRenderedChunk } from 'rolldown';
 import ChangeEnvPlugin from './plugins/change-env-plugin';
 
 /**
  * 构建产物静态资源根目录（相对 outDir）。
- * 仅改 `build.assetsDir` 不够：若下面 rollup `*FileNames` 仍写 `assets/`，打包出来还是 assets。
+ * 仅改 `build.assetsDir` 不够：若下面 rolldown `*FileNames` 仍写 `assets/`，打包出来还是 assets。
  */
 const STATIC_ROOT = 'static';
 
@@ -22,12 +22,16 @@ function getNodeModulePackageName(id: string): string | undefined {
   return segments[idx + 1];
 }
 
-function manualChunks(id: string): string | undefined {
-  if (!id.includes('node_modules')) return undefined;
+/**
+ * Vite 8 / Rolldown：用 `output.codeSplitting` 替代已弃用的 `manualChunks`。
+ * 返回 `null` 的模块不进入该分组，交由默认自动拆包。
+ */
+function resolveVendorChunkName(id: string): string | null {
+  if (!id.includes('node_modules')) return null;
 
   const pkg = getNodeModulePackageName(id);
   // 未解析到包名时不强制拆包，避免与业务 chunk 形成循环引用
-  if (!pkg) return undefined;
+  if (!pkg) return null;
 
   // 顺序：先匹配更具体的包名，避免被宽泛规则吃掉
   if (pkg === '@tanstack/react-query') return 'vendor-query';
@@ -77,8 +81,8 @@ function manualChunks(id: string): string | undefined {
     return 'vendor-react';
   }
 
-  // 其余依赖交给 Rollup 按引用图拆分，避免单一 vendor 与命名 chunk 互相引用
-  return undefined;
+  // 其余依赖交给 Rolldown 按引用图拆分，避免单一 vendor 与命名 chunk 互相引用
+  return null;
 }
 
 function assetFileNames(assetInfo: PreRenderedAsset): string {
@@ -157,20 +161,27 @@ export default defineConfig({
     },
   },
   build: {
-    target: 'es2015',
-    outDir: 'dist',
-    /** 与 rollup 自定义 *FileNames 保持一致；仅改此处不会改 chunk 路径 */
-    assetsDir: STATIC_ROOT,
-    minify: 'terser',
+    target: 'es2015', // 目标浏览器-兼容性 默认 es2015
+    outDir: 'dist', // 输出目录
+    /** 与 rolldown 自定义 *FileNames 保持一致；仅改此处不会改 chunk 路径 */
+    assetsDir: STATIC_ROOT, // 静态资源目录
+    minify: 'terser', // 使用 terser 压缩代码
     terserOptions: {
-      compress: {
-        drop_console: true,
-        drop_debugger: true,
+      compress: { // 压缩代码
+        drop_console: true, // 删除 console.log
+        drop_debugger: true, // 删除 debugger
       },
     },
-    rollupOptions: {
+    rolldownOptions: {
       output: {
-        manualChunks,
+        codeSplitting: {
+          groups: [
+            {
+              name: (moduleId) => resolveVendorChunkName(moduleId),
+              test: (id) => id.includes('node_modules'),
+            },
+          ],
+        },
         entryFileNames: `${STATIC_ROOT}/js/[name]-[hash].js`,
         chunkFileNames,
         assetFileNames,
@@ -178,7 +189,7 @@ export default defineConfig({
     },
   },
   ssr: {
-    target: 'node',
-    noExternal: ['@ant-design/cssinjs', /rc-/],
+    target: 'node', // 目标服务器
+    noExternal: ['@ant-design/cssinjs', /rc-/], // 不外部化
   },
 });
