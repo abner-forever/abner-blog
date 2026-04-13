@@ -35,7 +35,9 @@ export class WebSearchService {
     if (tavilyKey) {
       return this.searchTavily(q, tavilyKey);
     }
-    return this.searchBrave(q, braveKey);
+    const braveResult = await this.searchBrave(q, braveKey);
+    process.stderr.write(`[WebSearch] Brave result: ${braveResult}\n`);
+    return braveResult;
   }
 
   /** 抓取网页正文片段（仅 http/https，带简单 SSRF 限制）。 */
@@ -70,8 +72,7 @@ export class WebSearchService {
         method: 'GET',
         redirect: 'follow',
         headers: {
-          Accept:
-            'text/html,application/xhtml+xml,text/plain;q=0.9,*/*;q=0.8',
+          Accept: 'text/html,application/xhtml+xml,text/plain;q=0.9,*/*;q=0.8',
           'User-Agent':
             'abner-blog-web-search-mcp/1.0 (+https://github.com/modelcontextprotocol)',
         },

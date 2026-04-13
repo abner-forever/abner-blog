@@ -104,20 +104,6 @@ export class AIService {
   /**
    * 搜索用户知识库并构建上下文字符串
    */
-  /**
-   * 续问、总结类短句做知识库检索时，向量常命中无关旧片段（如历史笔记里的日期），
-   * 会盖过「当前会话 history」，导致模型总结成别的文档里的对话。
-   */
-  private shouldSkipKnowledgeBaseRag(message: string): boolean {
-    const t = message.trim();
-    if (!t) return true;
-    if (t.length > 120) return false;
-    if (/(知识库|文档片段|资料库|上传的)/i.test(t)) return false;
-    return /(总结|归纳|复述|上文|刚才|之前|上面|前面|上一轮|这一轮|这条|本对话|聊天记录|对话内容|再说|再讲|再说一遍|接着问|继续问|重说|重新|回顾一下|整理一下)/i.test(
-      t,
-    );
-  }
-
   private async buildKnowledgeBaseContext(
     message: string,
     userId: number,
@@ -128,14 +114,24 @@ export class AIService {
         userId,
       );
       if (results.length === 0) {
+        this.logger.log(
+          `[KB RAG] userId=${userId} prompt_context=empty (search returned 0 rows)`,
+        );
         return '';
       }
       const contextParts = results.map(
         (r, i) => `[知识库${i + 1}] ${r.content}`,
       );
-      return `以下是知识库中相关信息，请结合回答：\n${contextParts.join('\n')}`;
+      const block = `以下是知识库中相关信息，请结合回答：\n${contextParts.join('\n')}`;
+      this.logger.log(
+        `[KB RAG] userId=${userId} prompt_context=hits=${results.length} contextChars=${block.length} topScore=${results[0]?.score ?? 'n/a'}`,
+      );
+      return block;
     } catch (error) {
-      this.logger.warn(`Knowledge base search failed: ${error}`);
+      const msg = error instanceof Error ? error.message : String(error);
+      this.logger.warn(
+        `[KB RAG] userId=${userId} search_threw → empty_context msg=${msg}`,
+      );
       return '';
     }
   }
@@ -480,15 +476,15 @@ export class AIService {
   ): AsyncGenerator<AIStreamEvent> {
     let promptForLlm: string;
     if (options?.searchDigestFromMcp) {
+      this.logger.log(
+        `[KB RAG] userId=${userId} path=web_digest skip_vector_kb=true`,
+      );
       promptForLlm = this.chatResponseService.buildWebSearchChatPrompt(
         message,
         options.searchDigestFromMcp,
       );
     } else {
-      let kbContext = '';
-      if (!this.shouldSkipKnowledgeBaseRag(message)) {
-        kbContext = await this.buildKnowledgeBaseContext(message, userId);
-      }
+      const kbContext = await this.buildKnowledgeBaseContext(message, userId);
       const basePrompt = this.chatResponseService.buildPrompt(message);
       promptForLlm = kbContext ? `${kbContext}\n\n${basePrompt}` : basePrompt;
     }

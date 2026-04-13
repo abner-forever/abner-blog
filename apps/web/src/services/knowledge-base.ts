@@ -94,8 +94,8 @@ class KnowledgeBaseService {
     return response.data;
   }
 
-  async deleteChunk(chunkId: string): Promise<void> {
-    await httpService.delete(`${this.baseUrl}/chunks/${chunkId}`);
+  async deleteChunk(kbId: string, chunkId: string): Promise<void> {
+    await httpService.delete(`${this.baseUrl}/${kbId}/chunks/${chunkId}`);
   }
 
   async search(dto: SearchKnowledgeBaseDto): Promise<SearchResult[]> {

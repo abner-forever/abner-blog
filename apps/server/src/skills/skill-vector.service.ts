@@ -1,9 +1,7 @@
-import {
-  BadRequestException,
-  Injectable,
-  Logger,
-} from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { Skill, SkillStatus } from '../entities/skill.entity';
+import { AIConfigService } from '../ai/services/ai-config.service';
+import { callMinimaxEmbeddings } from '../ai/utils/minimax-embeddings';
 
 const CHROMA_URL = process.env.CHROMA_URL || 'http://localhost:8000';
 const EMBEDDING_MODEL = 'embo-01';
@@ -24,6 +22,8 @@ interface ChromaQueryResponse {
 @Injectable()
 export class SkillVectorService {
   private readonly logger = new Logger(SkillVectorService.name);
+
+  constructor(private readonly aiConfigService: AIConfigService) {}
   private readonly chromaTenant = 'default';
   private readonly chromaDatabase = 'default';
   private readonly collectionName = 'skill_vectors';
@@ -108,64 +108,26 @@ export class SkillVectorService {
   private async generateEmbeddings(
     texts: string[],
     embeddingType: EmbeddingType,
+    userId: number,
   ): Promise<number[][]> {
-    const apiKey = process.env.MINIMAX_API_KEY || '';
-    if (!apiKey) {
-      throw new BadRequestException('MiniMax API key not configured');
-    }
+    const apiKey =
+      await this.aiConfigService.resolveMinimaxEmbeddingApiKey(userId);
     const baseUrl =
       process.env.MINIMAX_API_BASE?.trim() || 'https://api.minimax.io';
-    const url = `${baseUrl.replace(/\/$/, '')}/v1/embeddings`;
-    const normalizedTexts = texts
-      .map((text) => text.trim())
-      .filter((text) => text.length > 0);
-    if (normalizedTexts.length === 0) {
-      throw new BadRequestException('Embedding text cannot be empty');
-    }
-    const requestBody = {
-      model: EMBEDDING_MODEL,
-      type: embeddingType,
-      texts: normalizedTexts,
-      input: normalizedTexts,
-    };
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify(requestBody),
-    });
-    const raw = await response.text();
-    if (!response.ok) {
-      throw new BadRequestException(
-        `Embedding API error: ${response.status} - ${raw}`,
-      );
-    }
-    const data = JSON.parse(raw) as Record<string, unknown>;
-    const baseResp = data.base_resp as
-      | { status_code: number; status_msg: string }
-      | undefined;
-    if (baseResp?.status_code !== 0) {
-      throw new BadRequestException(
-        `Embedding API error: ${baseResp?.status_msg ?? raw}`,
-      );
-    }
-    const vectorsField = data.vectors;
-    if (Array.isArray(vectorsField) && vectorsField.length > 0) {
-      return vectorsField as number[][];
-    }
-    const dataField = data.data;
-    if (Array.isArray(dataField) && dataField.length > 0) {
-      return dataField.map(
-        (item): number[] => (item as { embedding: number[] }).embedding,
-      );
-    }
-    throw new BadRequestException(`Unknown embedding response format: ${raw}`);
+    return callMinimaxEmbeddings(
+      apiKey,
+      baseUrl,
+      EMBEDDING_MODEL,
+      texts,
+      embeddingType,
+    );
   }
 
-  private async generateSingleEmbedding(text: string): Promise<number[]> {
-    const embeddings = await this.generateEmbeddings([text], 'query');
+  private async generateSingleEmbedding(
+    text: string,
+    userId: number,
+  ): Promise<number[]> {
+    const embeddings = await this.generateEmbeddings([text], 'query', userId);
     if (!embeddings[0]) {
       throw new BadRequestException('Failed to generate embedding for query');
     }
@@ -184,7 +146,11 @@ export class SkillVectorService {
     if (!document.trim()) {
       return;
     }
-    const embeddings = await this.generateEmbeddings([document], 'db');
+    const embeddings = await this.generateEmbeddings(
+      [document],
+      'db',
+      skill.userId ?? 0,
+    );
     const vector = embeddings[0];
     if (!vector) {
       this.logger.warn(`Skill ${skill.id}: empty embedding, skip index`);
@@ -243,7 +209,7 @@ export class SkillVectorService {
     const collectionId = await this.ensureCollection();
     const scopes = ['global', `u:${userId}`];
     const idSlice = candidateSkillIds.slice(0, 120);
-    const queryEmbedding = await this.generateSingleEmbedding(query);
+    const queryEmbedding = await this.generateSingleEmbedding(query, userId);
     const response = await fetch(
       this.getCollectionUrl(`/${collectionId}/query`),
       {
@@ -280,7 +246,7 @@ export class SkillVectorService {
       const meta = (metas?.[i] || {}) as { skillId?: string };
       const sid = typeof meta.skillId === 'string' ? meta.skillId : '';
       if (!sid || !candidateSkillIds.includes(sid)) continue;
-      const d = typeof dists?.[i] === 'number' ? (dists[i] as number) : 1;
+      const d = dists?.[i] ?? 1;
       scored.push({ skillId: sid, distance: d });
     }
     scored.sort((a, b) => a.distance - b.distance);

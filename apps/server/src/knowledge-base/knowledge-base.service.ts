@@ -1,5 +1,6 @@
 import {
   Injectable,
+  Logger,
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
@@ -19,12 +20,15 @@ import {
   KnowledgeChunkResponseDto,
   SearchResultDto,
 } from './dto/knowledge-base.dto';
+import { AIConfigService } from '../ai/services/ai-config.service';
+import { callMinimaxEmbeddings } from '../ai/utils/minimax-embeddings';
 import * as crypto from 'crypto';
 import * as fs from 'fs';
 import fetch from 'node-fetch';
 
 const CHROMA_URL = process.env.CHROMA_URL || 'http://localhost:8000';
 
+/** 嵌入模型：历史说明见 https://platform.minimaxi.com/docs/faq/history-query 中 Embeddings 条目 */
 const EMBEDDING_MODEL = 'embo-01';
 const EMBEDDING_DIMENSIONS = 1536;
 const CHUNK_SIZE = 500;
@@ -48,6 +52,8 @@ interface ChromaSearchResult {
 
 @Injectable()
 export class KnowledgeBaseService {
+  private readonly logger = new Logger(KnowledgeBaseService.name);
+
   // ChromaDB v2 API paths
   private readonly chromaTenant = 'default';
   private readonly chromaDatabase = 'default';
@@ -61,6 +67,7 @@ export class KnowledgeBaseService {
     private readonly kbRepository: Repository<KnowledgeBase>,
     @InjectRepository(KnowledgeChunk)
     private readonly chunkRepository: Repository<KnowledgeChunk>,
+    private readonly aiConfigService: AIConfigService,
   ) {}
 
   async create(
@@ -153,8 +160,15 @@ export class KnowledgeBaseService {
     // Chunk the content
     const chunks = this.chunkText(content, CHUNK_SIZE, CHUNK_OVERLAP);
 
-    // Generate embeddings
-    const embeddings = await this.generateEmbeddings(chunks);
+    let embeddings: number[][] = [];
+    try {
+      embeddings = await this.generateEmbeddings(chunks, userId);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      this.logger.warn(
+        `[KB upload] userId=${userId} kbId=${kbId} embeddings_failed → 仅保存文本块（可走关键词检索），待余额恢复后重新上传或触发同步以建向量 msg=${msg}`,
+      );
+    }
 
     // Save chunks to database
     const chunkEntities: KnowledgeChunk[] = [];
@@ -185,12 +199,21 @@ export class KnowledgeBaseService {
       chunkEntities.push(await this.chunkRepository.save(chunk));
     }
 
-    // Store in ChromaDB
-    try {
-      await this.addToChroma(kbId, kb.name, chunkEntities, embeddings);
-      kb.indexedAt = new Date();
-    } catch (e) {
-      console.error('Failed to add to ChromaDB:', e);
+    // Store in ChromaDB（需与 chunk 条数一致的向量；嵌入失败时跳过，避免整次上传失败）
+    if (
+      embeddings.length === chunkEntities.length &&
+      chunkEntities.length > 0
+    ) {
+      try {
+        await this.addToChroma(kbId, kb.name, chunkEntities, embeddings);
+        kb.indexedAt = new Date();
+      } catch (e) {
+        console.error('Failed to add to ChromaDB:', e);
+      }
+    } else if (chunkEntities.length > 0 && embeddings.length === 0) {
+      this.logger.log(
+        `[KB upload] userId=${userId} kbId=${kbId} chroma_skipped=no_embeddings`,
+      );
     }
 
     // Update chunk count (accumulate)
@@ -217,18 +240,24 @@ export class KnowledgeBaseService {
     return chunks.map((c) => this.toChunkResponseDto(c));
   }
 
-  async deleteChunk(chunkId: string, userId: number): Promise<void> {
-    const chunk = await this.chunkRepository.findOne({
-      where: { id: chunkId },
-    });
-    if (!chunk) {
-      throw new NotFoundException('Chunk不存在');
-    }
+  async deleteChunk(
+    knowledgeBaseId: string,
+    chunkId: string,
+    userId: number,
+  ): Promise<void> {
     const kb = await this.kbRepository.findOne({
-      where: { id: chunk.knowledgeBaseId, userId },
+      where: { id: knowledgeBaseId, userId },
     });
     if (!kb) {
       throw new NotFoundException('知识库不存在');
+    }
+    const chunk = await this.chunkRepository.findOne({
+      where: { id: chunkId, knowledgeBaseId },
+    });
+    if (!chunk) {
+      throw new NotFoundException(
+        '文本块不存在或已删除，请关闭弹窗后重新打开「查看文本块」以刷新列表',
+      );
     }
     await this.chunkRepository.remove(chunk);
     // Update count
@@ -237,7 +266,7 @@ export class KnowledgeBaseService {
     });
 
     // Keep vector index in sync after deleting chunk.
-    await this.syncKnowledgeBaseIndex(kb.id, kb.name);
+    await this.syncKnowledgeBaseIndex(kb.id, kb.name, userId);
     await this.kbRepository.save(kb);
   }
 
@@ -259,11 +288,21 @@ export class KnowledgeBaseService {
       : userKbIds;
 
     if (searchKbIds.length === 0) {
+      this.logger.log(
+        `[KB search] userId=${userId} skip=no_searchable_kb activeKb=${userKbs.length} filtered=${Boolean(knowledgeBaseIds)}`,
+      );
       return [];
     }
 
+    this.logger.log(
+      `[KB search] userId=${userId} queryLen=${query.length} topK=${topK} kbCount=${searchKbIds.length} chroma=${CHROMA_URL}`,
+    );
+
     // Generate query embedding
-    const queryEmbedding = await this.generateSingleEmbedding(query);
+    const queryEmbedding = await this.generateSingleEmbedding(query, userId);
+    this.logger.log(
+      `[KB search] userId=${userId} embeddingDim=${queryEmbedding.length}`,
+    );
 
     // Search ChromaDB
     try {
@@ -272,11 +311,27 @@ export class KnowledgeBaseService {
         searchKbIds,
         topK,
       );
-      return this.formatSearchResults(results, userKbs);
+      const rawHitCount = results.ids?.[0]?.length ?? 0;
+      const formatted = this.formatSearchResults(results, userKbs);
+      this.logger.log(
+        `[KB search] userId=${userId} chroma_ok rawHits=${rawHitCount} formattedHits=${formatted.length}`,
+      );
+      return formatted;
     } catch (e) {
-      console.error('ChromaDB search failed:', e);
-      // Fallback to database search
-      return this.fallbackSearch(query, searchKbIds, userKbs, topK);
+      const msg = e instanceof Error ? e.message : String(e);
+      this.logger.warn(
+        `[KB search] userId=${userId} chroma_failed msg=${msg} → keyword_fallback`,
+      );
+      const fallback = await this.fallbackSearch(
+        query,
+        searchKbIds,
+        userKbs,
+        topK,
+      );
+      this.logger.log(
+        `[KB search] userId=${userId} fallback_hits=${fallback.length}`,
+      );
+      return fallback;
     }
   }
 
@@ -353,92 +408,35 @@ export class KnowledgeBaseService {
 
   private async generateEmbeddings(
     texts: string[],
+    userId: number,
     embeddingType: EmbeddingType = 'db',
   ): Promise<number[][]> {
-    const apiKey = process.env.MINIMAX_API_KEY || '';
-    if (!apiKey) {
-      throw new BadRequestException('MiniMax API key not configured');
-    }
+    const apiKey =
+      await this.aiConfigService.resolveMinimaxEmbeddingApiKey(userId);
 
     const baseUrl =
       process.env.MINIMAX_API_BASE?.trim() || 'https://api.minimax.io';
-    const url = `${baseUrl.replace(/\/$/, '')}/v1/embeddings`;
 
-    const normalizedTexts = texts
-      .map((text) => text.trim())
-      .filter((text) => text.length > 0);
-    if (normalizedTexts.length === 0) {
-      throw new BadRequestException('Embedding text cannot be empty');
-    }
-
-    // MiniMax embedding API requires "texts"; keep "input" for compatibility.
-    const requestBody = {
-      model: EMBEDDING_MODEL,
-      type: embeddingType,
-      texts: normalizedTexts,
-      input: normalizedTexts,
-    };
-
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify(requestBody),
-    });
-
-    const raw = await response.text();
-    if (!response.ok) {
-      console.error('Embedding API error:', response.status, raw);
-      throw new BadRequestException(
-        `Embedding API error: ${response.status} - ${raw}`,
-      );
-    }
-
-    const data = JSON.parse(raw) as Record<string, unknown>;
-    // console.log('Embedding response:', JSON.stringify(data).slice(0, 500));
-
-    // Check MiniMax API error response first
-    const baseResp = data.base_resp as
-      | { status_code: number; status_msg: string }
-      | undefined;
-    if (baseResp?.status_code !== 0) {
-      throw new BadRequestException(
-        `Embedding API error: ${baseResp?.status_msg ?? raw}`,
-      );
-    }
-
-    // MiniMax embedding API returns { vectors: [[...]] }
-    const vectorsField = data.vectors;
-    if (Array.isArray(vectorsField) && vectorsField.length > 0) {
-      return vectorsField as number[][];
-    }
-
-    // Fallback: OpenAI-compatible format { data: [{ embedding: [...], index: 0 }] }
-    const dataField = data.data;
-    if (Array.isArray(dataField) && dataField.length > 0) {
-      return dataField.map(
-        (item): number[] => (item as { embedding: number[] }).embedding,
-      );
-    }
-
-    // If vectors is null but API returned success, return empty (chunks saved without embeddings)
-    if (
-      vectorsField === null ||
-      (Array.isArray(vectorsField) && vectorsField.length === 0)
-    ) {
+    const vectors = await callMinimaxEmbeddings(
+      apiKey,
+      baseUrl,
+      EMBEDDING_MODEL,
+      texts,
+      embeddingType,
+    );
+    if (vectors.length === 0 && texts.some((t) => t.trim().length > 0)) {
       console.warn(
         'Embedding API returned null/empty vectors, storing chunks without vector index',
       );
-      return [];
     }
-
-    throw new BadRequestException(`Unknown embedding response format: ${raw}`);
+    return vectors;
   }
 
-  private async generateSingleEmbedding(text: string): Promise<number[]> {
-    const embeddings = await this.generateEmbeddings([text], 'query');
+  private async generateSingleEmbedding(
+    text: string,
+    userId: number,
+  ): Promise<number[]> {
+    const embeddings = await this.generateEmbeddings([text], userId, 'query');
     if (!embeddings[0]) {
       throw new BadRequestException('Failed to generate embedding for query');
     }
@@ -553,27 +551,43 @@ export class KnowledgeBaseService {
   private async syncKnowledgeBaseIndex(
     kbId: string,
     kbName: string,
+    userId: number,
   ): Promise<void> {
     const chunks = await this.chunkRepository.find({
       where: { knowledgeBaseId: kbId },
       order: { chunkIndex: 'ASC' },
     });
 
-    await this.deleteFromChroma(kbId);
     if (chunks.length === 0) {
+      await this.deleteFromChroma(kbId);
       return;
     }
 
-    const embeddings = await this.generateEmbeddings(
-      chunks.map((chunk) => chunk.content),
-      'db',
-    );
-    if (embeddings.length !== chunks.length) {
-      throw new Error(
-        `Embedding count mismatch during reindex: expected ${chunks.length}, got ${embeddings.length}`,
+    let embeddings: number[][] = [];
+    try {
+      embeddings = await this.generateEmbeddings(
+        chunks.map((chunk) => chunk.content),
+        userId,
+        'db',
       );
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      this.logger.warn(
+        `[KB sync] kbId=${kbId} userId=${userId} embedding_failed → 已清空该库向量索引，保留数据库文本块 msg=${msg}`,
+      );
+      await this.deleteFromChroma(kbId);
+      return;
     }
 
+    if (embeddings.length !== chunks.length) {
+      this.logger.warn(
+        `[KB sync] kbId=${kbId} embedding_count_mismatch expected=${chunks.length} got=${embeddings.length} → clearing chroma only`,
+      );
+      await this.deleteFromChroma(kbId);
+      return;
+    }
+
+    await this.deleteFromChroma(kbId);
     await this.addToChroma(kbId, kbName, chunks, embeddings);
   }
 

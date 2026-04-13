@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import {
@@ -128,6 +128,27 @@ export class AIConfigService {
       }
     }
     return out;
+  }
+
+  /**
+   * 知识库 / 嵌入固定调 MiniMax；与聊天一致：优先用户保存的 minimax key，否则环境变量。
+   */
+  async resolveMinimaxEmbeddingApiKey(userId: number): Promise<string> {
+    const entity = await this.userAIConfigRepository.findOne({
+      where: { userId },
+    });
+    const keys = this.decryptApiKeys(entity?.encryptedApiKeys || null);
+    const fromUser = keys.minimax
+      ? this.normalizeLlmSecretKey(String(keys.minimax))
+      : '';
+    const fromEnv = process.env.MINIMAX_API_KEY
+      ? this.normalizeLlmSecretKey(process.env.MINIMAX_API_KEY)
+      : '';
+    const apiKey = fromUser || fromEnv;
+    if (!apiKey) {
+      throw new BadRequestException('MiniMax API key not configured');
+    }
+    return apiKey;
   }
 
   async resolveModelConfig(

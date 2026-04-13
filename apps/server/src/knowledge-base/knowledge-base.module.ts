@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { MulterModule } from '@nestjs/platform-express';
+import { AIConfigModule } from '../ai/ai-config.module';
 import { KnowledgeBaseService } from './knowledge-base.service';
 import { KnowledgeBaseController } from './knowledge-base.controller';
 import { KnowledgeBase } from '../entities/knowledge-base.entity';
@@ -11,6 +12,7 @@ import { knowledgeBaseMulterOptions } from './multer.config';
   imports: [
     TypeOrmModule.forFeature([KnowledgeBase, KnowledgeChunk]),
     MulterModule.register(knowledgeBaseMulterOptions),
+    AIConfigModule,
   ],
   controllers: [KnowledgeBaseController],
   providers: [KnowledgeBaseService],

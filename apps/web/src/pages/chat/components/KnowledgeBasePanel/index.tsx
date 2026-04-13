@@ -400,8 +400,9 @@ const KnowledgeBasePanel: React.FC<Props> = ({ onClose }) => {
   };
 
   const handleDeleteChunk = async (chunkId: string) => {
+    if (!selectedKb) return;
     try {
-      await knowledgeBaseService.deleteChunk(chunkId);
+      await knowledgeBaseService.deleteChunk(selectedKb.id, chunkId);
       message.success(t('chat.deleteChunkSuccess') || '删除成功');
       if (selectedKb) {
         await loadChunks(selectedKb.id);

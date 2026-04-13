@@ -60,29 +60,15 @@ export class KnowledgeBaseController {
     return this.knowledgeBaseService.findAll(req.user.userId);
   }
 
-  @ApiOperation({ summary: '获取知识库详情' })
-  @ApiResponse({ status: 200, type: KnowledgeBaseResponseDto })
-  @Get(':id')
-  findOne(@Param('id') id: string, @Request() req: AuthenticatedRequest) {
-    return this.knowledgeBaseService.findOne(id, req.user.userId);
-  }
-
-  @ApiOperation({ summary: '更新知识库' })
-  @ApiResponse({ status: 200, type: KnowledgeBaseResponseDto })
-  @Put(':id')
-  update(
-    @Param('id') id: string,
-    @Body() dto: UpdateKnowledgeBaseDto,
+  /** 静态路径须在 :id 之前，避免被误匹配 */
+  @ApiOperation({ summary: '搜索知识库' })
+  @ApiResponse({ status: 200, type: [SearchResultDto] })
+  @Post('search')
+  search(
+    @Body() dto: SearchKnowledgeBaseDto,
     @Request() req: AuthenticatedRequest,
   ) {
-    return this.knowledgeBaseService.update(id, dto, req.user.userId);
-  }
-
-  @ApiOperation({ summary: '删除知识库' })
-  @ApiResponse({ status: 200 })
-  @Delete(':id')
-  remove(@Param('id') id: string, @Request() req: AuthenticatedRequest) {
-    return this.knowledgeBaseService.remove(id, req.user.userId);
+    return this.knowledgeBaseService.search(dto, req.user.userId);
   }
 
   @ApiOperation({ summary: '上传文档到知识库' })
@@ -110,21 +96,41 @@ export class KnowledgeBaseController {
 
   @ApiOperation({ summary: '删除chunk' })
   @ApiResponse({ status: 200 })
-  @Delete('chunks/:chunkId')
+  @Delete(':kbId/chunks/:chunkId')
   deleteChunk(
+    @Param('kbId') kbId: string,
     @Param('chunkId') chunkId: string,
     @Request() req: AuthenticatedRequest,
   ) {
-    return this.knowledgeBaseService.deleteChunk(chunkId, req.user.userId);
+    return this.knowledgeBaseService.deleteChunk(
+      kbId,
+      chunkId,
+      req.user.userId,
+    );
   }
 
-  @ApiOperation({ summary: '搜索知识库' })
-  @ApiResponse({ status: 200, type: [SearchResultDto] })
-  @Post('search')
-  search(
-    @Body() dto: SearchKnowledgeBaseDto,
+  @ApiOperation({ summary: '获取知识库详情' })
+  @ApiResponse({ status: 200, type: KnowledgeBaseResponseDto })
+  @Get(':id')
+  findOne(@Param('id') id: string, @Request() req: AuthenticatedRequest) {
+    return this.knowledgeBaseService.findOne(id, req.user.userId);
+  }
+
+  @ApiOperation({ summary: '更新知识库' })
+  @ApiResponse({ status: 200, type: KnowledgeBaseResponseDto })
+  @Put(':id')
+  update(
+    @Param('id') id: string,
+    @Body() dto: UpdateKnowledgeBaseDto,
     @Request() req: AuthenticatedRequest,
   ) {
-    return this.knowledgeBaseService.search(dto, req.user.userId);
+    return this.knowledgeBaseService.update(id, dto, req.user.userId);
+  }
+
+  @ApiOperation({ summary: '删除知识库' })
+  @ApiResponse({ status: 200 })
+  @Delete(':id')
+  remove(@Param('id') id: string, @Request() req: AuthenticatedRequest) {
+    return this.knowledgeBaseService.remove(id, req.user.userId);
   }
 }
