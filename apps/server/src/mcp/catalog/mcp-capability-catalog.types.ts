@@ -35,4 +35,6 @@ export interface RemoteCapabilityDef {
   useInternalWebSearchEndpoint?: boolean;
 }
 
-export type McpCapabilityCatalogDef = BuiltinCapabilityDef | RemoteCapabilityDef;
+export type McpCapabilityCatalogDef =
+  | BuiltinCapabilityDef
+  | RemoteCapabilityDef;

@@ -1243,13 +1243,31 @@
   position: fixed;
   top: 0;
   right: 0;
-  width: 380px;
+  width: min(420px, 34vw);
+  min-width: 360px;
   height: 100vh;
   z-index: 100;
   animation: slideInRight 0.2s ease-out;
+  border-left: 1px solid color-mix(in srgb, var(--border-color) 85%, var(--skin-primary));
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--bg-color) 97%, var(--skin-primary)) 0%,
+    color-mix(in srgb, var(--bg-color) 94%, var(--skin-primary)) 100%
+  );
+  box-shadow: -2px 0 16px color-mix(in srgb, var(--skin-primary) 8%, transparent);
+  backdrop-filter: saturate(1.02) blur(2px);
+
+  @media (max-width: 1280px) {
+    width: min(400px, 38vw);
+    min-width: 340px;
+  }
 
   @media (max-width: 768px) {
     width: 100%;
+    min-width: 100%;
+    border-left: none;
+    box-shadow: none;
+    backdrop-filter: none;
   }
 }
 

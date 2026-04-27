@@ -55,6 +55,18 @@ export interface MiniMaxInput {
   maxTokens?: number;
 }
 
+export interface MiniMaxRequestBody {
+  model: string;
+  messages: ChatMessagePayload[];
+  temperature: number;
+  max_completion_tokens?: number;
+  max_tokens?: number;
+  stream: boolean;
+  reasoning?: {
+    effort: 'low' | 'medium' | 'high';
+    budget: number;
+  };
+}
 export interface LLMCallOptions {
   temperature?: number;
   maxTokens?: number;
@@ -319,7 +331,7 @@ function buildProviderRequest(
         ? msg.content.some((part) => part.type === 'image_url')
         : false,
     );
-    const body: Record<string, unknown> = hasImages
+    const body: MiniMaxRequestBody = hasImages
       ? {
           model: 'MiniMax-Text-01',
           messages: opts.messages,
@@ -345,7 +357,7 @@ function buildProviderRequest(
         'Content-Type': 'application/json',
         Authorization: `Bearer ${cfg.apiKey}`,
       },
-      body,
+      body: body as unknown as Record<string, unknown>,
     };
   }
 

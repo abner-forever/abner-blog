@@ -70,10 +70,10 @@ export class LoggingInterceptor implements NestInterceptor {
       this.logger.log(`User-Agent: ${userAgent}`, 'Request');
     }
     // 记录用户信息（如果有认证）
-    const userToken = headers['authorization'];
-    if (userToken && typeof userToken === 'string') {
-      this.logger.log(`User-Token: ${userToken}`, 'Request');
-    }
+    // const userToken = headers['authorization'];
+    // if (userToken && typeof userToken === 'string') {
+    //   this.logger.log(`User-Token: ${userToken}`, 'Request');
+    // }
 
     return next.handle().pipe(
       tap({

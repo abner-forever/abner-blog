@@ -135,6 +135,7 @@ const normalizeHydratedMessages = (messages: Message[]): Message[] =>
       m.role === 'assistant'
         ? canonicalAssistantMarkdown(content, m.displayContent)
         : (m.displayContent ?? m.content);
+
     return {
       ...m,
       content,
@@ -159,6 +160,9 @@ const isSessionEmpty = (session: ChatSession): boolean => {
     return hasText || hasImages;
   });
 };
+
+const sortSessionsByLatest = (sessions: ChatSession[]): ChatSession[] =>
+  [...sessions].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
 
 function chatReducer(state: ChatState, action: ChatAction): ChatState {
   switch (action.type) {
@@ -299,6 +303,22 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   const stateRef = useRef(state);
   stateRef.current = state;
 
+  /**
+   * 流式阶段的消息更新统一入口：
+   * 基于 stream 快照而非闭包 state，避免 `SET_MESSAGES` 与 `UPDATE_MESSAGE`
+   * 相互覆盖导致打字机内容闪烁/回退。
+   */
+  const updateStreamMessageById = useCallback(
+    (messageId: string, updater: (msg: Message) => Message) => {
+      const base = streamMessagesSnapshotRef.current ?? stateRef.current.messages;
+      const next = base.map((msg) => (msg.id === messageId ? updater(msg) : msg));
+      streamMessagesSnapshotRef.current = next;
+      dispatch({ type: 'SET_MESSAGES', payload: next });
+      return next.find((msg) => msg.id === messageId);
+    },
+    [],
+  );
+
   const isDark = useMemo(() => {
     return (
       theme === 'dark' ||
@@ -311,19 +331,21 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     const savedSessions = localStorage.getItem(STORAGE_KEY);
     if (savedSessions) {
       try {
-        const parsed = JSON.parse(savedSessions);
+        const parsed = JSON.parse(savedSessions) as ChatSession[];
         if (parsed.length > 0) {
-          const normalizedSessions = parsed.map((session: ChatSession) => ({
-            ...session,
-            messages: normalizeHydratedMessages(session.messages || []),
-          }));
-          const first = normalizedSessions[0];
+          const normalizedSessions = sortSessionsByLatest(
+            parsed.map((session: ChatSession) => ({
+              ...session,
+              messages: normalizeHydratedMessages(session.messages || []),
+            })),
+          );
+          const preferred = normalizedSessions[0];
           dispatch({ type: 'SET_SESSIONS', payload: normalizedSessions });
           dispatch({
             type: 'SET_CURRENT_SESSION',
             payload: {
-              sessionId: first.id,
-              messages: first.messages,
+              sessionId: preferred.id,
+              messages: preferred.messages,
             },
           });
         } else {
@@ -369,7 +391,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   }, [t]);
 
   const saveSessions = useCallback((newSessions: ChatSession[]) => {
-    const limitedSessions = newSessions.slice(0, MAX_SESSIONS);
+    const limitedSessions = sortSessionsByLatest(newSessions).slice(0, MAX_SESSIONS);
     dispatch({ type: 'SET_SESSIONS', payload: limitedSessions });
     localStorage.setItem(STORAGE_KEY, JSON.stringify(sessionsForLocalStorage(limitedSessions)));
   }, []);
@@ -494,27 +516,21 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
               }
             }
           }
-          dispatch({
-            type: 'UPDATE_MESSAGE',
-            payload: { id: assistantMessageId, updates },
-          });
+          updateStreamMessageById(assistantMessageId, (msg) => ({ ...msg, ...updates }));
           streamCompletedRef.current = false;
         }
         return;
       }
       const chunk = pendingTypeTextRef.current.slice(0, TYPEWRITER_BATCH_SIZE);
       pendingTypeTextRef.current = pendingTypeTextRef.current.slice(TYPEWRITER_BATCH_SIZE);
-      dispatch({
-        type: 'UPDATE_MESSAGE',
-        payload: {
-          id: assistantMessageId,
-          updates: { displayContent: (stateRef.current.messages.find(m => m.id === assistantMessageId)?.displayContent || '') + chunk },
-        },
-      });
+      updateStreamMessageById(assistantMessageId, (msg) => ({
+        ...msg,
+        displayContent: (msg.displayContent || '') + chunk,
+      }));
       typeWriterTimerRef.current = setTimeout(tick, TYPEWRITER_TICK_MS);
     };
     typeWriterTimerRef.current = setTimeout(tick, TYPEWRITER_TICK_MS);
-  }, []);
+  }, [updateStreamMessageById]);
 
   const formatAiStreamErrorPayload = useCallback((payload: Record<string, unknown> | undefined): string => {
     const code = typeof payload?.errorCode === 'string' ? payload.errorCode : '';
@@ -644,18 +660,13 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       const streamRuntime = { accumulatedText: '', accumulatedThinking: '', detectedIntent: null as IntentName | null };
 
       // Create a React-style state setter that handles SetStateAction
-      // Note: We use UPDATE_MESSAGES_BATCH to pass the function directly to the reducer,
-      // so React calls it with the correct current state even when updates are batched
       const setMessagesStyle = (msgsOrFn: Message[] | ((prev: Message[]) => Message[])) => {
         if (typeof msgsOrFn === 'function') {
-          dispatch({
-            type: 'UPDATE_MESSAGES_BATCH',
-            payload: (prev) => {
-              const next = msgsOrFn(prev);
-              streamMessagesSnapshotRef.current = next;
-              return next;
-            },
-          });
+          const base =
+            streamMessagesSnapshotRef.current ?? stateRef.current.messages;
+          const next = msgsOrFn(base);
+          streamMessagesSnapshotRef.current = next;
+          dispatch({ type: 'SET_MESSAGES', payload: next });
         } else {
           streamMessagesSnapshotRef.current = msgsOrFn;
           dispatch({ type: 'SET_MESSAGES', payload: msgsOrFn });
@@ -744,16 +755,16 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         stateRef.current.messages;
       streamMessagesSnapshotRef.current = null;
       const updatedSessions = stateRef.current.sessions.map((s) => {
-        // Update the session where message was sent
         if (s.id === sid) {
           return { ...s, messages: finalMessages, timestamp: Date.now() };
         }
-        // Also update current session if different from sid
         if (s.id === currentSid && currentSid !== sid) {
           return { ...s, messages: finalMessages, timestamp: Date.now() };
         }
         return s;
       });
+      console.log('finalMessages', finalMessages, stateRef.current.messages);
+
       saveSessions(updatedSessions);
     }
   }, [t, stopTypeWriter, runTypeWriter, formatAiStreamErrorPayload, formatErrorReasonForDisplay, saveSessions]);

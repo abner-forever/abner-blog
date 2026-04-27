@@ -18,6 +18,16 @@ export interface KnowledgeChunkResponse {
   createdAt: string;
 }
 
+export interface KnowledgeDocumentProcessingStatusResponse {
+  processing: boolean;
+  stage: string;
+  progress: number;
+  message: string;
+  totalChunks?: number;
+  completedChunks?: number;
+  etaSeconds?: number;
+}
+
 export interface SearchResult {
   id: string;
   content: string;
@@ -90,6 +100,17 @@ class KnowledgeBaseService {
   async getChunks(kbId: string): Promise<KnowledgeChunkResponse[]> {
     const response = await httpService.get<KnowledgeChunkResponse[]>(
       `${this.baseUrl}/${kbId}/chunks`
+    );
+    return response.data;
+  }
+
+  async getProcessingStatus(kbId: string): Promise<KnowledgeDocumentProcessingStatusResponse> {
+    const response = await httpService.get<KnowledgeDocumentProcessingStatusResponse>(
+      `${this.baseUrl}/${kbId}/processing-status`,
+      {
+        // 大文件首轮解析/切分期间，后端可能短暂阻塞主线程，放宽超时避免误判失败
+        timeout: 30000,
+      }
     );
     return response.data;
   }

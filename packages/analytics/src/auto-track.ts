@@ -252,8 +252,6 @@ class AutoTracker {
       this.trackPageView();
     };
 
-    // Store original functions before overriding
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const _history = history as any;
     const originalPushState = _history.pushState.bind(_history);
     const originalReplaceState = _history.replaceState.bind(_history);

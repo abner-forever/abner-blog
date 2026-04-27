@@ -21,32 +21,115 @@ export async function callMinimaxEmbeddings(
     throw new BadRequestException('Embedding text cannot be empty');
   }
 
-  const url = `${baseUrl.replace(/\/$/, '')}/v1/embeddings`;
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    Authorization: `Bearer ${apiKey}`,
   };
+  if (apiKey) {
+    headers.Authorization = `Bearer ${apiKey}`;
+  }
 
-  const bodies: Record<string, unknown>[] = [
+  const cleanBaseUrl = baseUrl.replace(/\/+$/, '');
+  const candidates: Array<{
+    url: string;
+    body: Record<string, unknown>;
+    legacySingleText?: boolean;
+  }> = [
     {
-      model,
-      input: normalized.length === 1 ? normalized[0] : normalized,
+      // OpenAI-compatible route (MiniMax / Ollama OpenAI compat)
+      url: `${cleanBaseUrl}/v1/embeddings`,
+      body: {
+        model,
+        input: normalized.length === 1 ? normalized[0] : normalized,
+      },
     },
     {
-      model,
-      type,
-      texts: normalized,
-      input: normalized,
+      // Ollama preferred route
+      url: `${cleanBaseUrl}/api/embed`,
+      body: {
+        model,
+        input: normalized,
+      },
+    },
+    {
+      // MiniMax legacy route compatibility
+      url: `${cleanBaseUrl}/v1/embeddings`,
+      body: {
+        model,
+        type,
+        texts: normalized,
+        input: normalized,
+      },
+    },
+    {
+      // Ollama legacy route; single prompt each call
+      url: `${cleanBaseUrl}/api/embeddings`,
+      body: {
+        model,
+      },
+      legacySingleText: true,
     },
   ];
 
   let lastFailure = '';
-  for (const body of bodies) {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(body),
-    });
+  for (const candidate of candidates) {
+    if (candidate.legacySingleText) {
+      const vectors: number[][] = [];
+      let failed = false;
+      for (const text of normalized) {
+        let response: Response;
+        try {
+          response = await fetch(candidate.url, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify({
+              ...candidate.body,
+              prompt: text,
+            }),
+          });
+        } catch (e) {
+          const detail = formatFetchError(e);
+          lastFailure = `fetch_error url=${candidate.url} model=${String(model)} detail=${detail}`;
+          continue;
+        }
+        const raw = await response.text();
+        if (!response.ok) {
+          lastFailure = `${response.status} - ${raw}`;
+          failed = true;
+          break;
+        }
+        try {
+          const one = extractEmbeddingVectorsFromResponse(raw);
+          if (!one[0]) {
+            throw new BadRequestException('Empty embedding vector');
+          }
+          vectors.push(one[0]);
+        } catch (e) {
+          if (e instanceof BadRequestException) {
+            lastFailure = e.message;
+            failed = true;
+            break;
+          }
+          throw e;
+        }
+      }
+      if (!failed && vectors.length === normalized.length) {
+        return vectors;
+      }
+      continue;
+    }
+
+    let response: Response;
+    try {
+      response = await fetch(candidate.url, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(candidate.body),
+      });
+    } catch (e) {
+      const detail = formatFetchError(e);
+      lastFailure = `fetch_error url=${candidate.url} model=${String(model)} detail=${detail}`;
+      continue;
+    }
     const raw = await response.text();
     if (!response.ok) {
       lastFailure = `${response.status} - ${raw}`;
@@ -68,6 +151,36 @@ export async function callMinimaxEmbeddings(
   }
 
   throw new BadRequestException(`Embedding API error: ${lastFailure}`);
+}
+
+function formatFetchError(error: unknown): string {
+  if (!error || typeof error !== 'object') {
+    return typeof error === 'string' ? error : JSON.stringify(error);
+  }
+  const e = error as {
+    name?: string;
+    message?: string;
+    code?: string;
+    errno?: string | number;
+    type?: string;
+    cause?: unknown;
+  };
+  const cause =
+    e.cause && typeof e.cause === 'object'
+      ? (e.cause as {
+          code?: string;
+          message?: string;
+          errno?: string | number;
+        })
+      : null;
+  return [
+    `name=${e.name || 'UnknownError'}`,
+    `message=${e.message || ''}`,
+    `code=${e.code || cause?.code || ''}`,
+    `errno=${String(e.errno ?? cause?.errno ?? '')}`,
+    `type=${e.type || ''}`,
+    `cause=${cause?.message || ''}`,
+  ].join(' ');
 }
 
 function shouldFallbackToLegacyBody(msg: string): boolean {
@@ -102,6 +215,16 @@ function extractEmbeddingVectorsFromResponse(raw: string): number[][] {
   const vectorsField = data.vectors;
   if (Array.isArray(vectorsField) && vectorsField.length > 0) {
     return vectorsField as number[][];
+  }
+
+  const embeddingsField = data.embeddings;
+  if (Array.isArray(embeddingsField) && embeddingsField.length > 0) {
+    return embeddingsField as number[][];
+  }
+
+  const embeddingField = data.embedding;
+  if (Array.isArray(embeddingField) && embeddingField.length > 0) {
+    return [embeddingField as number[]];
   }
 
   const dataField = data.data;

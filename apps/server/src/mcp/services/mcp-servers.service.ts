@@ -14,6 +14,7 @@ import {
   MarketplaceMCPServerDto,
 } from '../dto/mcp-server.dto';
 import { McpService } from './mcp.service';
+import { McpRequestContextService } from './mcp-request-context.service';
 import type { ToolCallParams } from '../types';
 import { McpCapabilityCatalogBuilder } from './mcp-capability-catalog.builder';
 import type { MCPServerCatalogItem } from '../catalog/mcp-capability-catalog.types';
@@ -59,6 +60,7 @@ export class MCPServersService {
     @InjectRepository(MCPServer)
     private readonly mcpServerRepository: Repository<MCPServer>,
     private readonly mcpService: McpService,
+    private readonly requestContext: McpRequestContextService,
     private readonly jwtService: JwtService,
     private readonly capabilityCatalog: McpCapabilityCatalogBuilder,
   ) {}
@@ -85,7 +87,10 @@ export class MCPServersService {
     }
 
     if (targetServer.type === MCPServerType.BUILTIN) {
-      const result = await this.mcpService.callTool(toolName, params);
+      const result = await this.requestContext.run(
+        { userId, sessionId: null },
+        async () => this.mcpService.callTool(toolName, params),
+      );
       const structuredContent =
         result.structuredContent &&
         typeof result.structuredContent === 'object' &&
@@ -475,7 +480,7 @@ export class MCPServersService {
     return {
       ...server,
       config: {
-        ...((server.config || {}) as Record<string, unknown>),
+        ...server.config,
         ...configOverride,
       },
     };
@@ -485,7 +490,7 @@ export class MCPServersService {
     server: MCPServer,
     userId: number,
   ): Promise<string[]> {
-    const config = (server.config || {}) as RemoteMcpConfig;
+    const config = server.config as RemoteMcpConfig;
     const url = config.url?.trim();
     if (!url) {
       throw new Error(
@@ -568,7 +573,7 @@ export class MCPServersService {
     userId?: number,
   ): Promise<{ steps: McpDiagnoseStep[] }> {
     const steps: McpDiagnoseStep[] = [];
-    const config = (server.config || {}) as RemoteMcpConfig;
+    const config = server.config as RemoteMcpConfig;
     const url = config.url?.trim();
     if (!url) {
       return {

@@ -68,10 +68,19 @@ export function sessionsForLocalStorage(sessions: ChatSession[]): ChatSession[] 
       ({ images: _i, webSearchStatus: _w, ...m }) => {
         const { thinkingStatus: _ts, ...rest } = m as typeof m & { thinkingStatus?: string };
         void _ts;
-        const displayContent =
-          rest.role === 'assistant'
-            ? canonicalAssistantMarkdown(rest.content, rest.displayContent)
-            : (rest.displayContent ?? rest.content);
+        if (rest.role === 'assistant') {
+          const normalizedText = canonicalAssistantMarkdown(
+            rest.content,
+            rest.displayContent,
+          );
+          return {
+            ...rest,
+            content: normalizedText,
+            displayContent: normalizedText,
+            thinkingStatus: 'done' as const,
+          };
+        }
+        const displayContent = rest.displayContent ?? rest.content;
         return { ...rest, displayContent, thinkingStatus: 'done' as const };
       },
     ),

@@ -303,11 +303,11 @@ const MCPServerPanel: React.FC<Props> = ({ onClose }) => {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'active':
-        return <CheckCircleOutlined style={{ color: '#52c41a' }} />;
+        return <CheckCircleOutlined className="server-status-icon server-status-icon--active" />;
       case 'error':
-        return <ExclamationCircleOutlined style={{ color: '#ff4d4f' }} />;
+        return <ExclamationCircleOutlined className="server-status-icon server-status-icon--error" />;
       default:
-        return <ExclamationCircleOutlined style={{ color: '#faad14' }} />;
+        return <ExclamationCircleOutlined className="server-status-icon server-status-icon--warning" />;
     }
   };
 

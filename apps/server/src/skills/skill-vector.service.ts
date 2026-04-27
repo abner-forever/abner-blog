@@ -4,7 +4,6 @@ import { AIConfigService } from '../ai/services/ai-config.service';
 import { callMinimaxEmbeddings } from '../ai/utils/minimax-embeddings';
 
 const CHROMA_URL = process.env.CHROMA_URL || 'http://localhost:8000';
-const EMBEDDING_MODEL = 'embo-01';
 const EMBEDDING_DIMENSIONS = 1536;
 
 type EmbeddingType = 'db' | 'query';
@@ -26,8 +25,14 @@ export class SkillVectorService {
   constructor(private readonly aiConfigService: AIConfigService) {}
   private readonly chromaTenant = 'default';
   private readonly chromaDatabase = 'default';
-  private readonly collectionName = 'skill_vectors';
+  private readonly collectionPrefix = 'skill_vectors';
   private chromaCollectionId: string | null = null;
+
+  private getCollectionName(): string {
+    const model = (process.env.EMBEDDING_MODEL || 'default').toLowerCase();
+    const suffix = model.replace(/[^a-z0-9_-]/g, '_');
+    return `${this.collectionPrefix}_${suffix}`;
+  }
 
   private getCollectionUrl(path: string): string {
     return `${CHROMA_URL}/api/v2/tenants/${this.chromaTenant}/databases/${this.chromaDatabase}/collections${path}`;
@@ -52,8 +57,9 @@ export class SkillVectorService {
       return this.chromaCollectionId;
     }
     await this.ensureDatabase();
+    const collectionName = this.getCollectionName();
     const getResponse = await fetch(
-      this.getCollectionUrl(`/${this.collectionName}`),
+      this.getCollectionUrl(`/${collectionName}`),
       { method: 'GET' },
     );
     if (getResponse.ok) {
@@ -65,7 +71,7 @@ export class SkillVectorService {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        name: this.collectionName,
+        name: collectionName,
         get_or_create: true,
       }),
     });
@@ -112,12 +118,14 @@ export class SkillVectorService {
   ): Promise<number[][]> {
     const apiKey =
       await this.aiConfigService.resolveMinimaxEmbeddingApiKey(userId);
-    const baseUrl =
-      process.env.MINIMAX_API_BASE?.trim() || 'https://api.minimax.io';
+    const baseUrl = process.env.EMBEDDING_MODEL_URL;
+    if (!baseUrl) {
+      throw new Error('EMBEDDING_MODEL_URL is not set');
+    }
     return callMinimaxEmbeddings(
       apiKey,
       baseUrl,
-      EMBEDDING_MODEL,
+      process.env.EMBEDDING_MODEL,
       texts,
       embeddingType,
     );

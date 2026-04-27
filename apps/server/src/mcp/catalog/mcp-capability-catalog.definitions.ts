@@ -34,10 +34,19 @@ export const MCP_CAPABILITY_CATALOG: McpCapabilityCatalogDef[] = [
       toolName === 'list_todos' || toolName.endsWith('_todo'),
   },
   {
+    kind: 'builtin',
+    id: 'user',
+    name: '用户助手',
+    description: '管理用户信息（系统内置）',
+    icon: 'user',
+    matchTool: (toolName) => toolName === 'get_user_info',
+  },
+  {
     kind: 'remote',
     id: 'github',
     name: 'GitHub 集成',
-    description: '仓库、Issue、PR 等 GitHub 能力（需配置可访问的本服务 MCP 地址）',
+    description:
+      '仓库、Issue、PR 等 GitHub 能力（需配置可访问的本服务 MCP 地址）',
     icon: 'github',
     tools: ['get_repo', 'create_issue', 'list_issues', 'list_prs', 'create_pr'],
     useInternalGithubEndpoint: true,

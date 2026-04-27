@@ -133,4 +133,16 @@ export const MCP_TOOL_METADATA: Record<string, McpToolMetadataItem> = {
 参数：
 - id: 要删除的待办 ID（必填）`,
   },
+  get_user_info: {
+    title: '获取用户信息',
+    description: `获取用户资料信息。
+
+使用场景：
+- 用户询问“我的用户信息/个人资料”时使用
+- 管理员可按用户 ID 查询任意用户
+- 普通用户仅可查询自己
+
+参数：
+- id: 可选，用户 ID。不传默认查询当前登录用户`,
+  },
 };

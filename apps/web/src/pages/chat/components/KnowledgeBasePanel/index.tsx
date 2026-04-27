@@ -28,6 +28,7 @@ import {
   knowledgeBaseService,
   type KnowledgeBaseResponse,
   type KnowledgeChunkResponse,
+  type KnowledgeDocumentProcessingStatusResponse,
   type SearchResult,
 } from '@services/knowledge-base';
 import { useVirtualizer } from '@tanstack/react-virtual';
@@ -185,33 +186,221 @@ const KnowledgeBasePanel: React.FC<Props> = ({ onClose }) => {
   const [chunksModalOpen, setChunksModalOpen] = useState(false);
   const [chunks, setChunks] = useState<KnowledgeChunkResponse[]>([]);
   const [chunksLoading, setChunksLoading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [uploadingKbId, setUploadingKbId] = useState<string | null>(null);
+  const [processingStatusMap, setProcessingStatusMap] = useState<
+    Record<string, KnowledgeDocumentProcessingStatusResponse>
+  >({});
   const [togglingKbId, setTogglingKbId] = useState<string | null>(null);
   const [form] = Form.useForm();
   const [editForm] = Form.useForm();
   const [chunksListViewportHeight, setChunksListViewportHeight] = useState(resolveChunksListViewportHeight);
+  const singlePollTimerRef = useRef<number | null>(null);
+  const allPollTimerRef = useRef<number | null>(null);
+  const singlePollTokenRef = useRef(0);
+  const allPollTokenRef = useRef(0);
+  const activeProcessingKbIdsRef = useRef<Set<string>>(new Set());
+  const currentUploadXhrRef = useRef<XMLHttpRequest | null>(null);
 
   const formatRelevance = (score: number): string => {
     const normalizedScore = Number.isFinite(score) ? Math.min(1, Math.max(0, score)) : 0;
     return `${(normalizedScore * 100).toFixed(1)}%`;
   };
 
+  const clearSinglePoll = useCallback(() => {
+    singlePollTokenRef.current += 1;
+    if (singlePollTimerRef.current !== null) {
+      window.clearTimeout(singlePollTimerRef.current);
+      singlePollTimerRef.current = null;
+    }
+  }, []);
+
+  const clearAllPoll = useCallback(() => {
+    allPollTokenRef.current += 1;
+    if (allPollTimerRef.current !== null) {
+      window.clearTimeout(allPollTimerRef.current);
+      allPollTimerRef.current = null;
+    }
+  }, []);
+
+  const setKbProcessingStatus = useCallback(
+    (kbId: string, status: KnowledgeDocumentProcessingStatusResponse) => {
+      setProcessingStatusMap((prev) => ({
+        ...prev,
+        [kbId]: status,
+      }));
+    },
+    []
+  );
+
+  const clearKbProcessingStatus = useCallback((kbId: string) => {
+    activeProcessingKbIdsRef.current.delete(kbId);
+    setProcessingStatusMap((prev) => {
+      if (!prev[kbId]) return prev;
+      const next = { ...prev };
+      delete next[kbId];
+      return next;
+    });
+  }, []);
+
+  const resetUploadState = useCallback(() => {
+    clearSinglePoll();
+    currentUploadXhrRef.current = null;
+    setUploadingKbId(null);
+  }, [clearSinglePoll]);
+
+  const mapProcessingStatusText = useCallback(
+    (status: KnowledgeDocumentProcessingStatusResponse): string => {
+      if (status.message?.trim()) {
+        return status.message;
+      }
+      switch (status.stage) {
+        case 'parsing':
+          return t('chat.uploadParsing') || '正在解析文档...';
+        case 'chunking':
+          return t('chat.uploadChunking') || '正在切分文本块...';
+        case 'embedding':
+          return t('chat.uploadEmbedding') || '正在生成向量...';
+        case 'saving':
+          return t('chat.uploadSaving') || '正在保存文本块...';
+        case 'indexing':
+          return t('chat.uploadIndexing') || '正在构建索引...';
+        case 'done':
+          return t('chat.uploadDone') || '处理完成';
+        case 'failed':
+          return t('chat.uploadFailed') || '处理失败';
+        default:
+          return t('chat.uploadProcessing') || '处理中...';
+      }
+    },
+    [t]
+  );
+
+  const pollProcessingStatus = useCallback(
+    async (kbId: string) => {
+      try {
+        const status = await knowledgeBaseService.getProcessingStatus(kbId);
+        setKbProcessingStatus(kbId, status);
+        if (status.processing) {
+          clearSinglePoll();
+          const token = singlePollTokenRef.current;
+          singlePollTimerRef.current = window.setTimeout(() => {
+            if (token !== singlePollTokenRef.current) return;
+            void pollProcessingStatus(kbId);
+          }, 5000);
+        } else if (status.stage === 'done') {
+          const updated = await knowledgeBaseService.getAll();
+          setKnowledgeBases(updated);
+          if (uploadingKbId === kbId) {
+            message.success(t('chat.uploadSuccess') || '文档上传成功');
+          }
+          clearKbProcessingStatus(kbId);
+          resetUploadState();
+        } else if (status.stage === 'failed') {
+          if (uploadingKbId === kbId) {
+            message.error(mapProcessingStatusText(status));
+          }
+          clearKbProcessingStatus(kbId);
+          resetUploadState();
+        }
+      } catch {
+        if (uploadingKbId === kbId) {
+          clearSinglePoll();
+          const token = singlePollTokenRef.current;
+          singlePollTimerRef.current = window.setTimeout(() => {
+            if (token !== singlePollTokenRef.current) return;
+            void pollProcessingStatus(kbId);
+          }, 5000);
+        }
+      }
+    },
+    [
+      clearKbProcessingStatus,
+      clearSinglePoll,
+      mapProcessingStatusText,
+      resetUploadState,
+      setKbProcessingStatus,
+      t,
+      uploadingKbId,
+    ]
+  );
+
+  const pollAllProcessingStatuses = useCallback(
+    async (kbs: KnowledgeBaseResponse[], fullScan = false) => {
+      if (kbs.length === 0) {
+        activeProcessingKbIdsRef.current.clear();
+        setProcessingStatusMap({});
+        return;
+      }
+
+      const idWhitelist = fullScan
+        ? new Set(kbs.map((kb) => kb.id))
+        : activeProcessingKbIdsRef.current;
+      if (idWhitelist.size === 0) {
+        setProcessingStatusMap({});
+        clearAllPoll();
+        return;
+      }
+
+      const targets = kbs.filter((kb) => idWhitelist.has(kb.id));
+      const entries = await Promise.all(
+        targets.map(async (kb) => {
+          try {
+            const status = await knowledgeBaseService.getProcessingStatus(kb.id);
+            return [kb.id, status] as const;
+          } catch {
+            return null;
+          }
+        })
+      );
+      const nextMap: Record<string, KnowledgeDocumentProcessingStatusResponse> = {};
+      const nextActiveIds = new Set<string>();
+      for (const item of entries) {
+        if (!item) continue;
+        const [kbId, status] = item;
+        if (status.processing) {
+          nextMap[kbId] = status;
+          nextActiveIds.add(kbId);
+        }
+      }
+      activeProcessingKbIdsRef.current = nextActiveIds;
+      setProcessingStatusMap(nextMap);
+      const hasProcessing = nextActiveIds.size > 0;
+      clearAllPoll();
+      if (hasProcessing) {
+        const token = allPollTokenRef.current;
+        allPollTimerRef.current = window.setTimeout(() => {
+          if (token !== allPollTokenRef.current) return;
+          void pollAllProcessingStatuses(kbs, false);
+        }, 5000);
+      }
+    },
+    [clearAllPoll]
+  );
+
   const loadKnowledgeBases = useCallback(async () => {
     setLoading(true);
     try {
       const data = await knowledgeBaseService.getAll();
       setKnowledgeBases(data);
+      await pollAllProcessingStatuses(data, true);
     } catch (_err) {
       message.error(t('chat.loadFailed') || '加载知识库失败');
     } finally {
       setLoading(false);
     }
-  }, [t]);
+  }, [pollAllProcessingStatuses, t]);
 
   useEffect(() => {
     loadKnowledgeBases();
   }, [loadKnowledgeBases]);
+
+  useEffect(() => {
+    return () => {
+      clearSinglePoll();
+      clearAllPoll();
+      currentUploadXhrRef.current?.abort();
+    };
+  }, [clearAllPoll, clearSinglePoll]);
 
   useLayoutEffect(() => {
     if (!chunksModalOpen || chunksLoading || chunks.length === 0) {
@@ -318,13 +507,29 @@ const KnowledgeBasePanel: React.FC<Props> = ({ onClose }) => {
   };
 
   const handleUpload = (kbId: string, file: File) => {
+    if (processingStatusMap[kbId]?.processing) {
+      message.warning(t('chat.uploadProcessing') || '已有文档在处理中，请稍候');
+      return false;
+    }
+    if (uploadingKbId) {
+      message.warning(t('chat.uploadProcessing') || '已有文档在处理中，请稍候');
+      return false;
+    }
     setUploadingKbId(kbId);
-    setUploadProgress(0);
+    activeProcessingKbIdsRef.current.add(kbId);
+    setKbProcessingStatus(kbId, {
+      processing: true,
+      stage: 'uploading',
+      progress: 0,
+      message: t('chat.uploading') || '正在上传文件...',
+    });
+    clearSinglePoll();
 
     const formData = new FormData();
     formData.append('file', file, file.name);
 
     const xhr = new XMLHttpRequest();
+    currentUploadXhrRef.current = xhr;
     xhr.open('POST', `/api/knowledge-base/${kbId}/documents`);
 
     // Get auth token
@@ -335,25 +540,67 @@ const KnowledgeBasePanel: React.FC<Props> = ({ onClose }) => {
 
     xhr.upload.onprogress = (e) => {
       if (e.lengthComputable) {
-        const percent = Math.round((e.loaded / e.total) * 100);
-        setUploadProgress(percent);
+        const percent = Math.min(98, Math.round((e.loaded / e.total) * 100));
+        const msg = t('chat.uploading') || '正在上传文件...';
+        setKbProcessingStatus(kbId, {
+          processing: true,
+          stage: 'uploading',
+          progress: percent,
+          message: msg,
+        });
       }
     };
 
     xhr.onload = () => {
-      setUploadingKbId(null);
-      setUploadProgress(0);
       if (xhr.status >= 200 && xhr.status < 300) {
-        message.success(t('chat.uploadSuccess') || '文档上传成功');
-        loadKnowledgeBases();
+        const processingMsg = t('chat.uploadProcessing') || '文件上传完成，正在处理...';
+        setKbProcessingStatus(kbId, {
+          processing: true,
+          stage: 'processing',
+          progress: 99,
+          message: processingMsg,
+        });
+        void pollProcessingStatus(kbId);
       } else {
-        message.error(t('chat.uploadFailed') || '上传失败');
+        let backendMessage = '';
+        try {
+          const payload = JSON.parse(xhr.responseText) as {
+            message?: string | string[];
+          };
+          if (Array.isArray(payload.message)) {
+            backendMessage = payload.message.join('；');
+          } else if (typeof payload.message === 'string') {
+            backendMessage = payload.message;
+          }
+        } catch {
+          backendMessage = '';
+        }
+
+        // 如果已在处理中，直接切换到轮询当前任务进度，而不是简单报错。
+        if (backendMessage.includes('正在处理')) {
+          activeProcessingKbIdsRef.current.add(kbId);
+          const processingMsg = t('chat.uploadAlreadyProcessing') || backendMessage;
+          setKbProcessingStatus(kbId, {
+            processing: true,
+            stage: 'processing',
+            progress: 0,
+            message: processingMsg,
+          });
+          setUploadingKbId(kbId);
+          void pollProcessingStatus(kbId);
+          message.warning(processingMsg);
+          return;
+        }
+
+        clearKbProcessingStatus(kbId);
+        resetUploadState();
+        message.error(backendMessage || (t('chat.uploadFailed') || '上传失败'));
       }
     };
 
     xhr.onerror = () => {
-      setUploadingKbId(null);
-      setUploadProgress(0);
+      clearKbProcessingStatus(kbId);
+      resetUploadState();
       message.error(t('chat.uploadFailed') || '上传失败');
     };
 
@@ -599,13 +846,21 @@ const KnowledgeBasePanel: React.FC<Props> = ({ onClose }) => {
                       </Popconfirm>
                     </div>
                   </div>
-                  {uploadingKbId === kb.id && (
-                    <Progress
-                      percent={uploadProgress}
+                  {processingStatusMap[kb.id]?.processing && (
+                    <div className="upload-progress-wrap">
+                      <Progress
+                        percent={Math.max(
+                          0,
+                          Math.min(100, processingStatusMap[kb.id]?.progress ?? 0)
+                        )}
                         size="small"
-                      showInfo={false}
-                      className="upload-progress"
-                    />
+                        showInfo={false}
+                        className="upload-progress"
+                      />
+                      <div className="upload-progress-text">
+                        {mapProcessingStatusText(processingStatusMap[kb.id])}
+                      </div>
+                    </div>
                   )}
                 </List.Item>
               )}

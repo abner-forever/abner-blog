@@ -10,7 +10,7 @@ export class AIChatResponseService {
   buildWebSearchChatPrompt(userQuestion: string, searchDigest: string): string {
     return [
       '你是一个友好的中文AI助手。用户请求联网检索。',
-      '请严格基于下方「检索摘要」作答：不要使用摘要中不存在的事实；不确定时请说明；可在文末列出不超过 3 条参考链接（须来自摘要中的 URL）。',
+      '请严格基于下方「检索摘要」作答：不要使用摘要中不存在的事实；不确定时请说明；可在文末列出新闻对应的参考链接（须来自摘要中的 URL）。',
       '',
       `用户原始问题：${userQuestion}`,
       '',
@@ -51,6 +51,7 @@ export class AIChatResponseService {
     return chatPattern.test(text);
   }
 
+  /** 规范化助手回复 */
   normalizeAssistantReply(reply: string): string {
     const trimmed = reply.trim();
     if (!trimmed) return trimmed;

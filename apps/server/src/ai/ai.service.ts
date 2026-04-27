@@ -26,7 +26,6 @@ import { mapLlmErrorForUser } from './utils/llm-user-facing-error';
 import {
   splitCompleteReplyThink,
   splitThinkTaggedDelta,
-  type ThinkTagSplitState,
 } from './utils/think-tag-split';
 import { buildIntentMemoryReply } from './utils/chat-history';
 import {
@@ -330,7 +329,7 @@ export class AIService {
       if (!synthMessages) {
         weatherAnswer = mcpWeatherFacts;
       } else {
-        const thinkTagState: ThinkTagSplitState = {
+        const thinkTagState = {
           inThink: false,
           pending: '',
         };
@@ -398,6 +397,16 @@ export class AIService {
     thinkingEnabled: boolean,
   ): AsyncGenerator<AIStreamEvent> {
     if (useMcpTools) {
+      const userInfoResult = await this.tryHandleUserInfoViaMcp(
+        message,
+        userId,
+        sessionId,
+      );
+      if (userInfoResult) {
+        yield* this.emitChatDeltaChunks(userInfoResult.content);
+        return;
+      }
+
       const githubResult = await this.tryHandleGithubChatViaMcp(
         message,
         userId,
@@ -476,9 +485,6 @@ export class AIService {
   ): AsyncGenerator<AIStreamEvent> {
     let promptForLlm: string;
     if (options?.searchDigestFromMcp) {
-      this.logger.log(
-        `[KB RAG] userId=${userId} path=web_digest skip_vector_kb=true`,
-      );
       promptForLlm = this.chatResponseService.buildWebSearchChatPrompt(
         message,
         options.searchDigestFromMcp,
@@ -496,7 +502,7 @@ export class AIService {
     let fullReply = '';
     const generationStart = Date.now();
     let firstDeltaLogged = false;
-    const thinkTagState: ThinkTagSplitState = {
+    const thinkTagState = {
       inThink: false,
       pending: '',
     };
@@ -1063,6 +1069,15 @@ export class AIService {
       case IntentType.CHAT:
       default:
         if (useMcpTools) {
+          const userInfoResult = await this.tryHandleUserInfoViaMcp(
+            message,
+            userId,
+            sessionId,
+          );
+          if (userInfoResult) {
+            return userInfoResult;
+          }
+
           const githubResult = await this.tryHandleGithubChatViaMcp(
             message,
             userId,
@@ -1266,6 +1281,60 @@ export class AIService {
       return {
         type: 'chat',
         content: `已识别为 GitHub 请求，但 MCP 调用失败：${msg}`,
+      };
+    }
+  }
+
+  private async tryHandleUserInfoViaMcp(
+    message: string,
+    userId: number,
+    sessionId?: string,
+  ): Promise<ChatResponseDto | null> {
+    const text = message.trim();
+    if (!text) return null;
+
+    const askUserProfile =
+      /(用户信息|个人信息|账号信息|我的资料|我的信息|个人资料)/.test(text) ||
+      (text.includes('用户') && text.includes('信息'));
+    if (!askUserProfile) return null;
+
+    const idMatch = text.match(/(?:id|ID|用户ID|用户id)\s*[:：=]?\s*(\d+)/);
+    const requestedId = idMatch ? Number(idMatch[1]) : undefined;
+
+    try {
+      const result = await this.mcpServersService.callToolForUser(
+        userId,
+        'get_user_info',
+        requestedId ? { id: requestedId } : {},
+      );
+      const first = result.content.find((item) => item.type === 'text');
+      const content =
+        first?.text?.trim() || '已调用 get_user_info，但未返回可展示文本。';
+      const normalized =
+        this.chatResponseService.normalizeAssistantReply(content);
+      const sessionKey = this.chatSessionService.getSessionKey(
+        userId,
+        sessionId,
+      );
+      this.chatSessionService.appendHistory(
+        sessionKey,
+        message,
+        normalized,
+        this.maxHistoryMessages,
+      );
+      return { type: 'chat', content: normalized };
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : '调用失败';
+      if (msg.includes('未找到可用的 MCP 工具')) {
+        return {
+          type: 'chat',
+          content:
+            '检测到你在查询用户信息，但当前未安装或未启用「用户助手」MCP。请到 MCP 面板安装并启用后重试。',
+        };
+      }
+      return {
+        type: 'chat',
+        content: `已识别为用户信息查询，但 MCP 调用失败：${msg}`,
       };
     }
   }

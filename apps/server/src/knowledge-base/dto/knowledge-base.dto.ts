@@ -84,6 +84,70 @@ export class KnowledgeChunkResponseDto {
   createdAt: Date;
 }
 
+export class KnowledgeDocumentProcessingStatusDto {
+  @ApiProperty({
+    description: '是否正在处理文档',
+    example: true,
+  })
+  processing: boolean;
+
+  @ApiProperty({
+    description: '当前处理阶段',
+    example: 'embedding',
+  })
+  stage: string;
+
+  @ApiProperty({
+    description: '进度百分比(0-100)',
+    example: 58,
+  })
+  progress: number;
+
+  @ApiProperty({
+    description: '阶段提示文案',
+    example: '正在生成向量 384/1294',
+  })
+  message: string;
+
+  @ApiPropertyOptional({
+    description: '总文本块数量',
+    example: 1294,
+  })
+  totalChunks?: number;
+
+  @ApiPropertyOptional({
+    description: '已完成文本块数量',
+    example: 384,
+  })
+  completedChunks?: number;
+
+  @ApiPropertyOptional({
+    description: '预计剩余秒数',
+    example: 87,
+  })
+  etaSeconds?: number;
+
+  @ApiPropertyOptional({
+    description: '后台任务ID',
+    example: 'e5a9e99d-bf3d-4662-b0f4-0f1bb1a103e4',
+  })
+  taskId?: string;
+}
+
+export class KnowledgeDocumentUploadAcceptedDto {
+  @ApiProperty({
+    description: '后台任务ID',
+    example: 'e5a9e99d-bf3d-4662-b0f4-0f1bb1a103e4',
+  })
+  taskId: string;
+
+  @ApiProperty({
+    description: '是否已进入后台处理',
+    example: true,
+  })
+  accepted: boolean;
+}
+
 export class SearchResultDto {
   @ApiProperty({ description: 'chunk ID' })
   id: string;

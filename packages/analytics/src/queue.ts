@@ -53,10 +53,12 @@ export class Queue<T = unknown> {
 
     this.saveToStorage();
   }
-
-  async flush(
-    sender: (items: T[]) => Promise<boolean>,
-  ): Promise<{ success: number; failed: number }> {
+  /**
+   * 执行发送
+   * @param sender - 发送函数
+   * @returns - 发送结果
+   */
+  async flush(sender: (items: T[]) => Promise<boolean>): Promise<{ success: number; failed: number }> {
     if (this.isProcessing || this.queue.length === 0) {
       return { success: 0, failed: 0 };
     }

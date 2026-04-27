@@ -16,7 +16,6 @@ export async function detectIntent(
         2,
       )}, rule=${ruleResult.rule})\n`,
     );
-    if (ruleResult.confidence >= 0.8) return ruleResult.intent;
   }
 
   const prompt = `${INTENT_PROMPT}\n\n用户输入：${userInput}`;

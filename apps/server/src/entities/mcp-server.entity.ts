@@ -52,7 +52,7 @@ export class MCPServer {
   marketplaceId: string;
 
   @Column({ type: 'json', nullable: true })
-  config: Record<string, any>;
+  config: Record<string, unknown>;
 
   @Column({
     type: 'enum',

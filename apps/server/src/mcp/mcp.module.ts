@@ -28,6 +28,7 @@ import { UsersModule } from '../users/users.module';
 import { AuthModule } from '../auth/auth.module';
 import { MCPServer } from '../entities/mcp-server.entity';
 import { WebSearchModule } from '../web-search/web-search.module';
+import { UserTools } from './tools/user.tools';
 
 @Module({
   imports: [
@@ -57,6 +58,7 @@ import { WebSearchModule } from '../web-search/web-search.module';
     WeatherTools,
     CalendarTools,
     TodoTools,
+    UserTools,
   ],
   exports: [McpService, MCPServersService],
 })

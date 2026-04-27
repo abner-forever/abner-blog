@@ -11,24 +11,35 @@ import {
   CreateTodoSchema,
   UpdateTodoSchema,
   DeleteTodoSchema,
+  GetUserInfoSchema,
 } from '../schemas';
 import { WeatherTools } from '../tools/weather.tools';
 import { CalendarTools } from '../tools/calendar.tools';
 import { TodoTools } from '../tools/todo.tools';
+import { UserTools } from '../tools/user.tools';
 import type { McpToolResult, ToolCallParams, ToolDefinition } from '../types';
 import { MCP_TOOL_METADATA } from '../utils/mcp-tool-metadata';
 import type { ZodType } from 'zod';
+import { UsersService } from '../../users/users.service';
+import { McpRequestContextService } from './mcp-request-context.service';
 
 @Injectable()
 export class McpService implements OnModuleInit {
   private readonly logger = new Logger(McpService.name);
   private server: McpServer;
   private readonly registeredTools: ToolDefinition[] = [];
+  private readonly toolExecutors = new Map<
+    string,
+    (params: ToolCallParams) => Promise<McpToolResult>
+  >();
 
   constructor(
     private readonly weatherTools: WeatherTools,
     private readonly calendarTools: CalendarTools,
     private readonly todoTools: TodoTools,
+    private readonly userTools: UserTools,
+    private readonly usersService: UsersService,
+    private readonly requestContext: McpRequestContextService,
   ) {}
 
   onModuleInit() {
@@ -44,6 +55,7 @@ export class McpService implements OnModuleInit {
     this.registerWeatherTools();
     this.registerCalendarTools();
     this.registerTodoTools();
+    this.registerUserTools();
 
     this.logger.log(
       `MCP Server initialized with ${this.registeredTools.length} tools registered`,
@@ -64,6 +76,7 @@ export class McpService implements OnModuleInit {
       inputSchema,
     };
     this.registeredTools.push(toolDef);
+    this.toolExecutors.set(name, handler);
 
     this.server.registerTool(
       name,
@@ -118,6 +131,12 @@ export class McpService implements OnModuleInit {
     );
   }
 
+  private registerUserTools() {
+    this.registerParsedTool('get_user_info', GetUserInfoSchema, (params) =>
+      this.userTools.getUserInfo(params),
+    );
+  }
+
   getServer(): McpServer {
     return this.server;
   }
@@ -128,20 +147,11 @@ export class McpService implements OnModuleInit {
 
   async callTool(name: string, params: ToolCallParams): Promise<McpToolResult> {
     this.logger.debug(`callTool(${name}) params: ${JSON.stringify(params)}`);
-    switch (name) {
-      case 'get_weather': {
-        const parsed = GetWeatherSchema.parse(params);
-        const result = await this.weatherTools.getWeather(parsed);
-        return this.toMcpResult(result);
-      }
-      case 'get_air_quality': {
-        const parsed = GetAirQualitySchema.parse(params);
-        const result = await this.weatherTools.getAirQuality(parsed);
-        return this.toMcpResult(result);
-      }
-      default:
-        throw new Error(`Unsupported MCP tool: ${name}`);
+    const executor = this.toolExecutors.get(name);
+    if (!executor) {
+      throw new Error(`Unsupported MCP tool: ${name}`);
     }
+    return executor(params);
   }
 
   private toMcpResult(result: {

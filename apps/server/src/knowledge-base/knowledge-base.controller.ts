@@ -26,6 +26,8 @@ import {
   SearchKnowledgeBaseDto,
   KnowledgeBaseResponseDto,
   KnowledgeChunkResponseDto,
+  KnowledgeDocumentProcessingStatusDto,
+  KnowledgeDocumentUploadAcceptedDto,
   SearchResultDto,
 } from './dto/knowledge-base.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -72,7 +74,7 @@ export class KnowledgeBaseController {
   }
 
   @ApiOperation({ summary: '上传文档到知识库' })
-  @ApiResponse({ status: 201, type: [KnowledgeChunkResponseDto] })
+  @ApiResponse({ status: 201, type: KnowledgeDocumentUploadAcceptedDto })
   @Post(':id/documents')
   @UseInterceptors(FileInterceptor('file'))
   @ApiConsumes('multipart/form-data')
@@ -92,6 +94,19 @@ export class KnowledgeBaseController {
   @Get(':id/chunks')
   getChunks(@Param('id') id: string, @Request() req: AuthenticatedRequest) {
     return this.knowledgeBaseService.getChunks(id, req.user.userId);
+  }
+
+  @ApiOperation({ summary: '获取知识库文档处理进度' })
+  @ApiResponse({ status: 200, type: KnowledgeDocumentProcessingStatusDto })
+  @Get(':id/processing-status')
+  getProcessingStatus(
+    @Param('id') id: string,
+    @Request() req: AuthenticatedRequest,
+  ) {
+    return this.knowledgeBaseService.getDocumentProcessingStatus(
+      id,
+      req.user.userId,
+    );
   }
 
   @ApiOperation({ summary: '删除chunk' })

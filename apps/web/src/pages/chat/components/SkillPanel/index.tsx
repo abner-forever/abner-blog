@@ -167,7 +167,7 @@ const SkillPanel: React.FC<Props> = ({ onClose }) => {
                       <div className="skill-title">
                         {skill.name}
                         {skill.status === 'active' && (
-                          <CheckCircleOutlined style={{ color: '#52c41a', marginLeft: 8 }} />
+                          <CheckCircleOutlined className="skill-title__active-icon" />
                         )}
                       </div>
                     }
