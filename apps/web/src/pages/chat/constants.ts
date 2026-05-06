@@ -39,8 +39,10 @@ export const MODEL_VENDORS: ModelVendor[] = [
     label: 'DeepSeek',
     value: VendorType.DEEPSEEK,
     models: [
-      { label: 'DeepSeek Chat (V3.2)', value: 'deepseek-chat' },
-      { label: 'DeepSeek Reasoner (V3.2)', value: 'deepseek-reasoner' },
+      { label: 'DeepSeek Chat (将于 2026/07/24 弃用)', value: 'deepseek-chat' },
+      { label: 'DeepSeek Reasoner (将于 2026/07/24 弃用)', value: 'deepseek-reasoner' },
+      { label: 'DeepSeek V4', value: 'deepseek-v4-flash' },
+      { label: 'DeepSeek V4 Pro', value: 'deepseek-v4-pro' },
     ],
   },
   {

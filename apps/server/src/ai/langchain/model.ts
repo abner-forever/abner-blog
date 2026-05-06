@@ -415,7 +415,7 @@ function buildProviderRequest(
 
   const baseUrl =
     cfg.provider === 'deepseek'
-      ? 'https://api.deepseek.com/v1/chat/completions'
+      ? 'https://api.deepseek.com/chat/completions'
       : cfg.provider === 'qwen'
         ? 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions'
         : 'https://api.openai.com/v1/chat/completions';
@@ -425,10 +425,13 @@ function buildProviderRequest(
     messages: opts.messages,
     temperature: opts.temperature / 10,
     max_tokens: opts.maxTokens,
+    thinking: {
+      type: cfg.thinkingEnabled ? 'enabled' : 'none',
+    },
     stream: opts.stream,
   };
   if (cfg.thinkingEnabled) {
-    body.reasoning = { effort: 'medium', budget: cfg.thinkingBudget || 0 };
+    body.reasoning_effort = 'medium';
   }
   return {
     url: baseUrl,
