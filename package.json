@@ -4,12 +4,14 @@
   "private": true,
   "workspaces": [
     "packages/*",
+    "packages/upload/preview",
     "apps/*"
   ],
   "scripts": {
     "dev:web": "cd apps/web && pnpm run dev",
     "dev:server": "cd apps/server && pnpm run dev",
     "dev:admin": "cd apps/admin && pnpm run dev",
+    "dev:upload": "cd packages/upload/preview && pnpm run dev",
     "build:web": "cd apps/web && pnpm run build",
     "build:server": "cd apps/server && pnpm run build",
     "build:admin": "cd apps/admin && pnpm run build",

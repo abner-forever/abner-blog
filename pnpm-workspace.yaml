@@ -1,3 +1,4 @@
-packages: ## 工作空间 pnpm 管理 指定项目根目录 
-  - 'packages/*' 
+packages: ## 工作空间 pnpm 管理 指定项目根目录
+  - 'packages/*'
+  - 'packages/upload/preview'
   - 'apps/*'
