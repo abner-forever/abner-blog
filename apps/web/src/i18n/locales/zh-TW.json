@@ -777,7 +777,9 @@
     "shareStartNewChat": "開始新對話",
     "shareBackHome": "返回首頁",
     "selectModelPlaceholder": "選擇模型",
-    "profileUpdateSuccess": "個人信息已更新"
+    "profileUpdateSuccess": "個人信息已更新",
+    "guestModeHint": "登入後可使用更多功能",
+    "guestInputPlaceholder": "登入後開始對話..."
   },
   "calendar": {
     "title": "日曆日程",

@@ -6,23 +6,28 @@ import {
   RobotOutlined,
 } from '@ant-design/icons';
 import { useChat } from '../../context/ChatContext';
+import { useAuthCheck } from '@/hooks/useAuthCheck';
 import './SidebarFooter.less';
 
 const SidebarFooter: React.FC = memo(function SidebarFooter() {
   const { state, dispatch } = useChat();
   const { showKnowledgeBase, showMCPServer, showSkill } = state;
+  const { checkAuth } = useAuthCheck();
 
   const handleToggleKnowledgeBase = useCallback(() => {
+    if (!checkAuth()) return;
     dispatch({ type: 'SET_SHOW_KNOWLEDGE_BASE', payload: !showKnowledgeBase });
-  }, [dispatch, showKnowledgeBase]);
+  }, [dispatch, showKnowledgeBase, checkAuth]);
 
   const handleToggleMCPServer = useCallback(() => {
+    if (!checkAuth()) return;
     dispatch({ type: 'SET_SHOW_MCP_SERVER', payload: !showMCPServer });
-  }, [dispatch, showMCPServer]);
+  }, [dispatch, showMCPServer, checkAuth]);
 
   const handleToggleSkill = useCallback(() => {
+    if (!checkAuth()) return;
     dispatch({ type: 'SET_SHOW_SKILL', payload: !showSkill });
-  }, [dispatch, showSkill]);
+  }, [dispatch, showSkill, checkAuth]);
 
   return (
     <div className="sidebar-footer">

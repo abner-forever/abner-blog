@@ -24,6 +24,7 @@ import type { ChatSession } from '../../types';
 import ChatSettingsPanel from '../ChatSettingsPanel';
 import ChatConversationPreview from '../ChatConversationPreview';
 import { useChatShareControllerCreate } from '@services/generated/chat-share/chat-share';
+import { useAuthCheck } from '@/hooks/useAuthCheck';
 import {
   copyElementImageToClipboard,
   downloadElementImageAsPng,
@@ -36,6 +37,7 @@ const ChatHeader: React.FC = memo(function ChatHeader() {
   const { t } = useTranslation();
   const { state, dispatch, handleSaveSettings, isDark } = useChat();
   const { model, showSettings, sessions, currentSessionId } = state;
+  const { checkAuth } = useAuthCheck();
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [shareUrl, setShareUrl] = useState('');
   const [copied, setCopied] = useState(false);
@@ -86,6 +88,8 @@ const ChatHeader: React.FC = memo(function ChatHeader() {
   }, [sharePreviewSession]);
 
   const handleShare = useCallback(async () => {
+    if (!checkAuth()) return;
+
     if (!currentSessionId) {
       message.warning(t('chat.shareSelectSessionFirst'));
       return;
@@ -120,7 +124,7 @@ const ChatHeader: React.FC = memo(function ChatHeader() {
     } finally {
       setShareLoading(false);
     }
-  }, [currentSessionId, sessions, createShare, t]);
+  }, [currentSessionId, sessions, createShare, t, checkAuth]);
 
   const handleCopyShareUrl = useCallback(() => {
     void navigator.clipboard.writeText(shareUrl);

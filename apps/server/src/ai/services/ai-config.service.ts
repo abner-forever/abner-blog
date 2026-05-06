@@ -183,6 +183,45 @@ export class AIConfigService {
     };
   }
 
+  /**
+   * 游客模式：使用默认配置 + 环境变量 API key，不读取用户数据库
+   */
+  async resolveDefaultConfig(
+    runtime: Partial<UserAIConfigInput> & { apiKey?: string },
+  ): Promise<ChatModelConfig> {
+    const defaults = this.getDefaultConfig();
+    const provider = runtime.provider ?? defaults.provider;
+    const apiKey = runtime.apiKey
+      ? this.normalizeLlmSecretKey(runtime.apiKey)
+      : this.getEnvApiKey(provider);
+    if (!apiKey) {
+      throw new Error(`Missing apiKey for provider: ${provider}`);
+    }
+    return {
+      provider,
+      model: runtime.model ?? defaults.model,
+      apiKey,
+      temperature: runtime.temperature ?? defaults.temperature,
+      maxTokens: runtime.maxTokens ?? defaults.maxTokens,
+      thinkingEnabled: runtime.thinkingEnabled ?? defaults.thinkingEnabled,
+      thinkingBudget: runtime.thinkingBudget ?? defaults.thinkingBudget,
+      useMcpTools: runtime.useMcpTools ?? defaults.useMcpTools,
+    };
+  }
+
+  private getEnvApiKey(provider: LLMProvider): string {
+    const envKeyMap: Record<string, string | undefined> = {
+      minimax: process.env.MINIMAX_API_KEY,
+      openai: process.env.OPENAI_API_KEY,
+      anthropic: process.env.ANTHROPIC_API_KEY,
+      deepseek: process.env.DEEPSEEK_API_KEY,
+      qwen: process.env.QWEN_API_KEY,
+      gemini: process.env.GEMINI_API_KEY,
+    };
+    const raw = envKeyMap[provider];
+    return raw ? this.normalizeLlmSecretKey(raw) : '';
+  }
+
   /** 去掉首尾空白、重复 Bearer、包裹引号，避免鉴权失败 */
   private normalizeLlmSecretKey(raw: string): string {
     let k = raw.trim();

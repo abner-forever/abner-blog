@@ -2353,3 +2353,44 @@
   pointer-events: none;
   overflow: visible;
 }
+
+// 游客模式提示横幅
+.chat-guest-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--skin-primary) 12%, var(--card-bg)),
+    color-mix(in srgb, var(--skin-primary) 6%, var(--card-bg))
+  );
+  border-top: 1px solid color-mix(in srgb, var(--skin-primary) 20%, var(--skin-border-color, #e5e7eb));
+
+  &__text {
+    font-size: 14px;
+    color: var(--antd-colorTextSecondary, #6b7280);
+  }
+
+  .ant-btn {
+    border-radius: 6px;
+    font-size: 13px;
+  }
+}
+
+// 暗色主题下的游客横幅
+[data-theme="dark"] {
+  .chat-guest-banner {
+    background: linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--skin-primary) 16%, #1e293b),
+      color-mix(in srgb, var(--skin-primary) 8%, #1e293b)
+    );
+    border-top-color: color-mix(in srgb, var(--skin-primary) 24%, #334155);
+
+    &__text {
+      color: #94a3b8;
+    }
+  }
+}

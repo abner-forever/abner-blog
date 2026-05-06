@@ -778,7 +778,9 @@
     "shareStartNewChat": "New chat",
     "shareBackHome": "Home",
     "selectModelPlaceholder": "Choose a model",
-    "profileUpdateSuccess": "Profile updated successfully"
+    "profileUpdateSuccess": "Profile updated successfully",
+    "guestModeHint": "Login to unlock more features",
+    "guestInputPlaceholder": "Login to start chatting..."
   },
   "calendar": {
     "title": "Calendar",

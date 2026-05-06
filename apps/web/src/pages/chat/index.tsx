@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Button } from 'antd';
+import { LoginOutlined } from '@ant-design/icons';
 import { ChatProvider, useChat } from './context/ChatContext';
 import ChatSidebar from './components/ChatSidebar';
 import ChatHeader from './components/ChatHeader';
@@ -12,11 +14,15 @@ import MCPServerPanel from './components/MCPServerPanel';
 import SkillPanel from './components/SkillPanel';
 import { isChatImageSupportedVendor } from './constants';
 import { readFileAsChatImage, revokeChatImagePreview, CHAT_MAX_IMAGES, type ChatImagePayload } from './utils/chat-images';
+import { useAppSelector } from '@/store/reduxHooks';
+import { useAuthCheck } from '@/hooks/useAuthCheck';
 import { message } from 'antd';
 import './index.less';
 
 const ChatPageContent: React.FC = () => {
   const { t } = useTranslation();
+  const { isAuthenticated } = useAppSelector((s) => s.auth);
+  const { checkAuth } = useAuthCheck();
   const {
     state,
     dispatch,
@@ -233,15 +239,31 @@ const ChatPageContent: React.FC = () => {
           attachLabel={t('chat.attachImage')}
           pasteHint={t('chat.pasteImageHint')}
           placeholder={
-            isChatImageSupportedVendor(vendor)
-              ? t('chat.sendPlaceholder')
-              : t('chat.sendPlaceholderTextOnly')
+            !isAuthenticated
+              ? t('chat.guestInputPlaceholder', { defaultValue: '登录后开始对话...' })
+              : isChatImageSupportedVendor(vendor)
+                ? t('chat.sendPlaceholder')
+                : t('chat.sendPlaceholderTextOnly')
           }
           sendShortcutHint={t('chat.sendShortcut')}
           stopLabel={t('chat.stop')}
           sendLabel={t('chat.send')}
           imageUploadSupported={isChatImageSupportedVendor(vendor)}
         />
+
+        {!isAuthenticated && (
+          <div className="chat-guest-banner">
+            <span className="chat-guest-banner__text">{t('chat.guestModeHint')}</span>
+            <Button
+              type="primary"
+              size="small"
+              icon={<LoginOutlined />}
+              onClick={() => checkAuth()}
+            >
+              {t('nav.login')}
+            </Button>
+          </div>
+        )}
       </div>
 
       <ChatHistoryDrawer

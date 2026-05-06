@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useReducer, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { message } from 'antd';
-import { useAppSelector } from '@/store/reduxHooks';
+import { useAppSelector, useAppDispatch } from '@/store/reduxHooks';
+import { openLoginModal } from '@/store/loginModalSlice';
 import {
   STORAGE_KEY,
   MAX_SESSIONS,
@@ -287,6 +288,8 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(chatReducer, initialState);
   const { t } = useTranslation();
   const { theme } = useAppSelector((s) => s.theme);
+  const { isAuthenticated } = useAppSelector((s) => s.auth);
+  const reduxDispatch = useAppDispatch();
 
   // Refs
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -564,6 +567,11 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const sendMessage = useCallback(async () => {
+    if (!isAuthenticated) {
+      reduxDispatch(openLoginModal());
+      return;
+    }
+
     const {
       input,
       pendingImages,
@@ -767,7 +775,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
       saveSessions(updatedSessions);
     }
-  }, [t, stopTypeWriter, runTypeWriter, formatAiStreamErrorPayload, formatErrorReasonForDisplay, saveSessions]);
+  }, [t, stopTypeWriter, runTypeWriter, formatAiStreamErrorPayload, formatErrorReasonForDisplay, saveSessions, isAuthenticated, reduxDispatch]);
 
   const stopGeneration = useCallback(() => {
     stopTypeWriter();
@@ -850,6 +858,11 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   }, [saveSessions, sendMessage]);
 
   const handleSaveSettings = useCallback(async () => {
+    if (!isAuthenticated) {
+      reduxDispatch(openLoginModal());
+      return;
+    }
+
     const { vendor, model, temperature, maxTokens, contextWindow, enableThinking, thinkingBudget, useMcpTools, apiKeys } = stateRef.current;
     try {
       await saveAIConfig({
@@ -871,10 +884,12 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       message.error((error as Error).message || '保存配置失败');
     }
-  }, []);
+  }, [isAuthenticated, reduxDispatch]);
 
-  // Load remote config
+  // Load remote config (skip for guest users)
   useEffect(() => {
+    if (!isAuthenticated) return;
+
     const loadRemoteConfig = async () => {
       try {
         const result = await getAIConfig();
@@ -897,7 +912,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       }
     };
     loadRemoteConfig();
-  }, []);
+  }, [isAuthenticated]);
 
   // Scroll to bottom on messages change
   useEffect(() => {

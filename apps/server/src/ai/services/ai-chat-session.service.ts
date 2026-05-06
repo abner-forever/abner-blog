@@ -5,8 +5,8 @@ import { AIMessage, BaseMessage, HumanMessage } from '@langchain/core/messages';
 export class AIChatSessionService {
   private readonly chatSessionHistory = new Map<string, BaseMessage[]>();
 
-  getSessionKey(userId: number, sessionId?: string): string {
-    return `${userId}:${sessionId || 'default'}`;
+  getSessionKey(userId: number | undefined, sessionId?: string): string {
+    return `${userId ?? 'guest'}:${sessionId || 'default'}`;
   }
 
   getHistoryMessages(sessionKey: string): BaseMessage[] {

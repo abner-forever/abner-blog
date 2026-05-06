@@ -105,8 +105,9 @@ export class AIService {
    */
   private async buildKnowledgeBaseContext(
     message: string,
-    userId: number,
+    userId: number | undefined,
   ): Promise<string> {
+    if (!userId) return '';
     try {
       const results = await this.knowledgeBaseService.search(
         { query: message, topK: 3 },
@@ -136,10 +137,11 @@ export class AIService {
   }
 
   private async buildSkillSystemMessage(
-    userId: number,
+    userId: number | undefined,
     requestConfig: ChatRequestDto | undefined,
     userMessage: string,
   ): Promise<SystemMessage | null> {
+    if (!userId) return null;
     const text = await this.skillsService.buildSystemPromptForChat(
       userId,
       requestConfig?.skillId,
@@ -153,7 +155,7 @@ export class AIService {
    */
   async processMessage(
     message: string,
-    userId: number,
+    userId: number | undefined,
     currentDate: string = new Date().toISOString(),
     sessionId?: string,
     requestConfig?: ChatRequestDto,
@@ -164,7 +166,8 @@ export class AIService {
       const contextWindow =
         requestConfig?.contextWindow ?? this.maxHistoryMessages;
       const hasImages = Boolean(requestConfig?.images?.length);
-      const intent = hasImages
+      // 游客模式：强制使用 CHAT 意图，跳过需要登录的功能
+      const intent = hasImages || !userId
         ? IntentType.CHAT
         : await detectIntent(llm, message);
       const result = await this.processByIntent(
@@ -205,7 +208,7 @@ export class AIService {
    */
   async *processMessageStream(
     message: string,
-    userId: number,
+    userId: number | undefined,
     currentDate: string = new Date().toISOString(),
     sessionId?: string,
     requestConfig?: ChatRequestDto,
@@ -223,8 +226,9 @@ export class AIService {
       const hasImages = Boolean(requestConfig?.images?.length);
       const useChatFastPath =
         !hasImages && this.chatResponseService.shouldUseFastPath(message);
+      // 游客模式：强制使用 CHAT 意图，跳过需要登录的功能
       const intent =
-        useChatFastPath || hasImages
+        useChatFastPath || hasImages || !userId
           ? IntentType.CHAT
           : await detectIntent(llm, message);
       process.stderr.write(
@@ -306,7 +310,7 @@ export class AIService {
   private async *streamWeatherIntent(
     llm: ChatLLM,
     message: string,
-    userId: number,
+    userId: number | undefined,
     currentDate: string,
     sessionId: string | undefined,
     useMcpTools: boolean,
@@ -389,7 +393,7 @@ export class AIService {
   private async *streamChatOrSearchIntent(
     llm: ChatLLM,
     message: string,
-    userId: number,
+    userId: number | undefined,
     sessionId: string | undefined,
     useMcpTools: boolean,
     requestConfig: ChatRequestDto | undefined,
@@ -476,7 +480,7 @@ export class AIService {
   private async *streamGeneralChatIntent(
     llm: ChatLLM,
     message: string,
-    userId: number,
+    userId: number | undefined,
     sessionId: string | undefined,
     requestConfig: ChatRequestDto | undefined,
     contextWindow: number,
@@ -716,7 +720,7 @@ export class AIService {
   private async handleChat(
     llm: ChatLLM,
     message: string,
-    userId: number,
+    userId: number | undefined,
     sessionId?: string,
     contextWindow = this.maxHistoryMessages,
     images?: ChatImageDto[],
@@ -810,7 +814,7 @@ export class AIService {
     llm: ChatLLM,
     message: string,
     currentDate: string,
-    userId: number,
+    userId: number | undefined,
   ): Promise<string> {
     const protocolVersion = AIService.mcpProtocolVersion;
     const mcpUrl =
@@ -991,7 +995,7 @@ export class AIService {
   private appendIntentResultToHistoryIfNeeded(
     intent: IntentType,
     userMessage: string,
-    userId: number,
+    userId: number | undefined,
     sessionId: string | undefined,
     result: ChatResponseDto,
   ): void {
@@ -1017,7 +1021,7 @@ export class AIService {
     llm: ChatLLM,
     intent: IntentType,
     message: string,
-    userId: number,
+    userId: number | undefined,
     currentDate: string,
     sessionId?: string,
     contextWindow = this.maxHistoryMessages,
@@ -1132,11 +1136,12 @@ export class AIService {
    */
   private async resolveWebSearchDigestForUser(
     message: string,
-    userId: number,
+    userId: number | undefined,
     useMcpTools: boolean,
   ): Promise<
     { kind: 'digest'; text: string } | { kind: 'blocked'; text: string } | null
   > {
+    if (!userId) return null;
     if (!shouldOfferWebSearchMcp(message)) {
       return null;
     }
@@ -1179,9 +1184,10 @@ export class AIService {
 
   private async tryHandleGithubChatViaMcp(
     message: string,
-    userId: number,
+    userId: number | undefined,
     sessionId?: string,
   ): Promise<ChatResponseDto | null> {
+    if (!userId) return null;
     const ownerRepoMatch = extractGithubOwnerRepo(message);
     if (!ownerRepoMatch) return null;
 
@@ -1287,9 +1293,10 @@ export class AIService {
 
   private async tryHandleUserInfoViaMcp(
     message: string,
-    userId: number,
+    userId: number | undefined,
     sessionId?: string,
   ): Promise<ChatResponseDto | null> {
+    if (!userId) return null;
     const text = message.trim();
     if (!text) return null;
 
@@ -1401,23 +1408,25 @@ export class AIService {
   }
 
   private async buildLLM(
-    userId: number,
+    userId: number | undefined,
     requestConfig?: ChatRequestDto,
   ): Promise<{ llm: ChatLLM; thinkingEnabled: boolean; useMcpTools: boolean }> {
     try {
-      const resolvedModelConfig = await this.aiConfigService.resolveModelConfig(
-        userId,
-        {
-          provider: requestConfig?.provider,
-          model: requestConfig?.model,
-          temperature: requestConfig?.temperature,
-          maxTokens: requestConfig?.maxTokens,
-          contextWindow: requestConfig?.contextWindow,
-          thinkingEnabled: requestConfig?.thinkingEnabled,
-          thinkingBudget: requestConfig?.thinkingBudget,
-          useMcpTools: requestConfig?.useMcpTools,
-        },
-      );
+      const runtimeConfig = {
+        provider: requestConfig?.provider,
+        model: requestConfig?.model,
+        temperature: requestConfig?.temperature,
+        maxTokens: requestConfig?.maxTokens,
+        contextWindow: requestConfig?.contextWindow,
+        thinkingEnabled: requestConfig?.thinkingEnabled,
+        thinkingBudget: requestConfig?.thinkingBudget,
+        useMcpTools: requestConfig?.useMcpTools,
+      };
+
+      const resolvedModelConfig = userId
+        ? await this.aiConfigService.resolveModelConfig(userId, runtimeConfig)
+        : await this.aiConfigService.resolveDefaultConfig(runtimeConfig);
+
       return {
         llm: new UniversalChatLLM(resolvedModelConfig),
         thinkingEnabled: Boolean(resolvedModelConfig.thinkingEnabled),

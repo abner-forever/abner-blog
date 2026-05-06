@@ -4,6 +4,7 @@ import type { MenuProps } from 'antd';
 import {
   UserOutlined,
   LogoutOutlined,
+  LoginOutlined,
   SunOutlined,
   MoonOutlined,
   SettingOutlined,
@@ -11,6 +12,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useChat } from '../../context/ChatContext';
 import { useAppSelector, useAppDispatch } from '@/store/reduxHooks';
+import { useAuth } from '@/hooks/useAuth';
 import { setTheme } from '@/store/themeSlice';
 import './FooterUserSection.less';
 
@@ -19,6 +21,8 @@ const FooterUserSection: React.FC = memo(function FooterUserSection() {
   const { dispatch } = useChat();
   const theme = useAppSelector((s) => s.theme.theme);
   const user = useAppSelector((s) => s.auth.user);
+  const isAuthenticated = useAppSelector((s) => s.auth.isAuthenticated);
+  const { logout } = useAuth();
 
   const dispatchTheme = useAppDispatch();
 
@@ -26,25 +30,32 @@ const FooterUserSection: React.FC = memo(function FooterUserSection() {
     dispatchTheme(setTheme(checked ? 'dark' : 'light'));
   }, [dispatchTheme]);
 
-  const userMenuItems: MenuProps['items'] = useMemo(() => [
-    {
-      key: 'profile',
-      icon: <UserOutlined />,
-      label: t('nav.profile'),
-      onClick: () => {
-        window.location.href = '/profile';
-      },
-    },
-    {
+  const userMenuItems: MenuProps['items'] = useMemo(() => {
+    const items: MenuProps['items'] = [];
+
+    if (isAuthenticated) {
+      items.push({
+        key: 'profile',
+        icon: <UserOutlined />,
+        label: t('nav.profile'),
+        onClick: () => {
+          window.location.href = '/profile';
+        },
+      });
+    }
+
+    items.push({
       key: 'settings',
       icon: <SettingOutlined />,
       label: t('chat.settings'),
       onClick: () => {
         dispatch({ type: 'SET_SHOW_CHAT_SETTINGS', payload: true });
       },
-    },
-    { type: 'divider' },
-    {
+    });
+
+    items.push({ type: 'divider' });
+
+    items.push({
       key: 'theme',
       icon: theme === 'dark' ? <SunOutlined /> : <MoonOutlined />,
       label: (
@@ -53,18 +64,26 @@ const FooterUserSection: React.FC = memo(function FooterUserSection() {
           <Switch size="small" checked={theme === 'dark'} onChange={handleThemeChange} />
         </div>
       ),
-    },
-    { type: 'divider' },
-    {
-      key: 'logout',
-      icon: <LogoutOutlined />,
-      label: t('nav.logout'),
-      danger: true,
+    });
+
+    items.push({ type: 'divider' });
+
+    items.push({
+      key: isAuthenticated ? 'logout' : 'login',
+      icon: isAuthenticated ? <LogoutOutlined /> : <LoginOutlined />,
+      label: isAuthenticated ? t('nav.logout') : t('nav.login'),
+      danger: isAuthenticated,
       onClick: () => {
-        window.location.href = '/login';
+        if (isAuthenticated) {
+          void logout();
+        } else {
+          window.location.href = '/login';
+        }
       },
-    },
-  ], [t, theme, dispatch, handleThemeChange]);
+    });
+
+    return items;
+  }, [t, theme, dispatch, handleThemeChange, isAuthenticated, logout]);
 
   return (
     <div className="footer-user-section">

@@ -16,6 +16,7 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
 import { AIService } from './ai.service';
 import { ChatRequestDto, SaveAIConfigDto } from './dto/chat.dto';
 import { ChatResponseDto } from './dto/extraction-result.dto';
@@ -23,23 +24,28 @@ import { AIConfigPublicKeyResponseDto } from './dto/ai-config.response.dto';
 import { AuthenticatedRequest } from '../common/interfaces/request.interface';
 import type { Response } from 'express';
 
+interface OptionalAuthRequest extends Request {
+  user?: {
+    userId: number;
+    username: string;
+  };
+}
+
 @ApiTags('AI')
 @Controller('ai')
 export class AIController {
   constructor(private readonly aiService: AIService) {}
 
   @Post('chat')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
+  @UseGuards(OptionalJwtAuthGuard)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'AI 聊天接口' })
   @ApiResponse({ status: 200, description: 'AI 响应', type: ChatResponseDto })
-  @ApiResponse({ status: 401, description: '未授权' })
   async chat(
-    @Request() req: AuthenticatedRequest,
+    @Request() req: OptionalAuthRequest,
     @Body() chatDto: ChatRequestDto,
   ): Promise<ChatResponseDto> {
-    const userId = req.user.userId;
+    const userId = req.user?.userId;
     return this.aiService.processMessage(
       chatDto.message,
       userId,
@@ -50,18 +56,16 @@ export class AIController {
   }
 
   @Post('chat/stream')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
+  @UseGuards(OptionalJwtAuthGuard)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'AI 聊天流式接口（SSE）' })
   @ApiResponse({ status: 200, description: 'SSE 流式响应' })
-  @ApiResponse({ status: 401, description: '未授权' })
   async chatStream(
-    @Request() req: AuthenticatedRequest,
+    @Request() req: OptionalAuthRequest,
     @Body() chatDto: ChatRequestDto,
     @Res() res: Response,
   ) {
-    const userId = req.user.userId;
+    const userId = req.user?.userId;
     res.status(HttpStatus.OK);
     res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
     res.setHeader('Cache-Control', 'no-cache, no-transform');
