@@ -420,9 +420,21 @@ function buildProviderRequest(
         ? 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions'
         : 'https://api.openai.com/v1/chat/completions';
 
+  // DeepSeek API 不支持图片内容，过滤掉 image_url 部分
+  let messages = opts.messages;
+  if (cfg.provider === 'deepseek') {
+    messages = messages.map((msg) => {
+      if (Array.isArray(msg.content)) {
+        const textOnly = msg.content.filter((p) => p.type === 'text');
+        return { ...msg, content: textOnly.length > 0 ? textOnly : '' };
+      }
+      return msg;
+    });
+  }
+
   const body: Record<string, unknown> = {
     model: cfg.model,
-    messages: opts.messages,
+    messages,
     temperature: opts.temperature / 10,
     max_tokens: opts.maxTokens,
     thinking: {

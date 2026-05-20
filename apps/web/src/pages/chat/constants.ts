@@ -89,10 +89,17 @@ export function sessionsForLocalStorage(sessions: ChatSession[]): ChatSession[] 
   }));
 }
 
-/** 当前所有已接入 provider 均允许聊天配图，由后端按 provider 路由。 */
+/** 各供应商是否支持聊天配图，后端按 provider 路由 */
+const IMAGE_SUPPORTED_VENDORS: VendorType[] = [
+  VendorType.OPENAI,
+  VendorType.ANTHROPIC,
+  VendorType.GEMINI,
+  VendorType.QWEN,
+  VendorType.MINIMAX,
+];
+
 export function isChatImageSupportedVendor(vendor: VendorType): boolean {
-  void vendor;
-  return true;
+  return IMAGE_SUPPORTED_VENDORS.includes(vendor);
 }
 
 export function isVendorType(value: string): value is VendorType {

@@ -204,7 +204,33 @@ const ChatPageContent: React.FC = () => {
           />
         )}
 
-        <ChatMessageList
+        {/* 游客登录提示 — 未登录时居中展示 */}
+        {!isAuthenticated && (
+          <div className="chat-guest-hero">
+            <LoginOutlined className="chat-guest-hero__icon" />
+            <h2 className="chat-guest-hero__title">
+              {t('chat.loginPromptTitle', { defaultValue: '登录以开始对话' })}
+            </h2>
+            <p className="chat-guest-hero__desc">
+              {t('chat.loginPromptDesc', {
+                defaultValue: '登录后可以保存聊天记录，使用多种 AI 模型和更多功能',
+              })}
+            </p>
+            <Button
+              type="primary"
+              size="large"
+              icon={<LoginOutlined />}
+              onClick={() => checkAuth()}
+              className="chat-guest-hero__btn"
+            >
+              {t('nav.login')}
+            </Button>
+          </div>
+        )}
+
+        {isAuthenticated && (
+          <>
+          <ChatMessageList
           messages={messages}
           loading={loading}
           isDark={isDark}
@@ -250,19 +276,7 @@ const ChatPageContent: React.FC = () => {
           sendLabel={t('chat.send')}
           imageUploadSupported={isChatImageSupportedVendor(vendor)}
         />
-
-        {!isAuthenticated && (
-          <div className="chat-guest-banner">
-            <span className="chat-guest-banner__text">{t('chat.guestModeHint')}</span>
-            <Button
-              type="primary"
-              size="small"
-              icon={<LoginOutlined />}
-              onClick={() => checkAuth()}
-            >
-              {t('nav.login')}
-            </Button>
-          </div>
+          </>
         )}
       </div>
 
@@ -270,6 +284,7 @@ const ChatPageContent: React.FC = () => {
         open={mobileDrawerOpen}
         sessions={sessions}
         currentSessionId={currentSessionId}
+        isAuthenticated={isAuthenticated}
         onClose={handleMobileDrawerClose}
         onCreateSession={handleDrawerCreateSession}
         onSwitchSession={handleDrawerSwitchSession}

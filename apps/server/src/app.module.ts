@@ -71,6 +71,7 @@ import { KnowledgeChunk } from './entities/knowledge-chunk.entity';
 import { MCPServer } from './entities/mcp-server.entity';
 import { SkillsModule } from './skills/skills.module';
 import { Skill } from './entities/skill.entity';
+import { ChatSession } from './entities/chat-session.entity';
 
 @Module({
   imports: [
@@ -126,6 +127,7 @@ import { Skill } from './entities/skill.entity';
         KnowledgeChunk,
         MCPServer,
         Skill,
+        ChatSession,
       ],
       synchronize: process.env.NODE_ENV !== 'production',
     }),

@@ -4,10 +4,12 @@ import {
   PlayCircleOutlined,
   BlockOutlined,
   AppstoreOutlined,
+  ClockCircleOutlined,
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import Loading from '@/components/Loading';
 import './index.less';
+import CountAdd from './components/CountAdd';
 
 const { Title, Text } = Typography;
 const { useBreakpoint } = Grid;
@@ -406,6 +408,14 @@ const DemoPage: React.FC = () => {
       color: '#10b981',
       action: () => setActiveDemo('virtual'),
     },
+    {
+      id: 'countAdd',
+      nameKey: 'demo.countAdd',
+      descKey: 'demo.countAddDesc',
+      icon: <ClockCircleOutlined />,
+      color: '#10b981',
+      action: () => setActiveDemo('countAdd'),
+    },
   ];
 
   return (
@@ -454,6 +464,16 @@ const DemoPage: React.FC = () => {
               {t('demo.virtualList')}
             </Title>
             <VirtualList />
+          </div>
+        </div>
+      )}
+      {activeDemo === 'countAdd' && (
+        <div className="demo-modal-overlay" onClick={() => setActiveDemo(null)}>
+          <div onClick={(e) => e.stopPropagation()}>
+            <Title level={3} className="modal-title">
+              {t('demo.countAdd')}
+            </Title>
+            <CountAdd />
           </div>
         </div>
       )}

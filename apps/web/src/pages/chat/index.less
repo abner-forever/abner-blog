@@ -2278,6 +2278,30 @@
         }
       }
     }
+
+    // 抽屉内游客提示
+    .drawer-guest-prompt {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      padding: 40px 24px;
+      text-align: center;
+
+      &__icon {
+        font-size: 40px;
+        color: var(--skin-primary, #1677ff);
+      }
+
+      &__text {
+        font-size: 14px;
+        color: var(--text-color-secondary, #6b7280);
+        margin: 0;
+        line-height: 1.6;
+      }
+    }
   }
 }
 
@@ -2391,6 +2415,97 @@
 
     &__text {
       color: #94a3b8;
+    }
+  }
+}
+
+// 游客提示 — 未登录时居中展示
+.chat-guest-hero {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px 20px;
+  min-height: 300px;
+  max-width: 420px;
+  margin: 0 auto;
+
+  &__icon {
+    font-size: 52px;
+    color: var(--skin-primary, #1677ff);
+    margin-bottom: 24px;
+  }
+
+  &__title {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0 0 12px;
+    color: var(--text-color, #1f2937);
+  }
+
+  &__desc {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--text-color-secondary, #6b7280);
+    margin: 0 0 32px;
+  }
+
+  &__btn {
+    min-width: 180px;
+    height: 48px;
+    font-size: 16px;
+    border-radius: 8px;
+  }
+}
+
+// 游客提示 — 输入框区域的替代提示
+.chat-guest-input-block {
+  padding: 16px 20px;
+
+  &__hint {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px;
+    background: var(--card-bg, #fff);
+    border: 1px dashed var(--border-color, #d9d9d9);
+    border-radius: 10px;
+    color: var(--text-color-secondary, #6b7280);
+    font-size: 14px;
+    cursor: pointer;
+    transition: border-color 0.2s;
+
+    &:hover {
+      border-color: var(--skin-primary, #1677ff);
+      color: var(--skin-primary, #1677ff);
+    }
+  }
+}
+
+[data-theme="dark"] {
+  .chat-guest-hero {
+    &__title {
+      color: #f1f5f9;
+    }
+
+    &__desc {
+      color: #94a3b8;
+    }
+  }
+
+  .chat-guest-input-block {
+    &__hint {
+      background: #1e293b;
+      border-color: #475569;
+      color: #94a3b8;
+
+      &:hover {
+        border-color: var(--skin-primary, #60a5fa);
+        color: var(--skin-primary, #60a5fa);
+      }
     }
   }
 }

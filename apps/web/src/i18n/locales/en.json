@@ -780,7 +780,10 @@
     "selectModelPlaceholder": "Choose a model",
     "profileUpdateSuccess": "Profile updated successfully",
     "guestModeHint": "Login to unlock more features",
-    "guestInputPlaceholder": "Login to start chatting..."
+    "guestInputPlaceholder": "Login to start chatting...",
+    "loginToViewHistory": "Log in to view chat history",
+    "loginPromptTitle": "Log in to start chatting",
+    "loginPromptDesc": "Log in to save chat history, access multiple AI models and more features"
   },
   "calendar": {
     "title": "Calendar",

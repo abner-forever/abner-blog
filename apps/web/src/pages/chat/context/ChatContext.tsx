@@ -20,7 +20,7 @@ import {
   stripAbnerBlogPublishBlock,
 } from '../utils/parse-blog-publish-block';
 import { handleChatStreamEvent } from '../utils/stream-event-handler';
-import { requestAIChatStream, saveAIConfig, getAIConfig } from '@services/ai';
+import { requestAIChatStream, saveAIConfig, getAIConfig, listChatSessions, saveChatSession, deleteChatSession } from '@services/ai';
 import { type ChatSession, type Message, type IntentName, type VendorType } from '../types';
 import { type ChatImagePayload } from '../utils/chat-images';
 import { canonicalAssistantMarkdown } from '../utils/assistant-markdown';
@@ -329,38 +329,121 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     );
   }, [theme]);
 
-  // Load sessions from localStorage
+  // Load sessions from server (authenticated) or localStorage (guest)
   useEffect(() => {
-    const savedSessions = localStorage.getItem(STORAGE_KEY);
-    if (savedSessions) {
-      try {
-        const parsed = JSON.parse(savedSessions) as ChatSession[];
-        if (parsed.length > 0) {
-          const normalizedSessions = sortSessionsByLatest(
-            parsed.map((session: ChatSession) => ({
-              ...session,
-              messages: normalizeHydratedMessages(session.messages || []),
-            })),
-          );
-          const preferred = normalizedSessions[0];
-          dispatch({ type: 'SET_SESSIONS', payload: normalizedSessions });
-          dispatch({
-            type: 'SET_CURRENT_SESSION',
-            payload: {
-              sessionId: preferred.id,
-              messages: preferred.messages,
-            },
-          });
-        } else {
-          createNewSessionInternal();
+    const loadSessionsAsync = async () => {
+      if (isAuthenticated) {
+        try {
+          const serverSessions = await listChatSessions();
+          if (serverSessions && serverSessions.length > 0) {
+            const normalizedSessions = sortSessionsByLatest(
+              serverSessions.map((s) => ({
+                id: s.sessionId,
+                title: s.title,
+                messages: normalizeHydratedMessages(
+                  (s.messages as unknown as Message[]) || [],
+                ),
+                timestamp: s.timestamp || Date.now(),
+                model: s.model,
+              })),
+            );
+            const preferred = normalizedSessions[0];
+            dispatch({ type: 'SET_SESSIONS', payload: normalizedSessions });
+            dispatch({
+              type: 'SET_CURRENT_SESSION',
+              payload: {
+                sessionId: preferred.id,
+                messages: preferred.messages,
+              },
+            });
+            // Cache to localStorage
+            localStorage.setItem(
+              STORAGE_KEY,
+              JSON.stringify(sessionsForLocalStorage(normalizedSessions)),
+            );
+            return;
+          }
+        } catch {
+          // Server fetch failed, fall through to localStorage
         }
-      } catch {
+
+        // Try localStorage as fallback, then migrate any found sessions to server
+        const savedSessions = localStorage.getItem(STORAGE_KEY);
+        if (savedSessions) {
+          try {
+            const parsed = JSON.parse(savedSessions) as ChatSession[];
+            if (parsed.length > 0) {
+              const normalizedSessions = sortSessionsByLatest(
+                parsed.map((session: ChatSession) => ({
+                  ...session,
+                  messages: normalizeHydratedMessages(session.messages || []),
+                })),
+              );
+              const preferred = normalizedSessions[0];
+              dispatch({ type: 'SET_SESSIONS', payload: normalizedSessions });
+              dispatch({
+                type: 'SET_CURRENT_SESSION',
+                payload: {
+                  sessionId: preferred.id,
+                  messages: preferred.messages,
+                },
+              });
+              // Migrate localStorage sessions to server
+              for (const session of normalizedSessions) {
+                try {
+                  await saveChatSession({
+                    sessionId: session.id,
+                    title: session.title,
+                    messages: session.messages as unknown as Record<string, unknown>[],
+                    model: session.model,
+                  });
+                } catch {
+                  // Silently continue on individual migration failures
+                }
+              }
+              return;
+            }
+          } catch {
+            // Corrupted localStorage, create new session
+          }
+        }
         createNewSessionInternal();
+        return;
       }
-    } else {
+
+      // Guest: only load from localStorage
+      const savedSessions = localStorage.getItem(STORAGE_KEY);
+      if (savedSessions) {
+        try {
+          const parsed = JSON.parse(savedSessions) as ChatSession[];
+          if (parsed.length > 0) {
+            const normalizedSessions = sortSessionsByLatest(
+              parsed.map((session: ChatSession) => ({
+                ...session,
+                messages: normalizeHydratedMessages(session.messages || []),
+              })),
+            );
+            const preferred = normalizedSessions[0];
+            dispatch({ type: 'SET_SESSIONS', payload: normalizedSessions });
+            dispatch({
+              type: 'SET_CURRENT_SESSION',
+              payload: {
+                sessionId: preferred.id,
+                messages: preferred.messages,
+              },
+            });
+            return;
+          }
+        } catch {
+          // Corrupted localStorage, create new session
+        }
+      }
       createNewSessionInternal();
-    }
-  }, []);
+    };
+
+    loadSessionsAsync();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated]);
 
   const createNewSessionInternal = useCallback(() => {
     const welcomeContent = t('chat.welcome', {
@@ -397,7 +480,23 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     const limitedSessions = sortSessionsByLatest(newSessions).slice(0, MAX_SESSIONS);
     dispatch({ type: 'SET_SESSIONS', payload: limitedSessions });
     localStorage.setItem(STORAGE_KEY, JSON.stringify(sessionsForLocalStorage(limitedSessions)));
-  }, []);
+
+    // Sync current session to server when authenticated
+    if (isAuthenticated) {
+      const { currentSessionId } = stateRef.current;
+      const current = limitedSessions.find((s) => s.id === currentSessionId);
+      if (current) {
+        saveChatSession({
+          sessionId: current.id,
+          title: current.title,
+          messages: current.messages as unknown as Record<string, unknown>[],
+          model: current.model,
+        }).catch(() => {
+          // Silent fail — local save succeeded; server sync is best-effort
+        });
+      }
+    }
+  }, [isAuthenticated]);
 
   const persistCurrentChatToStorage = useCallback(
     (messagePatch?: { id: string; updates: Partial<Message> }) => {
@@ -476,6 +575,11 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   const deleteSession = useCallback((sessionId: string) => {
     const newSessions = stateRef.current.sessions.filter((s) => s.id !== sessionId);
     saveSessions(newSessions);
+    if (isAuthenticated) {
+      deleteChatSession(sessionId).catch(() => {
+        // Silent fail
+      });
+    }
     if (stateRef.current.currentSessionId === sessionId) {
       if (newSessions.length > 0) {
         switchSession(newSessions[0].id);
@@ -483,7 +587,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         createNewSession();
       }
     }
-  }, [saveSessions, switchSession, createNewSession]);
+  }, [saveSessions, switchSession, createNewSession, isAuthenticated]);
 
   const stopTypeWriter = useCallback(() => {
     if (typeWriterTimerRef.current) {

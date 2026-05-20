@@ -202,3 +202,54 @@ export const getAIConfig = async () => {
   }
   return response.json();
 };
+
+/** 服务端会话同步 — 仅认证用户可用 */
+export interface ServerSessionItem {
+  sessionId: string;
+  title: string;
+  timestamp: number;
+  model: string;
+  messages: Record<string, unknown>[];
+}
+
+export const listChatSessions = async (): Promise<ServerSessionItem[]> => {
+  const headers = await getChatStreamHeaders();
+  const response = await fetch('/api/ai/sessions/list', {
+    method: 'POST',
+    headers,
+  });
+  if (!response.ok) {
+    throw new Error(`获取会话列表失败(${response.status})`);
+  }
+  const data = await response.json() as { data?: ServerSessionItem[] };
+  return data?.data ?? data as unknown as ServerSessionItem[];
+};
+
+export const saveChatSession = async (session: {
+  sessionId: string;
+  title: string;
+  messages: Record<string, unknown>[];
+  model: string;
+}): Promise<void> => {
+  const headers = await getChatStreamHeaders();
+  const response = await fetch('/api/ai/sessions/save', {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(session),
+  });
+  if (!response.ok) {
+    throw new Error(`保存会话失败(${response.status})`);
+  }
+};
+
+export const deleteChatSession = async (sessionId: string): Promise<void> => {
+  const headers = await getChatStreamHeaders();
+  const response = await fetch('/api/ai/sessions/delete', {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ sessionId }),
+  });
+  if (!response.ok) {
+    throw new Error(`删除会话失败(${response.status})`);
+  }
+};

@@ -781,7 +781,10 @@
     "selectModelPlaceholder": "选择模型",
     "profileUpdateSuccess": "个人信息已更新",
     "guestModeHint": "登录后可使用更多功能",
-    "guestInputPlaceholder": "登录后开始对话..."
+    "guestInputPlaceholder": "登录后开始对话...",
+    "loginToViewHistory": "登录后查看聊天记录",
+    "loginPromptTitle": "登录以开始对话",
+    "loginPromptDesc": "登录后可以保存聊天记录，使用多种 AI 模型和更多功能"
   },
   "calendar": {
     "title": "日程日历",
