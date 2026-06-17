@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { message } from 'antd';
+import { message, Modal } from 'antd';
 import type { UploadFile } from 'antd';
 import {
   ArrowLeftOutlined,
@@ -15,6 +15,11 @@ import {
   blogsControllerUpdate,
 } from '@services/generated/blogs/blogs';
 import type { MdPreviewTheme } from '@components/MarkdownEditor';
+import {
+  useAutoSaveDraft,
+  checkDraftExists,
+  getDraft,
+} from '@hooks/useAutoSaveDraft';
 import '../BlogEditor.less';
 
 const EditBlog: React.FC = () => {
@@ -30,22 +35,90 @@ const EditBlog: React.FC = () => {
   const [mdTheme, setMdTheme] = useState<MdPreviewTheme>('default');
   const [category, setCategory] = useState<string>('');
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [blogLoaded, setBlogLoaded] = useState(false);
+  const blogFetchRef = useRef(false);
+
+  const autoSave = useAutoSaveDraft({
+    blogId: id,
+    title,
+    content,
+    tags,
+    cover,
+    mdTheme: mdTheme as string,
+    category,
+    enabled: blogLoaded,
+  });
 
   useEffect(() => {
+    if (blogFetchRef.current) return;
+    blogFetchRef.current = true;
+
     const fetchBlog = async () => {
       try {
         const blog = await blogsControllerFindOne(id!);
-        setTitle(blog.title || '');
-        setContent(blog.content || '');
-        setTags(blog.tags || []);
-        setCover(blog.cover || '');
-        setMdTheme((blog.mdTheme as MdPreviewTheme) || 'default');
+
+        if (checkDraftExists(id)) {
+          const draft = getDraft(id);
+          if (draft && draft.timestamp > new Date(blog.updatedAt || 0).getTime()) {
+            Modal.confirm({
+              title: t('blog.restoreDraftTitle', '发现未保存的草稿'),
+              content: t(
+                'blog.restoreDraftContent',
+                '本地草稿比服务器内容更新，是否恢复草稿？',
+              ),
+              okText: t('blog.restoreDraft', '恢复草稿'),
+              cancelText: t('blog.useServer', '使用服务器版本'),
+              onOk() {
+                setTitle(draft.title || blog.title || '');
+                setContent(draft.content || blog.content || '');
+                setTags(draft.tags || blog.tags || []);
+                setCover(draft.cover || blog.cover || '');
+                setMdTheme(
+                  (draft.mdTheme as MdPreviewTheme) ||
+                    (blog.mdTheme as MdPreviewTheme) ||
+                    'default',
+                );
+                setCategory(draft.category || '');
+              },
+              onCancel() {
+                setTitle(blog.title || '');
+                setContent(blog.content || '');
+                setTags(blog.tags || []);
+                setCover(blog.cover || '');
+                setMdTheme(
+                  (blog.mdTheme as MdPreviewTheme) || 'default',
+                );
+                setCategory('');
+                autoSave.clearDraft();
+              },
+            });
+          } else {
+            setTitle(blog.title || '');
+            setContent(blog.content || '');
+            setTags(blog.tags || []);
+            setCover(blog.cover || '');
+            setMdTheme(
+              (blog.mdTheme as MdPreviewTheme) || 'default',
+            );
+            setCategory('');
+          }
+        } else {
+          setTitle(blog.title || '');
+          setContent(blog.content || '');
+          setTags(blog.tags || []);
+          setCover(blog.cover || '');
+          setMdTheme(
+            (blog.mdTheme as MdPreviewTheme) || 'default',
+          );
+          setCategory('');
+        }
       } catch (err) {
         console.error('获取博客失败:', err);
         message.error(t('blog.getBlogFailed'));
         navigate('/blogs');
       } finally {
         setLoading(false);
+        setBlogLoaded(true);
       }
     };
 
@@ -72,6 +145,7 @@ const EditBlog: React.FC = () => {
         cover: cover.trim() || undefined,
         mdTheme: mdTheme !== 'default' ? mdTheme : undefined,
       } as Parameters<typeof blogsControllerUpdate>[1]);
+      autoSave.clearDraft();
       message.success(t('blog.updateSuccess'));
       navigate(`/blogs/${id}`);
     } catch (err: unknown) {
@@ -143,6 +217,17 @@ const EditBlog: React.FC = () => {
         />
 
         <div className="header-actions">
+          <span
+            className={`auto-save-status auto-save-status--${autoSave.status}`}
+          >
+            {autoSave.status === 'saving' &&
+              t('blog.autoSaving', '保存中...')}
+            {autoSave.status === 'saved' &&
+              t('blog.autoSaved', '已保存')}
+            {autoSave.status === 'error' &&
+              t('blog.autoSaveFailed', '保存失败')}
+          </span>
+
           <button
             type="button"
             className={`settings-btn ${drawerOpen ? 'active' : ''}`}

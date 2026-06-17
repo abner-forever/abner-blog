@@ -71,6 +71,26 @@
       flex-shrink: 0;
     }
 
+    // ── 自动保存状态指示器 ──────────────────────────────
+    .auto-save-status {
+      font-size: 12px;
+      color: var(--text-muted);
+      white-space: nowrap;
+      transition: color 0.2s;
+
+      &--saving {
+        color: var(--primary-color);
+      }
+
+      &--saved {
+        color: #52c41a;
+      }
+
+      &--error {
+        color: #ff4d4f;
+      }
+    }
+
     .settings-btn {
       display: inline-flex;
       align-items: center;

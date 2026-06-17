@@ -1,6 +1,6 @@
-import React, { memo, useMemo, useCallback } from 'react';
+import React, { memo, useMemo, useCallback, useState } from 'react';
 import { Button } from 'antd';
-import { MessageOutlined, DeleteOutlined } from '@ant-design/icons';
+import { MessageOutlined, DeleteOutlined, RightOutlined } from '@ant-design/icons';
 import { useChat } from '../../context/ChatContext';
 import type { ChatSession } from '../../types';
 import dayjs from 'dayjs';
@@ -52,6 +52,21 @@ const SidebarSessionList: React.FC<Props> = memo(function SidebarSessionList({ o
   const { state, switchSession } = useChat();
   const { sessions, currentSessionId } = state;
 
+  // Track collapsed state per group label
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
+
+  const toggleGroup = useCallback((label: string) => {
+    setCollapsedGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(label)) {
+        next.delete(label);
+      } else {
+        next.add(label);
+      }
+      return next;
+    });
+  }, []);
+
   // 使用 session IDs 字符串作为依赖，而不是整个 sessions 数组
   // 这样只有当 session 增删时才会重新计算分组，避免流式更新时频繁重算
   const sessionIds = useMemo(() => sessions.map(s => s.id).join(','), [sessions]);
@@ -95,20 +110,40 @@ const SidebarSessionList: React.FC<Props> = memo(function SidebarSessionList({ o
 
   return (
     <div className="sidebar-session-list">
-      {groupedSessions.map((group) => (
-        <div key={group.label} className="session-group">
-          <div className="session-group-label">{group.label}</div>
-          {group.sessions.map((session) => (
-            <SessionItem
-              key={session.id}
-              session={session}
-              isActive={currentSessionId === session.id}
-              onSwitch={handleSwitch}
-              onDelete={handleDelete}
-            />
-          ))}
-        </div>
-      ))}
+      {groupedSessions.map((group) => {
+        const isCollapsed = collapsedGroups.has(group.label);
+        return (
+          <div key={group.label} className={`session-group${isCollapsed ? ' collapsed' : ''}`}>
+            <div
+              className="session-group-label"
+              onClick={() => toggleGroup(group.label)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  toggleGroup(group.label);
+                }
+              }}
+            >
+              <RightOutlined className="session-group-chevron" />
+              <span className="session-group-label__text">{group.label}</span>
+              <span className="session-group-label__count">{group.sessions.length}</span>
+            </div>
+            <div className="session-group-items">
+              {group.sessions.map((session) => (
+                <SessionItem
+                  key={session.id}
+                  session={session}
+                  isActive={currentSessionId === session.id}
+                  onSwitch={handleSwitch}
+                  onDelete={handleDelete}
+                />
+              ))}
+            </div>
+          </div>
+        );
+      })}
       {sessions.length === 0 && (
         <div className="sidebar-empty">暂无历史记录</div>
       )}

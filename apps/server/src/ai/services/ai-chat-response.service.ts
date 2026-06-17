@@ -46,6 +46,15 @@ export class AIChatResponseService {
       return false;
     }
 
+    /** 体育赛事 / 实时比分：需要联网检索 */
+    if (
+      /(世界杯|奥运会|NBA|CBA|欧冠|英超|西甲|意甲|德甲|中超|亚冠|足球赛|篮球赛|网球|F1|赛车|电竞|LOL|王者荣耀|比分|赛程|比赛|赛事|对局|对阵|晋级|淘汰|决赛|半决赛|小组赛)/i.test(
+        text,
+      )
+    ) {
+      return false;
+    }
+
     const chatPattern =
       /(你是|你会|帮我|解释|介绍|是什么|为什么|怎么|如何|能不能|可以吗|\?|？|hello|hi|你好|谢谢|react|typescript|javascript|node)/i;
     return chatPattern.test(text);

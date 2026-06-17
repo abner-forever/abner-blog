@@ -17,6 +17,12 @@ body {
   padding: 0;
   height: 100%;
   overflow-x: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 body {
@@ -57,23 +63,10 @@ a:hover {
   color: var(--primary-color);
 }
 
-/* —— 滚动条（WebKit） —— */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--border-color);
-  border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--text-muted);
+/* —— 滚动条（WebKit） —— 仅全局视口滚动条，隐藏以避免布局抖动 */
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none;
 }
 
 /* —— 应用壳（原 App.css，.ant-layout / .ant-btn-primary 已在 antd-overrides.less）—— */
@@ -89,6 +82,12 @@ a:hover {
   display: flex;
   flex-direction: column;
   overflow-x: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 .app-content:has(.messages-page) {
@@ -181,9 +180,16 @@ a:hover {
   color: var(--skin-primary, #8b5cf6);
 }
 
-/* —— 主题切换：仅收窄到若干属性，避免拖慢动画类 —— */
-* {
-  transition-property: background-color, border-color, box-shadow, transform;
-  transition-duration: 0.3s;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+/* —— 主题切换：仅对需要的元素添加过渡，避免全局性能损耗 —— */
+body,
+.app-layout,
+.app-content,
+.main-container,
+.ant-card,
+.ant-btn,
+.ant-input,
+.ant-input-affix-wrapper {
+  transition-property: background-color, border-color, color;
+  transition-duration: 0.2s;
+  transition-timing-function: ease;
 }

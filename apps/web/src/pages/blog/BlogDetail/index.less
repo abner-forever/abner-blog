@@ -25,28 +25,26 @@
     width: 44px;
     height: 44px;
     background: var(--card-bg);
-    border-radius: 50%;
+    border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 18px;
     color: @text-muted;
     cursor: pointer;
-    box-shadow: @box-shadow-md;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: color 0.15s, border-color 0.15s;
     border: 1px solid @border-color;
 
     &:hover {
       color: @primary-color;
       border-color: @primary-color;
-      transform: scale(1.1);
     }
 
     &.active {
       background: @primary-color;
       color: #fff;
       border-color: @primary-color;
-      
+
       .anticon {
         color: #fff;
       }
@@ -70,7 +68,6 @@
   background: var(--card-bg);
   padding: 40px;
   border-radius: @border-radius-base;
-  box-shadow: @box-shadow-sm;
   border: 1px solid @border-color;
 }
 
@@ -81,11 +78,11 @@
 
 .blog-detail-title {
   font-size: 32px;
-  font-weight: 800;
-  line-height: 1.3;
+  font-weight: 600;
+  line-height: 1.25;
   color: @text-main;
   margin-bottom: 20px !important;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.5px;
 }
 
 .blog-detail-cover {
@@ -206,19 +203,18 @@
   .tag {
     display: inline-flex;
     align-items: center;
-    padding: 4px 12px;
-    border-radius: 20px;
+    padding: 4px 10px;
+    border-radius: 6px;
     font-size: 13px;
     font-weight: 500;
-    background: var(--bg-color);
+    background: var(--surface-color, #f6f5f4);
     border: 1px solid @border-color;
     color: @text-secondary;
-    transition: all 0.18s;
+    transition: color 0.15s, border-color 0.15s;
 
     &:hover {
-      background: @primary-color;
+      color: @primary-color;
       border-color: @primary-color;
-      color: #fff;
     }
   }
 }
@@ -232,34 +228,30 @@
   gap: 20px;
 
   .footer-action-btn {
-    height: 44px;
-    padding: 0 28px;
-    border-radius: 22px !important;
+    height: 40px;
+    padding: 0 20px;
+    border-radius: 8px !important;
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 15px;
-    font-weight: 600;
-    transition: all 0.3s ease;
-    
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.15s ease;
+
     &.ant-btn-default {
-      background: var(--bg-color);
-      border-color: transparent;
+      background: var(--card-bg);
+      border-color: @border-color;
       color: @text-secondary;
-      
+
       &:hover {
-        background: @divider-color;
-        color: @text-main;
-        transform: translateY(-2px);
+        border-color: @primary-color;
+        color: @primary-color;
       }
     }
-    
+
     &.ant-btn-primary {
-      box-shadow: 0 4px 14px rgba(79, 70, 229, 0.3);
-      
       &:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
+        opacity: 0.9;
       }
     }
   }
@@ -277,7 +269,6 @@
   padding: 24px;
   border-radius: @border-radius-base;
   margin-bottom: 20px;
-  box-shadow: @box-shadow-sm;
   border: 1px solid @border-color;
   
   .author-header {
@@ -349,64 +340,7 @@
   border: 1px solid @border-color;
 }
 
-// 暗色模式适配
-[data-theme='dark'] {
-  .blog-detail-main {
-    background: var(--card-bg);
-    border-color: var(--border-color);
-  }
-
-  .blog-detail-meta {
-    background: var(--bg-color);
-    border-color: var(--border-color);
-
-    .meta-dot {
-      color: var(--border-color);
-    }
-  }
-
-  .blog-detail-tags .tag {
-    background: var(--bg-color);
-    border-color: var(--border-color);
-    color: var(--text-muted);
-
-    &:hover {
-      background: var(--primary-color);
-      border-color: var(--primary-color);
-      color: #fff;
-    }
-  }
-
-  .blog-detail-content {
-    color: var(--text-secondary);
-    h1, h2, h3, h4 { color: var(--text-main); }
-  }
-
-  .author-card {
-    background: var(--card-bg);
-    border-color: var(--border-color);
-    .author-stats {
-      background: var(--bg-color);
-    }
-  }
-
-  .article-suspended-panel .action-item {
-    background: var(--card-bg);
-    border-color: var(--border-color);
-    color: var(--text-muted);
-
-    &:hover {
-      border-color: var(--primary-color);
-      color: var(--primary-color);
-    }
-
-    &.active {
-      background: var(--primary-color);
-      border-color: var(--primary-color);
-      color: #fff;
-    }
-  }
-}
+// 暗色模式 - 已通过 CSS 变量自动适配
 
 @media (max-width: 1300px) {
   .article-suspended-panel {
@@ -442,7 +376,7 @@
   }
 }
 
-/* 回到顶部按钮自定义样式 - 掘金风格 */
+/* 回到顶部按钮 */
 .blog-detail-container {
   position: relative;
 
@@ -460,11 +394,10 @@
       width: 44px;
       height: 44px;
       background: var(--card-bg);
-      color: var(--text-primary);
+      color: var(--text-secondary);
       border: 1px solid var(--border-color);
-      border-radius: 50%;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-      transition: all 0.2s;
+      border-radius: 10px;
+      transition: color 0.15s, border-color 0.15s;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -472,11 +405,8 @@
       gap: 0;
 
       &:hover {
-        background: var(--skin-primary);
-        color: #fff;
+        color: var(--skin-primary);
         border-color: var(--skin-primary);
-        transform: scale(1.1);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
       }
 
       .back-top-icon {
@@ -490,15 +420,5 @@
         opacity: 0.9;
       }
     }
-  }
-}
-
-// 暗色模式
-[data-theme='dark'] .blog-detail-container .ant-back-top .back-top-content {
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-
-  &:hover {
-    background: var(--skin-primary, #1890ff);
   }
 }

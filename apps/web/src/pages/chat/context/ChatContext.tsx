@@ -33,6 +33,7 @@ interface ChatState {
   pendingImages: ChatImagePayload[];
   inputFocused: boolean;
   loading: boolean;
+  sessionsLoaded: boolean;
   showSettings: boolean;
   sidebarCollapsed: boolean;
   mobileDrawerOpen: boolean;
@@ -46,6 +47,7 @@ interface ChatState {
   contextWindow: number;
   thinkingBudget: number;
   enableThinking: boolean;
+  enableWebSearch: boolean;
   useMcpTools: boolean;
   expandedThinkingMessageIds: Set<string>;
   // Panels
@@ -79,12 +81,14 @@ type ChatAction =
   | { type: 'SET_CONTEXT_WINDOW'; payload: number }
   | { type: 'SET_THINKING_BUDGET'; payload: number }
   | { type: 'SET_ENABLE_THINKING'; payload: boolean }
+  | { type: 'SET_ENABLE_WEB_SEARCH'; payload: boolean }
   | { type: 'SET_USE_MCP_TOOLS'; payload: boolean }
   | { type: 'TOGGLE_THINKING_EXPANDED'; payload: string }
   | { type: 'SET_SHOW_KNOWLEDGE_BASE'; payload: boolean }
   | { type: 'SET_SHOW_MCP_SERVER'; payload: boolean }
   | { type: 'SET_SHOW_SKILL'; payload: boolean }
   | { type: 'SET_SHOW_CHAT_SETTINGS'; payload: boolean }
+  | { type: 'SET_SESSIONS_LOADED'; payload: boolean }
   | { type: 'ADD_SESSION'; payload: ChatSession }
   | { type: 'DELETE_SESSION'; payload: string }
   | { type: 'UPDATE_SESSION'; payload: { id: string; updates: Partial<ChatSession> } };
@@ -100,6 +104,7 @@ const initialState: ChatState = {
   pendingImages: [],
   inputFocused: false,
   loading: false,
+  sessionsLoaded: false,
   showSettings: false,
   sidebarCollapsed: false,
   mobileDrawerOpen: false,
@@ -112,6 +117,7 @@ const initialState: ChatState = {
   contextWindow: 10,
   thinkingBudget: 0,
   enableThinking: true,
+  enableWebSearch: false,
   useMcpTools: false,
   expandedThinkingMessageIds: new Set(),
   showKnowledgeBase: false,
@@ -222,6 +228,8 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
       return { ...state, thinkingBudget: action.payload };
     case 'SET_ENABLE_THINKING':
       return { ...state, enableThinking: action.payload };
+    case 'SET_ENABLE_WEB_SEARCH':
+      return { ...state, enableWebSearch: action.payload };
     case 'SET_USE_MCP_TOOLS':
       return { ...state, useMcpTools: action.payload };
     case 'TOGGLE_THINKING_EXPANDED': {
@@ -241,6 +249,8 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
       return { ...state, showSkill: action.payload };
     case 'SET_SHOW_CHAT_SETTINGS':
       return { ...state, showChatSettings: action.payload };
+    case 'SET_SESSIONS_LOADED':
+      return { ...state, sessionsLoaded: action.payload };
     case 'ADD_SESSION':
       return { ...state, sessions: [action.payload, ...state.sessions] };
     case 'DELETE_SESSION':
@@ -441,27 +451,17 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       createNewSessionInternal();
     };
 
-    loadSessionsAsync();
+    loadSessionsAsync().finally(() => {
+      dispatch({ type: 'SET_SESSIONS_LOADED', payload: true });
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated]);
 
   const createNewSessionInternal = useCallback(() => {
-    const welcomeContent = t('chat.welcome', {
-      defaultValue: '你好！我是 AI 助手，有什么可以帮助你的吗？',
-    });
     const newSession: ChatSession = {
       id: Date.now().toString(),
       title: '新对话',
-      messages: [
-        {
-          id: '1',
-          role: 'assistant',
-          content: welcomeContent,
-          displayContent: welcomeContent,
-          timestamp: Date.now(),
-          isComplete: true,
-        },
-      ],
+      messages: [],
       timestamp: Date.now(),
       model: stateRef.current.model,
     };
@@ -470,11 +470,11 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       type: 'SET_CURRENT_SESSION',
       payload: {
         sessionId: newSession.id,
-        messages: newSession.messages,
+        messages: [],
       },
     });
     localStorage.setItem(STORAGE_KEY, JSON.stringify(sessionsForLocalStorage([newSession])));
-  }, [t]);
+  }, []);
 
   const saveSessions = useCallback((newSessions: ChatSession[]) => {
     const limitedSessions = sortSessionsByLatest(newSessions).slice(0, MAX_SESSIONS);
@@ -529,22 +529,10 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    const welcomeContent = t('chat.welcome', {
-      defaultValue: '你好！我是 AI 助手，有什么可以帮助你的吗？',
-    });
     const newSession: ChatSession = {
       id: Date.now().toString(),
       title: '新对话',
-      messages: [
-        {
-          id: '1',
-          role: 'assistant',
-          content: welcomeContent,
-          displayContent: welcomeContent,
-          timestamp: Date.now(),
-          isComplete: true,
-        },
-      ],
+      messages: [],
       timestamp: Date.now(),
       model: stateRef.current.model,
     };
@@ -553,10 +541,10 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       type: 'SET_CURRENT_SESSION',
       payload: {
         sessionId: newSession.id,
-        messages: newSession.messages,
+        messages: [],
       },
     });
-  }, [t, saveSessions]);
+  }, [saveSessions]);
 
   const switchSession = useCallback((sessionId: string) => {
     const session = stateRef.current.sessions.find((s) => s.id === sessionId);

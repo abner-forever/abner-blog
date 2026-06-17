@@ -1,25 +1,19 @@
-// ChatSidebar styles
+// ChatSidebar styles — DeepSeek dark theme
 .chat-sidebar {
-  width: 280px;
+  width: 260px;
   flex-shrink: 0;
   height: 100%;
   display: flex;
   flex-direction: column;
-  background:
-    linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--card-bg) 95%, var(--skin-primary)) 0%,
-      color-mix(in srgb, var(--bg-color) 94%, var(--skin-primary)) 100%
-    );
-  border-right: 1px solid color-mix(in srgb, var(--skin-border-color, #e5e5e5) 78%, #cbd5e1);
+  background: #171717;
+  border-right: 1px solid #2a2a2a;
   overflow: hidden;
   transition: width 0.2s ease;
 
-  // When collapsed
   &.collapsed {
     width: 56px;
     border-right: none;
-    background: color-mix(in srgb, var(--bg-color) 95%, var(--skin-primary));
+    background: #171717;
 
     .sidebar-toggle {
       width: 100%;
@@ -48,16 +42,16 @@
   .sidebar-toggle {
     display: flex;
     padding: 8px;
-    border-bottom: 1px solid color-mix(in srgb, var(--skin-border-color, #e5e5e5) 80%, #cbd5e1);
+    border-bottom: 1px solid #2a2a2a;
     flex-shrink: 0;
 
     .toggle-btn {
-      color: var(--antd-colorTextSecondary, #666);
-      border-radius: 10px;
+      color: #8e8ea0;
+      border-radius: 8px;
 
       &:hover {
-        color: var(--antd-colorText, #1a1a1a);
-        background: color-mix(in srgb, var(--skin-primary) 10%, transparent);
+        color: #e8e8e8;
+        background: #2f2f2f;
       }
     }
   }
@@ -95,24 +89,18 @@
     padding: 12px;
 
     .new-chat-btn {
-      background: linear-gradient(
-        135deg,
-        color-mix(in srgb, var(--skin-primary) 76%, white),
-        var(--skin-primary)
-      );
-      border-color: color-mix(in srgb, var(--skin-primary) 70%, var(--skin-border-color));
-      color: white;
+      background: #2f2f2f;
+      border: 1px solid #3a3a3a;
+      color: #e8e8e8;
       font-weight: 500;
-      border-radius: 12px;
-      box-shadow: 0 8px 18px color-mix(in srgb, var(--skin-primary) 26%, transparent);
+      border-radius: 10px;
+      box-shadow: none;
+      height: 40px;
 
       &:hover {
-        background: linear-gradient(
-          135deg,
-          color-mix(in srgb, var(--skin-primary) 85%, white),
-          color-mix(in srgb, var(--skin-primary) 86%, #0f172a)
-        );
-        border-color: color-mix(in srgb, var(--skin-primary) 68%, var(--skin-border-color));
+        background: #383838;
+        border-color: #4a4a4a;
+        color: #fff;
       }
     }
   }
@@ -123,9 +111,14 @@
     position: relative;
 
     .sidebar-search-input {
-      border-radius: 10px;
-      background: color-mix(in srgb, var(--card-bg) 72%, #ecf2f8);
-      border-color: color-mix(in srgb, var(--skin-primary) 20%, var(--skin-border-color));
+      border-radius: 8px;
+      background: #2f2f2f;
+      border-color: #3a3a3a;
+      color: #e8e8e8;
+
+      &::placeholder {
+        color: #666;
+      }
     }
 
     .sidebar-search-results {
@@ -133,10 +126,10 @@
       top: 100%;
       left: 12px;
       right: 12px;
-      background: var(--antd-colorBgContainer, #fff);
-      border: 1px solid var(--skin-border-color, #e5e5e5);
+      background: #2f2f2f;
+      border: 1px solid #3a3a3a;
       border-radius: 8px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
       max-height: 300px;
       overflow-y: auto;
       z-index: 100;
@@ -145,26 +138,26 @@
     .sidebar-search-result-item {
       padding: 10px 12px;
       cursor: pointer;
-      border-bottom: 1px solid var(--skin-border-color, #e5e5e5);
+      border-bottom: 1px solid #333;
 
       &:last-child {
         border-bottom: none;
       }
 
       &:hover {
-        background: rgba(0, 0, 0, 0.04);
+        background: #383838;
       }
 
       .search-result-title {
         font-size: 13px;
         font-weight: 500;
-        color: var(--antd-colorText, #1a1a1a);
+        color: #e8e8e8;
         margin-bottom: 4px;
       }
 
       .search-result-preview {
         font-size: 12px;
-        color: var(--antd-colorTextSecondary, #666);
+        color: #8e8ea0;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
@@ -174,7 +167,7 @@
     .sidebar-search-empty {
       padding: 16px;
       text-align: center;
-      color: var(--antd-colorTextSecondary, #999);
+      color: #666;
       font-size: 13px;
     }
   }
@@ -183,19 +176,76 @@
   .sidebar-session-list {
     flex: 1;
     overflow-y: auto;
-    padding: 10px 8px 12px;
+    padding: 8px 8px 12px;
 
     .session-group {
-      margin-bottom: 14px;
+      margin-bottom: 8px;
 
       .session-group-label {
+        display: flex;
+        align-items: center;
+        gap: 4px;
         font-size: 11px;
         font-weight: 600;
-        color: var(--antd-colorTextSecondary, #999);
+        color: #8e8ea0;
         text-transform: uppercase;
         letter-spacing: 0.04em;
-        padding: 4px 8px;
-        margin-bottom: 6px;
+        padding: 6px 8px;
+        border-radius: 6px;
+        cursor: pointer;
+        user-select: none;
+        transition: background 0.15s, color 0.15s;
+
+        &:hover {
+          background: rgba(255, 255, 255, 0.05);
+          color: #b4b4b4;
+        }
+
+        .session-group-chevron {
+          font-size: 10px;
+          transition: transform 0.2s ease;
+          flex-shrink: 0;
+        }
+
+        .session-group-label__text {
+          flex: 1;
+        }
+
+        .session-group-label__count {
+          font-size: 10px;
+          font-weight: 400;
+          color: #666;
+          min-width: 16px;
+          text-align: right;
+        }
+      }
+
+      &.collapsed {
+        .session-group-chevron {
+          transform: rotate(0deg);
+        }
+
+        .session-group-items {
+          max-height: 0;
+          opacity: 0;
+          overflow: hidden;
+        }
+      }
+
+      // Expanded state (default) — chevron points down
+      &:not(.collapsed) {
+        .session-group-chevron {
+          transform: rotate(90deg);
+        }
+
+        .session-group-items {
+          max-height: 2000px;
+          opacity: 1;
+        }
+      }
+
+      .session-group-items {
+        transition: max-height 0.25s ease, opacity 0.2s ease;
       }
     }
 
@@ -204,18 +254,16 @@
       align-items: center;
       gap: 10px;
       padding: 10px 10px 10px 12px;
-      border-radius: 10px;
+      border-radius: 8px;
       border: 1px solid transparent;
       cursor: pointer;
-      transition: background 0.15s, border-color 0.15s, transform 0.15s;
-      margin: 0 0 4px;
+      transition: background 0.15s;
+      margin: 0 0 2px;
       width: 100%;
       box-sizing: border-box;
 
       &:hover {
-        background: color-mix(in srgb, var(--skin-primary) 10%, transparent);
-        border-color: color-mix(in srgb, var(--skin-primary) 24%, transparent);
-        transform: translateY(-1px);
+        background: #2f2f2f;
 
         .sidebar-item-delete {
           opacity: 1;
@@ -223,24 +271,19 @@
       }
 
       &.active {
-        background: linear-gradient(
-          135deg,
-          color-mix(in srgb, var(--skin-primary) 18%, transparent) 0%,
-          color-mix(in srgb, var(--skin-primary) 10%, transparent) 100%
-        );
-        border-color: color-mix(in srgb, var(--skin-primary) 30%, transparent);
-        color: var(--skin-primary);
+        background: #2f2f2f;
+        border-color: #3a3a3a;
 
         .sidebar-item-title {
-          color: var(--skin-primary);
-          font-weight: 600;
+          color: #e8e8e8;
+          font-weight: 500;
         }
       }
 
       > .anticon {
         flex-shrink: 0;
         font-size: 15px;
-        color: var(--antd-colorTextSecondary, #666);
+        color: #8e8ea0;
       }
 
       .sidebar-item-content {
@@ -253,7 +296,7 @@
 
         .sidebar-item-title {
           font-size: 14px;
-          color: var(--antd-colorText, #1a1a1a);
+          color: #b4b4b4;
           flex: 1;
           line-height: 1.35;
           display: -webkit-box;
@@ -265,7 +308,7 @@
 
         .sidebar-item-date {
           font-size: 11px;
-          color: var(--antd-colorTextSecondary, #999);
+          color: #666;
           flex-shrink: 0;
           line-height: 1;
           margin-top: 1px;
@@ -275,7 +318,7 @@
       .sidebar-item-delete {
         opacity: 0;
         transition: opacity 0.15s;
-        color: var(--antd-colorTextSecondary, #999);
+        color: #666;
         flex-shrink: 0;
 
         &:hover {
@@ -286,101 +329,120 @@
 
     .sidebar-empty {
       text-align: center;
-      color: var(--antd-colorTextSecondary, #999);
+      color: #666;
       padding: 24px 12px;
       font-size: 13px;
     }
   }
 }
 
-// Dark theme
-[data-theme="dark"] {
+// Light theme overrides for sidebar
+[data-theme="light"] {
   .chat-sidebar {
-    background: #1e293b;
-    border-color: #334155;
+    background: #f7f7f8;
+    border-right-color: #e5e5e5;
 
     &.collapsed {
-      background: #1e293b;
+      background: #f7f7f8;
+    }
 
-      .footer-user-section {
-        .footer-user-btn:hover {
-          background: color-mix(in srgb, var(--skin-primary) 20%, transparent);
+    .sidebar-toggle {
+      border-bottom-color: #e5e5e5;
+
+      .toggle-btn {
+        color: #666;
+
+        &:hover {
+          color: #1a1a1a;
+          background: #ececf1;
         }
       }
     }
 
-    .sidebar-toggle {
-      border-color: #334155;
-    }
+    .sidebar-header .new-chat-btn {
+      background: #fff;
+      border-color: #d9d9d9;
+      color: #333;
 
-    .sidebar-collapsed-user {
-      display: none; // No longer used, replaced by footer-user-section
+      &:hover {
+        background: #f0f0f0;
+        border-color: #bbb;
+      }
     }
 
     .sidebar-search {
       .sidebar-search-input {
-        background: #0f172a;
+        background: #fff;
+        border-color: #d9d9d9;
+        color: #333;
       }
 
       .sidebar-search-results {
-        background: #0f172a;
-        border-color: #334155;
+        background: #fff;
+        border-color: #e5e5e5;
       }
 
       .sidebar-search-result-item {
-        border-color: #334155;
+        border-color: #eee;
 
         &:hover {
-          background: color-mix(in srgb, var(--skin-primary) 18%, transparent);
+          background: #f5f5f5;
         }
 
         .search-result-title {
-          color: #e2e8f0;
+          color: #333;
         }
 
         .search-result-preview {
-          color: #94a3b8;
+          color: #666;
         }
       }
     }
 
     .sidebar-session-list {
       .session-group-label {
-        color: #64748b;
+        color: #999;
+
+        &:hover {
+          background: rgba(0, 0, 0, 0.04);
+          color: #666;
+        }
+
+        .session-group-label__count {
+          color: #bbb;
+        }
       }
 
       .sidebar-item {
         &:hover {
-          background: color-mix(in srgb, var(--skin-primary) 16%, transparent);
-          border-color: color-mix(in srgb, var(--skin-primary) 30%, transparent);
+          background: #ececf1;
         }
 
         &.active {
-          background: color-mix(in srgb, var(--skin-primary) 24%, transparent);
-          border-color: color-mix(in srgb, var(--skin-primary) 38%, transparent);
-          color: color-mix(in srgb, var(--skin-primary) 78%, white);
+          background: #e8e8e8;
+          border-color: #d9d9d9;
 
           .sidebar-item-title {
-            color: color-mix(in srgb, var(--skin-primary) 78%, white);
+            color: #1a1a1a;
           }
         }
 
         > .anticon {
-          color: #94a3b8;
+          color: #999;
         }
 
         .sidebar-item-content {
           .sidebar-item-title {
-            color: #e2e8f0;
+            color: #333;
           }
 
           .sidebar-item-date {
-            color: #64748b;
+            color: #999;
           }
         }
 
         .sidebar-item-delete {
-          color: #64748b;
+          color: #999;
 
           &:hover {
             color: #ef4444;

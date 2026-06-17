@@ -179,12 +179,13 @@ const ClarificationModal: React.FC<ClarificationModalProps> = ({
       cancelText={t('common.cancel')}
       confirmLoading={isLoading}
       width={480}
+      className="chat-clarification-modal"
     >
       {clarification && (
         <>
           <div
             className="clarification-suggestion"
-            style={{ marginBottom: 16, color: '#666' }}
+            style={{ marginBottom: 16, color: 'var(--ds-text-secondary)' }}
           >
             {clarification.suggestion}
           </div>

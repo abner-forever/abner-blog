@@ -160,7 +160,10 @@
     "newsTitle": "Tech News",
     "newsDesc": "Latest news and industry trends",
     "toolsTitle": "Developer Tools",
-    "toolsDesc": "Efficiency tools and useful helpers"
+    "toolsDesc": "Efficiency tools and useful helpers",
+    "viewAll": "View All",
+    "aboutBannerTitle": "About Me",
+    "aboutBannerDesc": "A developer who loves tech, sharing learnings and thoughts along the way"
   },
   "tools": {
     "title": "Developer Tools",
@@ -212,7 +215,7 @@
     "title": "Select Theme",
     "classic": "Classic",
     "special": "Special",
-    "purple": "Purple",
+    "purple": "Notion Blue",
     "blue": "Sky Blue",
     "green": "Green",
     "orange": "Orange",
@@ -441,7 +444,15 @@
     "hotTags": "Tags",
     "aboutUs": "About",
     "terms": "Terms",
-    "privacy": "Privacy"
+    "privacy": "Privacy",
+    "autoSaving": "Saving...",
+    "autoSaved": "Saved",
+    "autoSaveFailed": "Save failed",
+    "restoreDraftTitle": "Unsaved draft found",
+    "restoreDraftContent": "Restore unsaved content from last time?",
+    "restoreDraft": "Restore draft",
+    "discardDraft": "Discard",
+    "useServer": "Use server version"
   },
   "moment": {
     "create": "Create",
@@ -513,7 +524,10 @@
     "deleteConfirm": "Delete this item?",
     "editTitle": "Edit Todo",
     "total": "Total",
-    "remaining": "Remaining"
+    "remaining": "Remaining",
+    "emptyCompleted": "No completed items yet",
+    "emptyActive": "All done! No pending items",
+    "emptyAll": "Add your first todo above"
   },
   "profile": {
     "editTitle": "Edit profile",
@@ -811,6 +825,15 @@
     "updateSuccess": "Updated successfully",
     "updateFailed": "Update failed",
     "deleteSuccess": "Deleted successfully",
-    "deleteFailed": "Delete failed"
+    "deleteFailed": "Delete failed",
+    "pleaseEnterTitle": "Please enter event title",
+    "descriptionPlaceholder": "Description (optional)",
+    "pleaseSelectStartDate": "Please select start date",
+    "endDatePlaceholder": "End date (optional)",
+    "colorLabel": "Color label",
+    "deleteConfirm": "Delete this event?",
+    "titlePlaceholder": "Event title",
+    "monthEventsCount": "{{count}} events this month",
+    "noEventsAdd": "+ Add event"
   }
 }

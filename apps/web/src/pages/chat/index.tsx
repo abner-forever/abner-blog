@@ -12,6 +12,7 @@ import ChatSettingsModal from './components/ChatSettingsModal';
 import KnowledgeBasePanel from './components/KnowledgeBasePanel';
 import MCPServerPanel from './components/MCPServerPanel';
 import SkillPanel from './components/SkillPanel';
+import WelcomeScreen from './components/WelcomeScreen';
 import { isChatImageSupportedVendor } from './constants';
 import { readFileAsChatImage, revokeChatImagePreview, CHAT_MAX_IMAGES, type ChatImagePayload } from './utils/chat-images';
 import { useAppSelector } from '@/store/reduxHooks';
@@ -44,7 +45,10 @@ const ChatPageContent: React.FC = () => {
     pendingImages,
     inputFocused,
     loading,
+    sessionsLoaded,
     vendor,
+    enableThinking,
+    enableWebSearch,
     expandedThinkingMessageIds,
     sidebarCollapsed,
     mobileDrawerOpen,
@@ -171,6 +175,21 @@ const ChatPageContent: React.FC = () => {
     dispatch({ type: 'SET_SHOW_SKILL', payload: false });
   }, [dispatch]);
 
+  const handleSuggestionClick = useCallback(
+    (text: string) => {
+      dispatch({ type: 'SET_INPUT', payload: text });
+    },
+    [dispatch]
+  );
+
+  const handleToggleThinking = useCallback(() => {
+    dispatch({ type: 'SET_ENABLE_THINKING', payload: !enableThinking });
+  }, [dispatch, enableThinking]);
+
+  const handleToggleWebSearch = useCallback(() => {
+    dispatch({ type: 'SET_ENABLE_WEB_SEARCH', payload: !enableWebSearch });
+  }, [dispatch, enableWebSearch]);
+
   const toggleThinkingExpanded = useCallback(
     (messageId: string) => {
       dispatch({ type: 'TOGGLE_THINKING_EXPANDED', payload: messageId });
@@ -228,55 +247,67 @@ const ChatPageContent: React.FC = () => {
           </div>
         )}
 
-        {isAuthenticated && (
-          <>
-          <ChatMessageList
-          messages={messages}
-          loading={loading}
-          isDark={isDark}
-          expandedThinkingMessageIds={expandedThinkingMessageIds}
-          onToggleThinkingExpanded={toggleThinkingExpanded}
-          onCopyMessage={handleCopy}
-          onRegenerateMessage={(assistantMessageId) => { void regenerateMessage(assistantMessageId); }}
-          messagesEndRef={messagesEndRef as React.RefObject<HTMLDivElement>}
-          thinkingProcessLabel={t('chat.thinkingProcess')}
-          webSearchRetrievingLabel={t('chat.webSearchRetrieving')}
-          expandThinkingAriaLabel="expand thinking"
-          collapseThinkingAriaLabel="collapse thinking"
-          copyAriaLabel="复制"
-          regenerateAriaLabel="重新生成"
-        />
+        {isAuthenticated && !sessionsLoaded && (
+          <div className="chat-loading-placeholder" />
+        )}
 
-        <ChatInput
-          value={input}
-          onChange={(v) => dispatch({ type: 'SET_INPUT', payload: v })}
-          onSend={sendMessage}
-          onStop={stopGeneration}
-          onFocus={() => dispatch({ type: 'SET_INPUT_FOCUSED', payload: true })}
-          onBlur={() => dispatch({ type: 'SET_INPUT_FOCUSED', payload: false })}
-          onKeyDown={handleKeyPress}
-          onPaste={handleChatPaste}
-          loading={loading}
-          inputFocused={inputFocused}
-          canSend={Boolean(input.trim()) || pendingImages.length > 0}
-          attachments={pendingImages}
-          onRemoveAttachment={removePendingImage}
-          onPickImage={() => fileInputRef.current?.click()}
-          attachLabel={t('chat.attachImage')}
-          pasteHint={t('chat.pasteImageHint')}
-          placeholder={
-            !isAuthenticated
-              ? t('chat.guestInputPlaceholder', { defaultValue: '登录后开始对话...' })
-              : isChatImageSupportedVendor(vendor)
+        {isAuthenticated && sessionsLoaded && messages.length === 0 && (
+          <WelcomeScreen onSuggestionClick={handleSuggestionClick} />
+        )}
+
+        {isAuthenticated && messages.length > 0 && (
+          <ChatMessageList
+            messages={messages}
+            loading={loading}
+            isDark={isDark}
+            expandedThinkingMessageIds={expandedThinkingMessageIds}
+            onToggleThinkingExpanded={toggleThinkingExpanded}
+            onCopyMessage={handleCopy}
+            onRegenerateMessage={(assistantMessageId) => { void regenerateMessage(assistantMessageId); }}
+            messagesEndRef={messagesEndRef as React.RefObject<HTMLDivElement>}
+            thinkingProcessLabel={t('chat.thinkingProcess')}
+            webSearchRetrievingLabel={t('chat.webSearchRetrieving')}
+            expandThinkingAriaLabel="expand thinking"
+            collapseThinkingAriaLabel="collapse thinking"
+            copyAriaLabel="复制"
+            regenerateAriaLabel="重新生成"
+          />
+        )}
+
+        {isAuthenticated && (
+          <ChatInput
+            value={input}
+            onChange={(v) => dispatch({ type: 'SET_INPUT', payload: v })}
+            onSend={sendMessage}
+            onStop={stopGeneration}
+            onFocus={() => dispatch({ type: 'SET_INPUT_FOCUSED', payload: true })}
+            onBlur={() => dispatch({ type: 'SET_INPUT_FOCUSED', payload: false })}
+            onKeyDown={handleKeyPress}
+            onPaste={handleChatPaste}
+            loading={loading}
+            inputFocused={inputFocused}
+            canSend={Boolean(input.trim()) || pendingImages.length > 0}
+            attachments={pendingImages}
+            onRemoveAttachment={removePendingImage}
+            onPickImage={() => fileInputRef.current?.click()}
+            attachLabel={t('chat.attachImage')}
+            pasteHint={t('chat.pasteImageHint')}
+            placeholder={
+              isChatImageSupportedVendor(vendor)
                 ? t('chat.sendPlaceholder')
                 : t('chat.sendPlaceholderTextOnly')
-          }
-          sendShortcutHint={t('chat.sendShortcut')}
-          stopLabel={t('chat.stop')}
-          sendLabel={t('chat.send')}
-          imageUploadSupported={isChatImageSupportedVendor(vendor)}
-        />
-          </>
+            }
+            sendShortcutHint={t('chat.sendShortcut')}
+            stopLabel={t('chat.stop')}
+            sendLabel={t('chat.send')}
+            imageUploadSupported={isChatImageSupportedVendor(vendor)}
+            enableThinking={enableThinking}
+            onToggleThinking={handleToggleThinking}
+            enableWebSearch={enableWebSearch}
+            onToggleWebSearch={handleToggleWebSearch}
+            deepThinkingLabel={t('chat.deepThinking', { defaultValue: '深度思考' })}
+            smartSearchLabel={t('chat.smartSearch', { defaultValue: '智能搜索' })}
+          />
         )}
       </div>
 

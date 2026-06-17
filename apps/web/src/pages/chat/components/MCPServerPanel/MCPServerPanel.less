@@ -323,31 +323,30 @@
   pointer-events: none;
 }
 
-.mcp-server-panel {
-  .ant-modal {
-    .ant-modal-content {
-      border-radius: 10px;
-      border: 1px solid var(--border-color);
-      overflow: hidden;
-      box-shadow: 0 10px 30px color-mix(in srgb, var(--skin-primary) 12%, transparent);
-    }
+// MCP config modal — root-level selector (modal is portaled to body)
+.mcp-config-modal {
+  .ant-modal-content {
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+    box-shadow: 0 10px 30px color-mix(in srgb, var(--skin-primary) 12%, transparent);
+  }
 
-    .ant-modal-header {
-      padding: 14px 20px;
-      border-bottom: 1px solid var(--border-color);
-      background: color-mix(in srgb, var(--bg-color) 98%, var(--skin-primary));
-    }
+  .ant-modal-header {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border-color);
+    background: color-mix(in srgb, var(--bg-color) 98%, var(--skin-primary));
+  }
 
-    .ant-modal-body {
-      padding: 16px 20px 18px;
-      background: color-mix(in srgb, var(--bg-color) 99%, var(--skin-primary));
-    }
+  .ant-modal-body {
+    padding: 16px 20px 18px;
+    background: color-mix(in srgb, var(--bg-color) 99%, var(--skin-primary));
+  }
 
-    .ant-modal-footer {
-      margin: 0;
-      padding: 12px 20px 14px;
-      border-top: 1px solid var(--border-color);
-      background: color-mix(in srgb, var(--bg-color) 98%, var(--skin-primary));
-    }
+  .ant-modal-footer {
+    margin: 0;
+    padding: 12px 20px 14px;
+    border-top: 1px solid var(--border-color);
+    background: color-mix(in srgb, var(--bg-color) 98%, var(--skin-primary));
   }
 }

@@ -4,6 +4,8 @@ import {
   ArrowUpOutlined,
   PictureOutlined,
   StopOutlined,
+  BulbOutlined,
+  SearchOutlined,
 } from '@ant-design/icons';
 import type { ChatImagePayload } from '../utils/chat-images';
 
@@ -31,6 +33,12 @@ const ChatInput = memo<{
   stopLabel: string;
   sendLabel: string;
   imageUploadSupported: boolean;
+  enableThinking: boolean;
+  onToggleThinking: () => void;
+  enableWebSearch: boolean;
+  onToggleWebSearch: () => void;
+  deepThinkingLabel: string;
+  smartSearchLabel: string;
 }>(
   ({
     value,
@@ -54,6 +62,12 @@ const ChatInput = memo<{
     stopLabel,
     sendLabel,
     imageUploadSupported,
+    enableThinking,
+    onToggleThinking,
+    enableWebSearch,
+    onToggleWebSearch,
+    deepThinkingLabel,
+    smartSearchLabel,
   }) => {
     const expanded = inputFocused || value || attachments.length > 0;
     const handleContainerClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -102,26 +116,37 @@ const ChatInput = memo<{
               disabled={loading}
               className="chat-textarea"
             />
-            <div className="chat-input-footer">
-              <div className="chat-input-footer__left">
+            <div className="chat-input-tools">
+              <div className="chat-input-tools__left">
+                <button
+                  type="button"
+                  className={`chat-tool-btn${enableThinking ? ' active' : ''}`}
+                  onClick={onToggleThinking}
+                >
+                  <BulbOutlined className="chat-tool-btn__icon" />
+                  <span className="chat-tool-btn__text">{deepThinkingLabel}</span>
+                </button>
                 {imageUploadSupported && (
-                  <>
-                    <button
-                      type="button"
-                      className="chat-input-pill"
-                      onClick={onPickImage}
-                      disabled={loading}
-                    >
-                      <PictureOutlined className="chat-input-pill__icon" />
-                      <span className="chat-input-pill__text">
-                        {attachLabel}
-                      </span>
-                    </button>
-                    <span className="chat-input-footer__hint">{pasteHint}</span>
-                  </>
+                  <button
+                    type="button"
+                    className="chat-tool-btn"
+                    onClick={onPickImage}
+                    disabled={loading}
+                  >
+                    <PictureOutlined className="chat-tool-btn__icon" />
+                    <span className="chat-tool-btn__text">{attachLabel}</span>
+                  </button>
                 )}
+                <button
+                  type="button"
+                  className={`chat-tool-btn${enableWebSearch ? ' active' : ''}`}
+                  onClick={onToggleWebSearch}
+                >
+                  <SearchOutlined className="chat-tool-btn__icon" />
+                  <span className="chat-tool-btn__text">{smartSearchLabel}</span>
+                </button>
               </div>
-              <div className="chat-input-footer__right">
+              <div className="chat-input-tools__right">
                 <span className="chat-input-footer__shortcut">
                   {sendShortcutHint}
                 </span>
@@ -150,6 +175,9 @@ const ChatInput = memo<{
             </div>
           </div>
         </div>
+        {imageUploadSupported && expanded && (
+          <span className="chat-input-area__hint">{pasteHint}</span>
+        )}
       </div>
     );
   },

@@ -160,7 +160,10 @@
     "newsTitle": "技术新闻",
     "newsDesc": "最新资讯、行业动态",
     "toolsTitle": "开发工具",
-    "toolsDesc": "效率工具、实用小助手"
+    "toolsDesc": "效率工具、实用小助手",
+    "viewAll": "查看全部",
+    "aboutBannerTitle": "关于我",
+    "aboutBannerDesc": "一个热爱技术的开发者，分享学习路上的点滴与思考"
   },
   "tools": {
     "title": "开发工具",
@@ -212,7 +215,7 @@
     "title": "选择主题",
     "classic": "经典主题",
     "special": "酷炫主题",
-    "purple": "紫气东来",
+    "purple": "简约之蓝",
     "blue": "天空之蓝",
     "green": "青山绿水",
     "orange": "橙意满满",
@@ -441,7 +444,15 @@
     "hotTags": "热门标签",
     "aboutUs": "关于我们",
     "terms": "服务协议",
-    "privacy": "隐私政策"
+    "privacy": "隐私政策",
+    "autoSaving": "保存中...",
+    "autoSaved": "已保存",
+    "autoSaveFailed": "保存失败",
+    "restoreDraftTitle": "发现未保存的草稿",
+    "restoreDraftContent": "是否恢复上次未保存的内容？",
+    "restoreDraft": "恢复草稿",
+    "discardDraft": "丢弃",
+    "useServer": "使用服务器版本"
   },
   "moment": {
     "create": "创作",
@@ -513,7 +524,10 @@
     "deleteConfirm": "确认删除？",
     "editTitle": "编辑待办",
     "total": "总计",
-    "remaining": "剩余"
+    "remaining": "剩余",
+    "emptyCompleted": "还没有完成的事项",
+    "emptyActive": "太棒了！没有待办事项",
+    "emptyAll": "从上面添加第一个待办吧"
   },
   "profile": {
     "editTitle": "编辑资料",
@@ -812,6 +826,15 @@
     "updateSuccess": "更新成功",
     "updateFailed": "更新失败",
     "deleteSuccess": "删除成功",
-    "deleteFailed": "删除失败"
+    "deleteFailed": "删除失败",
+    "pleaseEnterTitle": "请输入日程标题",
+    "descriptionPlaceholder": "描述（可选）",
+    "pleaseSelectStartDate": "请选择开始日期",
+    "endDatePlaceholder": "结束日期（可选）",
+    "colorLabel": "颜色标记",
+    "deleteConfirm": "确认删除此日程？",
+    "titlePlaceholder": "日程标题",
+    "monthEventsCount": "本月共 {{count}} 个日程",
+    "noEventsAdd": "+ 添加日程"
   }
 }

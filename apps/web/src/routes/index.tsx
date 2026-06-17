@@ -14,7 +14,7 @@ const Register = lazy(() => import('@pages/auth/Register'));
 const ForgotPassword = lazy(() => import('@pages/auth/ForgotPassword'));
 const ResetPassword = lazy(() => import('@pages/auth/ResetPassword'));
 const McpConnect = lazy(() => import('@pages/auth/McpConnect'));
-const TodoList = lazy(() => import('@pages/todo/TodoList'));
+const TodoPage = lazy(() => import('@pages/todo'));
 const MyFavorites = lazy(() => import('@pages/user/MyFavorites'));
 const MomentList = lazy(() => import('@pages/moment/MomentList'));
 const CreateMoment = lazy(() => import('@pages/moment/CreateMoment'));
@@ -110,7 +110,7 @@ export const routeConfig: RouteConfig[] = [
   },
   {
     path: '/todos',
-    element: <TodoList />,
+    element: <TodoPage />,
     requireAuth: true,
   },
   {

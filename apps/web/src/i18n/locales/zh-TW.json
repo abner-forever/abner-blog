@@ -160,7 +160,10 @@
     "newsTitle": "技術新聞",
     "newsDesc": "最新資訊、行業動態",
     "toolsTitle": "開發工具",
-    "toolsDesc": "效率工具、實用小助手"
+    "toolsDesc": "效率工具、實用小助手",
+    "viewAll": "查看全部",
+    "aboutBannerTitle": "關於我",
+    "aboutBannerDesc": "一個熱愛技術的開發者，分享學習路上的點滴與思考"
   },
   "tools": {
     "title": "開發工具",
@@ -212,7 +215,7 @@
     "title": "選擇主題",
     "classic": "經典主題",
     "special": "酷炫主題",
-    "purple": "紫氣東來",
+    "purple": "簡約之藍",
     "blue": "天空之藍",
     "green": "青山綠水",
     "orange": "橙意滿滿",
@@ -441,7 +444,15 @@
     "hotTags": "熱門標籤",
     "aboutUs": "關於我們",
     "terms": "服務協議",
-    "privacy": "隱私政策"
+    "privacy": "隱私政策",
+    "autoSaving": "儲存中...",
+    "autoSaved": "已儲存",
+    "autoSaveFailed": "儲存失敗",
+    "restoreDraftTitle": "發現未儲存的草稿",
+    "restoreDraftContent": "是否恢復上次未儲存的內容？",
+    "restoreDraft": "恢復草稿",
+    "discardDraft": "丟棄",
+    "useServer": "使用伺服器版本"
   },
   "moment": {
     "empty": "動態不存在",
@@ -512,7 +523,10 @@
     "deleteConfirm": "確認刪除？",
     "editTitle": "編輯待辦",
     "total": "總計",
-    "remaining": "剩餘"
+    "remaining": "剩餘",
+    "emptyCompleted": "還沒有完成的事項",
+    "emptyActive": "太棒了！沒有待辦事項",
+    "emptyAll": "從上面添加第一個待辦吧"
   },
   "profile": {
     "editTitle": "編輯資料",
@@ -810,6 +824,15 @@
     "updateSuccess": "更新成功",
     "updateFailed": "更新失敗",
     "deleteSuccess": "刪除成功",
-    "deleteFailed": "刪除失敗"
+    "deleteFailed": "刪除失敗",
+    "pleaseEnterTitle": "請輸入日程標題",
+    "descriptionPlaceholder": "描述（可選）",
+    "pleaseSelectStartDate": "請選擇開始日期",
+    "endDatePlaceholder": "結束日期（可選）",
+    "colorLabel": "顏色標記",
+    "deleteConfirm": "確認刪除此日程？",
+    "titlePlaceholder": "日程標題",
+    "monthEventsCount": "本月共 {{count}} 個日程",
+    "noEventsAdd": "+ 添加日程"
   }
 }

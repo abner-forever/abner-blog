@@ -2,37 +2,38 @@
 
 /* ======================= 主题皮肤变量 ======================= */
 
-/* 经典主题 - 紫气东来 (默认) */
+/* 经典主题 - Notion 风格 (默认) */
 :root {
-  --skin-primary: #8b5cf6;
-  --skin-primary-hover: #7c3aed;
-  --skin-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  --skin-gradient-reverse: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
-  --skin-gradient-bg: linear-gradient(135deg, #667eea20 0%, #764ba220 100%);
-  --skin-glow: 0 0 40px rgba(139, 92, 246, 0.3);
-  --skin-card-bg: linear-gradient(145deg, rgba(139, 92, 246, 0.1) 0%, rgba(118, 75, 162, 0.05) 100%);
-  --skin-border-color: rgba(139, 92, 246, 0.3);
+  --skin-primary: #2f81f7;
+  --skin-primary-hover: #1a6de0;
+  --skin-gradient: #2f81f7;
+  --skin-gradient-reverse: #2f81f7;
+  --skin-gradient-bg: rgba(47, 129, 247, 0.08);
+  --skin-glow: none;
+  --skin-card-bg: #ffffff;
+  --skin-border-color: #e5e3df;
 
-  /* 通用颜色变量 */
-  --primary-color: #8b5cf6;
-  --primary-hover: #7c3aed;
-  --bg-color: #f8fafc;
+  /* 通用颜色变量 - Notion 暖色调 */
+  --primary-color: #2f81f7;
+  --primary-hover: #1a6de0;
+  --surface-color: #f6f5f4;
+  --bg-color: #ffffff;
   --card-bg: #ffffff;
-  --text-main: #0f172a;
-  --text-secondary: #475569;
-  --text-muted: #94a3b8;
-  --border-color: #e2e8f0;
-  --divider-color: #f1f5f9;
-  --bg-layout: #f8fafc;
-  --hover-bg: #f1f5f9;
-  --active-bg: #e2e8f0;
-  
-  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-  
-  --glass-bg: rgba(255, 255, 255, 0.8);
-  --glass-border: rgba(255, 255, 255, 0.3);
+  --text-main: #37352f;
+  --text-secondary: #5d5b54;
+  --text-muted: #a4a097;
+  --border-color: #e5e3df;
+  --divider-color: #ede9e4;
+  --bg-layout: #f6f5f4;
+  --hover-bg: #f6f5f4;
+  --active-bg: #eeede9;
+
+  --shadow-sm: 0 1px 2px 0 rgba(15, 15, 15, 0.04);
+  --shadow-md: 0 4px 12px 0 rgba(15, 15, 15, 0.08);
+  --shadow-lg: 0 16px 48px -8px rgba(15, 15, 15, 0.16);
+
+  --glass-bg: #ffffff;
+  --glass-border: #e5e3df;
 
   /* MdEditor Theme Variables - Sync with App Theme */
   --md-bk-color: var(--card-bg) !important;
@@ -345,26 +346,27 @@
 
 /* ======================= Dark Mode ======================= */
 
-/* 确保 dark 模式变量在 html[data-theme='dark'] 下生效 */
+/* 确保 dark 模式变量在 html[data-theme='dark'] 下生效 - Notion 暖色暗调 */
 html[data-theme='dark'],
 [data-theme='dark'] {
-  --bg-color: #0f172a;
-  --card-bg: #1e293b;
-  --text-main: #f1f5f9;
-  --text-secondary: #cbd5e1;
-  --text-muted: #64748b;
-  --border-color: #334155;
-  --divider-color: #1e293b;
-  --bg-layout: #0f172a;
-  --hover-bg: #1e293b;
-  --active-bg: #334155;
-  
+  --bg-color: #191919;
+  --surface-color: #252525;
+  --card-bg: #202020;
+  --text-main: #e0e0de;
+  --text-secondary: #9b9a97;
+  --text-muted: #6b6b6b;
+  --border-color: #333;
+  --divider-color: #2a2a2a;
+  --bg-layout: #191919;
+  --hover-bg: #2a2a2a;
+  --active-bg: #333;
+
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
-  
-  --glass-bg: rgba(30, 41, 59, 0.8);
-  --glass-border: rgba(255, 255, 255, 0.1);
+  --shadow-md: 0 4px 12px 0 rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 16px 48px -8px rgba(0, 0, 0, 0.5);
+
+  --glass-bg: #202020;
+  --glass-border: #333;
 }
 
 /* ======================= Dark Mode 下的酷炫主题适配 ======================= */
@@ -437,6 +439,7 @@ html[data-theme='dark'][data-skin="claude-code"],
   --skin-card-bg: linear-gradient(145deg, rgba(217, 119, 87, 0.09) 0%, rgba(227, 218, 204, 0.04) 100%);
   --skin-border-color: rgba(194, 192, 182, 0.3);
   --bg-color: #141413;
+  --surface-color: #1e1d1c;
   --card-bg: #1a1918;
   --text-main: #faf9f5;
   --text-secondary: #d1cfc5;
@@ -457,6 +460,7 @@ html[data-theme='dark'][data-skin="github-chatgpt"],
   --skin-card-bg: linear-gradient(145deg, rgba(47, 129, 247, 0.12) 0%, rgba(13, 17, 23, 0.78) 100%);
   --skin-border-color: rgba(48, 54, 61, 0.9);
   --bg-color: #0d1117;
+  --surface-color: #161b22;
   --card-bg: #161b22;
   --text-main: #e6edf3;
   --text-secondary: #9da7b3;
@@ -468,18 +472,18 @@ html[data-theme='dark'][data-skin="github-chatgpt"],
   --glass-border: rgba(48, 54, 61, 0.65);
 }
 
-/* 酷炫主题在 light 模式下的适配 - 使用浅色文字 */
+/* 酷炫主题在 light 模式下的适配 - 使用暖色文字 */
 :root[data-skin="cyberpunk"],
 :root[data-skin="aurora"],
 :root[data-skin="star"],
 :root[data-skin="chocolate"],
 :root[data-skin="mint"],
 :root[data-skin="lavender"] {
-  --text-main: #1e293b;
-  --text-secondary: #475569;
-  --text-muted: #64748b;
-  --border-color: #e2e8f0;
-  --divider-color: #f1f5f9;
+  --text-main: #37352f;
+  --text-secondary: #5d5b54;
+  --text-muted: #a4a097;
+  --border-color: #e5e3df;
+  --divider-color: #ede9e4;
 }
 
 /* 酷炫主题在 dark 模式下的适配 */
@@ -489,19 +493,20 @@ html[data-theme='dark'][data-skin="star"],
 html[data-theme='dark'][data-skin="chocolate"],
 html[data-theme='dark'][data-skin="mint"],
 html[data-theme='dark'][data-skin="lavender"] {
-  --bg-color: #0a0a0f;
-  --card-bg: #12121a;
-  --text-main: #e0e0e0;
-  --text-secondary: #a0a0a0;
-  --text-muted: #606060;
-  --border-color: #2a2a3a;
-  --divider-color: #1a1a2a;
-  --bg-layout: #0a0a0f;
-  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
-  --glass-bg: rgba(18, 18, 26, 0.9);
-  --glass-border: rgba(255, 255, 255, 0.1);
+  --bg-color: #191919;
+  --surface-color: #252525;
+  --card-bg: #202020;
+  --text-main: #e0e0de;
+  --text-secondary: #9b9a97;
+  --text-muted: #6b6b6b;
+  --border-color: #333;
+  --divider-color: #2a2a2a;
+  --bg-layout: #191919;
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px 0 rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 16px 48px -8px rgba(0, 0, 0, 0.5);
+  --glass-bg: #202020;
+  --glass-border: #333;
 }
 
 .md-editor {

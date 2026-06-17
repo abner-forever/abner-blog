@@ -21,6 +21,7 @@
 // ======================= 现代风格主题颜色 (使用 CSS 变量实现) =======================
 @primary-color: var(--primary-color);
 @primary-hover: var(--primary-hover);
+@surface-color: var(--surface-color, #f6f5f4); // 暖灰表面色
 @bg-color: var(--bg-color);      // 页面背景色
 @card-bg: var(--card-bg);          // 卡片背景色
 @text-main: var(--text-main);     // 主要文字
@@ -70,6 +71,7 @@
 
 .card-style() {
   background: @card-bg;
-  border-radius: 4px;
-  transition: all 0.2s;
+  border-radius: 12px;
+  border: 1px solid @border-color;
+  transition: all 0.15s ease;
 }

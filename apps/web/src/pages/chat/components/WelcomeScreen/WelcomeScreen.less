@@ -1,0 +1,129 @@
+// WelcomeScreen — DeepSeek-style dark welcome page
+.welcome-screen {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+  overflow-y: auto;
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 640px;
+    width: 100%;
+  }
+
+  &__logo {
+    margin-bottom: 28px;
+
+    svg {
+      filter: drop-shadow(0 4px 24px rgba(77, 107, 254, 0.3));
+    }
+  }
+
+  &__title {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--antd-colorText, #e8e8e8);
+    margin: 0 0 8px;
+    letter-spacing: -0.02em;
+  }
+
+  &__subtitle {
+    font-size: 16px;
+    color: var(--antd-colorTextSecondary, #8e8ea0);
+    margin: 0 0 40px;
+  }
+
+  &__suggestions {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    width: 100%;
+    max-width: 560px;
+  }
+
+  &__suggestion-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 14px 16px;
+    background: var(--antd-colorBgElevated, #2a2a2a);
+    border: 1px solid var(--antd-colorBorder, #333);
+    border-radius: 12px;
+    cursor: pointer;
+    text-align: left;
+    color: var(--antd-colorText, #e8e8e8);
+    font-size: 14px;
+    line-height: 1.5;
+    transition: all 0.2s ease;
+    font-family: inherit;
+
+    &:hover {
+      background: var(--antd-colorBgSpotlight, #333);
+      border-color: #4D6BFE;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 16px rgba(77, 107, 254, 0.15);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+  }
+
+  &__suggestion-icon {
+    font-size: 18px;
+    flex-shrink: 0;
+    line-height: 1.4;
+  }
+
+  &__suggestion-text {
+    flex: 1;
+  }
+}
+
+// Light theme adjustments
+[data-theme="light"] {
+  .welcome-screen {
+    &__title {
+      color: #1a1a1a;
+    }
+
+    &__subtitle {
+      color: #666;
+    }
+
+    &__suggestion-card {
+      background: #fff;
+      border-color: #e5e5e5;
+      color: #333;
+
+      &:hover {
+        background: #f5f5f5;
+        border-color: #4D6BFE;
+      }
+    }
+  }
+}
+
+// Mobile responsive
+@media (max-width: 640px) {
+  .welcome-screen {
+    padding: 24px 16px;
+
+    &__title {
+      font-size: 24px;
+    }
+
+    &__subtitle {
+      font-size: 14px;
+      margin-bottom: 28px;
+    }
+
+    &__suggestions {
+      grid-template-columns: 1fr;
+    }
+  }
+}

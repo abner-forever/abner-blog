@@ -4,14 +4,11 @@
   left: 0;
   right: 0;
   height: @header-height;
-  background: var(--glass-bg);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: var(--card-bg);
   border-bottom: 1px solid @border-color;
   z-index: 1000;
   display: flex;
   justify-content: center;
-  transition: all 0.3s ease;
 }
 
 .navbar-content {
@@ -56,39 +53,27 @@
     .logo-badge {
       width: 34px;
       height: 34px;
-      background: linear-gradient(135deg, @primary-color 0%, #7c3aed 100%);
-      border-radius: 10px;
+      background: @primary-color;
+      border-radius: 8px;
       position: relative;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
-      transition: all 0.3s ease;
-      
+
       .logo-letter {
         color: #fff;
-        font-weight: 900;
-        font-size: 20px;
+        font-weight: 800;
+        font-size: 18px;
         line-height: 1;
-        z-index: 2;
       }
-      
+
       .logo-accent {
-        position: absolute;
-        bottom: -2px;
-        right: -2px;
-        width: 12px;
-        height: 12px;
-        background: #10b981; // 鲜艳的绿色点缀
-        border: 2px solid var(--card-bg);
-        border-radius: 50%;
-        z-index: 3;
+        display: none;
       }
     }
-    
+
     &:hover .logo-badge {
-      transform: rotate(-5deg) scale(1.05);
-      box-shadow: 0 6px 16px rgba(79, 70, 229, 0.4);
+      opacity: 0.9;
     }
     
     .logo-text {
@@ -139,26 +124,12 @@
 
       &:hover {
         color: var(--skin-primary, @primary-color);
-        background: rgba(79, 70, 229, 0.05);
+        background: var(--hover-bg);
       }
 
       &.active {
         color: var(--skin-primary, @primary-color);
-        background: rgba(79, 70, 229, 0.12);
         font-weight: 600;
-        position: relative;
-        
-        &::after {
-          content: '';
-          position: absolute;
-          bottom: -2px;
-          left: 50%;
-          transform: translateX(-50%);
-          width: 24px;
-          height: 3px;
-          background: var(--skin-primary, @primary-color);
-          border-radius: 2px;
-        }
       }
     }
   }
@@ -194,7 +165,6 @@
         border-color: @primary-color;
         width: 300px;
         margin-left: -60px;
-        box-shadow: @box-shadow-md;
         position: relative;
         z-index: 2;
       }
@@ -206,7 +176,7 @@
   }
 
   .create-btn {
-    height: 38px;
+    height: 36px;
     padding: 0 16px;
     font-size: 14px;
     font-weight: 600;
@@ -214,7 +184,7 @@
     flex-shrink: 0;
 
     &.ant-btn-icon-only {
-      width: 38px;
+      width: 36px;
       padding: 0;
     }
   }
@@ -360,26 +330,21 @@
   color: @text-secondary;
   font-weight: 500;
   text-decoration: none;
-  transition: background 0.2s, color 0.2s;
+  transition: background 0.15s, color 0.15s;
 
   &:hover {
     color: var(--skin-primary, @primary-color);
-    background: rgba(79, 70, 229, 0.06);
+    background: var(--hover-bg);
   }
 
   &.active {
     color: var(--skin-primary, @primary-color);
-    background: rgba(79, 70, 229, 0.12);
     font-weight: 600;
   }
 }
 
 [data-theme='dark'] .navbar__drawer-link:hover {
-  background: rgba(255, 255, 255, 0.08);
-}
-
-[data-theme='dark'] .navbar__drawer-link.active {
-  background: rgba(255, 255, 255, 0.12);
+  background: var(--hover-bg);
 }
 
 // 中等宽度：再收一档间距

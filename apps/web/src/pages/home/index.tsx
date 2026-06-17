@@ -1,18 +1,11 @@
 import { useState, useEffect } from 'react';
 import type { FC } from 'react';
-import {
-  FireOutlined,
-  ReadOutlined,
-  ToolOutlined,
-  RobotOutlined,
-} from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 import type { RootState } from '@/store';
 import { useQuery } from '@tanstack/react-query';
 import { getStats } from '@services/generated/app/app';
-import { calendarControllerFindAll } from '@services/generated/calendar/calendar';
 import { getWeather } from '@services/generated/weather/weather';
 import { blogsControllerFindAll } from '@services/generated/blogs/blogs';
 import { momentsControllerFindAll } from '@services/generated/moments/moments';
@@ -21,17 +14,16 @@ import dayjs from 'dayjs';
 import 'dayjs/locale/zh-cn';
 import {
   HeroSection,
-  QuickLinksSection,
-  RecentActivitySection,
-  StatsSection,
-  type CalendarEventData,
-  type QuickLinkItem,
+  FeatureShowcase,
+  LatestContent,
+  StatsBar,
+  AboutBanner,
+  type WeatherCardData,
 } from './components';
 import './index.less';
 
 dayjs.locale('zh-cn');
 
-// 天气代码映射（作为后端字段缺失时的兜底）
 const weatherCodeMap: Record<number, { text: string; iconCode: number }> = {
   0: { text: '晴', iconCode: 100 },
   1: { text: '大体晴朗', iconCode: 101 },
@@ -60,10 +52,8 @@ const weatherCodeMap: Record<number, { text: string; iconCode: number }> = {
 };
 
 function getWeatherInfo(code: number) {
-  // 查找最近匹配的天气代码
   const entry = weatherCodeMap[code];
   if (entry) return entry;
-  // 按范围兜底
   if (code <= 3) return { text: '多云', iconCode: 101 };
   if (code <= 48) return { text: '有雾', iconCode: 500 };
   if (code <= 67) return { text: '有雨', iconCode: 300 };
@@ -78,15 +68,6 @@ function getQweatherIconClass(code: number): string {
   return `qi-${weatherInfo.iconCode}`;
 }
 
-interface WeatherState {
-  city: string;
-  temp: number;
-  tempMax: number;
-  tempMin: number;
-  weatherText: string;
-  weatherIconClass: string;
-}
-
 const Home: FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -95,7 +76,6 @@ const Home: FC = () => {
 
   const [currentTime, setCurrentTime] = useState('');
 
-  // 时钟
   useEffect(() => {
     const fmt =
       locale === 'zh-CN' ? 'zh-CN' : locale === 'zh-TW' ? 'zh-TW' : 'en-US';
@@ -122,10 +102,7 @@ const Home: FC = () => {
   const { data: recentBlogs = [] } = useQuery({
     queryKey: ['home-recent-blogs'],
     queryFn: async () => {
-      const blogRes = await blogsControllerFindAll({
-        page: 1,
-        pageSize: 3,
-      });
+      const blogRes = await blogsControllerFindAll({ page: 1, pageSize: 3 });
       return blogRes?.list?.slice(0, 3) || [];
     },
   });
@@ -133,10 +110,7 @@ const Home: FC = () => {
   const { data: recentMoments = [] } = useQuery({
     queryKey: ['home-recent-moments'],
     queryFn: async () => {
-      const momentRes = await momentsControllerFindAll({
-        page: 1,
-        pageSize: 3,
-      });
+      const momentRes = await momentsControllerFindAll({ page: 1, pageSize: 3 });
       return momentRes?.list || [];
     },
   });
@@ -145,7 +119,7 @@ const Home: FC = () => {
     data: weather,
     isLoading: weatherLoading,
     isError: weatherError,
-  } = useQuery<WeatherState>({
+  } = useQuery<WeatherCardData>({
     queryKey: ['home-weather'],
     queryFn: async () => {
       const d = await getWeather();
@@ -160,50 +134,6 @@ const Home: FC = () => {
       };
     },
   });
-
-  const { data: todayEvents = [], isLoading: eventsLoading } = useQuery({
-    queryKey: ['home-today-events', user?.id],
-    enabled: !!user,
-    queryFn: async () => {
-      const today = dayjs().format('YYYY-MM-DD');
-      const events = (await calendarControllerFindAll({
-        startDate: today,
-        endDate: today,
-      })) as CalendarEventData[];
-      return (events || []).filter((e) => !e.completed).slice(0, 3);
-    },
-  });
-
-  const quickLinks: QuickLinkItem[] = [
-    {
-      key: 'chat',
-      title: 'AI 聊天',
-      icon: <RobotOutlined />,
-      path: '/chat',
-      color: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-    },
-    {
-      key: 'moments',
-      title: t('home.momentsTitle'),
-      icon: <FireOutlined />,
-      path: '/moments',
-      color: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-    },
-    {
-      key: 'news',
-      title: t('home.newsTitle'),
-      icon: <ReadOutlined />,
-      path: '/news',
-      color: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-    },
-    {
-      key: 'tools',
-      title: t('home.toolsTitle'),
-      icon: <ToolOutlined />,
-      path: '/tools',
-      color: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
-    },
-  ];
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -230,45 +160,47 @@ const Home: FC = () => {
         weatherLoading={weatherLoading}
         weatherError={weatherError}
         weatherData={weather || null}
-        eventsLoading={eventsLoading}
-        todayEvents={todayEvents}
         onBrowseArticles={() => navigate('/blogs')}
         onAbout={() => navigate('/about')}
         onLogin={() => navigate('/login')}
       />
 
-      <QuickLinksSection
-        title={t('home.quickEntry')}
-        links={quickLinks}
-        onNavigate={navigate}
-      />
-
-      <RecentActivitySection
-        title={t('home.recentActivity')}
-        latestArticlesTitle={t('home.latestArticles')}
-        latestMomentsTitle={t('home.latestMoments')}
-        noContentText={t('home.noContent')}
-        noArticlesText={t('home.noArticles')}
-        noMomentsText={t('home.noMoments')}
-        unknownText={t('home.unknown')}
-        publishedText={t('home.published')}
-        draftText={t('home.draft')}
-        momentsTagText={t('nav.moments')}
-        locale={locale}
-        recentBlogs={recentBlogs}
-        recentMoments={recentMoments}
-        onBlogClick={(id) => navigate(`/blogs/${id}`)}
-        onMomentClick={(id) => navigate(`/moments/${id}`)}
-      />
-
-      <StatsSection
-        title={t('home.dataStats')}
+      <StatsBar
         articlesText={t('home.articles')}
         momentsText={t('home.moments')}
         viewsText={t('home.totalViews')}
         usersText={t('home.totalUsers')}
         stats={stats}
         loading={isLoading}
+      />
+
+      <FeatureShowcase
+        title={t('home.quickEntry')}
+        subtitle={t('home.quickEntryDesc')}
+      />
+
+      <LatestContent
+        title={t('home.recentActivity')}
+        viewAllText={t('home.viewAll')}
+        momentsTitle={t('home.latestMoments')}
+        noArticlesText={t('home.noArticles')}
+        noMomentsText={t('home.noMoments')}
+        unknownText={t('home.unknown')}
+        publishedText={t('home.published')}
+        draftText={t('home.draft')}
+        locale={locale}
+        recentBlogs={recentBlogs}
+        recentMoments={recentMoments}
+        onBlogClick={(id) => navigate(`/blogs/${id}`)}
+        onMomentClick={(id) => navigate(`/moments/${id}`)}
+        onViewAllArticles={() => navigate('/blogs')}
+      />
+
+      <AboutBanner
+        title={t('home.aboutBannerTitle')}
+        description={t('home.aboutBannerDesc')}
+        ctaText={t('home.aboutMe')}
+        onCta={() => navigate('/about')}
       />
     </div>
   );

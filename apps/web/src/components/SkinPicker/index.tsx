@@ -18,7 +18,7 @@ const autoDarkThemes: SkinType[] = ['cyberpunk', 'aurora', 'star'];
 
 const skinOptions: { value: SkinType; label: string; emoji: string }[] = [
   // 经典主题
-  { value: 'purple', label: '紫气东来', emoji: '🟣' },
+  { value: 'purple', label: '简约之蓝', emoji: '🔵' },
   { value: 'blue', label: '天空之蓝', emoji: '🔵' },
   { value: 'green', label: '青山绿水', emoji: '🟢' },
   { value: 'orange', label: '橙意满满', emoji: '🟠' },

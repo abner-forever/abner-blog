@@ -19,8 +19,20 @@ export function shouldOfferWebSearchMcp(message: string): boolean {
     /(搜一下|搜索一下|帮我搜|检索一下|查一下网上|上网查|百度一下|google一下)/i.test(
       text,
     );
+  /** 体育赛事 / 实时比分 / 赛程查询：需要联网获取最新信息 */
+  const hasSportsOrLiveEvent =
+    /(世界杯|奥运会|NBA|CBA|欧冠|英超|西甲|意甲|德甲|中超|亚冠|足球赛|篮球赛|网球|F1|赛车|电竞|LOL|王者荣耀|比分|赛程|比赛|赛事|对局|对阵|晋级|淘汰|决赛|半决赛|小组赛)/i.test(
+      text,
+    );
+  /** 明确的时间 + 信息查询组合（如"明天…谁跟谁"、"今天…几点"） */
+  const hasTimePlusQuery =
+    /(明天|今天|昨晚|昨天|后天|大后天|本周|下周|这周|这星期|下星期)/.test(
+      text,
+    ) && /(谁|哪[个支队]|几[点比]|比分|结果|时间|赛程|对阵)/.test(text);
   if (hasExplicitWebSearch) return true;
   if (hasNewsOrPublicInfo) return true;
+  if (hasSportsOrLiveEvent) return true;
+  if (hasTimePlusQuery && !hasTaskOrWeatherNoun) return true;
   if (hasLooseWebSearchVerb && !hasTaskOrWeatherNoun) return true;
   return false;
 }

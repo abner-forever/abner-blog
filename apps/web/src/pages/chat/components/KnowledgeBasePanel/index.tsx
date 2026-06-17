@@ -874,6 +874,7 @@ const KnowledgeBasePanel: React.FC<Props> = ({ onClose }) => {
         open={createModalOpen}
         onCancel={() => setCreateModalOpen(false)}
         footer={null}
+        className="kb-create-modal"
       >
         <Form form={form} onFinish={handleCreate} layout="vertical">
           <Form.Item
@@ -909,6 +910,7 @@ const KnowledgeBasePanel: React.FC<Props> = ({ onClose }) => {
           editForm.resetFields();
         }}
         footer={null}
+        className="kb-edit-modal"
       >
         <Form form={editForm} onFinish={handleSubmitEdit} layout="vertical">
           <Form.Item

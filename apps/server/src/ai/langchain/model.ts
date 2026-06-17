@@ -438,7 +438,7 @@ function buildProviderRequest(
     temperature: opts.temperature / 10,
     max_tokens: opts.maxTokens,
     thinking: {
-      type: cfg.thinkingEnabled ? 'enabled' : 'none',
+      type: cfg.thinkingEnabled ? 'enabled' : 'disabled',
     },
     stream: opts.stream,
   };

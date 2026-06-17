@@ -21,14 +21,13 @@
 .ant-card {
   background: var(--antd-colorBgContainer) !important;
   border: 1px solid var(--border-color) !important;
-  border-radius: 16px !important;
-  box-shadow: var(--shadow-sm) !important;
+  border-radius: 12px !important;
+  box-shadow: none !important;
   overflow: hidden;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  transition: border-color 0.15s ease !important;
 
   &:hover {
     border-color: var(--skin-border-color) !important;
-    box-shadow: var(--shadow-sm) !important;
   }
 }
 
@@ -105,7 +104,7 @@
     color: var(--skin-primary) !important;
 
     &:hover {
-      background: var(--skin-gradient-bg) !important;
+      background: rgba(47, 129, 247, 0.06) !important;
     }
   }
 }
@@ -122,13 +121,17 @@
   border-color: var(--border-color) !important;
   border-radius: @border-radius-sm !important;
   color: var(--text-main) !important;
-  transition: all 0.3s ease !important;
+  transition: border-color 0.15s ease !important;
 
-  &:hover,
+  &:hover {
+    border-color: var(--skin-primary) !important;
+  }
+
   &:focus,
   &:focus-within {
     border-color: var(--skin-primary) !important;
-    box-shadow: 0 0 0 3px var(--skin-gradient-bg) !important;
+    box-shadow: none !important;
+    outline: none !important;
   }
 
   /* 勿对 autofill 强制透明，否则会与 UA 填充层冲突。 */

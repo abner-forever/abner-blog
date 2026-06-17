@@ -1,13 +1,18 @@
-import { Button, Card, Col, Row, Space, Spin, Statistic, Tag, Typography } from 'antd';
+import { Button, Spin, Statistic, Typography } from 'antd';
 import {
   CalendarOutlined,
-  CheckCircleOutlined,
   ClockCircleOutlined,
   EnvironmentOutlined,
   EyeOutlined,
   FileTextOutlined,
+  FireOutlined,
+  HeartOutlined,
   MessageOutlined,
+  ReadOutlined,
   RightOutlined,
+  RobotOutlined,
+  RocketOutlined,
+  ToolOutlined,
   UserOutlined,
 } from '@ant-design/icons';
 import type { AppStatsResponse, BlogDto, MomentDto } from '@services/generated/model';
@@ -51,8 +56,6 @@ interface HeroSectionProps {
   weatherLoading: boolean;
   weatherError: boolean;
   weatherData: WeatherCardData | null;
-  eventsLoading: boolean;
-  todayEvents: CalendarEventData[];
   onBrowseArticles: () => void;
   onAbout: () => void;
   onLogin: () => void;
@@ -66,276 +69,299 @@ export const HeroSection: FC<HeroSectionProps> = ({
   subtitleText,
   browseArticlesText,
   aboutMeText,
-  userLoggedIn,
   weatherLoading,
   weatherError,
   weatherData,
-  eventsLoading,
-  todayEvents,
   onBrowseArticles,
   onAbout,
-  onLogin,
 }) => (
   <div className="hero-banner">
+    <div className="hero-bg-orb hero-bg-orb--1" />
+    <div className="hero-bg-orb hero-bg-orb--2" />
+    <div className="hero-bg-orb hero-bg-orb--3" />
+
     <div className="hero-content">
-      <div className="greeting">
-        <Text className="greeting-text">{greeting} 👋</Text>
-        <Text className="current-time">{currentTime}</Text>
+      <div className="hero-badge">
+        <span className="hero-badge-dot" />
+        <Text className="hero-badge-text">{greeting}</Text>
+        <Text className="hero-badge-time">{currentTime}</Text>
       </div>
+
       <Title level={1} className="hero-title">
-        {welcomeText} <span className="highlight">{siteNameText}</span>
+        {welcomeText} <span className="hero-highlight">{siteNameText}</span>
       </Title>
+
       <Paragraph className="hero-desc">{subtitleText}</Paragraph>
-      <Space size="middle" className="hero-actions">
-        <Button type="primary" size="large" onClick={onBrowseArticles}>
-          <FileTextOutlined /> {browseArticlesText}
+
+      <div className="hero-actions">
+        <Button type="primary" size="large" className="hero-btn-primary" onClick={onBrowseArticles}>
+          <RocketOutlined /> {browseArticlesText}
         </Button>
-        <Button size="large" onClick={onAbout}>
+        <Button size="large" className="hero-btn-secondary" onClick={onAbout}>
           {aboutMeText} <RightOutlined />
         </Button>
-      </Space>
-    </div>
-    <div className="hero-visual">
-      <div className="floating-card card-1">
-        <CalendarOutlined className="info-card-icon" />
-        <div className="info-card-content">
-          <span className="info-card-title">{dayjs().format('M月D日')}</span>
-          <span className="info-card-sub">{dayjs().format('dddd')}</span>
-        </div>
       </div>
 
-      <div className="floating-card card-2">
+      <div className="hero-info-chips">
         {weatherLoading ? (
-          <Spin size="small" />
+          <div className="hero-chip">
+            <Spin size="small" />
+          </div>
         ) : weatherError || !weatherData ? (
-          <>
-            <EnvironmentOutlined className="info-card-icon" />
-            <div className="info-card-content">
-              <span className="info-card-title">天气未知</span>
-              <span className="info-card-sub">网络异常</span>
-            </div>
-          </>
+          <div className="hero-chip">
+            <EnvironmentOutlined />
+            <span>天气获取中...</span>
+          </div>
         ) : (
-          <div className="weather-content">
-            <div className="weather-left">
-              <i className={`weather-icon ${weatherData.weatherIconClass}`} />
-              <div className="weather-temp">
-                <span className="temp-current">{weatherData.temp}°</span>
-                <span className="temp-range">
-                  {weatherData.tempMin}° ~ {weatherData.tempMax}°
-                </span>
-              </div>
-            </div>
-            <div className="weather-right">
-              <span className="weather-status">{weatherData.weatherText}</span>
-              <span className="weather-city">
-                <EnvironmentOutlined /> {weatherData.city}
-              </span>
-            </div>
+          <div className="hero-chip">
+            <i className={`weather-icon ${weatherData.weatherIconClass}`} />
+            <span>
+              {weatherData.weatherText} {weatherData.temp}°
+            </span>
+            <span className="hero-chip-city">{weatherData.city}</span>
           </div>
         )}
+        <div className="hero-chip">
+          <CalendarOutlined />
+          <span>{dayjs().format('M月D日 dddd')}</span>
+        </div>
       </div>
+    </div>
 
-      <div className="floating-card card-3">
-        <CheckCircleOutlined className="info-card-icon schedule" />
-        <div className="info-card-content">
-          {!userLoggedIn ? (
-            <>
-              <span className="info-card-title">今日日程</span>
-              <span className="info-card-sub schedule-login" onClick={onLogin}>
-                登录后查看
-              </span>
-            </>
-          ) : eventsLoading ? (
-            <>
-              <span className="info-card-title">今日日程</span>
-              <span className="info-card-sub">加载中...</span>
-            </>
-          ) : todayEvents.length === 0 ? (
-            <>
-              <span className="info-card-title">今日日程</span>
-              <span className="info-card-sub">暂无待办</span>
-            </>
-          ) : (
-            <>
-              <span className="info-card-title">今日 {todayEvents.length} 项日程</span>
-              <span className="info-card-sub">{todayEvents[0].title}</span>
-            </>
-          )}
+    <div className="hero-visual">
+      <div className="hero-terminal">
+        <div className="hero-terminal-bar">
+          <span className="hero-terminal-dot hero-terminal-dot--red" />
+          <span className="hero-terminal-dot hero-terminal-dot--yellow" />
+          <span className="hero-terminal-dot hero-terminal-dot--green" />
+          <span className="hero-terminal-title">~/blog</span>
+        </div>
+        <div className="hero-terminal-body">
+          <div className="hero-terminal-line">
+            <span className="hero-terminal-prompt">$</span>
+            <span className="hero-terminal-cmd">cat welcome.md</span>
+          </div>
+          <div className="hero-terminal-line hero-terminal-output">
+            # {siteNameText}
+          </div>
+          <div className="hero-terminal-line hero-terminal-output">
+            {subtitleText}
+          </div>
+          <div className="hero-terminal-line">
+            <span className="hero-terminal-prompt">$</span>
+            <span className="hero-terminal-cursor" />
+          </div>
         </div>
       </div>
     </div>
   </div>
 );
 
-interface QuickLinksSectionProps {
+interface FeatureShowcaseProps {
   title: string;
-  links: QuickLinkItem[];
-  onNavigate: (path: string) => void;
+  subtitle: string;
 }
 
-export const QuickLinksSection: FC<QuickLinksSectionProps> = ({
-  title,
-  links,
-  onNavigate,
-}) => (
-  <div className="section">
-    <div className="section-header">
-      <Title level={3} className="section-title">
-        🚀 {title}
-      </Title>
-    </div>
-    <Row gutter={[20, 20]} className="quick-links">
-      {links.map((link) => (
-        <Col xs={12} sm={6} key={link.key}>
-          <Card className="quick-link-card" hoverable onClick={() => onNavigate(link.path)}>
-            <div className="link-icon" style={{ background: link.color }}>
-              {link.icon}
-            </div>
-            <div className="link-info">
-              <Text strong>{link.title}</Text>
-            </div>
-          </Card>
-        </Col>
-      ))}
-    </Row>
-  </div>
-);
+export const FeatureShowcase: FC<FeatureShowcaseProps> = ({ title, subtitle }) => {
+  const features = [
+    {
+      icon: <FileTextOutlined />,
+      title: '技术博客',
+      desc: '深度技术文章与实践经验',
+      gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      path: '/blogs',
+    },
+    {
+      icon: <MessageOutlined />,
+      title: '日常动态',
+      desc: '生活记录与思考碎片',
+      gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+      path: '/moments',
+    },
+    {
+      icon: <RobotOutlined />,
+      title: 'AI 助手',
+      desc: '智能对话，探索无限可能',
+      gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+      path: '/chat',
+    },
+    {
+      icon: <ReadOutlined />,
+      title: '技术资讯',
+      desc: '行业动态与前沿趋势',
+      gradient: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+      path: '/news',
+    },
+    {
+      icon: <ToolOutlined />,
+      title: '效率工具',
+      desc: '提升开发效率的实用工具',
+      gradient: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+      path: '/tools',
+    },
+  ];
 
-interface RecentActivitySectionProps {
+  return (
+    <div className="feature-section">
+      <div className="feature-header">
+        <Title level={2} className="feature-title">{title}</Title>
+        <Text className="feature-subtitle">{subtitle}</Text>
+      </div>
+      <div className="feature-grid">
+        {features.map((feature, idx) => (
+          <div
+            key={feature.path}
+            className="feature-card"
+            style={{ animationDelay: `${idx * 0.08}s` }}
+            onClick={() => window.location.assign(feature.path)}
+          >
+            <div className="feature-card-icon" style={{ background: feature.gradient }}>
+              {feature.icon}
+            </div>
+            <div className="feature-card-info">
+              <Text strong className="feature-card-title">{feature.title}</Text>
+              <Text className="feature-card-desc">{feature.desc}</Text>
+            </div>
+            <RightOutlined className="feature-card-arrow" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+interface LatestContentProps {
   title: string;
-  latestArticlesTitle: string;
-  latestMomentsTitle: string;
-  noContentText: string;
+  viewAllText: string;
+  momentsTitle: string;
   noArticlesText: string;
   noMomentsText: string;
   unknownText: string;
   publishedText: string;
   draftText: string;
-  momentsTagText: string;
   locale: string;
   recentBlogs: BlogDto[];
   recentMoments: MomentDto[];
   onBlogClick: (id: number) => void;
   onMomentClick: (id: number) => void;
+  onViewAllArticles: () => void;
 }
 
-export const RecentActivitySection: FC<RecentActivitySectionProps> = ({
+export const LatestContent: FC<LatestContentProps> = ({
   title,
-  latestArticlesTitle,
-  latestMomentsTitle,
-  noContentText,
+  viewAllText,
+  momentsTitle,
   noArticlesText,
   noMomentsText,
   unknownText,
   publishedText,
   draftText,
-  momentsTagText,
   locale,
   recentBlogs,
   recentMoments,
   onBlogClick,
   onMomentClick,
+  onViewAllArticles,
 }) => {
   const dateLocale =
     locale === 'zh-CN' ? 'zh-CN' : locale === 'zh-TW' ? 'zh-TW' : 'en-US';
 
+  const topBlogs = recentBlogs.slice(0, 2);
+
   return (
-    <div className="section">
-      <div className="section-header">
-        <Title level={3} className="section-title">
-          📝 {title}
-        </Title>
-        <Text type="secondary">
-          <RightOutlined />
-        </Text>
+    <div className="latest-section">
+      <div className="latest-header">
+        <div>
+          <Title level={2} className="latest-title">{title}</Title>
+        </div>
+        <Button type="link" className="latest-view-all" onClick={onViewAllArticles}>
+          {viewAllText} <RightOutlined />
+        </Button>
       </div>
-      <Row gutter={[24, 24]}>
-        <Col xs={24} lg={12}>
-          <Card title={`📰 ${latestArticlesTitle}`} className="activity-card">
-            <div className="activity-list">
-              {recentBlogs.length > 0 ? (
-                recentBlogs.map((blog) => (
-                  <div key={blog.id} className="activity-item" onClick={() => onBlogClick(blog.id)}>
-                    <div className="activity-icon">
-                      <FileTextOutlined />
-                    </div>
-                    <div className="activity-content">
-                      <Text strong>
-                        {blog.title?.slice(0, 30) || noContentText}
-                        {blog.title && blog.title.length > 30 ? '...' : ''}
-                      </Text>
-                      <Text type="secondary" className="activity-time">
-                        <ClockCircleOutlined />{' '}
-                        {blog.createdAt
-                          ? new Date(blog.createdAt).toLocaleDateString(dateLocale)
-                          : unknownText}
-                      </Text>
-                    </div>
-                    <Tag color="purple">{blog.isPublished ? publishedText : draftText}</Tag>
-                  </div>
-                ))
-              ) : (
-                <div className="activity-item">
-                  <Text type="secondary">{noArticlesText}</Text>
+
+      <div className="latest-blogs-row">
+        {topBlogs.length > 0 ? (
+          topBlogs.map((blog) => (
+            <div
+              key={blog.id}
+              className="featured-blog-card"
+              onClick={() => onBlogClick(blog.id)}
+            >
+              <div className="featured-blog-visual">
+                <div className="featured-blog-icon">
+                  <FileTextOutlined />
                 </div>
-              )}
-            </div>
-          </Card>
-        </Col>
-        <Col xs={24} lg={12}>
-          <Card title={`💬 ${latestMomentsTitle}`} className="activity-card">
-            <div className="activity-list">
-              {recentMoments.length > 0 ? (
-                recentMoments.map((moment) => (
-                  <div
-                    key={moment.id}
-                    className="activity-item"
-                    onClick={() => onMomentClick(moment.id)}
-                  >
-                    <div className="activity-icon fire">
-                      <MessageOutlined />
-                    </div>
-                    <div className="activity-content">
-                      <Text strong>
-                        {moment.content?.slice(0, 30) || noContentText}
-                        {moment.content && moment.content.length > 30 ? '...' : ''}
-                      </Text>
-                      <Text type="secondary" className="activity-time">
-                        <ClockCircleOutlined />{' '}
-                        {moment.createdAt
-                          ? new Date(moment.createdAt).toLocaleDateString(dateLocale)
-                          : unknownText}
-                      </Text>
-                    </div>
-                    <Tag color="orange">{momentsTagText}</Tag>
-                  </div>
-                ))
-              ) : (
-                <div className="activity-item">
-                  <Text type="secondary">{noMomentsText}</Text>
+                <div className="featured-blog-tag">
+                  {blog.isPublished ? publishedText : draftText}
                 </div>
-              )}
+              </div>
+              <div className="featured-blog-content">
+                <Title level={3} className="featured-blog-title">
+                  {blog.title || noArticlesText}
+                </Title>
+                <Text className="featured-blog-meta">
+                  <ClockCircleOutlined />{' '}
+                  {blog.createdAt
+                    ? new Date(blog.createdAt).toLocaleDateString(dateLocale)
+                    : unknownText}
+                </Text>
+                <div className="featured-blog-read">
+                  <span>{viewAllText}</span>
+                  <RightOutlined />
+                </div>
+              </div>
             </div>
-          </Card>
-        </Col>
-      </Row>
+          ))
+        ) : (
+          <div className="featured-blog-card featured-blog-card--empty">
+            <Text type="secondary">{noArticlesText}</Text>
+          </div>
+        )}
+      </div>
+
+      {recentMoments.length > 0 && (
+        <div className="latest-moments-row">
+          <div className="latest-section-label">{momentsTitle}</div>
+          <div className="moments-strip">
+            {recentMoments.map((moment) => (
+              <div
+                key={moment.id}
+                className="moment-chip"
+                onClick={() => onMomentClick(moment.id)}
+              >
+                <div className="moment-chip-icon">
+                  <FireOutlined />
+                </div>
+                <div className="moment-chip-content">
+                  <Text strong className="moment-chip-text">
+                    {moment.content?.slice(0, 50) || noMomentsText}
+                    {moment.content && moment.content.length > 50 ? '...' : ''}
+                  </Text>
+                  <Text className="moment-chip-time">
+                    {moment.createdAt
+                      ? new Date(moment.createdAt).toLocaleDateString(dateLocale)
+                      : unknownText}
+                  </Text>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
-interface StatsSectionProps {
-  title: string;
+interface StatsBarProps {
   articlesText: string;
   momentsText: string;
   viewsText: string;
-  stats: AppStatsResponse;
   usersText: string;
+  stats: AppStatsResponse;
   loading: boolean;
 }
 
-export const StatsSection: FC<StatsSectionProps> = ({
-  title,
+export const StatsBar: FC<StatsBarProps> = ({
   articlesText,
   momentsText,
   viewsText,
@@ -343,57 +369,70 @@ export const StatsSection: FC<StatsSectionProps> = ({
   stats,
   loading,
 }) => (
-  <div className="section">
-    <div className="section-header">
-      <Title level={3} className="section-title">
-        📊 {title}
-      </Title>
+  <div className="stats-bar">
+    <div className="stats-bar-item">
+      <Statistic
+        title={articlesText}
+        value={stats.articles}
+        prefix={<FileTextOutlined />}
+        loading={loading}
+      />
     </div>
-    <Row gutter={[24, 24]} className="stats-row">
-      <Col xs={12} sm={6}>
-        <Card className="stat-card">
-          <Statistic
-            title={articlesText}
-            value={stats.articles}
-            prefix={<FileTextOutlined />}
-            styles={{ content: { color: '#667eea' } }}
-            loading={loading}
-          />
-        </Card>
-      </Col>
-      <Col xs={12} sm={6}>
-        <Card className="stat-card">
-          <Statistic
-            title={momentsText}
-            value={stats.moments}
-            prefix={<MessageOutlined />}
-            styles={{ content: { color: '#f5576c' } }}
-            loading={loading}
-          />
-        </Card>
-      </Col>
-      <Col xs={12} sm={6}>
-        <Card className="stat-card">
-          <Statistic
-            title={viewsText}
-            value={stats.views}
-            prefix={<EyeOutlined />}
-            styles={{ content: { color: '#4facfe' } }}
-            loading={loading}
-          />
-        </Card>
-      </Col>
-      <Col xs={12} sm={6}>
-        <Card className="stat-card">
-          <Statistic
-            title={usersText}
-            value={stats.users}
-            prefix={<UserOutlined />}
-            styles={{ content: { color: '#4facfe' } }}
-            loading={loading}
-          />
-        </Card>
-      </Col>
-    </Row>
+    <div className="stats-bar-divider" />
+    <div className="stats-bar-item">
+      <Statistic
+        title={momentsText}
+        value={stats.moments}
+        prefix={<FireOutlined />}
+        loading={loading}
+      />
+    </div>
+    <div className="stats-bar-divider" />
+    <div className="stats-bar-item">
+      <Statistic
+        title={viewsText}
+        value={stats.views}
+        prefix={<EyeOutlined />}
+        loading={loading}
+      />
+    </div>
+    <div className="stats-bar-divider" />
+    <div className="stats-bar-item">
+      <Statistic
+        title={usersText}
+        value={stats.users}
+        prefix={<UserOutlined />}
+        loading={loading}
+      />
+    </div>
+  </div>
+);
+
+interface AboutBannerProps {
+  title: string;
+  description: string;
+  ctaText: string;
+  onCta: () => void;
+}
+
+export const AboutBanner: FC<AboutBannerProps> = ({
+  title,
+  description,
+  ctaText,
+  onCta,
+}) => (
+  <div className="about-banner">
+    <div className="about-banner-content">
+      <div className="about-banner-icon">
+        <HeartOutlined />
+      </div>
+      <div className="about-banner-text">
+        <Title level={3} className="about-banner-title">{title}</Title>
+        <Paragraph className="about-banner-desc">{description}</Paragraph>
+      </div>
+    </div>
+    <Button type="primary" size="large" className="about-banner-btn" onClick={onCta}>
+      {ctaText} <RightOutlined />
+    </Button>
   </div>
 );

@@ -79,7 +79,11 @@ const ChatMessageList: React.FC<Props> = memo(function ChatMessageList({
                       <div className="assistant-thinking__header">
                         <span>{thinkingProcessLabel}</span>
                         {message.thinkingStatus === 'streaming' ? (
-                          <span className="assistant-thinking__loading">...</span>
+                          <span className="thinking-dots thinking-dots--sm" aria-label="思考中">
+                            <span className="thinking-dots__dot" />
+                            <span className="thinking-dots__dot" />
+                            <span className="thinking-dots__dot" />
+                          </span>
                         ) : null}
                         <button
                           type="button"
@@ -136,7 +140,11 @@ const ChatMessageList: React.FC<Props> = memo(function ChatMessageList({
                     loading &&
                     message.webSearchStatus !== 'searching' &&
                     (!message.displayContent || message.answerStatus !== 'streaming') && (
-                      <span className="thinking-dots">...</span>
+                      <span className="thinking-dots" aria-label="正在生成">
+                        <span className="thinking-dots__dot" />
+                        <span className="thinking-dots__dot" />
+                        <span className="thinking-dots__dot" />
+                      </span>
                     )}
                 </div>
               ) : (

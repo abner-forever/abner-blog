@@ -3,14 +3,14 @@
 
   .sidebar-footer-divider {
     height: 1px;
-    background: var(--skin-border-color, #e5e5e5);
+    background: var(--ds-border);
     margin-bottom: 8px;
   }
 
   .sidebar-footer-buttons {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 2px;
   }
 
   .sidebar-user-btn {
@@ -18,21 +18,21 @@
     align-items: center;
     gap: 10px;
     padding: 8px 12px;
-    border-radius: 6px;
-    color: var(--antd-colorTextSecondary, #666);
+    border-radius: 8px;
+    color: var(--ds-text-secondary);
     font-size: 13px;
     width: 100%;
     justify-content: flex-start;
     height: auto;
 
     &:hover {
-      background: rgba(0, 0, 0, 0.04);
-      color: var(--antd-colorText, #1a1a1a);
+      background: var(--ds-bg-tertiary);
+      color: var(--ds-text);
     }
 
     .user-avatar {
       flex-shrink: 0;
-      background: var(--chat-primary, #10a37f);
+      background: var(--ds-accent, #4D6BFE);
     }
 
     .user-name {
@@ -49,26 +49,21 @@
     align-items: center;
     gap: 8px;
     padding: 8px 12px;
-    border-radius: 10px;
+    border-radius: 8px;
     border: 1px solid transparent;
-    color: var(--antd-colorTextSecondary, #666);
+    color: var(--ds-text-secondary);
     font-size: 13px;
     justify-content: flex-start;
 
     &:hover {
-      background: color-mix(in srgb, var(--skin-primary) 8%, transparent);
-      border-color: color-mix(in srgb, var(--skin-primary) 20%, transparent);
-      color: var(--antd-colorText, #1a1a1a);
+      background: var(--ds-bg-tertiary);
+      color: var(--ds-text);
     }
 
     &.active {
-      background: linear-gradient(
-        135deg,
-        color-mix(in srgb, var(--skin-primary) 18%, transparent) 0%,
-        color-mix(in srgb, var(--skin-primary) 10%, transparent) 100%
-      );
-      border-color: color-mix(in srgb, var(--skin-primary) 30%, transparent);
-      color: var(--chat-primary, #10a37f);
+      background: rgba(77, 107, 254, 0.12);
+      border-color: rgba(77, 107, 254, 0.2);
+      color: var(--ds-accent);
     }
   }
 }
@@ -78,24 +73,27 @@
   .ant-dropdown-menu {
     padding: 4px;
     min-width: 200px;
-    border-radius: 8px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+    border-radius: 10px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+    background: var(--ds-bg-secondary, #2f2f2f);
+    border: 1px solid var(--ds-border, #3a3a3a);
   }
 
   .ant-dropdown-menu-item {
     border-radius: 6px;
     padding: 10px 12px;
     font-size: 13px;
+    color: var(--ds-text, #e8e8e8);
 
     &:hover {
-      background: rgba(0, 0, 0, 0.04);
+      background: var(--ds-bg-tertiary, #383838);
     }
 
     &-danger {
-      color: #ef4444;
+      color: var(--error-color, #ef4444);
 
       &:hover {
-        background: rgba(239, 68, 68, 0.08);
+        background: rgba(239, 68, 68, 0.12);
       }
     }
   }
@@ -107,6 +105,7 @@
     justify-content: space-between;
     gap: 12px;
     min-width: 120px;
+    color: var(--ds-text, #e8e8e8);
   }
 }
 
@@ -122,44 +121,3 @@
   display: flex;
 }
 
-// Dark theme
-[data-theme="dark"] {
-  .sidebar-footer {
-    .sidebar-footer-divider {
-      background: #334155;
-    }
-
-    .sidebar-user-btn {
-      color: #94a3b8;
-
-      &:hover {
-        background: color-mix(in srgb, var(--skin-primary) 20%, transparent);
-        color: #e2e8f0;
-      }
-
-      .user-avatar {
-        background: color-mix(in srgb, var(--skin-primary) 30%, transparent);
-      }
-    }
-
-    .sidebar-footer-btn {
-      color: #94a3b8;
-
-      &:hover {
-        background: color-mix(in srgb, var(--skin-primary) 20%, transparent);
-        border-color: color-mix(in srgb, var(--skin-primary) 34%, transparent);
-        color: #e2e8f0;
-      }
-
-      &.active {
-        background: linear-gradient(
-          135deg,
-          color-mix(in srgb, var(--skin-primary) 34%, transparent),
-          color-mix(in srgb, var(--skin-primary) 20%, transparent)
-        );
-        border-color: color-mix(in srgb, var(--skin-primary) 44%, transparent);
-        color: color-mix(in srgb, var(--skin-primary) 78%, white);
-      }
-    }
-  }
-}

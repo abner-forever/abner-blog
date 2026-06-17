@@ -18,9 +18,6 @@
       position: sticky;
       top: 0;
       z-index: 10;
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      background: var(--glass-bg);
 
       .list-nav {
         display: flex;
@@ -32,16 +29,15 @@
           color: @text-secondary;
           cursor: pointer;
           border-radius: 6px;
-          transition: all 0.2s;
+          transition: color 0.15s, background 0.15s;
 
           &:hover {
             color: @primary-color;
-            background: rgba(79, 70, 229, 0.05);
+            background: var(--hover-bg);
           }
 
           &.active {
             color: @primary-color;
-            background: rgba(79, 70, 229, 0.1);
             font-weight: 600;
           }
         }
@@ -51,7 +47,6 @@
     .article-list {
       background: var(--card-bg);
       border-radius: 0 0 @border-radius-base @border-radius-base;
-      box-shadow: @box-shadow-sm;
 
       .article-item {
         padding: 24px;
@@ -66,8 +61,8 @@
         }
 
         &:hover {
-          background: rgba(79, 70, 229, 0.02);
-          
+          background: var(--hover-bg);
+
           .article-title {
             color: @primary-color;
           }
@@ -99,10 +94,10 @@
             }
 
             .tag {
-              background: var(--bg-color);
+              background: var(--surface-color, #f6f5f4);
               padding: 2px 8px;
               border-radius: 4px;
-              color: @primary-color;
+              color: @text-secondary;
               font-size: 12px;
               font-weight: 500;
             }
@@ -188,11 +183,8 @@
   .sidebar-area {
     .sidebar-card {
       margin-bottom: 20px;
-      box-shadow: @box-shadow-sm;
       
       &.greeting-card {
-        // 移除强制的渐变背景，让其回归标准卡片样式
-        // 或是使用一个非常淡的背景色来区分
         background: var(--card-bg);
         
         .greeting-header {
@@ -274,18 +266,17 @@
 
       .tag-pill {
         padding: 6px 12px;
-        background: var(--bg-color);
-        border-radius: 8px;
+        background: var(--surface-color, #f6f5f4);
+        border-radius: 6px;
         font-size: 13px;
         color: @text-secondary;
         cursor: pointer;
-        transition: all 0.2s;
-        border: 1px solid transparent;
+        transition: color 0.15s, border-color 0.15s;
+        border: 1px solid var(--border-color);
 
         &:hover {
           color: @primary-color;
-          background: rgba(79, 70, 229, 0.05);
-          border-color: rgba(79, 70, 229, 0.2);
+          border-color: @primary-color;
         }
 
         &.active {
@@ -319,49 +310,7 @@
   }
 }
 
-// 暗色模式下的特殊处理
-[data-theme='dark'] {
-  .blog-list-page {
-    .main-area {
-      .list-header {
-        background: rgba(30, 41, 59, 0.8);
-        border-color: #334155;
-      }
-      .article-list {
-        background: #1e293b;
-        border-color: #334155;
-        
-        .article-item {
-          border-color: #334155;
-          &:hover {
-            background: rgba(255, 255, 255, 0.03);
-          }
-          
-          .article-content {
-            .article-meta .tag {
-              background: #334155;
-              color: #818cf8;
-            }
-          }
-        }
-      }
-    }
-    
-    .sidebar-area {
-      .sidebar-card.greeting-card {
-        background: var(--card-bg);
-      }
-      
-      .tag-cloud .tag-pill {
-        background: #1e293b;
-        border-color: #334155;
-        &:hover {
-          border-color: #6366f1;
-        }
-      }
-    }
-  }
-}
+// 暗色模式 - 已通过 CSS 变量自动适配
 
 @media (max-width: 768px) {
   .blog-list-page {
