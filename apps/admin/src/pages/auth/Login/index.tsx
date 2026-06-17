@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import { Form, Input, Button, Card, message } from "antd";
-import { UserOutlined, LockOutlined } from "@ant-design/icons";
+import { Form, Input, Button, Card, message, Divider } from "antd";
+import { UserOutlined, LockOutlined, KeyOutlined } from "@ant-design/icons";
 import { useTranslation } from "react-i18next";
 import { getBlogAdminAPI } from "@/services/generated/admin";
-import { setCredentials } from "@/store/authSlice";
+import { setCredentials, setSSOCredentials } from "@/store/authSlice";
+import { getSSOStatus } from "@/services/sso";
 import "./index.less";
 
 const api = getBlogAdminAPI();
@@ -15,6 +16,33 @@ const Login: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { t } = useTranslation();
+
+  // 页面加载时检查是否已有 SSO 会话
+  useEffect(() => {
+    getSSOStatus()
+      .then((status) => {
+        if (
+          status.authenticated &&
+          status.userId &&
+          status.username &&
+          status.role
+        ) {
+          dispatch(
+            setSSOCredentials({
+              userId: status.userId,
+              username: status.username,
+              role: status.role as "admin" | "user",
+              email: status.email,
+            }),
+          );
+          message.success(t("login.loginSuccess"));
+          navigate("/dashboard");
+        }
+      })
+      .catch(() => {
+        // SSO 未登录，正常显示登录页面
+      });
+  }, [dispatch, navigate, t]);
 
   const onFinish = async (values: { username: string; password: string }) => {
     setLoading(true);
@@ -64,6 +92,11 @@ const Login: React.FC = () => {
     }
   };
 
+  const handleSSOLogin = () => {
+    // 重定向到服务端 SSO 授权端点
+    window.location.href = "/api/sso/authorize";
+  };
+
   return (
     <div className="login-page">
       <Card className="login-card">
@@ -96,6 +129,17 @@ const Login: React.FC = () => {
             </Button>
           </Form.Item>
         </Form>
+
+        <Divider plain>{t("login.ssoDivider")}</Divider>
+
+        <Button
+          icon={<KeyOutlined />}
+          block
+          className="login-card__sso-btn"
+          onClick={handleSSOLogin}
+        >
+          {t("login.ssoLogin")}
+        </Button>
       </Card>
     </div>
   );

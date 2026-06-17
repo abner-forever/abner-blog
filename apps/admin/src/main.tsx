@@ -22,7 +22,10 @@ initAnalytics({
   sampleRate: 0.15,
   autoTrack: true,
   debug: false,
-  getToken: () => localStorage.getItem('admin-token'),
+  getToken: () => {
+    const token = localStorage.getItem('admin-token');
+    return token && token !== 'sso-session' ? token : undefined;
+  },
 });
 
 ReactDOM.createRoot(document.getElementById("root")!).render(

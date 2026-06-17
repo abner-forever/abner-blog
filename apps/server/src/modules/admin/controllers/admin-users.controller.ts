@@ -37,7 +37,7 @@ import {
 @ApiExtraModels(UserProfileDto)
 @ApiTags('管理后台 - 用户管理')
 @ApiBearerAuth('JWT')
-@UseGuards(AuthGuard('admin-jwt'), AdminGuard)
+@UseGuards(AuthGuard(['admin-jwt', 'sso-session']), AdminGuard)
 @Controller('admin')
 export class AdminUsersController {
   constructor(private readonly adminUsersService: AdminUsersService) {}

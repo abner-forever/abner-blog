@@ -1,0 +1,508 @@
+/* ============================================================
+   Abner Blog — Keycloak SSO Login Theme
+   与 abner-blog 管理后台登录页设计风格保持一致
+   ============================================================ */
+
+/* ─── CSS Variables (匹配 projects apps/admin 设计 token) ── */
+:root {
+  --primary: #1890ff;
+  --primary-hover: #40a9ff;
+  --primary-active: #096dd9;
+
+  --bg-page: #f5f5f5;
+  --bg-card: #ffffff;
+
+  --text-primary: #333333;
+  --text-secondary: #666666;
+  --text-muted: #999999;
+
+  --border-color: #d9d9d9;
+  --border-hover: #b3b3b3;
+
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial, 'Noto Sans SC', 'PingFang SC',
+    'Microsoft YaHei', sans-serif;
+  --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* 背景装饰色 */
+  --bg-blob-1: rgba(24, 144, 255, 0.06);
+  --bg-blob-2: rgba(64, 169, 255, 0.04);
+  --bg-blob-3: rgba(24, 144, 255, 0.03);
+}
+
+/* ─── Base Reset ────────────────────────────────────────── */
+html {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: var(--font) !important;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* 强制背景 — 覆盖 PatternFly 深色背景 */
+  background:
+    /* 极浅点阵（科技感元素，不干扰整体浅色基调） */
+    radial-gradient(circle at 1px 1px, rgba(24, 144, 255, 0.08) 1px, transparent 0),
+    /* 浅蓝渐变（与 Ant Design 浅色风格协调） */
+    linear-gradient(
+      145deg,
+      #f0f5ff 0%,
+      #e8f0fe 30%,
+      #f5f7fa 60%,
+      #eef3f8 100%
+    ) fixed !important;
+  background-size: 20px 20px, 100% 100% !important;
+}
+
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: var(--font) !important;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: transparent !important;
+}
+
+/* ─── 背景发光特效装饰 ────────────────────────────────── */
+/* 右上角 ~ 淡蓝光晕 */
+div.login-pf-page::before {
+  content: '';
+  position: fixed;
+  top: -25%;
+  right: -10%;
+  width: 60vmax;
+  height: 60vmax;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(24, 144, 255, 0.08) 0%, transparent 60%);
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* 左下角 ~ 淡蓝光晕 */
+div.login-pf-page::after {
+  content: '';
+  position: fixed;
+  bottom: -20%;
+  left: -5%;
+  width: 45vmax;
+  height: 45vmax;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(64, 169, 255, 0.06) 0%, transparent 60%);
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* ─── Page Layout ───────────────────────────────────────── */
+div.login-pf-page {
+  display: flex !important;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 24px;
+  background: transparent !important;
+  position: relative;
+  z-index: 1;
+}
+
+/* ─── Header / Brand Logo (位于卡片上方) ──────────────────── */
+div#kc-header {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+/* #kc-header-wrapper 包含原始文字 "Abner Blog"
+   我们将其隐藏并用伪元素替换为带 Logo 的样式 */
+div#kc-header-wrapper {
+  font-size: 0 !important;
+  line-height: 1;
+  color: transparent !important;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Logo 图标 — 蓝色圆角方块 + 白色 "A" 字母 */
+div#kc-header-wrapper::before {
+  content: 'A';
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, #1890ff, #40a9ff);
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 14px rgba(24, 144, 255, 0.35);
+  font-size: 22px !important;
+  font-weight: 700;
+  color: #ffffff !important;
+  line-height: 1;
+}
+
+/* 品牌文字 "Abner Blog" */
+div#kc-header-wrapper::after {
+  content: 'Abner Blog';
+  display: block;
+  font-size: 20px !important;
+  font-weight: 600;
+  color: var(--text-primary) !important;
+  letter-spacing: -0.02em;
+}
+
+/* ─── Card Container ────────────────────────────────────── */
+div.card-pf {
+  background: var(--bg-card) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: var(--radius-md) !important;
+  box-shadow: var(--shadow-md) !important;
+  padding: 40px 32px 32px !important;
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+  position: relative;
+}
+
+/* ─── Card Header (包含语言选择器和标题) ─────────────────── */
+header.login-pf-header {
+  position: relative;
+}
+
+/* ─── Page Title ────────────────────────────────────────── */
+h1#kc-page-title {
+  font-size: 24px !important;
+  font-weight: 600 !important;
+  text-align: center;
+  margin: 0 0 24px !important;
+  color: var(--primary) !important;
+  letter-spacing: -0.02em;
+  line-height: 1.35;
+}
+
+/* ─── Locale / Language Selector (卡片右上角) ────────────── */
+#kc-locale {
+  position: absolute;
+  top: -24px;
+  right: 0;
+  z-index: 10;
+}
+
+/* 语言切换按钮 */
+#kc-current-locale-link {
+  font-size: 12px;
+  font-family: var(--font);
+  color: var(--text-muted) !important;
+  background: none !important;
+  border: 1px solid transparent !important;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  padding: 4px 8px;
+  transition: var(--transition);
+  line-height: 1.4;
+}
+
+#kc-current-locale-link:hover {
+  color: var(--text-secondary) !important;
+  border-color: var(--border-color) !important;
+  background: var(--bg-page) !important;
+}
+
+#kc-current-locale-link:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* 语言选择器下拉菜单 — 默认隐藏，JS 控制显示 */
+ul.pf-c-dropdown__menu {
+  display: none;
+  list-style: none;
+  padding: 6px 0 !important;
+  margin: 4px 0 0 !important;
+  background: var(--bg-card);
+  border: 1px solid #e8e8e8 !important;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-md);
+  min-width: 140px;
+  text-align: left;
+  position: absolute;
+  right: 0;
+}
+
+ul.pf-c-dropdown__menu li a.pf-c-dropdown__menu-item {
+  display: block;
+  padding: 8px 16px;
+  font-size: 13px;
+  color: var(--text-primary) !important;
+  transition: var(--transition);
+  text-decoration: none !important;
+}
+
+ul.pf-c-dropdown__menu li a.pf-c-dropdown__menu-item:hover {
+  background: #fafafa !important;
+  color: var(--primary) !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* ─── Form Groups ───────────────────────────────────────── */
+div.form-group {
+  margin-bottom: 20px;
+}
+
+/* ─── Labels ────────────────────────────────────────────── */
+label.pf-c-form__label.pf-c-form__label-text {
+  display: block !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  color: var(--text-secondary) !important;
+  margin-bottom: 6px !important;
+  padding: 0 !important;
+}
+
+/* ─── Input Fields ──────────────────────────────────────── */
+input.pf-c-form-control {
+  width: 100% !important;
+  height: 40px !important;
+  padding: 8px 12px !important;
+  font-size: 14px !important;
+  font-family: var(--font);
+  color: var(--text-primary) !important;
+  background: var(--bg-card) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: var(--radius-sm) !important;
+  outline: none !important;
+  transition: var(--transition);
+  box-sizing: border-box;
+  box-shadow: none !important;
+}
+
+input.pf-c-form-control:hover {
+  border-color: var(--border-hover) !important;
+}
+
+input.pf-c-form-control:focus,
+input.pf-c-form-control:focus-visible {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.15) !important;
+  outline: none !important;
+}
+
+input.pf-c-form-control::placeholder {
+  color: var(--text-muted) !important;
+  opacity: 1;
+}
+
+/* ─── Password Input Group ──────────────────────────────── */
+div.pf-c-input-group {
+  display: flex !important;
+  width: 100%;
+}
+
+/* 密码输入框 — 左侧圆角，右侧与按钮接合 */
+div.pf-c-input-group input.pf-c-form-control {
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+  border-right: none !important;
+}
+
+/* 密码显示/隐藏切换按钮 — 右侧圆角 */
+button.pf-c-button.pf-m-control {
+  height: 40px !important;
+  min-width: 40px !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: var(--bg-card) !important;
+  border: 1px solid var(--border-color) !important;
+  border-left: none !important;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0 !important;
+  color: var(--text-muted) !important;
+  cursor: pointer;
+  transition: var(--transition);
+  box-sizing: border-box;
+  outline: none !important;
+}
+
+button.pf-c-button.pf-m-control:hover {
+  background: var(--bg-page) !important;
+  color: var(--text-secondary) !important;
+}
+
+button.pf-c-button.pf-m-control:focus-visible {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.15) !important;
+}
+
+/* 密码切换图标 */
+button.pf-c-button.pf-m-control i.fa,
+button.pf-c-button.pf-m-control i.fa-eye,
+button.pf-c-button.pf-m-control i.fa-eye-slash {
+  font-size: 16px !important;
+  color: inherit !important;
+  line-height: 1 !important;
+  display: inline-block !important;
+}
+
+/* ─── Submit Button ─────────────────────────────────────── */
+input.pf-c-button.pf-m-primary.pf-m-block.btn-lg {
+  display: block !important;
+  width: 100% !important;
+  height: 40px !important;
+  padding: 0 16px !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  font-family: var(--font);
+  color: #ffffff !important;
+  background: var(--primary) !important;
+  border: none !important;
+  border-radius: var(--radius-sm) !important;
+  cursor: pointer !important;
+  transition: var(--transition);
+  margin-top: 4px;
+  line-height: 40px;
+  text-align: center;
+  outline: none !important;
+}
+
+input.pf-c-button.pf-m-primary.pf-m-block.btn-lg:hover {
+  background: var(--primary-hover) !important;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.3) !important;
+}
+
+input.pf-c-button.pf-m-primary.pf-m-block.btn-lg:active {
+  background: var(--primary-active) !important;
+  transform: scale(0.98);
+}
+
+input.pf-c-button.pf-m-primary.pf-m-block.btn-lg:disabled {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+}
+
+/* ─── Links ─────────────────────────────────────────────── */
+a {
+  color: var(--primary) !important;
+  text-decoration: none !important;
+  font-size: 14px;
+  transition: var(--transition);
+}
+
+a:hover {
+  color: var(--primary-hover) !important;
+}
+
+/* ─── Error / Alert Messages ────────────────────────────── */
+div.alert {
+  border-radius: var(--radius-sm) !important;
+  padding: 10px 14px !important;
+  margin-bottom: 20px !important;
+  font-size: 13px;
+  border: 1px solid transparent !important;
+}
+
+div.alert.alert-error {
+  background: #fff2f0 !important;
+  color: #ff4d4f !important;
+  border-color: #ffccc7 !important;
+}
+
+div.alert.alert-success {
+  background: #f6ffed !important;
+  color: #52c41a !important;
+  border-color: #d9f8be !important;
+}
+
+div.alert.alert-info {
+  background: #e6f7ff !important;
+  color: #1890ff !important;
+  border-color: #91d5ff !important;
+}
+
+/* ─── Settings / Options Row (Remember Me) ──────────────── */
+div.login-pf-settings {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 16px 0 !important;
+}
+
+/* ─── Remember Me Checkbox ──────────────────────────────── */
+input[type='checkbox'] {
+  width: 16px !important;
+  height: 16px !important;
+  accent-color: var(--primary);
+  border-radius: var(--radius-sm) !important;
+  margin-right: 6px;
+}
+
+/* ─── Social Login Providers ────────────────────────────── */
+#kc-social-providers ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+#kc-social-providers li {
+  margin-bottom: 10px;
+}
+
+/* ─── Feedback / Info Messages ──────────────────────────── */
+div#kc-info-wrapper {
+  font-size: 14px;
+  color: var(--text-secondary);
+  padding: 12px 0;
+  text-align: center;
+}
+
+/* ─── Responsive ────────────────────────────────────────── */
+@media (max-width: 480px) {
+  div.card-pf {
+    padding: 28px 20px !important;
+    border-radius: var(--radius-md) !important;
+  }
+
+  div.login-pf-page {
+    padding: 16px;
+  }
+
+  #kc-locale {
+    top: -16px;
+  }
+}
+
+/* ─── PatternFly Overrides ─────────────────────────────── */
+/* 移除默认 PatternFly 的灰度渐变背景 */
+div#kc-header {
+  background: transparent !important;
+}
+
+/* 移除 card-pf 默认的内边距干扰 */
+.card-pf {
+  margin: 0 auto !important;
+  border-top: none !important;
+}
+
+/* 覆盖 PatternFly 的按钮样式继承 */
+.pf-c-button.pf-m-primary {
+  background-image: none !important;
+}
+
+/* 移除 PatternFly 卡片默认的顶部边框色 */
+.card-pf {
+  border-top-color: var(--border-color) !important;
+}

@@ -36,6 +36,8 @@ export default {
     loginSuccess: "登录成功",
     loginFail: "登录失败",
     noToken: "登录失败：未获取到 token",
+    ssoDivider: "或",
+    ssoLogin: "SSO 单点登录",
   },
   dashboard: {
     title: "数据概览",

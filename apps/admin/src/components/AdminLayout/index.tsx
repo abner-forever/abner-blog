@@ -1,6 +1,6 @@
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
-import { useDispatch } from "react-redux";
-import { Layout, Menu, Avatar, Dropdown, Space } from "antd";
+import { useDispatch, useSelector } from "react-redux";
+import { Layout, Menu, Avatar, Dropdown, Space, message } from "antd";
 import {
   DashboardOutlined,
   UserOutlined,
@@ -12,6 +12,8 @@ import {
 } from "@ant-design/icons";
 import { useTranslation } from "react-i18next";
 import { logout } from "@/store/authSlice";
+import type { RootState } from "@/store";
+import { ssoLogout } from "@/services/sso";
 import "./index.less";
 
 const { Header, Sider, Content } = Layout;
@@ -21,12 +23,27 @@ const AdminLayout: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
+  const { authMethod, user } = useSelector(
+    (state: RootState) => state.auth,
+  );
 
   const handleMenuClick = (key: string) => {
     navigate(key);
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    // SSO 登录时，先调服务端清除本地 session，再跳转 Keycloak 终止 IdP 会话
+    if (authMethod === "sso") {
+      try {
+        const result = await ssoLogout();
+        if (result?.redirectUrl) {
+          window.location.href = result.redirectUrl;
+          return; // 页面将重新加载，不再执行后续代码
+        }
+      } catch {
+        // SSO 登出失败，回退到本地登出
+      }
+    }
     dispatch(logout());
     navigate("/login");
   };
@@ -128,7 +145,7 @@ const AdminLayout: React.FC = () => {
                 icon={<UserOutlined />}
                 className="admin-layout__avatar"
               />
-              <span>{t("adminLayout.admin")}</span>
+              <span>{user?.username || t("adminLayout.admin")}</span>
             </Space>
           </Dropdown>
         </Header>

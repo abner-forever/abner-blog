@@ -34,7 +34,7 @@ import {
 @ApiExtraModels(BlogListResponseDto, BlogDto)
 @ApiTags('管理后台 - 博客管理')
 @ApiBearerAuth('JWT')
-@UseGuards(AuthGuard('admin-jwt'), AdminGuard)
+@UseGuards(AuthGuard(['admin-jwt', 'sso-session']), AdminGuard)
 @Controller('admin')
 export class AdminBlogsController {
   constructor(private readonly adminBlogsService: AdminBlogsService) {}

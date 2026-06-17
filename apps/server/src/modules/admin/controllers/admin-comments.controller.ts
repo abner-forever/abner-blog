@@ -40,7 +40,7 @@ import {
 )
 @ApiTags('管理后台 - 评论管理')
 @ApiBearerAuth('JWT')
-@UseGuards(AuthGuard('admin-jwt'), AdminGuard)
+@UseGuards(AuthGuard(['admin-jwt', 'sso-session']), AdminGuard)
 @Controller('admin')
 export class AdminCommentsController {
   constructor(private readonly adminCommentsService: AdminCommentsService) {}

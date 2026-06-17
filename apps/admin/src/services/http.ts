@@ -44,11 +44,16 @@ class HttpService {
       (error: AxiosError) => {
         if (error.response?.status === 401) {
           const token = localStorage.getItem("admin-token");
-          if (token) {
-            // 只有已登录用户 token 过期才跳转
+          if (token && token !== "sso-session") {
+            // JWT token 过期，清除并跳转登录页
+            localStorage.removeItem("admin-token");
+            window.location.href = "/login";
+          } else if (token === "sso-session") {
+            // SSO session 过期，清除标记并跳转登录页
             localStorage.removeItem("admin-token");
             window.location.href = "/login";
           }
+          // 未登录用户不跳转
         }
         return Promise.reject(error);
       },

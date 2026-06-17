@@ -43,7 +43,7 @@ export class AdminAuthController {
     operationId: 'getAdminProfile',
   })
   @ApiOkResponse({ type: AuthTokenResponseDto, description: '管理员信息' })
-  @UseGuards(AuthGuard('admin-jwt'), AdminGuard)
+  @UseGuards(AuthGuard(['admin-jwt', 'sso-session']), AdminGuard)
   @Get('auth/profile')
   async getProfile(@CurrentAdmin('userId') userId: number) {
     return this.adminAuthService.getProfile(userId);

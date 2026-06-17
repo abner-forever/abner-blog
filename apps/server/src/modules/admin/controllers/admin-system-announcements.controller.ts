@@ -30,7 +30,7 @@ import { AdminGuard } from '../guards/admin.guard';
 
 @ApiTags('管理后台 - 系统公告管理')
 @ApiBearerAuth('JWT')
-@UseGuards(AuthGuard('admin-jwt'), AdminGuard)
+@UseGuards(AuthGuard(['admin-jwt', 'sso-session']), AdminGuard)
 @Controller('admin')
 export class AdminSystemAnnouncementsController {
   constructor(

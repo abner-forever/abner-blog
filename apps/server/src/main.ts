@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { json, urlencoded } from 'express';
 import { join } from 'path';
+import cookieParser from 'cookie-parser';
 import { RootFileLogger } from './common/logger/root-file.logger';
 import {
   setupCors,
@@ -24,6 +25,7 @@ async function bootstrap() {
   app.use(urlencoded({ extended: true, limit: '20mb' }));
 
   setupCors(app);
+  app.use(cookieParser());
   setupGlobalAppFeatures(app);
   setupSwagger(app);
   const uploadsRoot = join(__dirname, '..', 'uploads');

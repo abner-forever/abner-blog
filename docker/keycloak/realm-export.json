@@ -1,0 +1,58 @@
+{
+  "realm": "abner-blog",
+  "displayName": "Abner Blog",
+  "displayNameHtml": "Abner Blog",
+  "enabled": true,
+  "loginTheme": "abner-login",
+  "sslRequired": "external",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": false,
+  "editUsernameAllowed": false,
+  "internationalizationEnabled": true,
+  "defaultLocale": "zh-CN",
+  "supportedLocales": ["zh-CN", "en"],
+  "clients": [
+    {
+      "clientId": "admin-sso",
+      "enabled": true,
+      "publicClient": false,
+      "secret": "your-client-secret",
+      "redirectUris": [
+        "http://localhost:8080/api/sso/callback"
+      ],
+      "webOrigins": [
+        "http://localhost:3001"
+      ],
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "protocol": "openid-connect",
+      "attributes": {
+        "access.token.lifespan": "300",
+        "id.token.lifespan": "300",
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:3001/*"
+      }
+    }
+  ],
+  "users": [
+    {
+      "username": "admin",
+      "enabled": true,
+      "email": "admin@abner-blog.com",
+      "firstName": "Admin",
+      "lastName": "User",
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "admin123",
+          "temporary": false
+        }
+      ]
+    }
+  ]
+}

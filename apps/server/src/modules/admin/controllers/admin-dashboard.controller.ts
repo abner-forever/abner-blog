@@ -19,7 +19,7 @@ import { AdminGuard } from '../guards/admin.guard';
 @ApiExtraModels(DailyViewItemDto)
 @ApiTags('管理后台 - 仪表盘')
 @ApiBearerAuth('JWT')
-@UseGuards(AuthGuard('admin-jwt'), AdminGuard)
+@UseGuards(AuthGuard(['admin-jwt', 'sso-session']), AdminGuard)
 @Controller('admin')
 export class AdminDashboardController {
   constructor(private readonly adminDashboardService: AdminDashboardService) {}

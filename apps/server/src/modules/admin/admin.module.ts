@@ -13,6 +13,7 @@ import { Moment } from '../../entities/moment.entity';
 import { SystemAnnouncement } from '../../entities/system-announcement.entity';
 import { AdminGuard } from './guards/admin.guard';
 import { SocialModule } from '../../social/social.module';
+import { SSOModule } from '../sso/sso.module';
 import { AdminJwtStrategy } from './strategies/admin-jwt.strategy';
 import { AdminAuthController } from './controllers/admin-auth.controller';
 import { AdminDashboardController } from './controllers/admin-dashboard.controller';
@@ -34,6 +35,7 @@ import { AdminSystemAnnouncementsService } from './services/admin-system-announc
 @Module({
   imports: [
     SocialModule,
+    SSOModule,
     TypeOrmModule.forFeature([
       User,
       Blog,

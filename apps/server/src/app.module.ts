@@ -69,8 +69,10 @@ import { KnowledgeBaseModule } from './knowledge-base/knowledge-base.module';
 import { KnowledgeBase } from './entities/knowledge-base.entity';
 import { KnowledgeChunk } from './entities/knowledge-chunk.entity';
 import { MCPServer } from './entities/mcp-server.entity';
+import { SSOModule } from './modules/sso/sso.module';
 import { SkillsModule } from './skills/skills.module';
 import { Skill } from './entities/skill.entity';
+import { SSOIdentity } from './entities/sso-identity.entity';
 import { ChatSession } from './entities/chat-session.entity';
 
 @Module({
@@ -127,6 +129,7 @@ import { ChatSession } from './entities/chat-session.entity';
         KnowledgeChunk,
         MCPServer,
         Skill,
+        SSOIdentity,
         ChatSession,
       ],
       synchronize: process.env.NODE_ENV !== 'production',
@@ -146,6 +149,7 @@ import { ChatSession } from './entities/chat-session.entity';
     HotsearchModule,
     WeatherModule,
     AdminModule,
+    SSOModule,
     NotesModule,
     NoteCollectionsModule,
     AIModule,
