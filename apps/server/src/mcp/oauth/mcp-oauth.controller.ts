@@ -143,11 +143,11 @@ export class McpOauthController {
   }
 
   @Post('oauth/approve')
-  async approve(
+  approve(
     @Req() req: Request,
     @Body() body: OAuthApproveBody,
-  ): Promise<{ redirectTo: string; code: string }> {
-    const userId = await this.resolveUserIdFromRequest(req);
+  ): { redirectTo: string; code: string } {
+    const userId = this.resolveUserIdFromRequest(req);
     if (!body.clientId || !body.redirectUri || !body.codeChallenge) {
       throw new BadRequestException(
         'missing clientId/redirectUri/codeChallenge',
@@ -239,7 +239,7 @@ export class McpOauthController {
     };
   }
 
-  private async resolveUserIdFromRequest(req: Request): Promise<number> {
+  private resolveUserIdFromRequest(req: Request): number {
     const authHeader =
       req.headers.authorization ?? req.headers.Authorization ?? '';
     const authHeaderStr = Array.isArray(authHeader)

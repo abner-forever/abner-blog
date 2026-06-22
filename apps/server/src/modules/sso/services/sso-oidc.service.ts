@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  Logger,
-  OnModuleInit,
-} from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {
   discovery,
@@ -43,8 +39,7 @@ export class SSOOidcService implements OnModuleInit {
     this.clientId = this.configService.get<string>('SSO_CLIENT_ID') || '';
     this.clientSecret =
       this.configService.get<string>('SSO_CLIENT_SECRET') || '';
-    this.callbackUrl =
-      this.configService.get<string>('SSO_CALLBACK_URL') || '';
+    this.callbackUrl = this.configService.get<string>('SSO_CALLBACK_URL') || '';
   }
 
   async onModuleInit() {
@@ -115,45 +110,51 @@ export class SSOOidcService implements OnModuleInit {
    * 用授权码交换 Token
    * @param requestUrl - 完整的回调请求 URL（含 code / state / iss 等 Keycloak 追加的参数）
    */
-  async exchangeCodeForTokens(requestUrl: string, codeVerifier: string, expectedState: string) {
+  async exchangeCodeForTokens(
+    requestUrl: string,
+    codeVerifier: string,
+    expectedState: string,
+  ) {
     const config = this.getConfig();
     const url = new URL(requestUrl);
 
     try {
-      const tokenSet = await authorizationCodeGrant(
-        config,
-        url,
-        {
-          pkceCodeVerifier: codeVerifier,
-          expectedState,
-        },
-      );
+      const tokenSet = await authorizationCodeGrant(config, url, {
+        pkceCodeVerifier: codeVerifier,
+        expectedState,
+      });
       return tokenSet;
     } catch (err) {
-      this.logger.error(`authorizationCodeGrant 失败: ${(err as Error).message}`);
+      this.logger.error(
+        `authorizationCodeGrant 失败: ${(err as Error).message}`,
+      );
       throw err;
     }
   }
 
-  async validateIdToken(idToken: string): Promise<any> {
+  async validateIdToken(
+    idToken: string,
+  ): Promise<jwt.JwtPayload & { preferred_username?: string; name?: string }> {
     const keyMap = await this.fetchJwksKeys();
     const decoded = jwt.decode(idToken, { complete: true });
     if (!decoded || typeof decoded === 'string') {
       throw new Error('ID Token 格式无效');
     }
-    const kid = decoded.header.kid as string;
+    const kid = decoded.header.kid;
     const key = kid ? keyMap[kid] : Object.values(keyMap)[0];
     if (!key) {
       throw new Error(`未找到匹配的 JWK key (kid=${kid})`);
     }
-    const serverMetadata = this.getConfig().serverMetadata() as any;
+    const serverMetadata = this.getConfig().serverMetadata() as {
+      issuer?: string;
+    };
     const issuer = serverMetadata?.issuer || this.issuerUrl;
     const payload = jwt.verify(idToken, key, {
       algorithms: ['RS256', 'RS384', 'RS512', 'ES256', 'ES384'],
       issuer,
       audience: this.clientId,
     });
-    return payload;
+    return payload as jwt.JwtPayload;
   }
 
   async fetchJwksKeys(): Promise<Record<string, crypto.KeyObject>> {
@@ -162,20 +163,27 @@ export class SSOOidcService implements OnModuleInit {
       return this.jwksKeys;
     }
     const config = this.getConfig();
-    const metadata = config.serverMetadata() as any;
+    const metadata = config.serverMetadata() as { jwks_uri?: string };
     const jwksUri = metadata?.jwks_uri;
     if (!jwksUri) {
       throw new Error('无法获取 JWKS URI 从 OpenID 配置');
     }
-    const response = await axios.get<{ keys: any[] }>(jwksUri);
+    const response = await axios.get<{ keys: Record<string, unknown>[] }>(
+      jwksUri,
+    );
     const keyMap: Record<string, crypto.KeyObject> = {};
     for (const jwk of response.data.keys) {
       try {
-        const keyObject = crypto.createPublicKey({ format: 'jwk', key: jwk });
-        keyMap[jwk.kid || 'default'] = keyObject;
+        const keyObject = crypto.createPublicKey({
+          format: 'jwk',
+          key: jwk as crypto.JsonWebKey,
+        });
+        const kid = (jwk.kid as string) || 'default';
+        keyMap[kid] = keyObject;
       } catch (err) {
+        const kidStr = typeof jwk.kid === 'string' ? jwk.kid : 'unknown';
         this.logger.warn(
-          `JWK 转换失败 (kid=${jwk.kid}): ${err instanceof Error ? err.message : String(err)}`,
+          `JWK 转换失败 (kid=${kidStr}): ${err instanceof Error ? err.message : String(err)}`,
         );
       }
     }

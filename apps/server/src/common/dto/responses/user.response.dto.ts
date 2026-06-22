@@ -40,7 +40,9 @@ export class AuthTokenResponseDto {
   @ApiProperty({ description: 'JWT 访问令牌（短期）' })
   access_token: string;
 
-  @ApiProperty({ description: 'JWT 刷新令牌（长期，用于换取新的 access/refresh）' })
+  @ApiProperty({
+    description: 'JWT 刷新令牌（长期，用于换取新的 access/refresh）',
+  })
   refresh_token: string;
 
   @ApiProperty({ type: UserProfileDto, description: '用户信息' })

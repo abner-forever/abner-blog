@@ -2,10 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { v4 as uuidv4 } from 'uuid';
 import { RedisService } from '../../../redis/redis.service';
-import {
-  SSO_SESSION_PREFIX,
-  SSO_COOKIE_NAME,
-} from '../sso.constants';
+import { SSO_SESSION_PREFIX, SSO_COOKIE_NAME } from '../sso.constants';
 import { SessionData } from '../interfaces/session-data.interface';
 
 /**
@@ -26,8 +23,10 @@ export class SSOSessionService {
     private redisService: RedisService,
     private configService: ConfigService,
   ) {
-    this.sessionTtlSeconds =
-      this.configService.get<number>('SSO_SESSION_TTL_SECONDS', 28800);
+    this.sessionTtlSeconds = this.configService.get<number>(
+      'SSO_SESSION_TTL_SECONDS',
+      28800,
+    );
     this.cookieName = SSO_COOKIE_NAME;
   }
 
@@ -63,7 +62,9 @@ export class SSOSessionService {
       this.sessionTtlSeconds,
     );
 
-    this.logger.log(`SSO 会话创建成功: sessionId=${sessionId}, userId=${userId}`);
+    this.logger.log(
+      `SSO 会话创建成功: sessionId=${sessionId}, userId=${userId}`,
+    );
     return sessionId;
   }
 
@@ -80,7 +81,7 @@ export class SSOSessionService {
     }
 
     try {
-      const sessionData: SessionData = JSON.parse(raw);
+      const sessionData = JSON.parse(raw) as SessionData;
 
       // 滑动刷新 TTL
       await this.refreshSessionTTL(sessionId);
@@ -111,11 +112,7 @@ export class SSOSessionService {
     // RedisService 没有直接暴露 expire 方法，用 set 再覆盖一次
     const raw = await this.redisService.get(redisKey);
     if (raw) {
-      await this.redisService.set(
-        redisKey,
-        raw,
-        this.sessionTtlSeconds,
-      );
+      await this.redisService.set(redisKey, raw, this.sessionTtlSeconds);
     }
   }
 
@@ -143,9 +140,8 @@ export class SSOSessionService {
         this.configService.get<string>('SSO_COOKIE_SECURE', 'false') === 'true',
       sameSite: 'lax',
       path: '/api',
-      maxAge: this.sessionTtlSeconds,
-      domain:
-        this.configService.get<string>('SSO_COOKIE_DOMAIN') || undefined,
+      maxAge: this.sessionTtlSeconds * 1000,
+      domain: this.configService.get<string>('SSO_COOKIE_DOMAIN') || undefined,
     };
   }
 }

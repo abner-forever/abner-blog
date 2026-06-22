@@ -1,4 +1,4 @@
-import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { SSOSessionService } from '../services/sso-session.service';
 import { SSO_COOKIE_NAME } from '../sso.constants';
@@ -13,34 +13,60 @@ import { SSO_COOKIE_NAME } from '../sso.constants';
 class SSOCookieStrategy {
   static strategyName = 'sso-session';
   name = 'sso-session';
-  private _verify: (sessionId: string | null, done: (err: any, user: any, info?: any) => void) => void;
+  private _verify: (
+    sessionId: string | null,
+    done: (
+      err: Error | null,
+      user?: Express.User | false | null,
+      info?: Record<string, unknown>,
+    ) => void,
+  ) => void;
   private _cookieName: string;
 
   constructor(
     options: { cookieName?: string },
-    verify: (sessionId: string | null, done: (err: any, user: any, info?: any) => void) => void,
+    verify: (
+      sessionId: string | null,
+      done: (
+        err: Error | null,
+        user?: Express.User | false | null,
+        info?: Record<string, unknown>,
+      ) => void,
+    ) => void,
   ) {
     this._cookieName = options.cookieName || SSO_COOKIE_NAME;
     this._verify = verify;
   }
 
-  authenticate(req: any) {
+  authenticate(req: { cookies?: Record<string, string> }) {
     const sessionId = req.cookies?.[this._cookieName];
 
-    const done = (err: any, user: any, info?: any) => {
+    const done = (
+      err: Error | null,
+      user?: Express.User | false | null,
+      info?: Record<string, unknown>,
+    ) => {
       if (err) {
-        return (this as any).error(err);
+        return (this as { error: (e: Error) => void }).error(err);
       }
       if (!user) {
-        return (this as any).fail(info || { message: 'SSO session invalid' }, 401);
+        return (this as { fail: (info: unknown, status: number) => void }).fail(
+          info || { message: 'SSO session invalid' },
+          401,
+        );
       }
-      return (this as any).success(user, info);
+      return (this as { success: (u: unknown, i?: unknown) => void }).success(
+        user,
+        info,
+      );
     };
 
     try {
       this._verify(sessionId || null, done);
     } catch (ex) {
-      return (this as any).error(ex instanceof Error ? ex : new Error(String(ex)));
+      return (this as { error: (e: Error) => void }).error(
+        ex instanceof Error ? ex : new Error(String(ex)),
+      );
     }
   }
 }
@@ -53,7 +79,10 @@ class SSOCookieStrategy {
  * 策略名 'sso-session'，可与 admin-jwt 并用实现双认证。
  */
 @Injectable()
-export class SSOSessionStrategy extends PassportStrategy(SSOCookieStrategy, 'sso-session') {
+export class SSOSessionStrategy extends PassportStrategy(
+  SSOCookieStrategy,
+  'sso-session',
+) {
   private readonly logger = new Logger(SSOSessionStrategy.name);
 
   constructor(private ssoSessionService: SSOSessionService) {

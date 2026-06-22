@@ -167,9 +167,10 @@ export class AIService {
         requestConfig?.contextWindow ?? this.maxHistoryMessages;
       const hasImages = Boolean(requestConfig?.images?.length);
       // 游客模式：强制使用 CHAT 意图，跳过需要登录的功能
-      const intent = hasImages || !userId
-        ? IntentType.CHAT
-        : await detectIntent(llm, message);
+      const intent =
+        hasImages || !userId
+          ? IntentType.CHAT
+          : await detectIntent(llm, message);
       const result = await this.processByIntent(
         llm,
         intent,
@@ -1425,7 +1426,7 @@ export class AIService {
 
       const resolvedModelConfig = userId
         ? await this.aiConfigService.resolveModelConfig(userId, runtimeConfig)
-        : await this.aiConfigService.resolveDefaultConfig(runtimeConfig);
+        : this.aiConfigService.resolveDefaultConfig(runtimeConfig);
 
       return {
         llm: new UniversalChatLLM(resolvedModelConfig),

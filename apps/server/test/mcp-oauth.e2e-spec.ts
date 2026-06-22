@@ -3,10 +3,7 @@ import { INestApplication } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
-import {
-  McpOauthCompatController,
-  McpOauthService,
-} from '../src/mcp/oauth';
+import { McpOauthCompatController, McpOauthService } from '../src/mcp/oauth';
 import { AuthService } from '../src/auth/auth.service';
 import { UsersService } from '../src/users/users.service';
 
@@ -30,19 +27,23 @@ describe('MCP OAuth Compat (e2e)', () => {
         {
           provide: UsersService,
           useValue: {
-            findById: jest.fn(async (id: number) => ({
-              id,
-              username: `user-${id}`,
-            })),
+            findById: jest.fn((id: number) =>
+              Promise.resolve({
+                id,
+                username: `user-${id}`,
+              }),
+            ),
           },
         },
         {
           provide: AuthService,
           useValue: {
-            generateTokenPair: jest.fn(async () => ({
-              access_token: 'mock_access_token',
-              refresh_token: 'mock_refresh_token',
-            })),
+            generateTokenPair: jest.fn(() =>
+              Promise.resolve({
+                access_token: 'mock_access_token',
+                refresh_token: 'mock_refresh_token',
+              }),
+            ),
           },
         },
       ],
@@ -66,7 +67,9 @@ describe('MCP OAuth Compat (e2e)', () => {
       client_id: 'cursor-local',
       token_endpoint_auth_method: 'none',
     });
-    expect(Array.isArray(res.body.redirect_uris)).toBe(true);
+    expect(
+      Array.isArray((res.body as { redirect_uris?: unknown[] }).redirect_uris),
+    ).toBe(true);
   });
 
   it('POST /token returns token for valid authorization_code + PKCE', async () => {

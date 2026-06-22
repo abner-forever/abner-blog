@@ -1,0 +1,117 @@
+.trash-list {
+  min-height: 100vh;
+  background: var(--bg-primary, #f0f2f5);
+  position: relative;
+
+  // Ambient background
+  &__ambient {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+
+    &-glow {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(120px);
+      opacity: 0.08;
+
+      &--1 {
+        width: 600px;
+        height: 600px;
+        background: #1890ff;
+        top: -200px;
+        right: -100px;
+      }
+
+      &--2 {
+        width: 400px;
+        height: 400px;
+        background: #722ed1;
+        bottom: -100px;
+        left: -100px;
+      }
+    }
+  }
+
+  // Header
+  &__header {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 32px;
+    background: var(--bg-header, #fff);
+    border-bottom: 1px solid var(--border-color, #f0f0f0);
+
+    &-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    &-divider {
+      width: 1px;
+      height: 20px;
+      background: var(--border-color, #e8e8e8);
+    }
+  }
+
+  &__back-btn {
+    color: var(--text-primary, #333);
+    font-size: 14px;
+  }
+
+  &__title {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+    color: var(--text-primary, #333);
+  }
+
+  // Content
+  &__content {
+    position: relative;
+    z-index: 1;
+    padding: 24px 32px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  &__toolbar {
+    display: flex;
+    align-items: center;
+    margin-bottom: 16px;
+    padding: 12px 16px;
+    background: var(--bg-card, #fff);
+    border-radius: 8px;
+    border: 1px solid var(--border-color, #f0f0f0);
+  }
+
+  &__table-wrapper {
+    background: var(--bg-card, #fff);
+    border-radius: 8px;
+    border: 1px solid var(--border-color, #f0f0f0);
+    overflow: hidden;
+  }
+
+  &__table {
+    :global {
+      .ant-table-thead > tr > th {
+        background: var(--bg-table-header, #fafafa);
+        font-weight: 500;
+        font-size: 13px;
+        color: var(--text-secondary, #666);
+      }
+      .ant-table-tbody > tr > td {
+        font-size: 14px;
+      }
+    }
+  }
+
+  &__action-btn {
+    font-size: 13px;
+  }
+}

@@ -8,8 +8,13 @@ import { createParamDecorator, ExecutionContext } from '@nestjs/common';
  * 也可获取完整对象：@CurrentSSOUser() user: AdminJwtUser
  */
 export const CurrentSSOUser = createParamDecorator(
-  (data: keyof { userId: number; username: string; role: string } | undefined, ctx: ExecutionContext) => {
-    const request = ctx.switchToHttp().getRequest();
+  (
+    data: keyof { userId: number; username: string; role: string } | undefined,
+    ctx: ExecutionContext,
+  ) => {
+    const request: { user?: Record<string, unknown> } = ctx
+      .switchToHttp()
+      .getRequest();
     const user = request.user;
 
     if (!user) {

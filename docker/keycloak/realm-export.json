@@ -20,10 +20,13 @@
       "publicClient": false,
       "secret": "your-client-secret",
       "redirectUris": [
+        "http://localhost:5177/*",
+        "http://localhost:3001/*",
         "http://localhost:8080/api/sso/callback"
       ],
       "webOrigins": [
-        "http://localhost:3001"
+        "http://localhost:3001",
+        "http://localhost:5177"
       ],
       "standardFlowEnabled": true,
       "implicitFlowEnabled": false,
@@ -33,8 +36,8 @@
       "attributes": {
         "access.token.lifespan": "300",
         "id.token.lifespan": "300",
-        "pkce.code.challenge.method": "S256",
-        "post.logout.redirect.uris": "http://localhost:3001/*"
+        "post.logout.redirect.uris": "",
+        "pkce.code.challenge.method": "S256"
       }
     }
   ],

@@ -93,7 +93,9 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   ): Promise<void> {
     const client = this.client;
     if (!this.isRedisReady() || !client) {
-      this.logRedisUnavailable('Redis 未就绪，storeRefreshSession 跳过（降级继续）');
+      this.logRedisUnavailable(
+        'Redis 未就绪，storeRefreshSession 跳过（降级继续）',
+      );
       return;
     }
 

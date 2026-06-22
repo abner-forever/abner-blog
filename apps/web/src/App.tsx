@@ -1,6 +1,7 @@
 import React, { useCallback, useState } from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import { StaticRouter } from 'react-router-dom/server';
+import { HelmetProvider } from 'react-helmet-async';
 import { App as AntdApp, ConfigProvider } from 'antd';
 import dayjs from 'dayjs';
 import 'dayjs/locale/zh-cn';
@@ -78,8 +79,10 @@ const App: React.FC<AppProps> = ({ blogs, url }) => {
   return (
     <Provider store={store}>
       <QueryClientProvider client={queryClient}>
-        <SocialRealtimeBridge />
-        <AppContent blogs={blogs} url={url} />
+        <HelmetProvider>
+          <SocialRealtimeBridge />
+          <AppContent blogs={blogs} url={url} />
+        </HelmetProvider>
       </QueryClientProvider>
     </Provider>
   );

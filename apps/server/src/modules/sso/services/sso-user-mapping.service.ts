@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  Logger,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -41,8 +37,10 @@ export class SSOUserMappingService {
     this.autoProvision =
       this.configService.get<string>('SSO_AUTO_PROVISION', 'true') === 'true';
     this.defaultRole =
-      (this.configService.get<string>('SSO_DEFAULT_ROLE', 'admin') as UserRole) ||
-      UserRole.ADMIN;
+      (this.configService.get<string>(
+        'SSO_DEFAULT_ROLE',
+        'admin',
+      ) as UserRole) || UserRole.ADMIN;
   }
 
   /**
@@ -52,7 +50,7 @@ export class SSOUserMappingService {
    * @throws UnauthorizedException 当无法映射且自动创建关闭时
    */
   async findOrCreateLocalUser(claims: KeycloakClaims): Promise<User> {
-    const { sub, email, preferred_username } = claims;
+    const { sub, email } = claims;
 
     // 1. 按 sub 查询 sso_identity 表
     const identity = await this.ssoIdentityRepository.findOne({
@@ -107,10 +105,7 @@ export class SSOUserMappingService {
   /**
    * 写入 sso_identity 关联记录
    */
-  async linkIdentity(
-    localUserId: number,
-    keycloakSub: string,
-  ): Promise<void> {
+  async linkIdentity(localUserId: number, keycloakSub: string): Promise<void> {
     const identity = this.ssoIdentityRepository.create({
       userId: localUserId,
       keycloakSub,

@@ -15,7 +15,10 @@ import {
   ApiResponse,
 } from '@nestjs/swagger';
 import { ChatShareService } from './chat-share.service';
-import { CreateShareDto, ShareSessionResponseDto } from './dto/create-share.dto';
+import {
+  CreateShareDto,
+  ShareSessionResponseDto,
+} from './dto/create-share.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 interface AuthenticatedRequest extends Request {
@@ -34,7 +37,10 @@ export class ChatShareController {
   @ApiOperation({ summary: '创建分享链接' })
   @ApiResponse({ status: 201, type: ShareSessionResponseDto })
   @Post()
-  create(@Body() createShareDto: CreateShareDto, @Request() req: AuthenticatedRequest) {
+  create(
+    @Body() createShareDto: CreateShareDto,
+    @Request() req: AuthenticatedRequest,
+  ) {
     return this.chatShareService.create(createShareDto, req.user.userId);
   }
 

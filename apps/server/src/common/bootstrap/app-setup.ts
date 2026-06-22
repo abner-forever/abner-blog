@@ -36,16 +36,11 @@ function normalizeReplyCreatedToOk(app: NestExpressApplication): void {
 }
 
 export function setupCors(app: NestExpressApplication): void {
-  const corsOrigins = process.env.CORS_ORIGINS?.split(',').map((o) =>
-    o.trim(),
-  ) || [
-    'http://localhost:3000',
-    'http://localhost:3001',
-    'http://127.0.0.1:3000',
-  ];
+  const corsOrigins = process.env.CORS_ORIGINS?.split(',').map((o) => o.trim());
 
   app.enableCors({
-    origin: corsOrigins,
+    // CORS_ORIGINS 环境变量存在时用白名单；否则（开发模式）回显来源地址，适配 Vite 任意端口
+    origin: corsOrigins || true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,

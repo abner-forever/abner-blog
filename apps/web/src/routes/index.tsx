@@ -38,6 +38,7 @@ const NotificationsPage = lazy(() => import('@pages/notifications'));
 const AnnouncementDetailPage = lazy(
   () => import('@pages/notifications/AnnouncementDetail'),
 );
+const PageDetail = lazy(() => import('@pages/page/PageDetail'));
 
 // 路由配置类型定义
 export interface RouteConfig {
@@ -231,6 +232,11 @@ export const routeConfig: RouteConfig[] = [
   {
     path: '/notes/topics/:id',
     element: <TopicDetail />,
+    requireAuth: false,
+  },
+  {
+    path: '/page/:slug',
+    element: <PageDetail />,
     requireAuth: false,
   },
 ];

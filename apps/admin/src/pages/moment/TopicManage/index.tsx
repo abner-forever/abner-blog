@@ -120,8 +120,8 @@ const TopicManage: React.FC = () => {
 
   const handleHotToggle = async (record: TopicRow) => {
     try {
-      await api.updateAdminTopic(record.id, { isHot: !(record as any).isHot });
-      message.success((record as any).isHot ? "已取消热门" : "已设为热门");
+      await api.updateAdminTopic(record.id, { isHot: !(record as { isHot?: boolean }).isHot });
+      message.success((record as { isHot?: boolean }).isHot ? "已取消热门" : "已设为热门");
       loadData();
     } catch {
       message.error("操作失败");

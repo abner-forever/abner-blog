@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "grapesjs-studio-sdk": {
+      "source": "grapesjs/skills-studio-sdk",
+      "sourceType": "github",
+      "skillPath": "skills/grapesjs-studio-sdk/SKILL.md",
+      "computedHash": "98d932fb6dbc16897ca2f936d33f4081193ce9b53c7c240e4e46b7a2310c40fe"
+    }
+  }
+}

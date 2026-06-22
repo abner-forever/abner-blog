@@ -1,0 +1,84 @@
+// ============================================================
+// 编辑器页面样式
+// 使用 GrapesJS Studio SDK 官方默认样式
+// 仅保留应用布局必要样式
+// ============================================================
+
+.page-editor {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
+  // 顶部操作栏（位于编辑器上方）
+  &__topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    height: 48px;
+    background: var(--bg-secondary, #f0f2f5);
+    border-bottom: 1px solid var(--border-color, #e8e8e8);
+    flex-shrink: 0;
+  }
+
+  &__topbar-left {
+    display: flex;
+    align-items: center;
+  }
+
+  &__back-btn {
+    font-size: 13px;
+    color: var(--text-secondary, #666);
+    padding: 0 8px;
+    height: 32px;
+    border-radius: 6px;
+    transition: all 0.15s ease;
+
+    &:hover {
+      background: var(--bg-hover, rgba(0,0,0,0.04));
+      color: var(--text-primary, #333);
+    }
+  }
+
+  &__topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  &__topbar-divider {
+    width: 1px;
+    height: 24px;
+    background: var(--border-divider, #d9d9d9);
+    margin: 0 6px;
+    flex-shrink: 0;
+  }
+
+  // 编辑器容器，填满剩余空间
+  &__editor-wrapper {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  &__save-tag {
+    font-size: 13px;
+    padding: 2px 12px;
+    line-height: 24px;
+    border-radius: 4px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  // 加载状态
+  &__loading {
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-secondary, #f5f5f5);
+    transition: background-color 0.3s ease;
+  }
+}

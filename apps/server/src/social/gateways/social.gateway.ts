@@ -14,9 +14,7 @@ function isAccessJwtPayload(value: unknown): value is JwtPayload {
   if (typeof value !== 'object' || value === null) return false;
   const o = value as { sub?: unknown; typ?: unknown };
   return (
-    typeof o.sub === 'number' &&
-    !Number.isNaN(o.sub) &&
-    o.typ === 'access'
+    typeof o.sub === 'number' && !Number.isNaN(o.sub) && o.typ === 'access'
   );
 }
 

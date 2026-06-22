@@ -50,22 +50,6 @@ function App() {
     }
   }, [token, dispatch]);
 
-  // 初始化时显示加载，避免 SSO 检查完成前闪烁登录页
-  if (initializing) {
-    return (
-      <div
-        style={{
-          height: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <Spin size="large" />
-      </div>
-    );
-  }
-
   const routes = useRoutes([
     {
       path: "/login",
@@ -85,6 +69,22 @@ function App() {
       element: <Navigate to="/dashboard" replace />,
     },
   ]);
+
+  // 初始化时显示加载，避免 SSO 检查完成前闪烁登录页
+  if (initializing) {
+    return (
+      <div
+        style={{
+          height: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Spin size="large" />
+      </div>
+    );
+  }
 
   return <GlobalWrapper>{routes}</GlobalWrapper>;
 }

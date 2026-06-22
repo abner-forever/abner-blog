@@ -186,9 +186,9 @@ export class AIConfigService {
   /**
    * 游客模式：使用默认配置 + 环境变量 API key，不读取用户数据库
    */
-  async resolveDefaultConfig(
+  resolveDefaultConfig(
     runtime: Partial<UserAIConfigInput> & { apiKey?: string },
-  ): Promise<ChatModelConfig> {
+  ): ChatModelConfig {
     const defaults = this.getDefaultConfig();
     const provider = runtime.provider ?? defaults.provider;
     const apiKey = runtime.apiKey

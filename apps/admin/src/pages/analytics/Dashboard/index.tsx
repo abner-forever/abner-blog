@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Row, Col, Statistic, DatePicker, Space, Table, Tag } from 'antd';
+import { Card, Row, Col, Statistic, DatePicker, Space, Table } from 'antd';
 import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
 import ReactECharts from 'echarts-for-react';

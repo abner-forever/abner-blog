@@ -18,7 +18,7 @@ import { routeConfig } from '@/routes';
 const { Content } = Layout;
 
 /** 独立页面路径（无导航栏、无宽度限制） */
-const STANDALONE_PATHS = ['/chat', '/chat/share'] as const;
+const STANDALONE_PATHS = ['/chat', '/chat/share', '/page'] as const;
 
 export interface AppShellProps {
   i18n: i18n;
@@ -54,7 +54,7 @@ const AppShell: React.FC<AppShellProps> = ({
               <PageTransition>
                 <Routes>
                   {routeConfig
-                    .filter((route) => route.path.startsWith('/chat'))
+                    .filter((route) => route.path.startsWith('/chat') || route.path.startsWith('/page'))
                     .map((route) => (
                       <Route
                         key={route.path}
@@ -79,7 +79,7 @@ const AppShell: React.FC<AppShellProps> = ({
                 <PageTransition>
                   <Routes>
                     {routeConfig
-                      .filter((route) => !route.path.startsWith('/chat'))
+                      .filter((route) => !route.path.startsWith('/chat') && !route.path.startsWith('/page'))
                       .map((route) => (
                         <Route
                           key={route.path}

@@ -74,6 +74,13 @@ import { SkillsModule } from './skills/skills.module';
 import { Skill } from './entities/skill.entity';
 import { SSOIdentity } from './entities/sso-identity.entity';
 import { ChatSession } from './entities/chat-session.entity';
+import { PagesModule } from './pages/pages.module';
+import { Page } from './pages/entities/page.entity';
+import { FormSubmission } from './pages/entities/form-submission.entity';
+import { BlockTemplate } from './pages/entities/block-template.entity';
+import { PageVersion } from './pages/entities/page-version.entity';
+import { PagePV } from './pages/entities/page-pv.entity';
+import { CustomComponent } from './pages/entities/custom-component.entity';
 
 @Module({
   imports: [
@@ -131,6 +138,12 @@ import { ChatSession } from './entities/chat-session.entity';
         Skill,
         SSOIdentity,
         ChatSession,
+        Page,
+        FormSubmission,
+        BlockTemplate,
+        PageVersion,
+        PagePV,
+        CustomComponent,
       ],
       synchronize: process.env.NODE_ENV !== 'production',
     }),
@@ -159,6 +172,7 @@ import { ChatSession } from './entities/chat-session.entity';
     ChatShareModule,
     KnowledgeBaseModule,
     SkillsModule,
+    PagesModule,
   ],
   controllers: [AppController],
   providers: [

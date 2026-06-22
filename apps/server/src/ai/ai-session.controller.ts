@@ -45,11 +45,15 @@ export class AISessionController {
     @Request() req: AuthenticatedRequest,
     @Body() dto: SaveSessionDto,
   ) {
-    await this.chatSessionCrudService.saveSession(req.user.userId, dto.sessionId, {
-      title: dto.title,
-      messages: dto.messages as Record<string, unknown>[],
-      model: dto.model,
-    });
+    await this.chatSessionCrudService.saveSession(
+      req.user.userId,
+      dto.sessionId,
+      {
+        title: dto.title,
+        messages: dto.messages,
+        model: dto.model,
+      },
+    );
     return { success: true };
   }
 

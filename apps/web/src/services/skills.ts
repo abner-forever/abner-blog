@@ -1,8 +1,8 @@
 import { httpService } from './http';
 
 export interface SkillWorkflow {
-  nodes: any[];
-  edges: any[];
+  nodes: Record<string, unknown>[];
+  edges: Record<string, unknown>[];
   startNodeId: string;
 }
 

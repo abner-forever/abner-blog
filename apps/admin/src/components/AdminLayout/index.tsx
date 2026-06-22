@@ -1,6 +1,6 @@
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { Layout, Menu, Avatar, Dropdown, Space, message } from "antd";
+import { Layout, Menu, Avatar, Dropdown, Space } from "antd";
 import {
   DashboardOutlined,
   UserOutlined,

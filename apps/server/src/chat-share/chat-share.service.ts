@@ -2,7 +2,10 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ShareSession } from '../entities/share-session.entity';
-import { CreateShareDto, ShareSessionResponseDto } from './dto/create-share.dto';
+import {
+  CreateShareDto,
+  ShareSessionResponseDto,
+} from './dto/create-share.dto';
 
 @Injectable()
 export class ChatShareService {
@@ -11,7 +14,10 @@ export class ChatShareService {
     private readonly shareSessionRepository: Repository<ShareSession>,
   ) {}
 
-  async create(createShareDto: CreateShareDto, userId: number): Promise<ShareSessionResponseDto> {
+  async create(
+    createShareDto: CreateShareDto,
+    userId: number,
+  ): Promise<ShareSessionResponseDto> {
     const shareSession = this.shareSessionRepository.create({
       sessionId: createShareDto.sessionId,
       title: createShareDto.title,

@@ -1,0 +1,30 @@
+/* ─── Animated Characters ─────────────────────────────────────────────── */
+
+.al-characters {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.al-characters__stage {
+  position: relative;
+  width: 520px;
+  height: 420px;
+}
+
+/* ── Individual Character ──────────────────────────────────────────────── */
+
+.al-char {
+  will-change: transform;
+}
+
+/* ── Face ──────────────────────────────────────────────────────────────── */
+
+.al-char__face {
+  will-change: transform;
+}

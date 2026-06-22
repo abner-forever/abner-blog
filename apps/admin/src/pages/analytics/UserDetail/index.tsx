@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Table, DatePicker, Space, Button, Tag, Select, message, Descriptions, Spin } from 'antd';
+import { Card, Table, DatePicker, Space, Button, Tag, Select, message, Descriptions } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import { useTranslation } from 'react-i18next';
@@ -45,7 +45,7 @@ const UserDetail: React.FC = () => {
       const response = await analyticsApi.getUserBehavior({
         anonymousId,
         ...params,
-      } as any);
+      } as Parameters<typeof analyticsApi.getUserBehavior>[0]);
 
       setData(response.list);
       setPagination((prev) => ({ ...prev, total: response.total }));

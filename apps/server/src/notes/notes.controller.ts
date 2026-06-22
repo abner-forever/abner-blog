@@ -29,7 +29,10 @@ import {
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
 import { AuthenticatedRequest } from '../common/interfaces/request.interface';
-import { CommentDto, ToggleCommentLikeResponseDto } from '../common/dto/responses/comment.response.dto';
+import {
+  CommentDto,
+  ToggleCommentLikeResponseDto,
+} from '../common/dto/responses/comment.response.dto';
 
 @ApiTags('notes')
 @Controller('notes')

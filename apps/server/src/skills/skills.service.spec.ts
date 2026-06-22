@@ -9,7 +9,9 @@ import { Skill, SkillStatus, SkillType } from '../entities/skill.entity';
 
 describe('SkillsService', () => {
   let service: SkillsService;
-  let repo: jest.Mocked<Pick<Repository<Skill>, 'find' | 'findOne' | 'create' | 'save' | 'remove'>>;
+  let repo: jest.Mocked<
+    Pick<Repository<Skill>, 'find' | 'findOne' | 'create' | 'save' | 'remove'>
+  >;
 
   const emptyWorkflow: SkillWorkflow = {
     nodes: [],
@@ -199,7 +201,9 @@ describe('SkillsService', () => {
   describe('buildSystemPromptForChat', () => {
     it('without skillId returns null when no active skills in repo', async () => {
       repo.find.mockResolvedValueOnce([]);
-      await expect(service.buildSystemPromptForChat(1, undefined)).resolves.toBeNull();
+      await expect(
+        service.buildSystemPromptForChat(1, undefined),
+      ).resolves.toBeNull();
     });
 
     it('without skillId uses single-skill full format when exactly one active', async () => {
@@ -283,9 +287,7 @@ describe('SkillsService', () => {
           status: SkillStatus.ACTIVE,
           createdAt: new Date(),
         }) as Skill;
-      const four = ['s1', 's2', 's3', 's4'].map((id, i) =>
-        mk(id, `N${i}`),
-      );
+      const four = ['s1', 's2', 's3', 's4'].map((id, i) => mk(id, `N${i}`));
       repo.find.mockResolvedValueOnce(four);
       mockSkillVector.searchSkillIds.mockResolvedValueOnce(['s1', 's3']);
       const text = await service.buildSystemPromptForChat(

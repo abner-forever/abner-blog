@@ -1,0 +1,126 @@
+// ============================================================
+// VersionList — 版本历史全页展示
+// ============================================================
+
+@brand: #1890ff;
+
+.version-list {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--page-bg);
+
+  // ── Header ──
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    padding: 0 28px;
+    background: var(--header-bg, #fff);
+    border-bottom: 1px solid var(--border-color, #e8e8e8);
+    flex-shrink: 0;
+  }
+
+  &__header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  &__header-right {
+    display: flex;
+    align-items: center;
+  }
+
+  &__back-btn {
+    font-size: 14px;
+    color: var(--text-secondary, #666);
+    height: 32px;
+    border-radius: 6px;
+
+    &:hover {
+      background: var(--bg-hover, rgba(0,0,0,0.04));
+      color: var(--text-primary, #333);
+    }
+  }
+
+  &__header-divider {
+    width: 1px;
+    height: 20px;
+    background: var(--border-divider, #d9d9d9);
+  }
+
+  &__title {
+    font-size: 17px;
+    font-weight: 600;
+    margin: 0;
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
+  }
+
+  // ── Content ──
+
+  &__content {
+    flex: 1;
+    padding: 24px 28px;
+    overflow: auto;
+  }
+
+  &__table-wrapper {
+    background: var(--card-bg, #fff);
+    border-radius: 14px;
+    border: 1px solid var(--border-color, #e8e8e8);
+    overflow: hidden;
+  }
+
+  &__loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 0;
+  }
+
+  &__table {
+    .ant-table {
+      background: transparent !important;
+    }
+
+    .ant-table-container {
+      border-radius: 14px !important;
+    }
+
+    .ant-table-thead > tr > th {
+      background: var(--table-header-bg, #fafafa) !important;
+      color: var(--text-secondary);
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 14px 16px !important;
+      border-bottom: 1px solid var(--border-color, #e8e8e8) !important;
+
+      &::before {
+        display: none !important;
+      }
+    }
+
+    .ant-table-tbody > tr > td {
+      padding: 14px 16px !important;
+      border-bottom: 1px solid var(--border-color, #e8e8e8);
+      font-size: 14px;
+    }
+
+    .ant-table-tbody > tr {
+      &:hover > td {
+        background: var(--row-hover-bg, rgba(0,0,0,0.02)) !important;
+      }
+
+      &:last-child > td {
+        border-bottom: none;
+      }
+    }
+  }
+}

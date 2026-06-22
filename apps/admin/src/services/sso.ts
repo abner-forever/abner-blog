@@ -1,5 +1,4 @@
 import { httpMutator } from "./http";
-import type { AdminUser } from "@/store/authSlice";
 
 /** SSO 登录状态 */
 export interface SSOStatus {

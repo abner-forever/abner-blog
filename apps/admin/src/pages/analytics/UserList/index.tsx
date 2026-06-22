@@ -36,7 +36,7 @@ const UserList: React.FC = () => {
         params.endTime = dateRange[1].toISOString();
       }
 
-      const response = await analyticsApi.getUserList(params as any);
+      const response = await analyticsApi.getUserList(params as Parameters<typeof analyticsApi.getUserList>[0]);
       let list = response.list;
 
       // 本地过滤
