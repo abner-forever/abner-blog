@@ -8,9 +8,7 @@ export interface Page {
   keywords?: string[];
   ogImage?: string;
   cover?: string;
-  html: string;
-  css: string;
-  components: string;
+  schema: string;
   status: "draft" | "published" | "archived";
   locale: string;
   translationGroupId?: number;
@@ -56,15 +54,13 @@ export interface UpdatePageDto {
   description?: string;
   keywords?: string[];
   ogImage?: string;
-  html?: string;
-  css?: string;
-  components?: string;
+  cover?: string;
+  locale?: string;
+  schema?: string;
 }
 
 export interface PublishPageDto {
-  html: string;
-  css: string;
-  components: string;
+  schema: string;
   cover?: string;
 }
 
@@ -149,6 +145,10 @@ export const pageApi = {
   getById: (id: number) =>
     httpMutator<Page>({ url: `/api/pages/${id}`, method: "GET" }),
 
+  /** 根据 slug 获取页面（管理端预览） */
+  getBySlug: (slug: string) =>
+    httpMutator<Page>({ url: `/api/pages/slug/${slug}`, method: "GET" }),
+
   /** 更新页面 */
   update: (id: number, dto: UpdatePageDto) =>
     httpMutator<Page>({ url: `/api/pages/${id}`, method: "PATCH", data: dto }),
@@ -189,9 +189,7 @@ export interface PageVersion {
   pageId: number;
   versionNumber: number;
   title?: string;
-  html: string;
-  css: string;
-  components: string;
+  schema: string;
   status?: string;
   createdAt: string;
 }

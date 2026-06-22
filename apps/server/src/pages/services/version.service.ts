@@ -51,9 +51,7 @@ export class VersionService {
       pageId,
       versionNumber,
       title: page.title,
-      html: page.html,
-      css: page.css,
-      components: page.components,
+      schema: page.schema,
       status: page.status,
     });
 
@@ -70,9 +68,7 @@ export class VersionService {
     // 用版本数据更新页面（通过 PagesService 更新以触发版本记录）
     const page = await this.pagesService.findOne(pageId);
     const updatedPage = await this.pagesService.applyVersionRestore(page, {
-      html: version.html,
-      css: version.css,
-      components: version.components,
+      schema: version.schema,
       title: version.title,
     });
 

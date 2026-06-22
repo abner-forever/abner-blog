@@ -3,7 +3,6 @@ import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { Skeleton, message, Modal, Form, Input, Select, Tooltip, Tag, Button } from "antd";
 import { GlobalOutlined, RocketOutlined } from "@ant-design/icons";
 import { useSelector, useDispatch } from "react-redux";
-import { toPng } from "html-to-image";
 import type { Editor } from "grapesjs";
 import StudioEditor from "@grapesjs/studio-sdk/react";
 import "@grapesjs/studio-sdk/dist/style.css";
@@ -21,6 +20,9 @@ import { toggleTheme } from "@/store/themeSlice";
 import { blocks } from "./blocks";
 import { canvasAbsoluteMode } from "@grapesjs/studio-sdk-plugins";
 import TranslationPanel from "./TranslationPanel";
+import { buildPageSchemaJson } from "@/utils/schemaConverter";
+import SchemaPreview from "./SchemaPreview";
+import EventBindingTabContent from "./EventBindingTabContent";
 import "./index.less";
 
 type SaveStatus = "saved" | "saving" | "unsaved" | "auto-saving";
@@ -78,147 +80,6 @@ const PageEditor: React.FC = () => {
     }
   }, [loading, shouldPublish]);
 
-  /** 截取页面封面并上传 */
-  const captureCover = useCallback(
-    async (html: string): Promise<string | null> => {
-      // 使用 iframe 在完整文档上下文中渲染页面，确保 CSS 选择器（body、html）和视口单位正确生效
-      const iframe = document.createElement("iframe");
-      Object.assign(iframe.style, {
-        position: "fixed",
-        top: "-9999px",
-        left: "0",
-        width: "1280px",
-        height: "720px",
-        border: "none",
-      });
-      document.body.appendChild(iframe);
-
-      try {
-        const doc = iframe.contentDocument;
-        if (!doc) throw new Error("iframe 文档不可访问");
-
-        doc.open();
-        doc.write(html);
-        doc.close();
-
-        // 调试：检查 HTML 结构和 iframe 渲染状态
-        console.log("[captureCover] iframe readyState:", doc.readyState);
-        console.log("[captureCover] body child count:", doc.body?.childNodes.length);
-        console.log("[captureCover] body HTML preview:", doc.body?.innerHTML.slice(0, 500));
-
-        // 等待 iframe 内容解析完成（DOMContentLoaded 在 doc.write() 后仍会触发）
-        await new Promise<void>((resolve) => {
-          if (
-            doc.readyState === "complete" ||
-            doc.readyState === "interactive"
-          ) {
-            resolve();
-          } else {
-            doc.addEventListener(
-              "DOMContentLoaded",
-              () => resolve(),
-              { once: true },
-            );
-            setTimeout(resolve, 5000); // 安全超时
-          }
-        });
-
-        // 额外等待资源加载（图片被转 data URL 后不需要，字体等足够加载）
-        await new Promise((r) => setTimeout(r, 500));
-
-        // 将外部图片转为 data URL 避免 canvas 跨域污染
-        const images = doc.querySelectorAll("img");
-        const imagePromises = Array.from(images).map(async (img) => {
-          if (img.src.startsWith("data:")) return;
-          try {
-            const controller = new AbortController();
-            const timeout = setTimeout(() => controller.abort(), 10000);
-            const response = await fetch(img.src, {
-              mode: "cors",
-              credentials: "omit",
-              signal: controller.signal,
-            });
-            clearTimeout(timeout);
-            const blob = await response.blob();
-            const dataUrl = await new Promise<string>((resolve) => {
-              const reader = new FileReader();
-              reader.onloadend = () => resolve(reader.result as string);
-              reader.readAsDataURL(blob);
-            });
-            img.src = dataUrl;
-          } catch {
-            // 转换失败则保留原 src（可能空白但不会污染整个 canvas）
-          }
-        });
-        await Promise.allSettled(imagePromises);
-
-        // 等待渲染稳定（字体、布局等）
-        await new Promise((r) => setTimeout(r, 1000));
-
-        // 截取 iframe 中的 body 内容
-        if (!doc.body) {
-          console.warn("[captureCover] iframe body 为空");
-          throw new Error("iframe body 不可用");
-        }
-
-        console.log("[captureCover] 开始截图，body 高度:", doc.body.scrollHeight);
-
-        const dataUrl = await toPng(doc.body, {
-          width: 1280,
-          height: 720,
-          backgroundColor: "#fff",
-          filter: (node) => {
-            if (
-              node.tagName === "SCRIPT" ||
-              node.tagName === "NOSCRIPT"
-            )
-              return false;
-            return true;
-          },
-        });
-
-        console.log("[captureCover] toPng 成功, dataUrl 长度:", dataUrl.length);
-
-        // 调试：检查截图是否真的有内容（取左上角像素颜色）
-        const debugImg = new Image();
-        debugImg.src = dataUrl;
-        await new Promise<void>((resolve) => {
-          debugImg.onload = () => {
-            const testCanvas = document.createElement("canvas");
-            testCanvas.width = 10;
-            testCanvas.height = 10;
-            const ctx = testCanvas.getContext("2d");
-            if (ctx) {
-              ctx.drawImage(debugImg, 0, 0, 10, 10);
-              const pixel = ctx.getImageData(4, 4, 1, 1).data;
-              console.log(
-                "[captureCover] 截图中心像素 RGBA:",
-                pixel[0], pixel[1], pixel[2], pixel[3],
-              );
-            }
-            resolve();
-          };
-          debugImg.onerror = () => {
-            console.warn("[captureCover] 无法加载截图做像素检测");
-            resolve();
-          };
-        });
-
-        // 上传截图
-        const blob = await (await fetch(dataUrl)).blob();
-        const file = new File([blob], "cover.png", { type: "image/png" });
-        const result = await uploadPageImage(file);
-        return result.url;
-      } catch (err) {
-        console.warn("封面截取失败:", err);
-        return null;
-      } finally {
-        document.body.removeChild(iframe);
-      }
-    },
-    [],
-  );
-
   /** 发布页面 */
   const handlePublish = useCallback(
     async ({ editor }: { editor: Editor }) => {
@@ -231,45 +92,37 @@ const PageEditor: React.FC = () => {
         cancelText: "取消",
         onOk: async () => {
           try {
-            const projectData = editor.getProjectData();
-            const files = (await editor.runCommand("studio:projectFiles", {
-              styles: "inline",
-            })) as Array<{ mimeType: string; content: string }>;
-            const htmlFile = files.find(
-              (f) => f.mimeType === "text/html",
-            );
+            // 生成页面 Schema（含编辑器数据用于恢复）
+            const schemaStr = buildPageSchemaJson(editor);
 
-            // 确保输出 HTML 包含 viewport meta（移动端响应式适配）
-            let htmlContent = htmlFile?.content || "";
-            if (htmlContent && !htmlContent.includes('name="viewport"')) {
-              htmlContent = htmlContent.replace(
-                /<head>/i,
-                '<head><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">',
-              );
+            // 将编辑器项目数据嵌入 schema 的 editorData 字段，与 onSave 保持一致
+            let fullSchema = schemaStr;
+            if (schemaStr) {
+              try {
+                const schemaObj = JSON.parse(schemaStr);
+                schemaObj.editorData = editor.getProjectData();
+                fullSchema = JSON.stringify(schemaObj);
+              } catch {
+                // schema 解析失败，仅保存原始数据
+              }
             }
-
-            // 自动截取封面
-            const coverUrl = await captureCover(htmlContent);
 
             await pageApi.publish(parseInt(id, 10), {
-              html: htmlContent,
-              css: "",
-              components: JSON.stringify(projectData),
-              ...(coverUrl ? { cover: coverUrl } : {}),
+              schema: fullSchema,
+              // 发布时带上封面，优先使用已设置的 cover，其次用 ogImage
+              cover: pageDataRef.current?.cover || pageDataRef.current?.ogImage || undefined,
             });
 
-            if (coverUrl) {
-              message.success("发布成功（封面已自动生成）");
-            } else {
-              message.success("发布成功");
-            }
-          } catch {
-            message.error("发布失败");
+            message.success("发布成功");
+          } catch (err) {
+            const msg =
+              err instanceof Error ? err.message : "发布失败";
+            message.error(msg);
           }
         },
       });
     },
-    [id, captureCover],
+    [id],
   );
 
   /** 打开 SEO 设置 */
@@ -502,6 +355,7 @@ const PageEditor: React.FC = () => {
           >
             发布
           </Button>
+          <SchemaPreview editorRef={editorRef} />
         </div>
       </div>
       <div className="page-editor__editor-wrapper">
@@ -557,16 +411,17 @@ const PageEditor: React.FC = () => {
             type: "self",
             onLoad: async () => {
               const page = pageDataRef.current;
-              if (page?.components) {
+              // 从 schema 中恢复编辑器项目数据
+              if (page?.schema) {
                 try {
-                  const json = JSON.parse(page.components);
-                  if (json?.pages) {
-                    // 记录初始组件数据用于变更检测
-                    lastSavedComponentsRef.current = page.components;
-                    return { project: json };
+                  const schema = JSON.parse(page.schema);
+                  if (schema?.editorData) {
+                    // 如果 schema 包含 editorData，用于恢复编辑器状态
+                    lastSavedComponentsRef.current = page.schema;
+                    return { project: schema.editorData };
                   }
                 } catch {
-                  // 旧格式，回退到 HTML
+                  // schema 解析失败，使用空白画布
                 }
               }
               // 新建页面，标记为可显示模板选择器
@@ -576,8 +431,7 @@ const PageEditor: React.FC = () => {
                   pages: [
                     {
                       name: page?.title || "Page",
-                      component:
-                        page?.html || "<h1>Empty page</h1>",
+                      component: "<h1>Empty page</h1>",
                     },
                   ],
                 },
@@ -585,8 +439,25 @@ const PageEditor: React.FC = () => {
             },
             onSave: async ({ project }) => {
               if (!id) return;
+
+              // 生成页面 Schema（含编辑器数据用于恢复）
+              const editor = editorRef.current;
+              const schemaStr = editor ? buildPageSchemaJson(editor) : undefined;
+
+              // 将编辑器项目数据嵌入 schema 的 editorData 字段
+              let fullSchema = schemaStr;
+              if (schemaStr) {
+                try {
+                  const schemaObj = JSON.parse(schemaStr);
+                  schemaObj.editorData = project;
+                  fullSchema = JSON.stringify(schemaObj);
+                } catch {
+                  // schema 解析失败，仅保存 editor 数据
+                }
+              }
+
               await pageApi.update(parseInt(id, 10), {
-                components: JSON.stringify(project),
+                ...(fullSchema ? { schema: fullSchema } : {}),
               });
               lastSavedComponentsRef.current = JSON.stringify(project);
               saveStatusRef.current = "saved";
@@ -943,7 +814,36 @@ const PageEditor: React.FC = () => {
                     },
                   },
                 },
-                { type: "sidebarRight" },
+                {
+                  type: "sidebarRight",
+                  children: {
+                    type: "tabs",
+                    value: "styles",
+                    tabs: [
+                      {
+                        id: "styles",
+                        label: "样式",
+                        children: [
+                          { type: "panelSelectors" },
+                          { type: "panelStyles" },
+                        ],
+                      },
+                      {
+                        id: "props",
+                        label: "属性",
+                        children: { type: "panelProperties" },
+                      },
+                      {
+                        id: "events",
+                        label: "事件",
+                        children: {
+                          type: "custom",
+                          component: EventBindingTabContent,
+                        },
+                      },
+                    ],
+                  },
+                },
               ],
             },
           },
@@ -1030,6 +930,7 @@ const PageEditor: React.FC = () => {
           </Form.Item>
         </Form>
       </Modal>
+
       </div>
     </div>
   );

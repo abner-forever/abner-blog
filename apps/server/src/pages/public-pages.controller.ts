@@ -11,11 +11,15 @@ export class PublicPagesController {
     private readonly statsService: StatsService,
   ) {}
 
-  @ApiOperation({ summary: '根据 slug 获取已发布的页面（公开）' })
-  @ApiParam({ name: 'slug', description: '页面 URL 标识' })
+  @ApiOperation({ summary: '根据 slug 或 ID 获取已发布的页面（公开）' })
+  @ApiParam({ name: 'slug', description: '页面 URL 标识 或 页面 ID' })
   @Get(':slug')
   async findBySlug(@Param('slug') slug: string) {
-    const page = await this.pagesService.findBySlug(slug);
+    // 如果参数为纯数字，则按 ID 查找；否则按 slug 查找
+    const isNumeric = /^\d+$/.test(slug);
+    const page = isNumeric
+      ? await this.pagesService.findPublishedById(Number(slug))
+      : await this.pagesService.findBySlug(slug);
 
     // 异步记录访问 PV（不阻塞响应）
     this.statsService.recordPV(page.id).catch(() => {});
@@ -25,8 +29,7 @@ export class PublicPagesController {
       description: page.description,
       keywords: page.keywords,
       ogImage: page.ogImage,
-      html: page.html,
-      css: page.css,
+      schema: page.schema ? JSON.parse(page.schema) : null,
     };
   }
 }

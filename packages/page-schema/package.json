@@ -1,0 +1,28 @@
+{
+  "name": "@abner-blog/page-schema",
+  "version": "0.0.1",
+  "description": "页面编辑系统 Schema 类型定义与渲染引擎",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "author": "Abner",
+  "license": "ISC",
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@types/react": "^18.3.17",
+    "@types/react-dom": "^18.3.5",
+    "jsdom": "^29.0.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.0"
+  }
+}

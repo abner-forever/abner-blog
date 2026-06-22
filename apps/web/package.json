@@ -22,6 +22,7 @@
   "dependencies": {
     "@abner-blog/env-tool": "workspace:*",
     "@abner-blog/upload": "workspace:*",
+    "@abner-blog/page-schema": "workspace:*",
     "@abner-blog/utils": "workspace:*",
     "@abner/analytics": "workspace:*",
     "@ant-design/icons": "^6.1.0",

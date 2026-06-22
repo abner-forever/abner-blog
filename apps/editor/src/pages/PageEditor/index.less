@@ -82,3 +82,10 @@
     transition: background-color 0.3s ease;
   }
 }
+
+// 右侧面板：默认 240px 太窄，事件配置内容放不下
+// SDK 内部用 inline style 设置 width/min-width/max-width，会覆盖 layout style
+// 用 !important 强制覆盖 SDK 的 inline style
+.gs-sidebar-right {
+  min-width: 320px !important;
+}

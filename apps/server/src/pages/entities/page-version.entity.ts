@@ -24,20 +24,11 @@ export class PageVersion {
   @Column({ type: 'varchar', length: 200, nullable: true })
   title?: string;
 
-  @Column({ type: 'longtext' })
-  html: string;
-
-  @Column({ type: 'longtext' })
-  css: string;
-
-  @Column({ type: 'longtext' })
-  components: string;
+  @Column({ type: 'longtext', nullable: true })
+  schema: string;
 
   @Column({ type: 'varchar', length: 20, nullable: true })
   status?: string;
-
-  @Column({ type: 'text', nullable: true })
-  snapshot?: string;
 
   @CreateDateColumn()
   createdAt: Date;

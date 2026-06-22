@@ -91,6 +91,14 @@ export class PagesController {
     return this.pagesService.findOne(+id);
   }
 
+  @ApiOperation({ summary: '根据 slug 获取页面（管理端预览）' })
+  @ApiParam({ name: 'slug', description: '页面 slug' })
+  @ApiResponse({ status: 200, description: '页面详情' })
+  @Get('slug/:slug')
+  findBySlug(@Param('slug') slug: string) {
+    return this.pagesService.findBySlugForAdmin(slug);
+  }
+
   @ApiOperation({ summary: '更新页面（全量）' })
   @ApiParam({ name: 'id', description: '页面 ID' })
   @ApiResponse({ status: 200, description: '更新成功' })

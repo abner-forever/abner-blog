@@ -27,7 +27,7 @@ export class PagesService {
   /** 记录页面版本快照 */
   private async recordVersion(page: Page): Promise<void> {
     try {
-      if (!page.html && !page.css && !page.components) return;
+      if (!page.schema) return;
       const lastVersion = await this.versionRepository.findOne({
         where: { pageId: page.id },
         order: { versionNumber: 'DESC' },
@@ -38,9 +38,7 @@ export class PagesService {
           pageId: page.id,
           versionNumber,
           title: page.title,
-          html: page.html,
-          css: page.css,
-          components: page.components,
+          schema: page.schema,
           status: page.status,
         }),
       );
@@ -60,9 +58,7 @@ export class PagesService {
 
     const page = this.pagesRepository.create({
       ...dto,
-      html: '',
-      css: '',
-      components: '',
+      schema: '',
       status: 'draft',
       locale: dto.locale || 'zh-CN',
       reviewStatus: 'draft',
@@ -174,16 +170,32 @@ export class PagesService {
 
     Object.assign(page, dto);
     const saved = await this.pagesRepository.save(page);
-    await this.recordVersion(saved);
     return saved;
   }
 
   async publish(id: number, dto: PublishPageDto): Promise<Page> {
     const page = await this.findOne(id);
 
-    page.html = dto.html;
-    page.css = dto.css;
-    page.components = dto.components;
+    // 检查内容是否变更：与上次发布时的快照（publishedSchema）对比，而非最新的自动保存内容
+    if (page.status === 'published' && page.publishedSchema) {
+      try {
+        const newSchema = JSON.parse(dto.schema);
+        const oldSchema = JSON.parse(page.publishedSchema);
+        // 排除 editorData，只比较渲染内容
+        delete newSchema.editorData;
+        delete oldSchema.editorData;
+        if (JSON.stringify(newSchema) === JSON.stringify(oldSchema)) {
+          throw new ConflictException('页面内容未变更，无需重复发布');
+        }
+      } catch (err) {
+        if (err instanceof ConflictException) throw err;
+        // JSON 解析失败则继续执行发布（降级处理）
+      }
+    }
+
+    page.schema = dto.schema;
+    // 记录本次发布的 schema 快照，供下次发布时比对
+    page.publishedSchema = dto.schema;
     page.status = 'published';
     page.publishedAt = new Date();
     if (dto.cover !== undefined) {
@@ -258,9 +270,7 @@ export class PagesService {
       description: source.description,
       keywords: source.keywords,
       ogImage: source.ogImage,
-      html: source.html,
-      css: source.css,
-      components: source.components,
+      schema: source.schema,
       status: 'draft',
     });
 
@@ -270,11 +280,9 @@ export class PagesService {
   /** 应用版本回滚数据（由 VersionService.restore 调用） */
   async applyVersionRestore(
     page: Page,
-    data: { html: string; css: string; components: string; title?: string },
+    data: { schema: string; title?: string },
   ): Promise<Page> {
-    page.html = data.html;
-    page.css = data.css;
-    page.components = data.components;
+    page.schema = data.schema;
     if (data.title) {
       page.title = data.title;
     }
@@ -286,6 +294,28 @@ export class PagesService {
   async findBySlug(slug: string): Promise<Page> {
     const page = await this.pagesRepository.findOne({
       where: { slug, status: 'published' },
+    });
+    if (!page) {
+      throw new NotFoundException('页面不存在');
+    }
+    return page;
+  }
+
+  /** 根据 slug 查找页面（管理端预览用，返回任意状态页面） */
+  async findBySlugForAdmin(slug: string): Promise<Page> {
+    const page = await this.pagesRepository.findOne({
+      where: { slug },
+    });
+    if (!page) {
+      throw new NotFoundException('页面不存在');
+    }
+    return page;
+  }
+
+  /** 根据 ID 查找已发布的页面（公开访问用） */
+  async findPublishedById(id: number): Promise<Page> {
+    const page = await this.pagesRepository.findOne({
+      where: { id, status: 'published' },
     });
     if (!page) {
       throw new NotFoundException('页面不存在');
@@ -335,9 +365,7 @@ export class PagesService {
       slug: dto.slug,
       description: dto.description || source.description,
       locale: dto.locale,
-      html: source.html,
-      css: source.css,
-      components: source.components,
+      schema: source.schema,
       status: 'draft',
       reviewStatus: 'draft',
       translationGroupId: groupId,

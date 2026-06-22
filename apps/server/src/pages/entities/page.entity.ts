@@ -34,14 +34,11 @@ export class Page {
   @Column({ nullable: true })
   cover?: string;
 
-  @Column({ type: 'longtext' })
-  html: string;
+  @Column({ type: 'longtext', nullable: true })
+  schema: string;
 
-  @Column({ type: 'longtext' })
-  css: string;
-
-  @Column({ type: 'longtext' })
-  components: string;
+  @Column({ type: 'longtext', nullable: true })
+  publishedSchema?: string;
 
   @Column({ type: 'varchar', length: 20, default: 'draft' })
   status: 'draft' | 'published' | 'archived';

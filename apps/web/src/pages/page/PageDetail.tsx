@@ -1,172 +1,61 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import { Spin, Result, message } from 'antd';
+import { Spin, Result, Tag, message } from 'antd';
+import { EyeOutlined } from '@ant-design/icons';
 import { httpMutator } from '@/services/http';
+import {
+  RendererProvider,
+  PageRenderer,
+  styleInjector,
+  Container,
+  Section,
+  Row,
+  Column,
+  Text,
+  Image,
+  Button,
+  Divider,
+  Spacer,
+  Video,
+  BilibiliVideo,
+  TencentVideo,
+  Card,
+  Accordion,
+  Tabs,
+  Carousel,
+  Map,
+  NavMenu,
+  NavLink,
+  HtmlEmbed,
+  Form,
+  FormInput,
+  FormTextarea,
+  FormSelect,
+  FormCheckbox,
+  FormSubmit,
+  DataList,
+  DataBadge,
+} from '@abner-blog/page-schema';
+import type { PageSchema, ActionContext, SchemaNode } from '@abner-blog/page-schema';
 
 interface PageData {
   title?: string;
   description?: string;
   keywords?: string[];
   ogImage?: string;
-  html: string;
-  css: string;
-}
-
-/** 序列化表单数据为键值对 */
-function serializeForm(form: HTMLFormElement): Record<string, string> {
-  const data: Record<string, string> = {};
-  const fd = new FormData(form);
-  fd.forEach((value, key) => {
-    data[key] = typeof value === 'string' ? value : String(value);
-  });
-  return data;
-}
-
-/** 注入交互式组件的 JS 行为 */
-function initInteractiveBehaviors(container: HTMLElement) {
-  // ── 标签页切换 ──
-  const tabs = container.querySelectorAll('[data-tabs]');
-  tabs.forEach((tabGroup) => {
-    const buttons = tabGroup.querySelectorAll<HTMLButtonElement>('[data-tab]');
-    buttons.forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const tabId = btn.getAttribute('data-tab');
-        if (!tabId) return;
-
-        // 切换按钮样式
-        buttons.forEach((b) => {
-          b.style.background = 'transparent';
-          b.style.color = '#666';
-          b.style.fontWeight = '400';
-        });
-        btn.style.background = '#fff';
-        btn.style.color = '#333';
-        btn.style.fontWeight = '500';
-
-        // 切换内容面板
-        const contents = tabGroup.querySelectorAll<HTMLElement>(
-          `[data-tab-content]`,
-        );
-        contents.forEach((c) => {
-          const isActive = c.getAttribute('data-tab-content') === tabId;
-          c.style.display = isActive ? 'block' : 'none';
-        });
-      });
-    });
-  });
-
-  // ── 轮播图 ──
-  const carousels = container.querySelectorAll<HTMLElement>('[data-carousel]');
-  carousels.forEach((carousel) => {
-    const inner = carousel.querySelector<HTMLElement>('[data-carousel-inner]');
-    const dots = carousel.querySelectorAll<HTMLElement>('[data-dot]');
-    if (!inner || dots.length === 0) return;
-
-    const items = inner.children;
-    let current = 0;
-    let timer: ReturnType<typeof setInterval> | null = null;
-
-    const goTo = (index: number) => {
-      if (index < 0) index = items.length - 1;
-      if (index >= items.length) index = 0;
-      current = index;
-      inner.style.transform = `translateX(-${current * 100}%)`;
-      dots.forEach((dot, i) => {
-        (dot as HTMLElement).style.opacity = i === current ? '1' : '0.5';
-      });
-    };
-
-    // 指示点点击
-    dots.forEach((dot) => {
-      dot.addEventListener('click', () => {
-        const idx = parseInt(dot.getAttribute('data-dot') || '0', 10);
-        goTo(idx);
-      });
-    });
-
-    // 自动轮播（每 4 秒）
-    const startAutoPlay = () => {
-      timer = setInterval(() => goTo(current + 1), 4000);
-    };
-    const stopAutoPlay = () => {
-      if (timer) clearInterval(timer);
-    };
-
-    carousel.addEventListener('mouseenter', stopAutoPlay);
-    carousel.addEventListener('mouseleave', startAutoPlay);
-    startAutoPlay();
-  });
-
-  // ── 平滑滚动锚点 ──
-  container.querySelectorAll<HTMLAnchorElement>('a[href^="#"]').forEach((a) => {
-    a.addEventListener('click', (e) => {
-      const href = a.getAttribute('href');
-      if (!href || href === '#') return;
-      const target = document.querySelector<HTMLElement>(href);
-      if (target) {
-        e.preventDefault();
-        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    });
-  });
+  schema?: PageSchema | null;
 }
 
 const PageDetail: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
+  const [searchParams] = useSearchParams();
+  const isPreview = searchParams.get('preview') === '1';
   const [data, setData] = useState<PageData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const fetchedSlug = useRef<string | undefined>(undefined);
   const fetchIdRef = useRef(0);
-  const contentRef = useRef<HTMLDivElement>(null);
 
-  /** 提交表单数据 */
-  const handleFormSubmit = useCallback(
-    async (e: Event) => {
-      e.preventDefault();
-      const form = e.target as HTMLFormElement;
-      const currentSlug = fetchedSlug.current;
-      if (!currentSlug) return;
-
-      const submitBtn = form.querySelector<HTMLButtonElement>(
-        'button[type="submit"]',
-      );
-      const originalText = submitBtn?.innerText || '提交';
-      if (submitBtn) {
-        submitBtn.disabled = true;
-        submitBtn.innerText = '提交中...';
-      }
-
-      try {
-        const fields = serializeForm(form);
-        await httpMutator<{ id: number; message: string }>({
-          url: `/api/public/pages/${currentSlug}/submit`,
-          method: 'POST',
-          data: { fields },
-        });
-        // 替换表单为成功提示
-        const successDiv = document.createElement('div');
-        successDiv.style.cssText =
-          'padding:32px;text-align:center;background:#f6ffed;border:1px solid #b7eb8f;border-radius:8px;';
-        successDiv.innerHTML = `<div style="font-size:48px;margin-bottom:16px;">✅</div><h3 style="margin:0 0 8px;color:#52c41a;">提交成功</h3><p style="margin:0;color:#666;">感谢您的提交，我们会尽快处理。</p>`;
-        form.parentNode?.replaceChild(successDiv, form);
-      } catch (err) {
-        const errorMessage =
-          err && typeof err === 'object' && 'message' in err
-            ? String((err as { message: string }).message)
-            : '提交失败，请稍后重试';
-        message.error(errorMessage);
-        if (submitBtn) {
-          submitBtn.disabled = false;
-          submitBtn.innerText = originalText;
-        }
-      }
-    },
-    [],
-  );
-
-  /** 加载页面数据 */
   useEffect(() => {
     if (!slug) return;
 
@@ -180,11 +69,9 @@ const PageDetail: React.FC = () => {
       method: 'GET',
     })
       .then((pageData) => {
-        // 防止并发请求乱序
         if (currentFetchId === fetchIdRef.current) {
           setData(pageData);
           setLoading(false);
-          fetchedSlug.current = slug;
         }
       })
       .catch(() => {
@@ -195,31 +82,65 @@ const PageDetail: React.FC = () => {
       });
   }, [slug]);
 
-  /** 渲染后附加 JS 行为 */
-  useEffect(() => {
-    if (!data?.html || !contentRef.current) return;
+  /** 事件执行上下文工厂 — 提供 toast/navigate/modals/变量/事件总线等运行时能力 */
+  const actionContextFactory = useCallback(
+    (rootNode: SchemaNode): ActionContext => {
+      const pageVars: Record<string, unknown> = {};
+      const eventHandlers: Record<string, Array<(detail?: unknown) => void>> = {};
 
-    const container = contentRef.current;
+      return {
+        sourceNode: rootNode,
+        toast: {
+          success: (msg: string) => message.success(msg),
+          error: (msg: string) => message.error(msg),
+          info: (msg: string) => message.info(msg),
+          warning: (msg: string) => message.warning(msg),
+        },
+        navigate: (url: string, target: '_self' | '_blank' = '_self') => {
+          if (target === '_blank') {
+            window.open(url, '_blank');
+          } else {
+            window.location.href = url;
+          }
+        },
+        modals: {
+          open: (modalId: string) => {
+            const el = document.getElementById(modalId);
+            if (el) el.style.display = 'block';
+          },
+          close: (modalId: string) => {
+            const el = document.getElementById(modalId);
+            if (el) el.style.display = 'none';
+          },
+        },
+        variables: {
+          get: (key: string) => pageVars[key],
+          set: (key: string, value: unknown) => { pageVars[key] = value; },
+          delete: (key: string) => { delete pageVars[key]; },
+          clear: () => {
+            Object.keys(pageVars).forEach((k) => { delete pageVars[k]; });
+          },
+        },
+        eventBus: {
+          emit: (name: string, detail?: unknown) => {
+            (eventHandlers[name] || []).forEach((handler) => handler(detail));
+          },
+          on: (name: string, handler: (detail?: unknown) => void) => {
+            if (!eventHandlers[name]) eventHandlers[name] = [];
+            eventHandlers[name].push(handler);
+            return () => {
+              eventHandlers[name] = eventHandlers[name].filter((h) => h !== handler);
+            };
+          },
+        },
+        getRootNode: () => rootNode,
+      };
+    },
+    [],
+  );
 
-    // 表单提交
-    const forms = container.querySelectorAll<HTMLFormElement>(
-      'form[data-page-form]',
-    );
-    forms.forEach((form) => {
-      form.addEventListener('submit', handleFormSubmit);
-    });
-
-    // 交互式组件行为
-    initInteractiveBehaviors(container);
-
-    // 清理
-    return () => {
-      forms.forEach((form) => {
-        form.removeEventListener('submit', handleFormSubmit);
-      });
-    };
-  }, [data?.html, handleFormSubmit]);
-
+  // 加载中和错误状态必须在 useCallback（hook 8）之后，
+  // 确保 hook 数量跨渲染一致
   if (loading) {
     return (
       <div
@@ -251,7 +172,7 @@ const PageDetail: React.FC = () => {
         <title>
           {data.title
             ? `${data.title} - Abner's Blog`
-            : 'Abner\'s Blog'}
+            : "Abner's Blog"}
         </title>
         {data.description && (
           <meta name="description" content={data.description} />
@@ -265,12 +186,87 @@ const PageDetail: React.FC = () => {
           <meta property="og:description" content={data.description} />
         )}
       </Helmet>
-      {data.css && <style>{data.css}</style>}
-      <div
-        ref={contentRef}
-        dangerouslySetInnerHTML={{ __html: data.html }}
-        style={{ minHeight: '100vh' }}
-      />
+
+      {isPreview && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 12,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            background: 'rgba(24, 144, 255, 0.95)',
+            color: '#fff',
+            padding: '6px 16px',
+            borderRadius: 20,
+            fontSize: 13,
+            fontWeight: 500,
+            boxShadow: '0 2px 12px rgba(24, 144, 255, 0.4)',
+            backdropFilter: 'blur(4px)',
+            pointerEvents: 'none',
+          }}
+        >
+          <EyeOutlined style={{ fontSize: 14 }} />
+          预览模式
+          <Tag
+            style={{
+              margin: 0,
+              fontSize: 11,
+              lineHeight: '18px',
+              borderRadius: 10,
+              background: 'rgba(255,255,255,0.25)',
+              color: '#fff',
+              border: 'none',
+            }}
+          >
+            非正式发布
+          </Tag>
+        </div>
+      )}
+
+      <RendererProvider
+        schema={data.schema || { root: { id: 'empty', type: 'container', props: {} } }}
+        extraComponents={{
+          container: Container,
+          section: Section,
+          row: Row,
+          column: Column,
+          text: Text,
+          image: Image,
+          button: Button,
+          divider: Divider,
+          spacer: Spacer,
+          video: Video,
+          'bilibili-video': BilibiliVideo,
+          'tencent-video': TencentVideo,
+          card: Card,
+          accordion: Accordion,
+          tabs: Tabs,
+          carousel: Carousel,
+          map: Map,
+          'nav-menu': NavMenu,
+          'nav-link': NavLink,
+          'html-embed': HtmlEmbed,
+          form: Form,
+          'form-input': FormInput,
+          'form-textarea': FormTextarea,
+          'form-select': FormSelect,
+          'form-checkbox': FormCheckbox,
+          'form-submit': FormSubmit,
+          'data-list': DataList,
+          'data-badge': DataBadge,
+        }}
+        extraMiddlewares={[styleInjector]}
+        actionContextFactory={actionContextFactory}
+      >
+        <PageRenderer
+          schema={data.schema || undefined}
+          error={!data.schema?.root ? '页面内容为空' : null}
+        />
+      </RendererProvider>
     </>
   );
 };

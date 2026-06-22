@@ -44,34 +44,16 @@ export class UpdatePageDto {
   @IsOptional()
   locale?: string;
 
-  @ApiProperty({ required: false, description: 'GrapesJS 生成的 HTML' })
+  @ApiProperty({ required: false, description: '页面 Schema JSON（结构化组件树）' })
   @IsString()
   @IsOptional()
-  html?: string;
-
-  @ApiProperty({ required: false, description: 'GrapesJS 生成的 CSS' })
-  @IsString()
-  @IsOptional()
-  css?: string;
-
-  @ApiProperty({ required: false, description: 'GrapesJS 组件 JSON' })
-  @IsString()
-  @IsOptional()
-  components?: string;
+  schema?: string;
 }
 
 export class PublishPageDto {
-  @ApiProperty({ description: 'GrapesJS 生成的 HTML' })
+  @ApiProperty({ description: '页面 Schema JSON（结构化组件树）' })
   @IsString()
-  html: string;
-
-  @ApiProperty({ description: 'GrapesJS 生成的 CSS' })
-  @IsString()
-  css: string;
-
-  @ApiProperty({ description: 'GrapesJS 组件 JSON' })
-  @IsString()
-  components: string;
+  schema: string;
 
   @ApiProperty({ required: false, description: '页面封面截图' })
   @IsString()
