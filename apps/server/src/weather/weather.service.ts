@@ -806,18 +806,21 @@ export class WeatherService {
           lon: Number.parseFloat(best.lon),
         };
       }
+      this.logger.warn(
+        `Qweather geo lookup returned non-200 for "${location}": code=${res.data?.code}, locations=${res.data?.location?.length ?? 0}`,
+      );
     } catch (err: unknown) {
       const axiosErr = err as {
         response?: { status?: number; data?: unknown };
         message: string;
       };
+      const status = axiosErr.response?.status;
+      const body =
+        status && status >= 400
+          ? JSON.stringify(axiosErr.response?.data).slice(0, 500)
+          : '';
       this.logger.warn(
-        'Qweather geo lookup failed for "' +
-          location +
-          '": HTTP ' +
-          (axiosErr.response?.status ?? 'unknown') +
-          ', ' +
-          axiosErr.message,
+        `Qweather geo lookup failed for "${location}": HTTP ${status ?? 'unknown'}, ${axiosErr.message}${body ? ', body=' + body : ''}`,
       );
     }
 
@@ -830,17 +833,19 @@ export class WeatherService {
     city: string,
   ): Promise<{ name: string; lat: number; lon: number } | null> {
     try {
-      const res = await axios.get<{
-        display_name?: string;
-        lat?: string;
-        lon?: string;
-        address?: {
-          city?: string;
-          county?: string;
-          district?: string;
-          state?: string;
-        };
-      }>('https://nominatim.openstreetmap.org/search', {
+      const res = await axios.get<
+        Array<{
+          display_name?: string;
+          lat?: string;
+          lon?: string;
+          address?: {
+            city?: string;
+            county?: string;
+            district?: string;
+            state?: string;
+          };
+        }>
+      >('https://nominatim.openstreetmap.org/search', {
         params: {
           q: city + ',中国',
           format: 'json',
@@ -853,14 +858,15 @@ export class WeatherService {
         },
         timeout: this.TIMEOUT,
       });
-      if (res.data?.lat && res.data?.lon) {
-        const address = res.data.address;
+      const result = res.data?.[0];
+      if (result?.lat && result?.lon) {
+        const address = result.address;
         const displayCity =
           address?.city || address?.county || address?.district || city;
         return {
           name: displayCity,
-          lat: Number.parseFloat(res.data.lat),
-          lon: Number.parseFloat(res.data.lon),
+          lat: Number.parseFloat(result.lat),
+          lon: Number.parseFloat(result.lon),
         };
       }
     } catch (err: unknown) {

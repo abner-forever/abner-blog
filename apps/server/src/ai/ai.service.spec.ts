@@ -12,29 +12,29 @@ import { AIChatSessionService } from './services/ai-chat-session.service';
 import { AIWeatherService } from './services/ai-weather.service';
 import { AIChatResponseService } from './services/ai-chat-response.service';
 import { WebSearchService } from '../web-search/web-search.service';
-import { McpService } from '../mcp';
 import { MCPServersService } from '../mcp';
 import { KnowledgeBaseService } from '../knowledge-base/knowledge-base.service';
 import { SkillsService } from '../skills/skills.service';
+import { ChatHistoryService } from './orchestrator/chat-history.service';
+import { ChatMcpRouterService } from './orchestrator/chat-mcp-router.service';
+import { ChatStreamService } from './orchestrator/chat-stream.service';
 import {
   CalendarEvent,
   CalendarEventType,
 } from '../entities/calendar-event.entity';
 import { Todo } from '../entities/todo.entity';
 
-// Mock the LLM
+// 模拟 LLM - 通过 spyOn buildLLM 注入，避免 jest.mock factory hoisting 问题
+const makeEmptyAsyncIterable = () => ({
+  [Symbol.asyncIterator]: async function* (): AsyncGenerator<{
+    answerDelta: string;
+    reasoningDelta: string;
+  }> {
+    // empty - 流式调用不产生 delta，触发回退到 invoke
+  },
+});
 const mockInvoke = jest.fn();
-const mockInvokeStream = jest.fn();
-jest.mock('./langchain/model', () => ({
-  UniversalChatLLM: jest.fn().mockImplementation(() => ({
-    invoke: mockInvoke,
-    invokeStream: mockInvokeStream,
-  })),
-  SimpleMiniMaxLLM: jest.fn().mockImplementation(() => ({
-    invoke: mockInvoke,
-    invokeStream: mockInvokeStream,
-  })),
-}));
+const mockInvokeStream = jest.fn().mockReturnValue(makeEmptyAsyncIterable());
 
 /** 固定「当前时间」，避免天气用例依赖运行日期的日历偏移 */
 const WEATHER_CURRENT_DATE = '2026-04-01T12:00:00.000Z';
@@ -49,7 +49,7 @@ describe('AIService Integration', () => {
 
   beforeEach(async () => {
     mockInvoke.mockReset();
-    mockInvokeStream.mockReset();
+    mockInvokeStream.mockReset().mockReturnValue(makeEmptyAsyncIterable());
 
     const mockCalendarService = {
       create: jest.fn(),
@@ -91,10 +91,6 @@ describe('AIService Integration', () => {
     const mockMcpServersService = {
       callToolForUser: jest.fn(),
     };
-    const mockMcpService = {
-      callTool: jest.fn(),
-      listTools: jest.fn().mockReturnValue([]),
-    };
     const mockKnowledgeBaseService = {
       search: jest.fn().mockResolvedValue([]),
     };
@@ -110,7 +106,6 @@ describe('AIService Integration', () => {
         AIWeatherService,
         AIChatResponseService,
         { provide: WebSearchService, useValue: mockWebSearchCore },
-        { provide: McpService, useValue: mockMcpService },
         { provide: MCPServersService, useValue: mockMcpServersService },
         { provide: KnowledgeBaseService, useValue: mockKnowledgeBaseService },
         { provide: SkillsService, useValue: mockSkillsService },
@@ -118,10 +113,23 @@ describe('AIService Integration', () => {
         { provide: TodosService, useValue: mockTodosService },
         { provide: WeatherService, useValue: mockWeatherService },
         { provide: AIConfigService, useValue: mockAIConfigService },
+        ChatHistoryService,
+        ChatMcpRouterService,
+        ChatStreamService,
       ],
     }).compile();
 
     service = module.get<AIService>(AIService);
+
+    // Mock buildLLM 以注入受控的 mock LLM，避免 jest.mock factory hoisting 问题
+    jest
+      .spyOn(AIService.prototype as unknown as { buildLLM: () => Promise<unknown> }, 'buildLLM')
+      .mockResolvedValue({
+        llm: { invoke: mockInvoke, invokeStream: mockInvokeStream },
+        thinkingEnabled: false,
+        useMcpTools: false,
+      });
+
     calendarService = module.get(CalendarService);
     todosService = module.get(TodosService);
     weatherService = module.get(WeatherService);
@@ -250,12 +258,9 @@ describe('AIService Integration', () => {
     });
 
     it('should handle chat intent when message is unclear', async () => {
-      mockInvoke
-        .mockResolvedValueOnce({ content: 'chat' })
-        .mockResolvedValueOnce({ content: '你好！有什么我可以帮你的？' });
+      mockInvoke.mockResolvedValueOnce({ content: '你好！有什么我可以帮你的？' });
 
       const result = await service.processMessage('你好', 1);
-
       expect(result.type).toBe('chat');
     });
 
@@ -359,9 +364,7 @@ describe('AIService Integration', () => {
     });
 
     it('should use helpful chat fallback instead of apology', async () => {
-      mockInvoke
-        .mockResolvedValueOnce({ content: 'chat' })
-        .mockResolvedValueOnce({ content: '' });
+      mockInvoke.mockResolvedValueOnce({ content: '' });
 
       const result = await service.processMessage('React 是啥', 1);
 
@@ -450,7 +453,7 @@ describe('AIService Integration', () => {
         undefined,
         '2026-04-02',
       );
-      expect(events.some((e) => e.event === 'chat_delta')).toBe(true);
+      expect(events.some((e) => e.event === 'chat_delta' || e.event === 'chat')).toBe(true);
       expect(events[events.length - 1]?.event).toBe('done');
     });
   });

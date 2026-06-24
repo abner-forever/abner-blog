@@ -6,6 +6,7 @@ import {
 } from '@langchain/core/messages';
 import { Logger } from '@nestjs/common';
 import { appendAiStreamDebugLine } from '../utils/ai-stream-debug';
+import { LLM_TIMEOUT_MS } from '../utils/timeout';
 
 const minimaxDebugLogger = new Logger('AI-LLM-MiniMax');
 
@@ -111,8 +112,14 @@ export class UniversalChatLLM implements ChatLLM {
     messages: BaseMessage[],
     options?: LLMCallOptions,
   ): Promise<AIMessage> {
+    const timeoutMs = options?.signal
+      ? undefined // 外部 signal 优先，不覆盖
+      : (LLM_TIMEOUT_MS[this.cfg.provider] ?? 60_000);
+    const invokeOpts = timeoutMs
+      ? { ...options, signal: AbortSignal.timeout(timeoutMs) }
+      : options;
     const payload = await this.requestJson(messages, {
-      ...options,
+      ...invokeOpts,
       stream: false,
     });
     const content = extractUniversalText(
@@ -135,8 +142,14 @@ export class UniversalChatLLM implements ChatLLM {
     messages: BaseMessage[],
     options?: LLMCallOptions,
   ): AsyncGenerator<LLMStreamChunk> {
+    const timeoutMs = options?.signal
+      ? undefined
+      : (LLM_TIMEOUT_MS[this.cfg.provider] ?? 60_000);
+    const streamOpts = timeoutMs
+      ? { ...options, signal: AbortSignal.timeout(timeoutMs) }
+      : options;
     const response = await this.requestStreamResponse(messages, {
-      ...options,
+      ...streamOpts,
       stream: true,
     });
     if (!response.body) throw new Error('stream response body is empty');

@@ -17,6 +17,9 @@ import { KnowledgeBaseModule } from '../knowledge-base/knowledge-base.module';
 import { WebSearchModule } from '../web-search/web-search.module';
 import { SkillsModule } from '../skills/skills.module';
 import { ChatSession } from '../entities/chat-session.entity';
+import { ChatHistoryService } from './orchestrator/chat-history.service';
+import { ChatMcpRouterService } from './orchestrator/chat-mcp-router.service';
+import { ChatStreamService } from './orchestrator/chat-stream.service';
 
 @Module({
   imports: [
@@ -38,6 +41,9 @@ import { ChatSession } from '../entities/chat-session.entity';
     ChatSessionCrudService,
     AIWeatherService,
     AIChatResponseService,
+    ChatHistoryService,
+    ChatMcpRouterService,
+    ChatStreamService,
   ],
   exports: [AIService],
 })

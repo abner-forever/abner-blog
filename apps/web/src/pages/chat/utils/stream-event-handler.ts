@@ -119,6 +119,30 @@ export function handleChatStreamEvent({
     return;
   }
 
+  if (streamEvent.event === 'chat') {
+    // 非流式完整内容事件（如天气查询等非 chat intent 的最终回复）
+    const content = (streamEvent.payload?.content as string) || '';
+    if (!content) {
+      return;
+    }
+    stopTypeWriter();
+    runtime.accumulatedText = content;
+    setMessages((prev) =>
+      prev.map((msg) =>
+        msg.id === assistantMessageId
+          ? finishWebSearchLoading({
+              ...msg,
+              content,
+              displayContent: content,
+              isComplete: false,
+              answerStatus: 'streaming',
+            })
+          : msg,
+      ),
+    );
+    return;
+  }
+
   if (streamEvent.event === 'clarification_needed') {
     stopTypeWriter();
     const clarification = streamEvent.payload?.clarification as

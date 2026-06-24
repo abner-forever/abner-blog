@@ -46,6 +46,7 @@ export interface ModelVendor {
 
 export type StreamEventName =
   | 'intent'
+  | 'chat'
   | 'clarification_needed'
   | 'todo_created'
   | 'event_created'

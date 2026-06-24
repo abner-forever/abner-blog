@@ -247,6 +247,9 @@ importers:
       '@langchain/community':
         specifier: ^1.1.25
         version: 1.1.25(@browserbasehq/stagehand@1.14.0)(@ibm-cloud/watsonx-ai@1.7.11)(@langchain/core@1.1.39)(ibm-cloud-sdk-core@5.4.10)(ioredis@5.10.0)(jsonwebtoken@7.4.3)(mysql2@3.19.1)(openai@6.33.0)(pdf-parse@1.1.1)(pg@8.20.0)(typeorm@0.3.28)
+      '@langchain/langgraph':
+        specifier: ^1.2.5
+        version: 1.2.5(@langchain/core@1.1.39)(zod@4.3.6)
       '@modelcontextprotocol/sdk':
         specifier: ^1.29.0
         version: 1.29.0(zod@4.3.6)
