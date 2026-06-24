@@ -4,37 +4,42 @@
 
 ## 项目概述
 
-基于 **pnpm monorepo** 架构的全栈博客系统，包含三个应用：
+**龙码 (LongMa)** — 基于 **pnpm monorepo** 架构的全栈博客 + 低代码平台系统，包含四个应用：
 
 | 应用            | 技术栈                                                            | 端口 |
 | --------------- | ----------------------------------------------------------------- | ---- |
 | `apps/server` | NestJS 11 + TypeORM + MySQL + Redis + JWT（服务端）                 | 8080 |
-| `apps/web` | React 18 + Vite 6 + Ant Design 6 + Redux Toolkit + TanStack Query（用户站） | 5173 |
-| `apps/admin`    | React 18 + Vite 6 + Ant Design 6（管理后台）                      | 5174 |
+| `apps/web` | React 18 + Vite 6 + Ant Design 6 + Redux Toolkit + TanStack Query（用户站） | 3000 |
+| `apps/admin`    | React 18 + Vite 6 + Ant Design 6 + ECharts（管理后台）            | 3001 |
+| `apps/editor`   | React 18 + Vite 8 + GrapesJS Studio SDK（低代码页面编辑器）       | 5175 |
 
 ## 常用命令
 
 ```bash
 # 开发
-pnpm run dev              # 并行启动前端 + 后端
+pnpm run dev              # 并行启动 web + server
 pnpm run dev:server       # 仅启动后端 (nest start --watch)
-pnpm run dev:web          # 仅启动前端
+pnpm run dev:web          # 仅启动用户站
 pnpm run dev:admin        # 启动管理后台
+pnpm run dev:editor       # 启动低代码编辑器
+pnpm run dev:services     # 启动 Docker 服务 (MySQL, Redis 等)
 
 # 构建
-pnpm run build            # 构建所有项目
+pnpm run build            # 构建 web + server
 pnpm run build:server     # 仅构建后端
-pnpm run build:web        # 仅构建前端
+pnpm run build:web        # 仅构建用户站
+pnpm run build:admin      # 仅构建管理后台
+pnpm run build:editor     # 仅构建编辑器
 
 # 质量检查
-pnpm run lint             # 对所有项目运行 ESLint
-pnpm run typecheck        # 运行 TypeScript 类型检查
+pnpm run lint             # 对所有项目运行 ESLint（含 editor）
+pnpm run typecheck        # 运行 TypeScript 类型检查（含 editor）
 pnpm run test:unit        # 运行单元测试（后端 jest + 前端 vitest）
 pnpm run check:ci         # lint + typecheck + test:unit（提交前运行）
 
 # E2E 测试
-pnpm run test:e2e:server # 后端 e2e 测试
-pnpm run test:e2e:web # 前端 e2e 测试 (Playwright)
+pnpm run test:e2e:server  # 后端 e2e 测试
+pnpm run test:e2e:web     # 前端 e2e 测试 (Playwright)
 
 # API 代码生成
 pnpm run generate:api     # 从 OpenAPI 规范生成 API 客户端 (orval)
@@ -46,46 +51,129 @@ pnpm run generate:api     # 从 OpenAPI 规范生成 API 客户端 (orval)
 
 ```
 apps/
-├── server/           # NestJS 服务端（REST API）
+├── server/           # NestJS 服务端（REST API + WebSocket）
 │   └── src/
-│       ├── auth/     # JWT 认证 (passport-jwt)
-│       ├── blogs/    # 博客 CRUD，含标签、分页
-│       ├── comments/ # 评论系统
-│       ├── users/    # 用户管理
-│       ├── entities/ # TypeORM 实体
-│       ├── common/   # Guards、Interceptors、Filters
-│       └── config/   # 配置
+│       ├── auth/           # JWT 认证 (passport-jwt)
+│       ├── users/          # 用户管理
+│       ├── blogs/          # 博客 CRUD，含标签、分页
+│       ├── comments/       # 评论系统
+│       ├── likes/          # 点赞
+│       ├── favorites/      # 收藏
+│       ├── todos/          # 待办事项
+│       ├── calendar/       # 日程管理
+│       ├── notes/          # 笔记（类 Notion 富文本）
+│       ├── note-collections/ # 笔记合集
+│       ├── moments/        # 动态/朋友圈
+│       ├── topics/         # 话题
+│       ├── ai/             # AI 聊天（LangChain + LangGraph）
+│       ├── mcp/            # MCP 协议服务端（内置工具 + 远程服务器管理）
+│       ├── knowledge-base/ # 知识库（向量检索）
+│       ├── skills/         # AI 技能管理
+│       ├── social/         # 社交（关注、私信、通知、WebSocket）
+│       ├── chat-share/     # 聊天分享
+│       ├── pages/          # 低代码页面管理（模板、版本、表单提交）
+│       ├── web-search/     # 网页搜索
+│       ├── weather/        # 天气服务
+│       ├── hotsearch/      # 热搜
+│       ├── analytics/      # 埋点 + 性能监控
+│       ├── upload/         # 文件上传（分片、视频封面）
+│       ├── modules/admin/  # 管理后台专用模块
+│       ├── modules/sso/    # SSO 单点登录（Keycloak）
+│       ├── entities/       # TypeORM 实体（42+ 个）
+│       ├── common/         # Guards、Interceptors、Filters、Logger
+│       └── config/         # 配置
 ├── web/              # 用户端 React 应用
 │   └── src/
-│       ├── pages/    # 页面组件（按路由组织）
-│       ├── components/ # 共享组件
-│       ├── services/ # API 层 (http.ts + api.ts)
-│       ├── store/    # Redux slices (auth, theme)
-│       └── hooks/    # 自定义 hooks
-└── admin/            # 管理后台（结构与 web 类似）
+│       ├── pages/          # 页面组件（按路由组织）
+│       │   ├── home/       # 首页（Hero + Feature + 最新内容）
+│       │   ├── blog/       # 博客（列表、创建、编辑、详情）
+│       │   ├── chat/       # AI 聊天（含分享、设置面板）
+│       │   ├── todo/       # 待办（列表 + Schedule-X 日历视图）
+│       │   ├── note/       # 笔记（列表、创建、详情、话题）
+│       │   ├── moment/     # 动态（列表、创建、详情）
+│       │   ├── news/       # 资讯
+│       │   ├── messages/   # 私信（WebSocket）
+│       │   ├── notifications/ # 通知 + 系统公告
+│       │   ├── search/     # 搜索
+│       │   ├── page/       # 低代码页面渲染（page-schema）
+│       │   ├── user/       # 个人中心（主页、编辑、简历）
+│       │   ├── about/      # 关于页
+│       │   ├── tools/      # 工具集
+│       │   ├── interview/  # 面试题
+│       │   ├── demo/       # 演示
+│       │   └── auth/       # 登录、注册、忘记密码、MCP 授权
+│       ├── components/     # 共享组件
+│       ├── services/       # API 层 (http.ts + generated/ + 各业务模块)
+│       ├── store/          # Redux slices (auth, theme)
+│       ├── hooks/          # 自定义 hooks
+│       ├── i18n/           # 国际化配置
+│       ├── context/        # React Context
+│       └── styles/         # 全局样式、变量
+├── admin/            # 管理后台
+│   └── src/
+│       ├── pages/          # 页面
+│       │   ├── dashboard/  # 仪表盘
+│       │   ├── user/       # 用户管理
+│       │   ├── blog/       # 博客管理
+│       │   ├── moment/     # 动态管理
+│       │   ├── comment/    # 评论管理
+│       │   ├── system-announcement/ # 系统公告
+│       │   ├── analytics/  # 数据分析（埋点、性能、用户列表、用户详情）
+│       │   └── auth/       # 登录
+│       ├── services/       # API 层 (Orval 生成)
+│       ├── store/          # Redux slices
+│       └── i18n/           # 国际化
+└── editor/           # 低代码页面编辑器
+    └── src/
+        ├── pages/
+        │   ├── HomeDashboard/  # 编辑器首页仪表盘
+        │   ├── PageEditor/     # GrapesJS 可视化编辑器
+        │   ├── PageList/       # 页面列表
+        │   ├── PagePreview/    # 页面预览
+        │   ├── VersionList/    # 版本历史
+        │   ├── ReviewList/     # 审核列表
+        │   └── TrashList/      # 回收站
+        ├── components/     # 编辑器专用组件
+        ├── services/       # API 层
+        ├── store/          # Redux slices
+        └── locales/        # 国际化
 
 packages/
-└── utils/            # 共享工具库
+├── utils/            # 共享工具库
+├── upload/           # 文件上传工具（分片上传、直传、预览）
+├── page-schema/      # 页面渲染引擎（组件注册、中间件、事件系统、模态框）
+├── shared-ui/        # 共享 UI 组件（登录、动画角色等）
+├── analytics/        # 埋点 SDK（自动追踪、性能监控、队列上报）
+└── env-tool/         # 环境工具（CSS 注入、DOM 工具、UI 组件）
 ```
 
 ### 后端模式
 
 - **认证**：JWT + `passport-jwt`，守卫：`JwtAuthGuard`、`OptionalJwtAuthGuard`
+- **SSO**：Keycloak 集成（`modules/sso/`），支持 SSO 单点登录
 - **验证**：DTO 使用 `class-validator` 装饰器
 - **响应**：通过 `TransformInterceptor` 统一格式 - `{ data, message, timestamp }`
 - **错误处理**：全局 `HttpExceptionFilter`
-- **数据库**：TypeORM + MySQL/PostgreSQL，实体位于 `src/entities/`
+- **日志**：`RootFileLogger` 文件日志 + `LoggingInterceptor` 请求日志
+- **数据库**：TypeORM + MySQL，实体位于 `src/entities/`（42+ 个实体）
+- **WebSocket**：`social.gateway.ts` 实现实时私信和通知推送
+- **AI 能力**：LangChain + LangGraph 驱动的 AI 聊天（意图识别、命令处理、流式输出）
+- **MCP 协议**：`@modelcontextprotocol/sdk` 实现内置工具端点 + 远程 MCP 服务器管理
+- **低代码页面**：`pages/` 模块管理页面 CRUD、模板、版本、表单提交、自定义组件
 
 ### 前端模式
 
 - **路径别名**：使用 `@/`、`@components/`、`@services/`、`@store/`、`@hooks/`（tsconfig 配置）
-- **API 调用**：统一通过 `@services/api.ts`，禁止直接使用 axios
+- **API 调用**：统一通过 `@services/http.ts`，禁止直接使用 axios。Orval 自动生成 `services/generated/`
 - **状态管理**：
   - 全局应用状态 → Redux Toolkit（auth、theme）
-  - 服务端数据 → TanStack Query（blogs、comments）
+  - 服务端数据 → TanStack Query（blogs、comments、notes 等）
   - URL 状态 → `useSearchParams`
 - **样式**：LESS + BEM 命名，全局变量在 `styles/variables.less`（自动注入）
 - **国际化**：所有用户可见文本必须使用 `useTranslation()` hook
+- **页面渲染**：低代码页面通过 `page-schema` 包渲染（组件注册、中间件、事件系统）
+- **日历**：Schedule-X 替代 antd Calendar，自定义 HTML5 拖拽
+- **聊天**：WebSocket 实时通信 + SSE 流式 AI 响应
 
 ## 开发规范
 
@@ -186,9 +274,28 @@ packages/
 
 MySQL + TypeORM。核心实体关系：
 
-- `User` → `Blog` (1:N) → `Comment`、`Like`、`Favorite`
+- `User` → `Blog` (1:N) → `Comment`、`Like`、`Favorite`、`ViewLog`
 - `User` → `Todo` (1:N)
+- `User` → `Note` (1:N) → `NoteComment`、`NoteLike`、`NoteFavorite`、`NoteViewLog`
+- `User` → `Moment` (1:N) → `MomentComment`、`MomentLike`、`MomentFavorite`、`MomentViewLog`
+- `User` → `CalendarEvent` (1:N)
+- `User` → `UserResume` (1:1)
+- `User` → `UserAIConfig` (1:1)
+- `User` → `UserFollow` (关注关系)
+- `User` → `DirectConversation` → `DirectMessage`（私信）
+- `User` → `UserNotification`（通知）
+- `User` → `SSOIdentity`（SSO 身份）
 - `Blog` → `tags`（字符串数组）
+- `Note` → `NoteCollection` → `NoteCollectionItem`（笔记合集）
+- `KnowledgeBase` → `KnowledgeChunk`（知识库 + 向量分块）
+- `Page` → `PageVersion`、`FormSubmission`、`PagePV`、`CustomComponent`、`BlockTemplate`
+- `MCPServer`（MCP 远程服务器配置）
+- `Skill`（AI 技能）
+- `SystemAnnouncement`（系统公告）
+- `ShareSession`（聊天分享会话）
+- `ChatSession`（AI 聊天会话）
+- `TrackEvent`、`PerformanceMetric`（埋点 + 性能监控）
+- `SiteViewLog`（站点访问统计）
 
 ## Git 工作流
 

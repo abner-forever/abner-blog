@@ -19,6 +19,13 @@
 | Axios | HTTP（经项目统一封装） |
 | Orval | 由 OpenAPI 生成 API 客户端 |
 | Vitest / Playwright | 单元 / E2E 测试 |
+| Schedule-X | 日历组件（替代 antd Calendar） |
+| Socket.IO Client | WebSocket 实时通信 |
+| framer-motion | 动画库 |
+| @abner-blog/page-schema | 低代码页面渲染引擎 |
+| @abner-blog/shared-ui | 共享 UI 组件 |
+| @abner-blog/upload | 文件上传工具 |
+| @abner/analytics | 埋点 SDK |
 
 ## 脚本
 

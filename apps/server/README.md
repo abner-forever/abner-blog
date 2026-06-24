@@ -17,6 +17,12 @@
 | Multer | 文件上传 |
 | Socket.IO | 实时通信 |
 | Swagger | OpenAPI 文档 |
+| LangChain / LangGraph | AI 聊天、意图识别、流式输出 |
+| @modelcontextprotocol/sdk | MCP 协议服务端 |
+| Keycloak (openid-client) | SSO 单点登录 |
+| ChromaDB | 向量数据库（知识库） |
+| pdf-parse | PDF 文档解析 |
+| sanitize-html | HTML 内容清理 |
 
 ## 环境与启动
 
@@ -38,20 +44,35 @@ pnpm run dev           # nest start --watch
 │  (用户表)   │
 └──────┬──────┘
        │
-       ├──────────┐
-       │          │
-       ▼          ▼
-┌─────────┐  ┌─────────┐
-│  Blog   │  │  Todo   │
-│(博客表) │  │(待办表) │
-└────┬────┘  └────────┘
-     │
-     ├──────┬──────┬──────┐
-     ▼      ▼      ▼      ▼
-┌────────┐ ┌────┐ ┌────────┐
-│Comment │ │Like│ │Favorite│
-│(评论表)│ │(点赞)│ │(收藏表)│
-└────────┘ └────┘ └────────┘
+       ├──────────────────────────────────────────────────────────────────┐
+       │                                                                  │
+       ▼                                                                  ▼
+┌─────────┐  ┌─────────┐  ┌─────────┐  ┌─────────┐  ┌─────────┐  ┌─────────┐
+│  Blog   │  │  Todo   │  │  Note   │  │ Moment  │  │Calendar │  │  Video  │
+│(博客表) │  │(待办表) │  │(笔记表) │  │(动态表) │  │(日程表) │  │(视频表) │
+└────┬────┘  └─────────┘  └────┬────┘  └────┬────┘  └─────────┘  └─────────┘
+     │                         │            │
+     ├──────┬──────┬──────┐   ├──────┬──────┤
+     ▼      ▼      ▼      ▼   ▼      ▼      ▼
+┌────────┐┌────┐┌────────┐┌────┐┌────┐┌────────┐┌────┐┌────────┐
+│Comment ││Like││Favorite││Note││Note││Moment  ││Mom ││Moment  │
+│(评论表)││(点赞)││(收藏表)││Comm││Like││Comment ││Like││Favorite│
+└────────┘└────┘└────────┘└────┘└────┘└────────┘└────┘└────────┘
+
+额外实体：
+- UserFollow (用户关注)
+- DirectConversation / DirectMessage (私信)
+- UserNotification (通知)
+- KnowledgeBase / KnowledgeChunk (知识库)
+- MCPServer (MCP 服务器)
+- Skill (AI 技能)
+- SSOIdentity (SSO 身份)
+- ChatSession (聊天会话)
+- ShareSession (聊天分享)
+- Page / PageVersion / FormSubmission (低代码页面)
+- TrackEvent / PerformanceMetric (埋点 + 性能监控)
+- SiteViewLog (站点访问统计)
+- SystemAnnouncement (系统公告)
 ```
 
 ### 实体说明
@@ -62,7 +83,9 @@ pnpm run dev           # nest start --watch
 - `username`: 用户名（唯一）
 - `email`: 邮箱（唯一）
 - `password`: 密码（加密存储）
+- `nickname`: 昵称
 - `avatar`: 头像 URL
+- `bio`: 个人简介
 - `status`: 账户状态
 - `loginFailureCount`: 登录失败次数
 - `lastLoginAt`: 最后登录时间
@@ -74,6 +97,21 @@ pnpm run dev           # nest start --watch
 - `title` / `content` / `summary`
 - `tags`: 标签数组
 - `isPublished` / `viewCount`
+- `author`: 关联 User
+- `createdAt` / `updatedAt`
+
+#### Note（笔记）
+
+- `id`: 主键
+- `title` / `content` / `summary`
+- `author`: 关联 User
+- `createdAt` / `updatedAt`
+
+#### Moment（动态）
+
+- `id`: 主键
+- `content`: 动态内容
+- `images`: 图片数组
 - `author`: 关联 User
 - `createdAt` / `updatedAt`
 
@@ -92,6 +130,22 @@ pnpm run dev           # nest start --watch
 #### Todo（待办事项）
 
 - `id` / `title` / `completed` / `user` / `createdAt`
+
+#### CalendarEvent（日程事件）
+
+- `id` / `title` / `start` / `end` / `user` / `createdAt`
+
+#### KnowledgeBase（知识库）
+
+- `id` / `name` / `description` / `user` / `createdAt`
+
+#### MCPServer（MCP 服务器）
+
+- `id` / `name` / `url` / `tools` / `user` / `createdAt`
+
+#### Skill（AI 技能）
+
+- `id` / `name` / `description` / `prompt` / `user` / `createdAt`
 
 ---
 
@@ -342,6 +396,16 @@ pnpm run test:e2e
 - **JWT 策略**（`passport-jwt`）：Token
 - **可选认证**：未登录也可访问部分接口
 - **守卫**：`LocalAuthGuard`、`JwtAuthGuard`、`OptionalJwtAuthGuard`
+- **SSO**：Keycloak 集成（`modules/sso/`），支持 SSO 单点登录
+
+### 核心模块
+
+- **AI 模块**：LangChain + LangGraph 驱动的 AI 聊天（意图识别、命令处理、流式输出）
+- **MCP 模块**：`@modelcontextprotocol/sdk` 实现内置工具端点 + 远程 MCP 服务器管理
+- **知识库模块**：向量检索、文档上传、ChromaDB 集成
+- **社交模块**：关注、私信、通知、WebSocket 实时通信
+- **低代码页面模块**：页面 CRUD、模板、版本、表单提交、自定义组件
+- **埋点模块**：事件追踪、性能监控、用户行为分析
 
 ### 拦截器
 
