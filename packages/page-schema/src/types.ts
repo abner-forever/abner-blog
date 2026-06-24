@@ -1,9 +1,8 @@
 /**
  * 页面 Schema 核心类型定义
  *
- * 参考 [removed] 项目的 INode/ISchema 设计：
- * - INode: 组件树节点，定义了组件实例的全部属性
- * - ISchema: 组件类型的 schema 描述，用于编辑器属性面板自动生成
+ * - SchemaNode: 组件树节点，定义了组件实例的全部属性
+ * - ComponentSchema: 组件类型的 schema 描述，用于编辑器属性面板自动生成
  */
 
 import type React from 'react';
@@ -110,7 +109,6 @@ export interface ComponentSchema {
 
 /**
  * 组件节点 - 页面中每个组件实例对应一个节点
- * 参考 [removed] 的 INode 接口
  */
 export interface SchemaNode {
   /** 节点唯一标识 */

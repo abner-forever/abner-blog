@@ -7,7 +7,7 @@
 | 1 | Schema 树中位置 | 根节点的直接子节点 | Modal 不属于页面内容流，语义上是浮层 |
 | 2 | 运行时可见性 | React 状态管理（`modalStates`） | 支持动画过渡，符合 React 哲学 |
 | 3 | 运行时渲染 | `ReactDOM.createPortal` 到 `document.body` | 避免父容器 z-index/overflow 干扰 |
-| 4 | 编辑器编辑方式 | 切换式（画布同一时间只显示一个 modal 或页面主体） | 参考 [removed]，画布干净，编辑空间大 |
+| 4 | 编辑器编辑方式 | 切换式（画布同一时间只显示一个 modal 或页面主体） | 画布干净，编辑空间大 |
 | 5 | Modal 列表来源 | 从 GrapesJS 组件树动态提取 | 单一数据源，不需要额外状态同步 |
 | 6 | 拖入画布行为 | 自动切换画布显示新 modal | 体验流畅，用户可立即编辑内容 |
 | 7 | 数据传递 | 通过 `variables` 系统，命名空间 `modal.{id}.{key}` | 复用现有基础设施 |
