@@ -45,3 +45,7 @@ export { default as FormCheckbox } from './FormCheckbox';
 export { default as FormSubmit } from './FormSubmit';
 export { default as DataList } from './DataList';
 export { default as DataBadge } from './DataBadge';
+
+// v1.5 — 弹窗组件
+export { default as Modal } from './Modal';
+export type { ModalComponentProps } from './Modal';

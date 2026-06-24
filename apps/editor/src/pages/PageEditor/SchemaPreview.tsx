@@ -30,9 +30,11 @@ import type { Editor } from 'grapesjs';
 import {
   RendererProvider,
   PageRenderer,
+  ModalProvider,
+  ModalPortals,
   styleInjector,
 } from '@abner-blog/page-schema';
-import type { PageSchema } from '@abner-blog/page-schema';
+import type { PageSchema, ModalApi } from '@abner-blog/page-schema';
 import { buildPageSchema } from '@/utils/schemaConverter';
 
 interface SchemaPreviewProps {
@@ -298,7 +300,15 @@ const SchemaPreview: React.FC<SchemaPreviewProps> = ({ editorRef }) => {
         open={open}
         onClose={handleClose}
         placement="bottom"
-        height={fullscreen ? '85vh' : '45vh'}
+        size="default"
+        styles={{
+          body: {
+            height: fullscreen ? '85vh' : '45vh',
+            padding: 0,
+            overflow: 'hidden',
+            background: tab === 'render' ? '#f9f9f9' : '#1e1e1e',
+          },
+        }}
         extra={
           <Space>
             {tab === 'json' && (
@@ -354,13 +364,6 @@ const SchemaPreview: React.FC<SchemaPreviewProps> = ({ editorRef }) => {
             </Tooltip>
           </Space>
         }
-        styles={{
-          body: {
-            padding: 0,
-            overflow: 'hidden',
-            background: tab === 'render' ? '#f9f9f9' : '#1e1e1e',
-          },
-        }}
       >
         {tab === 'render' ? (
           // 渲染模式：使用 PageRenderer 实时渲染
@@ -382,15 +385,20 @@ const SchemaPreview: React.FC<SchemaPreviewProps> = ({ editorRef }) => {
                   overflow: 'hidden',
                 }}
               >
-                <RendererProvider
-                  schema={schema}
-                  extraMiddlewares={[styleInjector]}
-                >
-                  <PageRenderer
-                    schema={schema}
-                    error={!schema?.root ? '页面内容为空' : null}
-                  />
-                </RendererProvider>
+                <ModalProvider schema={schema}>
+                  {(_modalApi: ModalApi) => (
+                    <RendererProvider
+                      schema={schema}
+                      extraMiddlewares={[styleInjector]}
+                    >
+                      <PageRenderer
+                        schema={schema}
+                        error={!schema?.root ? '页面内容为空' : null}
+                      />
+                      <ModalPortals />
+                    </RendererProvider>
+                  )}
+                </ModalProvider>
               </div>
             </div>
           ) : (

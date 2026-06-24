@@ -32,6 +32,7 @@ export const ComponentTypeConst = {
   NAV_MENU: 'nav-menu',
   NAV_LINK: 'nav-link',
   HTML_EMBED: 'html-embed',
+  MODAL: 'modal',
 } as const;
 
 /** 组件类型枚举 */
@@ -290,6 +291,27 @@ export interface NavLinkNodeProps {
 /** 自定义 HTML 组件预期 Props */
 export interface HtmlEmbedNodeProps {
   html?: string;
+  style?: React.CSSProperties;
+}
+
+/** 弹窗组件预期 Props */
+export interface ModalNodeProps {
+  /** 编辑器内标识（"确认弹窗"） */
+  name?: string;
+  /** 弹窗上显示的标题 */
+  title?: string;
+  /** 弹窗宽度，默认 520 */
+  width?: number | string;
+  /** 显示关闭按钮，默认 true */
+  closable?: boolean;
+  /** 点击遮罩关闭，默认 true */
+  maskClosable?: boolean;
+  /** ESC 关闭，默认 true */
+  keyboard?: boolean;
+  /** 显示 footer，默认 true */
+  footer?: boolean;
+  /** 动画类型，默认 fade */
+  animation?: 'fade' | 'zoom' | 'slide';
   style?: React.CSSProperties;
 }
 

@@ -545,7 +545,7 @@ const MCPServerPanel: React.FC<Props> = ({ onClose }) => {
           void handleSaveConfig();
         }}
         okButtonProps={{ loading: configSaving }}
-        destroyOnClose
+        destroyOnHidden
         className="mcp-config-modal"
         footer={[
           <Button

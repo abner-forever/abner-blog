@@ -237,18 +237,18 @@ export class AIService {
       );
       yield { event: 'intent', payload: { intent } };
 
-      if (intent === IntentType.QUERY_WEATHER) {
-        yield* this.streamWeatherIntent(
-          llm,
-          message,
-          userId,
-          currentDate,
-          sessionId,
-          useMcpTools,
-        );
-        yield { event: 'done', payload: { type: 'chat' } };
-        return;
-      }
+      // if (intent === IntentType.QUERY_WEATHER) {
+      //   yield* this.streamWeatherIntent(
+      //     llm,
+      //     message,
+      //     userId,
+      //     currentDate,
+      //     sessionId,
+      //     useMcpTools,
+      //   );
+      //   yield { event: 'done', payload: { type: 'chat' } };
+      //   return;
+      // }
 
       if (intent === IntentType.CHAT) {
         yield* this.streamChatOrSearchIntent(

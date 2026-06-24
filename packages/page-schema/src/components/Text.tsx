@@ -18,6 +18,7 @@ const TAG_MAP: Record<string, keyof JSX.IntrinsicElements> = {
 const Text: React.FC<BaseComponentProps> = ({ node, children }) => {
   const props = node.props as { content?: string; as?: string };
   const style = node.props.style as React.CSSProperties | undefined;
+  const className = node.props.className as string | undefined;
 
   const tag = (props.as && TAG_MAP[props.as]) || 'p';
   const Tag = tag as 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'p' | 'span';
@@ -27,6 +28,7 @@ const Text: React.FC<BaseComponentProps> = ({ node, children }) => {
   return (
     <Tag
       id={node.props.id as string}
+      className={className}
       style={style}
     >
       {content || children || '(空文本)'}

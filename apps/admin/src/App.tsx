@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useRoutes, Navigate } from "react-router-dom";
+import { useRoutes, Navigate, useLocation } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { Spin } from "antd";
 import type { RootState } from "./store";
@@ -12,6 +12,7 @@ import { authRoutes, adminLayoutChildren } from "./routes";
 function App() {
   const { token } = useSelector((state: RootState) => state.auth);
   const dispatch = useDispatch();
+  const location = useLocation();
   const ssoChecked = useRef(false);
   const [initializing, setInitializing] = useState(
     !token && !localStorage.getItem("admin-token"),
@@ -49,6 +50,38 @@ function App() {
       setInitializing(false);
     }
   }, [token, dispatch]);
+
+  // 动态设置浏览器标题
+  useEffect(() => {
+    const path = location.pathname;
+    const baseTitle = '龙码 - 管理后台';
+
+    const exactTitles: Record<string, string> = {
+      '/login': '登录',
+      '/': '仪表盘',
+      '/dashboard': '仪表盘',
+      '/blogs': '博客管理',
+      '/comments': '评论管理',
+      '/moments': '动态管理',
+      '/users': '用户管理',
+      '/system-announcements': '系统公告',
+      '/analytics/users': '用户分析',
+      '/analytics/dashboard': '分析仪表盘',
+      '/analytics/events': '事件追踪',
+      '/analytics/performance': '性能分析',
+    };
+
+    const prefixTitles: [string, string][] = [
+      ['/blogs/', '博客编辑'],
+      ['/moments/', '动态管理'],
+      ['/users/', '用户详情'],
+      ['/analytics/users/', '用户详情'],
+    ];
+
+    const pageTitle = exactTitles[path] ?? prefixTitles.find(([p]) => path.startsWith(p))?.[1] ?? '';
+
+    document.title = pageTitle ? `${pageTitle} - ${baseTitle}` : baseTitle;
+  }, [location.pathname]);
 
   const routes = useRoutes([
     {

@@ -7,6 +7,8 @@ import { httpMutator } from '@/services/http';
 import {
   RendererProvider,
   PageRenderer,
+  ModalProvider,
+  ModalPortals,
   styleInjector,
   Container,
   Section,
@@ -37,7 +39,7 @@ import {
   DataList,
   DataBadge,
 } from '@abner-blog/page-schema';
-import type { PageSchema, ActionContext, SchemaNode } from '@abner-blog/page-schema';
+import type { PageSchema, ActionContext, SchemaNode, ModalApi } from '@abner-blog/page-schema';
 
 interface PageData {
   title?: string;
@@ -55,6 +57,7 @@ const PageDetail: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const fetchIdRef = useRef(0);
+  const modalApiRef = useRef<ModalApi>({ open: () => {}, close: () => {} });
 
   useEffect(() => {
     if (!slug) return;
@@ -82,7 +85,7 @@ const PageDetail: React.FC = () => {
       });
   }, [slug]);
 
-  /** 事件执行上下文工厂 — 提供 toast/navigate/modals/变量/事件总线等运行时能力 */
+  /** 事件执行上下文工厂 — 提供 toast/navigate/变量/事件总线等运行时能力（modals 由 modalApi 注入） */
   const actionContextFactory = useCallback(
     (rootNode: SchemaNode): ActionContext => {
       const pageVars: Record<string, unknown> = {};
@@ -104,13 +107,11 @@ const PageDetail: React.FC = () => {
           }
         },
         modals: {
-          open: (modalId: string) => {
-            const el = document.getElementById(modalId);
-            if (el) el.style.display = 'block';
+          open: (modalId: string, data?: Record<string, unknown>) => {
+            modalApiRef.current.open(modalId, data);
           },
           close: (modalId: string) => {
-            const el = document.getElementById(modalId);
-            if (el) el.style.display = 'none';
+            modalApiRef.current.close(modalId);
           },
         },
         variables: {
@@ -227,46 +228,56 @@ const PageDetail: React.FC = () => {
         </div>
       )}
 
-      <RendererProvider
-        schema={data.schema || { root: { id: 'empty', type: 'container', props: {} } }}
-        extraComponents={{
-          container: Container,
-          section: Section,
-          row: Row,
-          column: Column,
-          text: Text,
-          image: Image,
-          button: Button,
-          divider: Divider,
-          spacer: Spacer,
-          video: Video,
-          'bilibili-video': BilibiliVideo,
-          'tencent-video': TencentVideo,
-          card: Card,
-          accordion: Accordion,
-          tabs: Tabs,
-          carousel: Carousel,
-          map: Map,
-          'nav-menu': NavMenu,
-          'nav-link': NavLink,
-          'html-embed': HtmlEmbed,
-          form: Form,
-          'form-input': FormInput,
-          'form-textarea': FormTextarea,
-          'form-select': FormSelect,
-          'form-checkbox': FormCheckbox,
-          'form-submit': FormSubmit,
-          'data-list': DataList,
-          'data-badge': DataBadge,
+      <ModalProvider schema={data.schema || { root: { id: 'empty', type: 'container', props: {} } }}>
+        {(modalApi) => {
+          // 更新 ref，使 actionContextFactory 中的 modals 能力指向 ModalProvider 的方法
+          modalApiRef.current = modalApi;
+          return (
+            <RendererProvider
+              schema={data.schema || { root: { id: 'empty', type: 'container', props: {} } }}
+              modalApi={modalApi}
+              extraComponents={{
+                container: Container,
+                section: Section,
+                row: Row,
+                column: Column,
+                text: Text,
+                image: Image,
+                button: Button,
+                divider: Divider,
+                spacer: Spacer,
+                video: Video,
+                'bilibili-video': BilibiliVideo,
+                'tencent-video': TencentVideo,
+                card: Card,
+                accordion: Accordion,
+                tabs: Tabs,
+                carousel: Carousel,
+                map: Map,
+                'nav-menu': NavMenu,
+                'nav-link': NavLink,
+                'html-embed': HtmlEmbed,
+                form: Form,
+                'form-input': FormInput,
+                'form-textarea': FormTextarea,
+                'form-select': FormSelect,
+                'form-checkbox': FormCheckbox,
+                'form-submit': FormSubmit,
+                'data-list': DataList,
+                'data-badge': DataBadge,
+              }}
+              extraMiddlewares={[styleInjector]}
+              actionContextFactory={actionContextFactory}
+            >
+              <PageRenderer
+                schema={data.schema || undefined}
+                error={!data.schema?.root ? '页面内容为空' : null}
+              />
+              <ModalPortals />
+            </RendererProvider>
+          );
         }}
-        extraMiddlewares={[styleInjector]}
-        actionContextFactory={actionContextFactory}
-      >
-        <PageRenderer
-          schema={data.schema || undefined}
-          error={!data.schema?.root ? '页面内容为空' : null}
-        />
-      </RendererProvider>
+      </ModalProvider>
     </>
   );
 };

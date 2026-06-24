@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { Skeleton, message, Modal, Form, Input, Select, Tooltip, Tag, Button } from "antd";
-import { GlobalOutlined, RocketOutlined } from "@ant-design/icons";
+import { GlobalOutlined, RocketOutlined, AppstoreOutlined } from "@ant-design/icons";
 import { useSelector, useDispatch } from "react-redux";
 import type { Editor } from "grapesjs";
 import StudioEditor from "@grapesjs/studio-sdk/react";
@@ -50,6 +50,22 @@ const PageEditor: React.FC = () => {
   const saveStatusRef = useRef<SaveStatus>("saved");
   const themeMode = useSelector((state: RootState) => state.theme.mode);
   const dispatch = useDispatch();
+
+  // 弹窗序号计数器（每次新增弹窗自增，名称如"新弹窗1""新弹窗2"）
+  const modalCounterRef = useRef(0);
+
+  // Modal 双区域编辑状态
+  const [activeModalId, setActiveModalId] = useState<string | null>(null);
+  const activeModalIdRef = useRef<string | null>(null);
+  const [modalList, setModalList] = useState<Array<{ label: string; id: string }>>([]);
+
+  // 用于防止 processModalComponent 中的 300ms 定时器在用户手动退出后重新进入弹窗编辑模式
+  const userExitedModalEditingRef = useRef(false);
+
+  // 同步 activeModalId 到 ref，供 onReady 中的事件监听器使用（避免闭包陈旧值）
+  useEffect(() => {
+    activeModalIdRef.current = activeModalId;
+  }, [activeModalId]);
 
   /** 加载页面数据 */
   useEffect(() => {
@@ -230,6 +246,435 @@ const PageEditor: React.FC = () => {
     }
   }, [id]);
 
+  /**
+   * 刷新弹窗列表（从编辑器 modals-container 中提取）
+   *
+   * 注意：必须使用 getAttributes() 而非 getEl()?.getAttribute()，
+   * 因为 GrapesJS Studio SDK 中 DOM 元素可能尚未就绪。
+   */
+  const refreshModalList = useCallback((editor: Editor) => {
+    const wrapper = editor.getWrapper();
+    if (!wrapper) { setModalList([]); return; }
+
+    const list: Array<{ label: string; id: string }> = [];
+    const container = findContainerByType(wrapper, 'modals-container');
+    if (container) {
+      const comps = tryGetComponents(container);
+      if (comps) {
+        comps.each((comp: unknown) => {
+          const m = comp as { getType: () => string; getAttributes: () => Record<string, string>; getId: () => string };
+          if (m.getType() === 'textnode') return;
+          const compAttrs = m.getAttributes();
+          const name = compAttrs['data-modal-name']
+            || compAttrs['data-schema-label']
+            || '未命名弹窗';
+          list.push({ label: name, id: m.getId() });
+        });
+      }
+    }
+    setModalList(list);
+  }, []);
+
+  /** 辅助：在组件上设置 display */
+  const trySetCompDisplay = (comp: unknown, value: string) => {
+    if (!comp || typeof comp !== 'object') return;
+    try {
+      const c = comp as { addStyle: (s: Record<string, string>) => void; getEl: () => HTMLElement | null };
+      if (value === '') {
+        c.addStyle({ display: '' });
+      } else if (typeof c.addStyle === 'function') {
+        c.addStyle({ display: value });
+      }
+      // 也通过 DOM 确保效果
+      if (typeof c.getEl === 'function') {
+        const el = c.getEl();
+        if (el) el.style.display = value;
+      }
+    } catch {
+      // 忽略
+    }
+  };
+
+  /** 辅助：在组件上设置多个样式（value 为空字符串或对象为空时清除） */
+  const trySetCompStyle = (comp: unknown, styles: Record<string, string>) => {
+    if (!comp || typeof comp !== 'object') return;
+    try {
+      const c = comp as { addStyle: (s: Record<string, string>) => void; getEl: () => HTMLElement | null };
+      const has = Object.keys(styles).length > 0;
+      if (has && typeof c.addStyle === 'function') {
+        c.addStyle(styles);
+      }
+      // 通过 DOM 确保效果
+      if (typeof c.getEl === 'function') {
+        const el = c.getEl();
+        if (el) {
+          if (has) {
+            Object.entries(styles).forEach(([k, v]) => {
+              ((el.style as unknown) as Record<string, string>)[k] = v;
+            });
+          } else {
+            el.style.position = '';
+            el.style.alignItems = '';
+            el.style.justifyContent = '';
+            el.style.background = '';
+            el.style.overflow = '';
+            el.style.padding = '';
+            el.style.top = '';
+            el.style.left = '';
+            el.style.right = '';
+            el.style.bottom = '';
+            el.style.zIndex = '';
+          }
+        }
+      }
+    } catch {
+      // 忽略
+    }
+  };
+
+  /**
+   * 辅助：通过 CSS 类控制组件显隐（配合注入 iframe 的 gjs-visible/gjs-hidden CSS 规则）
+   * 比 trySetCompDisplay 更可靠，因为 CSS 使用 !important
+   *
+   * 同时设置 inline style（display）作为兜底，确保即使 CSS class 规则未注入也能
+   * 实现对组件的基本显隐控制。display 的值通过 addStyle（组件 model）和 getEl（DOM）
+   * 两层写入，确保在 model 层面和渲染层面都生效。
+   */
+  const trySetCompVisible = (comp: unknown, visible: boolean) => {
+    if (!comp || typeof comp !== 'object') return;
+    try {
+      const c = comp as { addClass: (c: string) => void; removeClass: (c: string) => void; addStyle: (s: Record<string, string>) => void; getEl: () => HTMLElement | null };
+      const hasAddClass = typeof c.addClass === 'function';
+      const hasRemoveClass = typeof c.removeClass === 'function';
+      const hasAddStyle = typeof c.addStyle === 'function';
+      const hasGetEl = typeof c.getEl === 'function';
+      let el: HTMLElement | null = null;
+      if (hasGetEl) {
+        try { el = c.getEl(); } catch {}
+      }
+
+      if (visible) {
+        // CSS class 层面：添加 gjs-visible，移除 gjs-hidden
+        if (hasAddClass) c.addClass('gjs-visible');
+        if (hasRemoveClass) c.removeClass('gjs-hidden');
+        // 兜底：清除 inline display，允许 CSS class 控制显示
+        if (hasAddStyle) c.addStyle({ display: '' });
+      } else {
+        // CSS class 层面：移除 gjs-visible，添加 gjs-hidden
+        if (hasRemoveClass) c.removeClass('gjs-visible');
+        if (hasAddClass) c.addClass('gjs-hidden');
+        // 兜底：强制 inline display: none
+        if (hasAddStyle) c.addStyle({ display: 'none' });
+      }
+      // 也直接操作 DOM 确保生效
+      if (el) {
+        el.classList.toggle('gjs-visible', visible);
+        el.classList.toggle('gjs-hidden', !visible);
+        el.style.display = visible ? '' : 'none';
+      }
+    } catch (e) {
+      // 忽略异常，不影响主流程
+    }
+  };
+
+  /**
+   * 在 wrapper 中查找指定类型的容器组件（getType + data-gjs-type + data-schema-type 三重检测）
+   */
+  const findContainerByType = (wrapper: unknown, typeName: string): unknown | null => {
+    if (!wrapper || typeof wrapper !== 'object') return null;
+    try {
+      const w = wrapper as { components: () => { each: (cb: (c: unknown) => void) => void } };
+      let found: unknown | null = null;
+      if (typeof w.components !== 'function') return null;
+      w.components().each((child: unknown) => {
+        if (found) return;
+        const c = child as { getType: () => string; getAttributes?: () => Record<string, string> };
+        if (typeof c.getType === 'function' && c.getType() === typeName) { found = child; return; }
+        if (typeof c.getAttributes === 'function') {
+          const attrs = c.getAttributes();
+          if (attrs && (attrs['data-gjs-type'] === typeName || attrs['data-schema-type'] === typeName)) {
+            found = child;
+          }
+        }
+      });
+      return found;
+    } catch {
+      return null;
+    }
+  };
+
+  /** 辅助：获取组件的子组件迭代器 */
+  const tryGetComponents = (comp: unknown): { each: (cb: (c: unknown) => void) => void } | null => {
+    if (!comp || typeof comp !== 'object') return null;
+    try {
+      const c = comp as { components: () => { each: (cb: (c: unknown) => void) => void } };
+      if (typeof c.components === 'function') {
+        return c.components();
+      }
+    } catch {
+      // 忽略
+    }
+    return null;
+  };
+
+  /**
+   * 判断组件是否为弹窗（多种检测方式，兼容 Studio SDK 的 getType/getAttributes 行为差异）
+   *
+   * 检测顺序：
+   * 1. comp.getType() === 'modal'（GrapesJS 原始机制）
+   * 2. getAttributes()['data-gjs-type'] === 'modal'（SDK 保留 data-gjs-type 的情况）
+   * 3. getAttributes()['data-schema-type'] === 'modal'（自定义 schema 类型标记）
+   * 4. comp.toHtml() 包含 data-schema-type="modal" 或 data-gjs-type="modal"（兜底：根据 HTML 内容判断）
+   */
+  const isModalComponent = (comp: unknown): boolean => {
+    if (!comp || typeof comp !== 'object') return false;
+    try {
+      const c = comp as { getType: () => string; getAttributes: () => Record<string, string>; getId: () => string; toHtml?: () => string };
+      const compId = typeof c.getId === 'function' ? c.getId() : 'no-id';
+      // 检查1：getType
+      if (typeof c.getType === 'function') {
+        const t = c.getType();
+        if (t === 'modal') {
+          console.log(`[isModal] ✅ getType=${t} id=${compId}`);
+          return true;
+        }
+      }
+      // 检查2：getAttributes
+      if (typeof c.getAttributes === 'function') {
+        const attrs = c.getAttributes();
+        if (attrs) {
+          const hasGjs = attrs['data-gjs-type'] === 'modal';
+          const hasSchema = attrs['data-schema-type'] === 'modal';
+          if (hasGjs || hasSchema) {
+            console.log(`[isModal] ✅ attrs data-gjs-type=${attrs['data-gjs-type']} data-schema-type=${attrs['data-schema-type']} id=${compId}`);
+            return true;
+          }
+        }
+      }
+      // 检查3：toHtml
+      if (typeof c.toHtml === 'function') {
+        const html = c.toHtml();
+        if (html && (html.includes('data-schema-type="modal"') || html.includes('data-gjs-type="modal"'))) {
+          console.log(`[isModal] ✅ toHtml 包含弹窗标记 id=${compId}`);
+          return true;
+        }
+      }
+      console.log(`[isModal] ❌ 全部检测失败 id=${compId} getType=${typeof c.getType === 'function' ? c.getType() : 'N/A'} attrs=${JSON.stringify(typeof c.getAttributes === 'function' ? c.getAttributes() : {})}`);
+    } catch (e) {
+      console.error(`[isModal] 异常:`, e);
+    }
+    return false;
+  };
+
+  /**
+   * 辅助：设置 modals-container 的遮罩层样式
+   *
+   * 与 trySetCompVisible 不同，此函数通过 addStyle 直接设置 overlay 所需的
+   * 全部 inline 样式（position:fixed/background/display:flex 等），
+   * 不依赖注入到 iframe 的 CSS class 规则。
+   *
+   * 当 visible=true 时：
+   *   同时设置 CSS class（gjs-visible/gjs-hidden）+ 全部 overlay inline 样式
+   * 当 visible=false 时：
+   *   仅设置 display:none（保留 overlay 样式但隐藏元素）
+   */
+  const setModalContainerOverlay = (comp: unknown, visible: boolean) => {
+    if (!comp || typeof comp !== 'object') return;
+    try {
+      const c = comp as { addClass: (c: string) => void; removeClass: (c: string) => void; addStyle: (s: Record<string, string>) => void; getEl: () => HTMLElement | null };
+      const OVERLAY_STYLES: Record<string, string> = {
+        display: 'flex',
+        position: 'fixed',
+        top: '0',
+        left: '0',
+        right: '0',
+        bottom: '0',
+        'z-index': '10000',
+        background: 'rgba(0, 0, 0, 0.45)',
+        overflow: 'auto',
+        // padding 必须为 0，否则弹窗的包含块起点偏移，导致绝对定位拖拽坐标错位
+        padding: '0',
+        width: '100%',
+        height: '100%',
+        'box-sizing': 'border-box',
+        'align-items': 'center',
+        'justify-content': 'center',
+      };
+
+      // CSS class 层面（兜底：可能未注入到 iframe，但不冲突）
+      if (typeof c.addClass === 'function') {
+        if (visible) {
+          c.addClass('gjs-visible');
+          if (typeof c.removeClass === 'function') c.removeClass('gjs-hidden');
+        } else {
+          if (typeof c.removeClass === 'function') c.removeClass('gjs-visible');
+          c.addClass('gjs-hidden');
+        }
+      }
+
+      // inline style 层面（确保不依赖 iframe CSS 也能正确渲染遮罩）
+      if (typeof c.addStyle === 'function') {
+        if (visible) {
+          c.addStyle(OVERLAY_STYLES);
+        } else {
+          c.addStyle({ display: 'none' });
+        }
+      }
+
+      // DOM 直接操作层面（最可靠）
+      if (typeof c.getEl === 'function') {
+        const el = c.getEl();
+        if (el) {
+          el.classList.toggle('gjs-visible', visible);
+          el.classList.toggle('gjs-hidden', !visible);
+          if (visible) {
+            Object.assign(el.style, OVERLAY_STYLES);
+          } else {
+            el.style.display = 'none';
+          }
+        }
+      }
+    } catch {
+      // 忽略异常，不影响主流程
+    }
+  };
+
+  /**
+   * 辅助：为弹窗组件添加编辑模式定位样式
+   *
+   * 弹窗编辑模式下弹窗居中展示（与运行时行为一致）。
+   * canvasAbsoluteMode 插件的坐标计算是视口空间（viewport-relative），
+   * 但 addStyle() 的 left/top 是 CSS 包含块空间（containing-block-relative）。
+   * 弹窗内部的绝对定位子元素以弹窗为包含块，弹窗居中时两个坐标系存在偏移。
+   *
+   * 解决方案（在 onReady 中实现）：
+   * 监听 dmode:start/end 跟踪绝对定位拖拽生命周期，
+   * 在 component:update 事件中将视口坐标转为弹窗相对坐标（减去弹窗视口偏移量），
+   * 使得保存到 schema 的 left/top 值是弹窗相对坐标，与运行时渲染引擎一致。
+   */
+  const addModalEditPositionStyles = (comp: unknown) => {
+    if (!comp || typeof comp !== 'object') return;
+    try {
+      const c = comp as { addStyle: (s: Record<string, string>) => void; getEl: () => HTMLElement | null };
+      const MODAL_EDIT_STYLES: Record<string, string> = {
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        // 避免覆盖 max-height/overflow 等重要样式
+        'z-index': '10001',
+      };
+      if (typeof c.addStyle === 'function') {
+        c.addStyle(MODAL_EDIT_STYLES);
+      }
+      if (typeof c.getEl === 'function') {
+        const el = c.getEl();
+        if (el) {
+          Object.assign(el.style, MODAL_EDIT_STYLES);
+        }
+      }
+    } catch {
+      // 忽略异常
+    }
+  };
+
+  /**
+   * 清除弹窗编辑模式的居中定位样式
+   * 在退出弹窗编辑模式时调用，确保弹窗内容不会残留居中样式
+   */
+  const removeModalEditPositionStyles = (comp: unknown) => {
+    if (!comp || typeof comp !== 'object') return;
+    try {
+      const c = comp as { addStyle: (s: Record<string, string>) => void; getEl: () => HTMLElement | null };
+      const RESET_STYLES: Record<string, string> = {
+        position: '',
+        top: '',
+        left: '',
+        transform: '',
+        'z-index': '',
+      };
+      if (typeof c.addStyle === 'function') {
+        c.addStyle(RESET_STYLES);
+      }
+      if (typeof c.getEl === 'function') {
+        const el = c.getEl();
+        if (el) {
+          el.style.position = '';
+          el.style.top = '';
+          el.style.left = '';
+          el.style.transform = '';
+          el.style.zIndex = '';
+        }
+      }
+    } catch {
+      // 忽略异常
+    }
+  };
+
+  /**
+   * 切换弹窗编辑模式
+   * null = 编辑页面，string = 编辑指定弹窗
+   *
+   * modals-container 通过 setModalContainerOverlay 设置 inline 遮罩样式，
+   * 个体弹窗通过 trySetCompVisible 控制显隐（CSS class + inline style 双兜底），
+   * 并通过 addModalEditPositionStyles 将弹窗居中展示。
+   *
+   * 弹窗内绝对定位子元素的坐标转换（视口 → 弹窗相对）在 onReady 的
+   * dmode:start/end + component:update 事件监听器中处理。
+   */
+  const toggleModalEditing = useCallback((modalId: string | null) => {
+    const editor = editorRef.current;
+    if (!editor) { return; }
+
+    const wrapper = editor.getWrapper();
+    if (!wrapper) { return; }
+
+    const modalsContainer = findContainerByType(wrapper, 'modals-container');
+    if (!modalsContainer) { return; }
+
+    if (modalId) {
+      // 用户主动进入弹窗编辑模式，重置退出标记
+      userExitedModalEditingRef.current = false;
+
+      // 进入弹窗编辑模式：设置遮罩层 inline 样式
+      setModalContainerOverlay(modalsContainer, true);
+
+      // 仅显示选中的弹窗，隐藏其他弹窗，并为目标弹窗添加绝对居中样式
+      const modalComps = tryGetComponents(modalsContainer);
+      if (modalComps) {
+        modalComps.each((comp: unknown) => {
+          const m = comp as { getId: () => string; getType: () => string };
+          if (m.getType() === 'textnode') return;
+          const compId = m.getId();
+          const isTarget = compId === modalId;
+          trySetCompVisible(comp, isTarget);
+          if (isTarget) {
+            addModalEditPositionStyles(comp);
+          }
+        });
+      }
+    } else {
+      // 退出弹窗编辑模式：记录用户退出标记，防止自动恢复定时器重新进入
+      userExitedModalEditingRef.current = true;
+
+      // 先逐一隐藏所有弹窗组件并清除居中定位样式，确保不因 CSS 级联问题残留可见元素
+      const modalComps = tryGetComponents(modalsContainer);
+      if (modalComps) {
+        modalComps.each((comp: unknown) => {
+          const m = comp as { getId: () => string; getType: () => string };
+          if (m.getType() === 'textnode') return;
+          trySetCompVisible(comp, false);
+          removeModalEditPositionStyles(comp);
+        });
+      }
+
+      // 然后隐藏 modals-container
+      setModalContainerOverlay(modalsContainer, false);
+    }
+
+    setActiveModalId(modalId);
+  }, []);
+
   if (loading) {
     return (
       <div className="page-editor__loading">
@@ -280,6 +725,26 @@ const PageEditor: React.FC = () => {
             ← 返回
           </Button>
         </div>
+        {/* Modal 编辑切换工具栏（下拉框，弹窗多时不铺平） */}
+        {modalList.length > 0 && (
+          <div className="page-editor__topbar-center">
+            <div className="page-editor__modal-toolbar">
+              <AppstoreOutlined style={{ fontSize: 13, marginRight: 6 }} />
+              <Select
+                size="small"
+                value={activeModalId || 'page'}
+                style={{ width: 200 }}
+                onChange={(val) => {
+                  toggleModalEditing(val === 'page' ? null : val);
+                }}
+                options={[
+                  { label: '📄 页面', value: 'page' },
+                  ...modalList.map(m => ({ label: m.label, value: m.id })),
+                ]}
+              />
+            </div>
+          </div>
+        )}
         <div className="page-editor__topbar-right">
           <Tooltip title={saveStatusConfig[saveStatus].text}>
             <Tag
@@ -542,37 +1007,34 @@ const PageEditor: React.FC = () => {
             theme: false,
           },
           /** 通过官方插件启用条件性绝对定位拖拽 */
+          //
+          // 坐标系统说明：
+          //
+          // canvasAbsoluteMode 插件使用 getElBoxRect() 获取元素的视口空间坐标
+          // （相对于 canvas iframe 视口），然后通过 addStyle() 设置 left/top。
+          // 对于页面级内容（body 作为包含块，起点在视口原点），视口坐标 = CSS 坐标，
+          // 两者一致，拖拽行为正确。
+          //
+          // 对于弹窗内部子元素：弹窗居中展示（top:50%;left:50%;transform...），
+          // 弹窗自身是子元素的包含块。弹窗不在视口原点，因此插件的视口坐标 ≠ CSS 坐标，
+          // 拖拽时元素位置偏离鼠标。
+          //
+          // 解决方案（在 onReady 中实现）：
+          // 在 dmode:start/end 跟踪拖拽生命周期，通过 component:update 事件监听器
+          // 将插件产生的视口坐标实时转为弹窗相对坐标（减去弹窗的视口偏移量）。
+          // 保存到 schema 的 left/top 是弹窗相对坐标，与运行时渲染引擎坐标一致。
+          //
           plugins: [
             canvasAbsoluteMode.init({
               globalAbsolute: false,
               enableAbsolute: ({ component }: { component: { getEl: () => HTMLElement | null } }) => {
                 const cmpEl = component.getEl();
-                if (
-                  !cmpEl ||
-                  getComputedStyle(cmpEl).position !== "absolute"
-                ) {
+                if (!cmpEl || getComputedStyle(cmpEl).position !== "absolute") {
                   return false;
                 }
-                // 自动确保父元素有 position: relative 作为定位锚点
-                // 否则绝对定位元素以视口为参考，拖拽坐标会乱
-                try {
-                  const parent = component.parent();
-                  if (parent) {
-                    const parentStyle = parent.getStyle
-                      ? parent.getStyle()
-                      : {};
-                    const parentPos = parentStyle.position;
-                    const hasPosition =
-                      parentPos &&
-                      parentPos !== "" &&
-                      parentPos !== "static";
-                    if (!hasPosition) {
-                      parent.addStyle({ position: "relative" });
-                    }
-                  }
-                } catch {
-                  // 忽略父元素处理异常
-                }
+                // ⚠️ 不要在 enableAbsolute 中对父元素设置 position: relative，
+                // 以免引入额外的包含块偏移。页面级内容有 wrapper 统一做定位锚点，
+                // 弹窗级内容由坐标转换监听器处理。
                 return true;
               },
               snapping: { x: 10, y: 10 },
@@ -581,6 +1043,448 @@ const PageEditor: React.FC = () => {
           /** 编辑器就绪后：自动保存 + 新建页面模板选择器 */
           onReady: (editor: Editor) => {
             editorRef.current = editor;
+
+            // ========== 确保 wrapper（body）有 position: relative ==========
+            // 作为页面内容绝对定位子元素的包含块，且起点在视口原点 (0,0)，
+            // 使得插件产生的视口坐标与 CSS 包含块坐标一致。弹窗内部子元素的
+            // 坐标转换由专门的 dmode/component:update 监听器处理。
+            try {
+              const wrapper = editor.getWrapper();
+              if (wrapper && typeof (wrapper as unknown as { getStyle: () => Record<string, string> }).getStyle === 'function') {
+                const w = wrapper as unknown as {
+                  getStyle: () => Record<string, string>;
+                  addStyle: (s: Record<string, string>) => void;
+                };
+                const ws = w.getStyle();
+                const wp = ws?.position;
+                if (!wp || wp === '' || wp === 'static') {
+                  w.addStyle({ position: 'relative' });
+                }
+              }
+            } catch { /* 忽略 */ }
+
+            // ========== 注册自定义组件类型（消除 "not found" 警告） ==========
+            const domComps = editor.DomComponents;
+            if (domComps && !domComps.getType('page-content')) {
+              domComps.addType('page-content', {
+                model: { defaults: { draggable: false, droppable: true, highlightable: false } },
+              });
+            }
+            if (domComps && !domComps.getType('modals-container')) {
+              domComps.addType('modals-container', {
+                model: { defaults: { draggable: false, droppable: true, highlightable: false } },
+              });
+            }
+            if (domComps && !domComps.getType('modal')) {
+              domComps.addType('modal', {
+                model: {
+                  defaults: {
+                    draggable: true,
+                    droppable: true,
+                    traits: [
+                      {
+                        type: 'text',
+                        name: 'data-modal-name',
+                        label: '弹窗名称',
+                        placeholder: '弹窗名称（显示在切换下拉框和左侧面板）',
+                      },
+                      {
+                        type: 'text',
+                        name: 'data-modal-title',
+                        label: '弹窗标题',
+                        placeholder: '弹窗运行时显示在弹窗顶部的标题文字',
+                      },
+                      {
+                        type: 'number',
+                        name: 'data-modal-width',
+                        label: '弹窗宽度',
+                        placeholder: '默认 520',
+                        min: 300,
+                        max: 1200,
+                      },
+                      {
+                        type: 'select',
+                        name: 'data-modal-animation',
+                        label: '弹窗动画',
+                        options: [
+                          { value: 'fade', name: '淡入淡出' },
+                          { value: 'zoom', name: '缩放' },
+                          { value: 'slide', name: '滑入' },
+                        ],
+                      },
+                    ],
+                  },
+                  /**
+                   * 重写 getName() 使左侧面板和图层显示自定义弹窗名称
+                   * 每次面板更新时会重新调用，与 data-modal-name 属性同步
+                   */
+                  getName() {
+                    const attrs = this.getAttributes();
+                    return attrs['data-modal-name'] || '弹窗';
+                  },
+                },
+              });
+            }
+            if (domComps && !domComps.getType('html-embed')) {
+              domComps.addType('html-embed', {
+                model: { defaults: { droppable: false } },
+              });
+            }
+
+            // ========== 注入弹窗编辑 CSS 到画布 iframe ==========
+            // GrapesJS 画布在 iframe 中，index.less 的 CSS 规则不会传递到 iframe 内部
+            // Studio SDK 没有 addCss() 方法，需要通过 Canvas API 或直接操作 iframe DOM 注入
+            const injectModalCss = () => {
+              const css = `
+                .gjs-hidden { display: none !important; }
+                .gjs-visible { display: block !important; }
+                [data-gjs-type="modals-container"] { display: none; }
+                [data-gjs-type="modals-container"].gjs-visible {
+                  display: flex !important;
+                  align-items: center;
+                  justify-content: center;
+                  position: fixed;
+                  top: 0; left: 0; right: 0; bottom: 0;
+                  z-index: 10000;
+                  background: rgba(0, 0, 0, 0.45);
+                  overflow: auto;
+                  /* padding 必须为 0，使包含块起点在视口原点，确保绝对定位拖拽坐标正确 */
+                  padding: 0;
+                  width: 100%;
+                  height: 100%;
+                  box-sizing: border-box;
+                }
+                /* 弹窗编辑模式下 gjs-visible 覆盖 gjs-hidden */
+                [data-gjs-type="modals-container"].gjs-visible.gjs-hidden {
+                  display: flex !important;
+                }
+                [data-schema-type="modal"].gjs-hidden {
+                  display: none !important;
+                }
+                [data-schema-type="modal"]:not(.gjs-hidden) {
+                  background: var(--bg-color, #fff);
+                  border-radius: 8px;
+                  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.2);
+                  min-width: 320px;
+                  max-width: 90%;
+                  max-height: 80%;
+                  overflow: auto;
+                }
+                /* gjs-visible 覆盖 gjs-hidden，确保可见类优先级高于隐藏类 */
+                [data-schema-type="modal"].gjs-visible {
+                  display: block !important;
+                }
+              `;
+              // 方法1：通过 Canvas API 获取 iframe
+              try {
+                const editorAny = editor as unknown as { Canvas?: { getFrameEl?: () => HTMLIFrameElement | null } };
+                const frameEl = editorAny.Canvas?.getFrameEl?.();
+                if (frameEl?.contentDocument?.head) {
+                  const style = frameEl.contentDocument.createElement('style');
+                  style.textContent = css;
+                  style.setAttribute('data-injected', 'modal-editor-css');
+                  frameEl.contentDocument.head.appendChild(style);
+                  return;
+                }
+              } catch {
+                // 忽略，尝试 DOM 方案
+              }
+              // 方法2：直接通过 DOM 查找画布 iframe
+              const tryInject = () => {
+                const frame = document.querySelector('iframe.gjs-frame') as HTMLIFrameElement | null;
+                if (frame?.contentDocument?.head) {
+                  const style = frame.contentDocument.createElement('style');
+                  style.textContent = css;
+                  style.setAttribute('data-injected', 'modal-editor-css');
+                  frame.contentDocument.head.appendChild(style);
+                  return true;
+                }
+                return false;
+              };
+              if (!tryInject()) {
+                // 延迟重试，等待 iframe 创建完成
+                const timer = window.setInterval(() => {
+                  if (tryInject()) {
+                    clearInterval(timer);
+                  }
+                }, 200);
+                // 10秒后停止重试
+                window.setTimeout(() => clearInterval(timer), 10000);
+              }
+            };
+            injectModalCss();
+
+            // ========== Modal 双区域结构构建 ==========
+            // 将现有组件分为 page-content 和 modals-container 两个区域
+            const buildDualRegion = () => {
+              try {
+                const wrapper = editor.getWrapper();
+                if (!wrapper) return;
+
+                // 已存在或重建 page-content
+                let pageContent = findContainerByType(wrapper, 'page-content');
+                if (!pageContent) {
+                  pageContent = wrapper.append('<div data-gjs-type="page-content"></div>')[0];
+                }
+
+                // 确保 page-content 有 position: relative，作为绝对定位子元素的定位锚点
+                // 否则绝对定位元素的 top/left 以 iframe 视口为参照，与拖拽坐标计算不一致
+                try {
+                  const pc = pageContent as unknown as {
+                    getStyle: () => Record<string, string>;
+                    addStyle: (s: Record<string, string>) => void;
+                  };
+                  if (typeof pc.getStyle === 'function' && typeof pc.addStyle === 'function') {
+                    const pcStyle = pc.getStyle();
+                    const pcPos = pcStyle?.position;
+                    if (!pcPos || pcPos === '' || pcPos === 'static') {
+                      pc.addStyle({ position: 'relative' });
+                    }
+                  }
+                } catch { /* 忽略 */ }
+
+                // 已存在或重建 modals-container（通过 addStyle 控制显隐，避免 HTML inline style 冲突）
+                let modalsContainer = findContainerByType(wrapper, 'modals-container');
+                if (!modalsContainer) {
+                  modalsContainer = wrapper.append('<div data-gjs-type="modals-container"></div>')[0];
+                }
+
+                // 确保 modals-container 默认隐藏（inline display:none 兜底）
+                setModalContainerOverlay(modalsContainer, false);
+
+                // --- 方案A：处理 wrapper 层级的孤儿组件 ---
+                const orphans: unknown[] = [];
+                wrapper.components().each((comp: unknown) => {
+                  const c = comp as { getType: () => string };
+                  if (c.getType() === 'textnode') return;
+                  if (c === pageContent || c === modalsContainer) return;
+                  const parent = (c as unknown as { parent: () => { getType: () => string } | null }).parent();
+                  const pType = parent?.getType() || '';
+                  if (pType === 'page-content' || pType === 'modals-container') return;
+                  orphans.push(comp);
+                });
+                orphans.forEach((comp) => {
+                  try {
+                    if (isModalComponent(comp)) {
+                      (modalsContainer as unknown as { append: (c: unknown) => void }).append(comp);
+                    } else {
+                      (pageContent as unknown as { append: (c: unknown) => void }).append(comp);
+                    }
+                  } catch {
+                    // 忽略移动失败
+                  }
+                });
+
+                // --- 方案B：扫描 page-content 内部误放入的弹窗组件 ---
+                // （拖拽 block 后组件落在 page-content 内，而非 wrapper 层级，需额外扫描）
+                const misplacedModals: unknown[] = [];
+                if (pageContent && typeof (pageContent as unknown as { components: () => { each: (cb: (c: unknown) => void) => void } }).components === 'function') {
+                  try {
+                    (pageContent as unknown as { components: () => { each: (cb: (c: unknown) => void) => void } }).components().each((comp: unknown) => {
+                      if (isModalComponent(comp)) {
+                        misplacedModals.push(comp);
+                      }
+                    });
+                  } catch { /* 忽略 */ }
+                }
+                let hasMovedModal = false;
+                misplacedModals.forEach((comp) => {
+                  try {
+                    (modalsContainer as unknown as { append: (c: unknown) => void }).append(comp);
+                    hasMovedModal = true;
+                  } catch { /* 忽略 */ }
+                });
+
+                // --- 方案C：扫描 modals-container 内部误放入的非弹窗组件 ---
+                const misplacedNonModals: unknown[] = [];
+                if (modalsContainer && typeof (modalsContainer as unknown as { components: () => { each: (cb: (c: unknown) => void) => void } }).components === 'function') {
+                  try {
+                    (modalsContainer as unknown as { components: () => { each: (cb: (c: unknown) => void) => void } }).components().each((comp: unknown) => {
+                      const c2 = comp as { getType: () => string };
+                      if (!isModalComponent(comp) && c2.getType() !== 'textnode') {
+                        misplacedNonModals.push(comp);
+                      }
+                    });
+                  } catch { /* 忽略 */ }
+                }
+                misplacedNonModals.forEach((comp) => {
+                  try {
+                    (pageContent as unknown as { append: (c: unknown) => void }).append(comp);
+                  } catch { /* 忽略 */ }
+                });
+
+                refreshModalList(editor);
+              } catch (e) {
+                console.error('buildDualRegion 失败:', e);
+              }
+            };
+
+            // 延迟构建双区域（等编辑器完全加载）
+            setTimeout(buildDualRegion, 100);
+
+            // ========== Modal 事件处理 ==========
+            // 标记位：跳过因 append 内部 remove+add 触发的二次 component:add
+            const movingModals = new WeakSet<object>();
+
+            /**
+             * 核心处理逻辑：将弹窗组件移到 modals-container 并切换到编辑模式
+             * 被 component:add（同步/延迟）和 block:drag:stop 共同调用
+             */
+            const processModalComponent = (comp: { getId: () => string; getType: () => string; getAttributes: () => Record<string, string>; parent: () => { getType: () => string; getAttributes?: () => Record<string, string> } | null }) => {
+              // 跳过因 append 触发的二次事件
+              if (movingModals.has(comp as unknown as object)) {
+                movingModals.delete(comp as unknown as object);
+                return;
+              }
+
+              const wrapper = editor.getWrapper();
+              if (!wrapper) return;
+
+              // 为新拖入的弹窗生成唯一名称（序号递增）
+              modalCounterRef.current += 1;
+              const newModalName = `新弹窗${modalCounterRef.current}`;
+              if (typeof (comp as unknown as { addAttributes: (a: Record<string, string>) => void }).addAttributes === 'function') {
+                try {
+                  (comp as unknown as { addAttributes: (a: Record<string, string>) => void }).addAttributes({ 'data-modal-name': newModalName });
+                } catch { /* 忽略 */ }
+              }
+
+              // 使用 findContainerByType 查找（getType + data-gjs-type + data-schema-type 三重检测）
+              const modalsContainer = findContainerByType(wrapper, 'modals-container');
+
+              if (modalsContainer) {
+                // 检查父级是否已经是 modals-container
+                const parent = comp.parent();
+                const pType = parent?.getType() || '';
+                const pAttrs = parent ? (parent.getAttributes?.() || {}) : {};
+                if (pType === 'modals-container' || pAttrs['data-gjs-type'] === 'modals-container' || pAttrs['data-schema-type'] === 'modals-container') {
+                  refreshModalList(editor);
+                  return;
+                }
+                // 标记组件，防止 append 内部 remove→add 触发递归
+                movingModals.add(comp as unknown as object);
+                (modalsContainer as unknown as { append: (c: unknown) => void }).append(comp);
+                // 确保新拖入的弹窗在 modals-container 中初始可见且居中
+                trySetCompVisible(comp, true);
+                addModalEditPositionStyles(comp);
+                // 延迟切换弹窗编辑模式（等 DOM 渲染就绪，样式才能生效）
+                // 注意：如果用户在此之前已经手动退出弹窗编辑模式，则不进入
+                const toggleId = comp.getId();
+                if (toggleId) {
+                  setTimeout(() => {
+                    if (userExitedModalEditingRef.current) {
+                      return;
+                    }
+                    toggleModalEditing(toggleId);
+                  }, 300);
+                }
+                refreshModalList(editor);
+              } else {
+                // modals-container 不存在，先重建
+                buildDualRegion();
+                const newContainer = findContainerByType(wrapper, 'modals-container');
+                if (newContainer) {
+                  movingModals.add(comp as unknown as object);
+                  (newContainer as unknown as { append: (c: unknown) => void }).append(comp);
+                  // 确保新拖入的弹窗可见且居中
+                  trySetCompVisible(comp, true);
+                  addModalEditPositionStyles(comp);
+                  // 延迟切换弹窗编辑模式（等 DOM 渲染就绪）
+                  // 注意：如果用户在此之前已经手动退出弹窗编辑模式，则不进入
+                  const toggleId = comp.getId();
+                  console.log(`[processModal] (no container) scheduling toggleModalEditing for id=${toggleId} in 300ms`);
+                  if (toggleId) {
+                    setTimeout(() => {
+                      console.log(`[processModal] (no container) 300ms elapsed, calling toggleModalEditing(${toggleId})`);
+                      if (userExitedModalEditingRef.current) {
+                        return;
+                      }
+                      toggleModalEditing(toggleId);
+                    }, 300);
+                  }
+                }
+                refreshModalList(editor);
+              }
+            };
+
+            // 监听新增组件（拖入 modal block 时自动移到 modals-container）
+            editor.on('component:add', (comp: { getId: () => string; getType: () => string; getAttributes: () => Record<string, string> }) => {
+              try {
+                const compId = typeof comp.getId === 'function' ? comp.getId() : '?';
+                const compType = typeof comp.getType === 'function' ? comp.getType() : '?';
+                const compAttrs = typeof comp.getAttributes === 'function' ? comp.getAttributes() : {};
+                console.log(`[DEBUG] component:add id=${compId} type=${compType} attrs=${JSON.stringify(compAttrs)}`);
+
+                // 第一路：同步检测（getType/getAttributes/toHtml 正常工作时走这路）
+                if (isModalComponent(comp)) {
+                  processModalComponent(comp as Parameters<typeof processModalComponent>[0]);
+                  return;
+                }
+                // 第二路：延迟检测（Studio SDK 在 component:add 时可能尚未完成组件初始化）
+                // 仅对非 textnode 的组件做延迟检测，减少无谓的定时器
+                if (typeof comp.getType === 'function' && comp.getType() !== 'textnode') {
+                  setTimeout(() => {
+                    try {
+                      if (isModalComponent(comp)) {
+                        processModalComponent(comp as Parameters<typeof processModalComponent>[0]);
+                      }
+                    } catch (e) {
+                      console.error('deferred modal check:', e);
+                    }
+                  }, 50);
+                }
+              } catch (e) {
+                console.error('component:add handler error:', e);
+              }
+            });
+
+            // 第三路：block:drag:stop 延迟扫描 modals-container（备选方案）
+            // Studio SDK 可能不触发此事件，保留作为 fallback
+            // 注意：此 handler 的延迟（500ms）在 processModalComponent 的 toggle 延迟（300ms）之后，
+            // 而 buildDualRegion() 会隐藏 modals-container，必须在后面重新应用遮罩样式
+            editor.on('block:drag:stop', () => {
+              setTimeout(() => {
+                try {
+                  buildDualRegion();
+                  const wrapper2 = editor.getWrapper();
+                  if (!wrapper2) return;
+                  const container2 = findContainerByType(wrapper2, 'modals-container');
+                  if (!container2) return;
+                  const comps2 = tryGetComponents(container2);
+                  if (!comps2) return;
+                  let newModalId2: string | null = null;
+                  comps2.each((c: unknown) => {
+                    const m = c as { getId: () => string; getType: () => string };
+                    if (m.getType() === 'textnode') return;
+                    newModalId2 = m.getId();
+                  });
+                  // buildDualRegion 通过 setModalContainerOverlay(..., false) 隐藏了
+                  // modals-container。如果当前已处于弹窗编辑模式，需重新应用遮罩样式。
+                  if (activeModalIdRef.current) {
+                    setModalContainerOverlay(container2, true);
+                  }
+                  // 如果用户已手动退出弹窗编辑模式，不再自动恢复
+                  if (newModalId2 && newModalId2 !== activeModalIdRef.current && !userExitedModalEditingRef.current) {
+                    toggleModalEditing(newModalId2);
+                  }
+                } catch (e) {
+                  console.error('block:drag:stop sweep:', e);
+                }
+              }, 500);
+            });
+
+            // 监听弹窗删除：刷新列表 + 若当前编辑的弹窗被删则退出编辑模式
+            editor.on('component:remove', (comp: { getId: () => string; getType: () => string; getAttributes: () => Record<string, string> }) => {
+              try {
+                if (!isModalComponent(comp)) return;
+                refreshModalList(editor);
+                if (comp.getId() === activeModalIdRef.current) {
+                  toggleModalEditing(null);
+                }
+              } catch {
+                // 忽略
+              }
+            });
 
             // 记录初始 components 用于变更检测
             try {
@@ -636,6 +1540,204 @@ const PageEditor: React.FC = () => {
             editor.on("component:remove", markUnsaved);
             editor.on("style:update", markUnsaved);
             editor.on("block:drag:stop", markUnsaved);
+
+            // ========== 弹窗内绝对定位坐标转换（视口 → 弹窗相对） ==========
+            //
+            // canvasAbsoluteMode 插件使用 getElBoxRect()（视口空间）计算拖拽位置，
+            // 然后通过 addStyle() 将 left/top 设置为 CSS 值。对于弹窗内部的绝对定位
+            // 子元素，其包含块是弹窗自身（弹窗有 position:absolute），而弹窗居中展示
+            // 时不位于视口原点，导致插件产生的视口坐标与 CSS 包含块坐标系不一致。
+            //
+            // 关键问题：
+            // 1. 拖拽中用 addStyle({partial:true}) → component:update 不触发
+            // 2. 弹窗有 transform:translate(-50%,-50%) → getBoundingClientRect
+            //    返回 post-transform 位置 ≠ 包含块原点（pre-transform 位置）
+            //
+            // 解决：
+            // - 拖拽中：用 requestAnimationFrame 循环直接操作 DOM inline style
+            // - 松手时：component:update 通过模型 addStyle 完成最终保存
+            // - 包含块原点计算：用 offsetLeft/offsetTop（pre-transform 位置）
+            //   而非 getBoundingClientRect（post-transform 位置）
+            // ------------------------------------------------------------------
+            let isAbsoluteDragging = false;
+            let modalRafId: number | null = null;
+
+            // 辅助函数：向上查找弹窗父组件
+            const findModalParent = (comp: unknown): unknown | null => {
+              try {
+                let current = (comp as { parent?: () => unknown }).parent?.();
+                while (current) {
+                  const c = current as { getType?: () => string };
+                  if (typeof c.getType === 'function' && c.getType() === 'modal') {
+                    return current;
+                  }
+                  current = (current as { parent?: () => unknown }).parent?.();
+                }
+              } catch {
+                // 忽略
+              }
+              return null;
+            };
+
+            // 辅助函数：计算弹窗包含块原点在视口空间中的位置
+            //
+            // 弹窗有 transform:translate(-50%,-50%) 时，getBoundingClientRect()
+            // 返回的是 post-transform 位置（视觉居中位置），但 CSS left/top
+            // 是相对于 pre-transform 位置（布局位置）。offsetLeft/offsetTop
+            // 返回 pre-transform 位置，加上 offsetParent 的视口偏移即为原点。
+            const getContainingBlockOrigin = (
+              modalEl: HTMLElement,
+            ): { left: number; top: number } => {
+              const offsetParent = modalEl.offsetParent as HTMLElement | null;
+              const parentLeft = offsetParent
+                ? offsetParent.getBoundingClientRect().left
+                : 0;
+              const parentTop = offsetParent
+                ? offsetParent.getBoundingClientRect().top
+                : 0;
+              return {
+                left: parentLeft + modalEl.offsetLeft,
+                top: parentTop + modalEl.offsetTop,
+              };
+            };
+
+            // 直接在 DOM 上转换 inline style（不通过模型，用于拖拽过程中的实时转换）
+            const convertDOMCoords = (componentEl: HTMLElement, modalEl: HTMLElement) => {
+              const left = componentEl.style.left;
+              const top = componentEl.style.top;
+              if (!left && !top) return;
+              const origin = getContainingBlockOrigin(modalEl);
+              if (left) {
+                componentEl.style.left = `${parseFloat(left) - origin.left}px`;
+              }
+              if (top) {
+                componentEl.style.top = `${parseFloat(top) - origin.top}px`;
+              }
+            };
+
+            // 通过模型 addStyle 转换坐标（用于最终保存的 component:update）
+            const adjustModalChildCoord = (component: unknown) => {
+              try {
+                const c = component as {
+                  getStyle?: () => Record<string, string>;
+                  addStyle?: (s: Record<string, string>, opts?: { partial?: boolean }) => void;
+                  getEl?: () => HTMLElement | null;
+                };
+                if (typeof c.getStyle !== 'function') return;
+
+                const style = c.getStyle();
+                if (!style || style.position !== 'absolute') return;
+                if (style.left === undefined && style.top === undefined) return;
+
+                const modal = findModalParent(component);
+                if (!modal) return;
+
+                const modalComp = modal as { getEl?: () => HTMLElement | null };
+                if (typeof modalComp.getEl !== 'function') return;
+                const modalEl = modalComp.getEl();
+                if (!modalEl) return;
+
+                const origin = getContainingBlockOrigin(modalEl);
+                // 弹窗在视口原点，无需转换
+                if (origin.left < 1 && origin.top < 1) return;
+
+                // 避免递归（我们的 addStyle 会再次触发 component:update）
+                if ((component as Record<string, unknown>).__adjustingCoords) return;
+                (component as Record<string, unknown>).__adjustingCoords = true;
+
+                const newStyle: Record<string, string> = {};
+                if (style.left !== undefined) {
+                  newStyle.left = `${parseFloat(style.left) - origin.left}px`;
+                }
+                if (style.top !== undefined) {
+                  newStyle.top = `${parseFloat(style.top) - origin.top}px`;
+                }
+
+                if (typeof c.addStyle === 'function') {
+                  try {
+                    c.addStyle(newStyle, { partial: true });
+                  } catch {
+                    // 忽略 addStyle 异常
+                  }
+                }
+
+                // 直接也在 DOM 上同步，防止下一次 dmode:move 读错
+                if (typeof c.getEl === 'function') {
+                  const el = c.getEl();
+                  if (el) {
+                    el.style.left = newStyle.left ?? el.style.left;
+                    el.style.top = newStyle.top ?? el.style.top;
+                  }
+                }
+
+                delete (component as Record<string, unknown>).__adjustingCoords;
+              } catch {
+                // 忽略
+              }
+            };
+
+            // ---------- 拖拽生命周期管理 ----------
+            //
+            // 策略：插件用 addStyle({partial:true}) 更新模型 style 和 DOM style，
+            // 但 partial addStyle 不触发 component:update。我们用 rAF 循环在每帧
+            // 渲染前直接修正 DOM style。
+            //
+            // 插件内部 __lastSnappedPosition 始终为视口坐标（不受我们的 DOM 修改影响），
+            // 所以下一帧插件继续在视口空间计算，而我们再把结果转为弹窗相对坐标。
+            editor.on('dmode:start', () => {
+              isAbsoluteDragging = true;
+
+              // 启动 rAF 循环，在每帧渲染前将 DOM inline style 转为弹窗相对坐标
+              const startConvertLoop = () => {
+                if (!isAbsoluteDragging) return;
+                // 获取当前拖拽的组件
+                const sel = editor.getSelected();
+                if (sel) {
+                  const modal = findModalParent(sel);
+                  if (modal) {
+                    const modalEl = (modal as { getEl?: () => HTMLElement | null }).getEl?.();
+                    const el = (sel as { getEl?: () => HTMLElement | null }).getEl?.();
+                    if (modalEl && el) {
+                      convertDOMCoords(el, modalEl);
+                    }
+                  }
+                }
+                modalRafId = requestAnimationFrame(startConvertLoop);
+              };
+              modalRafId = requestAnimationFrame(startConvertLoop);
+            });
+
+            // dmode:end 时插件可能还有一次 final addStyle（pe 函数），保留
+            // isAbsoluteDragging 直到下次 rAF 将 final 位置也转换完。
+            editor.on('dmode:end', () => {
+              // 等一次 rAF 确保 final addStyle 后的 DOM 也被转换，然后停止循环
+              const finalize = () => {
+                const sel = editor.getSelected();
+                if (sel) {
+                  const modal = findModalParent(sel);
+                  if (modal) {
+                    const modalEl = (modal as { getEl?: () => HTMLElement | null }).getEl?.();
+                    const el = (sel as { getEl?: () => HTMLElement | null }).getEl?.();
+                    if (modalEl && el) {
+                      convertDOMCoords(el, modalEl);
+                    }
+                  }
+                }
+                isAbsoluteDragging = false;
+                if (modalRafId !== null) {
+                  cancelAnimationFrame(modalRafId);
+                  modalRafId = null;
+                }
+              };
+              requestAnimationFrame(finalize);
+            });
+
+            // component:update 用于松手时插件非 partial addStyle 后的最终保存
+            editor.on('component:update', (component: unknown) => {
+              if (!isAbsoluteDragging) return;
+              adjustModalChildCoord(component);
+            });
+
             // 翻译顶部工具栏设备类型名称（SDK 使用 getName() 而非 i18n）
             const locale = getEffectiveLocale();
             const deviceNames: Record<string, string> = {
@@ -733,15 +1835,7 @@ const PageEditor: React.FC = () => {
                   sidebarTop: {
                     leftContainer: {
                       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                      buttons: ({ items }: any) => [
-                        {
-                          id: "back",
-                          icon: "chevronLeft",
-                          tooltip: "返回页面列表",
-                          onClick: () => navigate("/"),
-                        },
-                        ...items,
-                      ],
+                      buttons: ({ items }: any) => items,
                     },
                     rightContainer: {
                       // eslint-disable-next-line @typescript-eslint/no-explicit-any

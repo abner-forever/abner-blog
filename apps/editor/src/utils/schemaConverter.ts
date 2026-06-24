@@ -413,6 +413,20 @@ function extractDataBadgeProps(el: HTMLElement): Record<string, unknown> {
   return { text, count, maxCount: 999 };
 }
 
+/** Modal：提取 name、title、width、closable、maskClosable、keyboard、footer、animation */
+function extractModalProps(el: HTMLElement): Record<string, unknown> {
+  return {
+    name: getAttr(el, 'data-modal-name') || '未命名弹窗',
+    title: getAttr(el, 'data-modal-title') || '',
+    width: parseInt(getAttr(el, 'data-modal-width') || '520', 10) || 520,
+    closable: getAttr(el, 'data-modal-closable') !== 'false',
+    maskClosable: getAttr(el, 'data-modal-mask-closable') !== 'false',
+    keyboard: getAttr(el, 'data-modal-keyboard') !== 'false',
+    footer: getAttr(el, 'data-modal-footer') !== 'false',
+    animation: (getAttr(el, 'data-modal-animation') || 'fade') as 'fade' | 'zoom' | 'slide',
+  };
+}
+
 /* ==================== 类型映射表 ==================== */
 
 /**
@@ -453,6 +467,9 @@ const SCHEMA_TYPE_MAP: Record<string, TypeExtractor> = {
   'form-submit': { extractProps: (el) => extractFormSubmitProps(el) },
   'data-list': { extractProps: (el) => extractDataListProps(el) },
   'data-badge': { extractProps: (el) => extractDataBadgeProps(el) },
+
+  // v1.5 弹窗组件
+  modal: { extractProps: (el) => extractModalProps(el) },
 };
 
 /**
@@ -509,9 +526,8 @@ function parseInlineStyle(styleStr: string): Record<string, string> {
 }
 
 /** 为节点生成唯一 ID */
-function generateComponentId(comp: Component): string {
-  if (comp.ccid) return `gjs_${comp.ccid}`;
-  return `node_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+export function generateComponentId(comp: Component): string {
+  return comp.getId() || `node_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
 }
 
 /** 推断组件 Schema 类型（三阶段优先级） */
@@ -628,6 +644,11 @@ function convertComponent(comp: Component): SchemaNode | null {
 
 /**
  * 从 GrapesJS 编辑器构建页面 Schema
+ *
+ * 支持双区域结构：
+ * - wrapper 的直接子组件中，page-content 和 modals-container 是编辑器内部容器
+ * - 它们的子节点需要提升为 root 的直接子节点
+ * - modal 节点在 Schema 中作为 root 的直接子节点（与页面内容平级）
  */
 export function buildPageSchema(editor: Editor): PageSchema {
   const wrapper = editor.getWrapper();
@@ -635,11 +656,57 @@ export function buildPageSchema(editor: Editor): PageSchema {
     return { root: { id: 'root', type: 'container', props: {} } };
   }
 
+  // 检查是否存在双区域结构
+  const children = wrapper.components();
+  let pageContentComp: Component | null = null;
+  let modalsContainerComp: Component | null = null;
+
+  children.each((child: Component) => {
+    const childType = child.getType();
+    if (childType === 'page-content') {
+      pageContentComp = child;
+    } else if (childType === 'modals-container') {
+      modalsContainerComp = child;
+    }
+  });
+
+  // 如果存在双区域结构，从两个容器中提取子节点
+  if (pageContentComp || modalsContainerComp) {
+    const rootChildren: SchemaNode[] = [];
+
+    // 提取 page-content 中的子节点
+    if (pageContentComp) {
+      pageContentComp.components().each((child: Component) => {
+        if (child.getType() === 'textnode') return;
+        const childNode = convertComponent(child);
+        if (childNode) rootChildren.push(childNode);
+      });
+    }
+
+    // 提取 modals-container 中的子节点（modal 类型）
+    if (modalsContainerComp) {
+      modalsContainerComp.components().each((child: Component) => {
+        if (child.getType() === 'textnode') return;
+        const childNode = convertComponent(child);
+        if (childNode) rootChildren.push(childNode);
+      });
+    }
+
+    return {
+      root: {
+        id: 'root',
+        type: 'container',
+        props: {},
+        children: rootChildren.length > 0 ? rootChildren : undefined,
+      },
+      css: editor.getCss() || undefined,
+    };
+  }
+
+  // 回退：无双区域结构时，直接转换 wrapper
   const root = convertComponent(wrapper);
   return {
     root: root || { id: 'root', type: 'container', props: {} },
-    // 提取 GrapesJS CSS Composer 中的全局样式规则（类选择器、媒体查询等）
-    // 这些是用户在 GrapesJS Style Manager 中设置的样式，非内联样式
     css: editor.getCss() || undefined,
   };
 }
@@ -650,4 +717,41 @@ export function buildPageSchema(editor: Editor): PageSchema {
 export function buildPageSchemaJson(editor: Editor): string {
   const schema = buildPageSchema(editor);
   return JSON.stringify(schema);
+}
+
+/**
+ * 从编辑器中提取弹窗列表
+ *
+ * 用于事件绑定面板的 open-modal/close-modal 下拉选择。
+ * 扫描 modals-container 中的所有 modal 组件。
+ *
+ * 注意：data-gjs-type 是 GrapesJS 内部类型标记，使用 comp.getType() 读取。
+ * 自定义 data 属性（如 data-schema-type、data-modal-name）使用 getAttributes() 读取。
+ */
+export function getModalList(editor: Editor): Array<{ label: string; id: string }> {
+  const wrapper = editor.getWrapper();
+  if (!wrapper) return [];
+
+  // 查找 modals-container
+  const children = wrapper.components();
+  let modalsContainer: Component | null = null;
+  children.each((child: Component) => {
+    if (child.getType() === 'modals-container') {
+      modalsContainer = child;
+    }
+  });
+
+  if (!modalsContainer) return [];
+
+  const result: Array<{ label: string; id: string }> = [];
+  modalsContainer.components().each((comp: Component) => {
+    if (comp.getType() === 'textnode') return;
+    const attrs = comp.getAttributes();
+    const name = attrs['data-modal-name']
+      || attrs['data-schema-label']
+      || '未命名弹窗';
+    result.push({ label: name, id: comp.getId() });
+  });
+
+  return result;
 }

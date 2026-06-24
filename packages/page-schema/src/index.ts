@@ -21,8 +21,8 @@ export * from './types';
 export * from './event-engine';
 
 // 渲染引擎
-export { RendererProvider, useRendererContext } from './provider';
-export type { RendererProviderProps, RendererContextValue } from './provider';
+export { RendererProvider, useRendererContext, ModalProvider, ModalPortals, useModalContext } from './provider';
+export type { RendererProviderProps, RendererContextValue, ModalProviderProps, ModalContextValue, ModalApi } from './provider';
 export { PageRenderer } from './renderer';
 export type { PageRendererProps } from './renderer';
 
@@ -71,7 +71,9 @@ export {
   FormSubmit,
   DataList,
   DataBadge,
+  Modal,
 } from './components';
+export type { ModalComponentProps } from './components';
 
 // 工具
 export {

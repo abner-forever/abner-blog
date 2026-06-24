@@ -250,4 +250,15 @@ export const blocks: BlockProperties[] = [
     content: '<div data-schema-type="html-embed" data-gjs-type="html-embed"></div>',
     category: { id: "advanced", label: "高级", open: true },
   },
+
+  // ==================== 交互组件 ====================
+  {
+    id: "modal",
+    label: "弹窗",
+    media:
+      '<svg viewBox="0 0 24 24" width="24" height="24"><rect x="3" y="5" width="18" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><line x1="3" y1="9" x2="21" y2="9" stroke="currentColor" stroke-width="1.5"/><circle cx="17" cy="7" r="1" fill="currentColor"/></svg>',
+    content:
+      '<div data-schema-type="modal" data-modal-name="新弹窗" data-modal-title="弹窗标题" data-modal-width="520" data-modal-animation="fade" data-gjs-type="modal" style="width:520px;min-height:200px;background:#fff;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.15);overflow:hidden;"><div style="display:flex;align-items:center;justify-content:space-between;padding:16px 24px;border-bottom:1px solid #f0f0f0;font-size:16px;font-weight:500;color:#333;"><span data-gjs-type="text" style="flex:1;">弹窗标题</span><span class="gjs-modal-close" style="cursor:pointer;font-size:18px;color:#999;padding:4px 8px;line-height:1;border-radius:4px;">✕</span></div><div data-schema-type="container" style="padding:24px;min-height:100px;"><p style="margin:0;color:#999;">弹窗内容区域</p></div><div style="display:flex;align-items:center;justify-content:flex-end;padding:12px 24px;border-top:1px solid #f0f0f0;gap:8px;font-size:12px;color:#ccc;">Footer 区域</div></div>',
+    category: { id: "interactive", label: "交互组件", open: true },
+  },
 ];

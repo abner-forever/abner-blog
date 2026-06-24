@@ -703,7 +703,7 @@ const PageList: React.FC = () => {
         onCancel={() => setSlugEditOpen(false)}
         okText="保存"
         cancelText="取消"
-        destroyOnClose
+        destroyOnHidden
         className="page-list__modal"
       >
         <div style={{ padding: "8px 0" }}>

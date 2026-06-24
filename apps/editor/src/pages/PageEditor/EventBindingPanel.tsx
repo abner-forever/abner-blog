@@ -14,7 +14,7 @@
  * 表单修改 → 写回 data-events → schemaConverter 读取 → SchemaNode.events
  */
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useContext, createContext } from 'react';
 import {
   Modal,
   Button,
@@ -45,9 +45,39 @@ import type {
   EventAction,
   EventActionType,
 } from '@abner-blog/page-schema';
+import { getModalList } from '@/utils/schemaConverter';
 
 const { Text, Title } = Typography;
 const { TextArea } = Input;
+
+/** 编辑器 Context（向深层嵌套的 ActionConfigFields 传递 editor） */
+const EditorContext = createContext<Editor | null>(null);
+
+/** 监听编辑器弹窗列表变化的 hook */
+function useModalList(editor: Editor | null): Array<{ label: string; id: string }> {
+  const [list, setList] = useState<Array<{ label: string; id: string }>>([]);
+
+  const refresh = useCallback(() => {
+    if (!editor) { setList([]); return; }
+    setList(getModalList(editor));
+  }, [editor]);
+
+  useEffect(() => {
+    refresh();
+    if (!editor) return;
+    const onChange = () => refresh();
+    editor.on('component:add', onChange);
+    editor.on('component:remove', onChange);
+    editor.on('component:update', onChange);
+    return () => {
+      editor.off('component:add', onChange);
+      editor.off('component:remove', onChange);
+      editor.off('component:update', onChange);
+    };
+  }, [editor, refresh]);
+
+  return list;
+}
 
 /* ==================== 类型定义 ==================== */
 
@@ -175,6 +205,10 @@ const ActionConfigFields: React.FC<ActionConfigFormProps> = ({ action, onChange 
     onChange({ ...action, config: { ...config, ...partial } });
   };
 
+  // hooks 必须在顶层调用，不能放在 switch/case 中
+  const editor = useContext(EditorContext);
+  const modals = useModalList(editor);
+
   switch (action.type) {
     case 'toast':
       return (
@@ -225,11 +259,14 @@ const ActionConfigFields: React.FC<ActionConfigFormProps> = ({ action, onChange 
     case 'open-modal':
     case 'close-modal':
       return (
-        <Input
+        <Select
           size="small"
-          placeholder="弹窗 ID"
-          value={config.modalId as string}
-          onChange={(e) => setConfig({ modalId: e.target.value })}
+          placeholder="选择弹窗"
+          value={config.modalId as string || undefined}
+          onChange={(v) => setConfig({ modalId: v })}
+          options={modals.map((m) => ({ label: m.label, value: m.id }))}
+          style={{ width: '100%' }}
+          notFoundContent="暂无弹窗，请先拖入弹窗组件"
         />
       );
 
@@ -779,8 +816,9 @@ const EventBindingPanel: React.FC<EventBindingPanelProps> = ({
       cancelText="取消"
       width={680}
       bodyStyle={{ maxHeight: '60vh', overflowY: 'auto' }}
-      destroyOnClose
+      destroyOnHidden
     >
+      <EditorContext.Provider value={editor}>
       {!component ? (
         <Empty description="请先在画布中选择一个组件" />
       ) : (
@@ -811,6 +849,7 @@ const EventBindingPanel: React.FC<EventBindingPanelProps> = ({
           </Button>
         </>
       )}
+      </EditorContext.Provider>
     </Modal>
   );
 };

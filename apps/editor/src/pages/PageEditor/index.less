@@ -14,17 +14,25 @@
   &__topbar {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;
     padding: 0 16px;
     height: 48px;
     background: var(--bg-secondary, #f0f2f5);
     border-bottom: 1px solid var(--border-color, #e8e8e8);
     flex-shrink: 0;
+    position: relative;
   }
 
   &__topbar-left {
     display: flex;
     align-items: center;
+  }
+
+  &__topbar-center {
+    display: flex;
+    align-items: center;
+    flex: 0;
+    overflow: visible;
   }
 
   &__back-btn {
@@ -45,6 +53,7 @@
     display: flex;
     align-items: center;
     gap: 6px;
+    margin-left: auto;
   }
 
   &__topbar-divider {
@@ -60,6 +69,7 @@
     flex: 1;
     min-height: 0;
     overflow: hidden;
+    position: relative;
   }
 
   &__save-tag {
@@ -88,4 +98,16 @@
 // 用 !important 强制覆盖 SDK 的 inline style
 .gs-sidebar-right {
   min-width: 320px !important;
+}
+
+// ========== Modal 编辑切换工具栏（居中在顶部操作栏内） ==========
+.page-editor__modal-toolbar {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
 }

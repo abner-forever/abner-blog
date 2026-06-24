@@ -51,6 +51,29 @@ function App() {
       });
   }, [dispatch, token, user]); // token/user 变化自动跳过 SSO 检查
 
+  // 动态设置浏览器标题
+  useEffect(() => {
+    const path = location.pathname;
+    const baseTitle = '龙码 - 低代码平台';
+
+    const exactTitles: Record<string, string> = {
+      '/login': '登录',
+      '/': '页面列表',
+      '/trash': '回收站',
+      '/review': '审核列表',
+    };
+
+    const prefixTitles: [string, string][] = [
+      ['/editor/', '页面编辑器'],
+      ['/versions/', '版本历史'],
+      ['/page/', '页面预览'],
+    ];
+
+    const pageTitle = exactTitles[path] ?? prefixTitles.find(([p]) => path.startsWith(p))?.[1] ?? '';
+
+    document.title = pageTitle ? `${pageTitle} - ${baseTitle}` : baseTitle;
+  }, [location.pathname]);
+
   // 必须在条件返回之前调用所有 hooks
   const routes = useRoutes([
     {

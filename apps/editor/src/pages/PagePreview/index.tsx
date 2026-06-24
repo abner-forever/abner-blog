@@ -6,6 +6,8 @@ import { pageApi, type Page } from "@/services/api";
 import {
   RendererProvider,
   PageRenderer,
+  ModalProvider,
+  ModalPortals,
   styleInjector,
   Container,
   Section,
@@ -36,7 +38,7 @@ import {
   DataList,
   DataBadge,
 } from "@abner-blog/page-schema";
-import type { PageSchema, ActionContext, SchemaNode } from "@abner-blog/page-schema";
+import type { PageSchema, ActionContext, SchemaNode, ModalApi } from "@abner-blog/page-schema";
 
 const PagePreview: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -45,6 +47,7 @@ const PagePreview: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const fetchIdRef = useRef(0);
+  const modalApiRef = useRef<ModalApi>({ open: () => {}, close: () => {} });
 
   useEffect(() => {
     if (!slug) return;
@@ -93,13 +96,11 @@ const PagePreview: React.FC = () => {
           }
         },
         modals: {
-          open: (modalId: string) => {
-            const el = document.getElementById(modalId);
-            if (el) el.style.display = 'block';
+          open: (modalId: string, data?: Record<string, unknown>) => {
+            modalApiRef.current.open(modalId, data);
           },
           close: (modalId: string) => {
-            const el = document.getElementById(modalId);
-            if (el) el.style.display = 'none';
+            modalApiRef.current.close(modalId);
           },
         },
         variables: {
@@ -254,46 +255,55 @@ const PagePreview: React.FC = () => {
         }}
       >
         {hasContent ? (
-          <RendererProvider
-            schema={parsedSchema!}
-            extraComponents={{
-              container: Container,
-              section: Section,
-              row: Row,
-              column: Column,
-              text: Text,
-              image: Image,
-              button: SchemaButton,
-              divider: Divider,
-              spacer: Spacer,
-              video: Video,
-              "bilibili-video": BilibiliVideo,
-              "tencent-video": TencentVideo,
-              card: Card,
-              accordion: Accordion,
-              tabs: Tabs,
-              carousel: Carousel,
-              map: Map,
-              "nav-menu": NavMenu,
-              "nav-link": NavLink,
-              "html-embed": HtmlEmbed,
-              form: Form,
-              "form-input": FormInput,
-              "form-textarea": FormTextarea,
-              "form-select": FormSelect,
-              "form-checkbox": FormCheckbox,
-              "form-submit": FormSubmit,
-              "data-list": DataList,
-              "data-badge": DataBadge,
+          <ModalProvider schema={parsedSchema!}>
+            {(modalApi) => {
+              modalApiRef.current = modalApi;
+              return (
+                <RendererProvider
+                  schema={parsedSchema!}
+                  modalApi={modalApi}
+                  extraComponents={{
+                    container: Container,
+                    section: Section,
+                    row: Row,
+                    column: Column,
+                    text: Text,
+                    image: Image,
+                    button: SchemaButton,
+                    divider: Divider,
+                    spacer: Spacer,
+                    video: Video,
+                    "bilibili-video": BilibiliVideo,
+                    "tencent-video": TencentVideo,
+                    card: Card,
+                    accordion: Accordion,
+                    tabs: Tabs,
+                    carousel: Carousel,
+                    map: Map,
+                    "nav-menu": NavMenu,
+                    "nav-link": NavLink,
+                    "html-embed": HtmlEmbed,
+                    form: Form,
+                    "form-input": FormInput,
+                    "form-textarea": FormTextarea,
+                    "form-select": FormSelect,
+                    "form-checkbox": FormCheckbox,
+                    "form-submit": FormSubmit,
+                    "data-list": DataList,
+                    "data-badge": DataBadge,
+                  }}
+                  extraMiddlewares={[styleInjector]}
+                  actionContextFactory={actionContextFactory}
+                >
+                  <PageRenderer
+                    schema={parsedSchema!}
+                    error={!hasContent ? "页面内容为空" : null}
+                  />
+                  <ModalPortals />
+                </RendererProvider>
+              );
             }}
-            extraMiddlewares={[styleInjector]}
-            actionContextFactory={actionContextFactory}
-          >
-            <PageRenderer
-              schema={parsedSchema!}
-              error={!hasContent ? "页面内容为空" : null}
-            />
-          </RendererProvider>
+          </ModalProvider>
         ) : (
           <div
             style={{

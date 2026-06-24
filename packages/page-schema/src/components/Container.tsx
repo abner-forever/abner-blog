@@ -10,10 +10,12 @@ import type { BaseComponentProps } from '../types';
 
 const Container: React.FC<BaseComponentProps> = ({ node, children }) => {
   const style = node.props.style as React.CSSProperties | undefined;
+  const className = node.props.className as string | undefined;
 
   return (
     <div
       id={node.props.id as string}
+      className={className}
       style={style}
     >
       {children}

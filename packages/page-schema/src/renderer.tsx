@@ -23,7 +23,7 @@
 import React, { Suspense, useMemo } from 'react';
 import type { PageSchema, SchemaNode } from './types';
 import { useRendererContext } from './provider';
-import { applyMiddlewares, isMiddlewarePass } from './middleware/types';
+import { applyMiddlewares } from './middleware/types';
 import { createEventHandler } from './middleware/event-handler';
 import { UnknownComponent } from './components/Unknown';
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -122,6 +122,9 @@ const RenderNode: React.FC<RenderNodeProps> = ({ node, depth }) => {
 
   // 1. 隐藏节点跳过
   if (node.hidden) return null;
+
+  // 2. Modal 节点跳过（由 ModalProvider 统一通过 Portal 渲染）
+  if (node.type === 'modal') return null;
 
   // 2. 创建组件渲染函数（中间件链末端 identity，产生真实 React 元素）
   const renderComponent = (n: SchemaNode): React.ReactNode => {

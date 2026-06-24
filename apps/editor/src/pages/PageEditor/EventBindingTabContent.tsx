@@ -11,7 +11,7 @@
  * - 为侧边栏窄宽度做了 UI 紧凑适配
  */
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useContext, createContext } from 'react';
 import {
   Button,
   Select,
@@ -34,9 +34,39 @@ import type {
   EventAction,
   EventActionType,
 } from '@abner-blog/page-schema';
+import { getModalList } from '@/utils/schemaConverter';
 
 const { Text } = Typography;
 const { TextArea } = Input;
+
+/** 编辑器 Context（向深层嵌套的 ActionConfigFields 传递 editor） */
+const EditorContext = createContext<Editor | null>(null);
+
+/** 监听编辑器弹窗列表变化的 hook */
+function useModalList(editor: Editor | null): Array<{ label: string; id: string }> {
+  const [list, setList] = useState<Array<{ label: string; id: string }>>([]);
+
+  const refresh = useCallback(() => {
+    if (!editor) { setList([]); return; }
+    setList(getModalList(editor));
+  }, [editor]);
+
+  useEffect(() => {
+    refresh();
+    if (!editor) return;
+    const onChange = () => refresh();
+    editor.on('component:add', onChange);
+    editor.on('component:remove', onChange);
+    editor.on('component:update', onChange);
+    return () => {
+      editor.off('component:add', onChange);
+      editor.off('component:remove', onChange);
+      editor.off('component:update', onChange);
+    };
+  }, [editor, refresh]);
+
+  return list;
+}
 
 /* ==================== 常量 ==================== */
 
@@ -158,6 +188,10 @@ const ActionConfigFields: React.FC<ActionConfigFormProps> = ({ action, onChange 
     onChange({ ...action, config: { ...config, ...partial } });
   };
 
+  // hooks 必须在顶层调用，不能放在 switch/case 中
+  const editor = useContext(EditorContext);
+  const modals = useModalList(editor);
+
   switch (action.type) {
     case 'toast':
       return (
@@ -208,11 +242,14 @@ const ActionConfigFields: React.FC<ActionConfigFormProps> = ({ action, onChange 
     case 'open-modal':
     case 'close-modal':
       return (
-        <Input
+        <Select
           size="small"
-          placeholder="弹窗 ID"
-          value={config.modalId as string}
-          onChange={(e) => setConfig({ modalId: e.target.value })}
+          placeholder="选择弹窗"
+          value={config.modalId as string || undefined}
+          onChange={(v) => setConfig({ modalId: v })}
+          options={modals.map((m) => ({ label: m.label, value: m.id }))}
+          style={{ width: '100%' }}
+          notFoundContent="暂无弹窗，请先拖入弹窗组件"
         />
       );
 
@@ -766,22 +803,25 @@ const EventBindingTabContent: React.FC<EventBindingTabContentProps> = ({ editor 
   // 未选中组件时的空状态
   if (!component) {
     return (
-      <div style={{ padding: '24px 12px' }}>
-        <Empty
-          image={Empty.PRESENTED_IMAGE_SIMPLE}
-          description={
-            <Text type="secondary" style={{ fontSize: 13 }}>
-              请先在画布中选择一个组件
-            </Text>
-          }
-        />
-      </div>
+      <EditorContext.Provider value={editor}>
+        <div style={{ padding: '24px 12px' }}>
+          <Empty
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+            description={
+              <Text type="secondary" style={{ fontSize: 13 }}>
+                请先在画布中选择一个组件
+              </Text>
+            }
+          />
+        </div>
+      </EditorContext.Provider>
     );
   }
 
   const tagName = component.getEl()?.tagName?.toLowerCase() || component.getName() || component.getId();
 
   return (
+    <EditorContext.Provider value={editor}>
     <div className="event-binding-tab" style={{ padding: '8px 8px 16px' }}>
       {/* 组件信息 + 保存状态 */}
       <div
@@ -840,6 +880,7 @@ const EventBindingTabContent: React.FC<EventBindingTabContentProps> = ({ editor 
         添加事件绑定
       </Button>
     </div>
+    </EditorContext.Provider>
   );
 };
 
