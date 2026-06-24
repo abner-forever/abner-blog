@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@abner/analytics": "workspace:*",
+    "@abner-blog/shared-ui": "workspace:*",
     "@ant-design/icons": "^6.1.0",
     "@gsap/react": "^2.1.2",
     "@reduxjs/toolkit": "^2.8.2",

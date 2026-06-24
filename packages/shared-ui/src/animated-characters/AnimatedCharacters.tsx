@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
-import "./index.less";
+import "./style.less";
 
 /* ─── Character Config ────────────────────────────────────────────────── */
 

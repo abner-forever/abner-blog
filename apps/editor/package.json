@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@abner-blog/page-schema": "workspace:*",
+    "@abner-blog/shared-ui": "workspace:*",
     "@ant-design/icons": "^6.1.0",
     "@grapesjs/studio-sdk": "^1.1.1",
     "@grapesjs/studio-sdk-plugins": "^1.0.38",

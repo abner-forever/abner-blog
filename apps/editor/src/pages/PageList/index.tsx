@@ -123,7 +123,7 @@ const PageList: React.FC = () => {
   useEffect(() => {
     if (createOpen) {
       const random = Math.random().toString(36).substring(2, 10);
-      form.setFieldsValue({ slug: `page-${random}` });
+      form.setFieldsValue({ slug: random });
     }
   }, [createOpen, form]);
 
@@ -137,7 +137,7 @@ const PageList: React.FC = () => {
       message.success("创建成功");
       setCreateOpen(false);
       form.resetFields();
-      navigate(`/editor/${newPage.id}`);
+      navigate(`/editor/${newPage.slug}`);
     } catch (err: unknown) {
       if (err && typeof err === "object" && "errorFields" in err) return;
       message.error("创建失败");
@@ -419,7 +419,7 @@ const PageList: React.FC = () => {
               type="link"
               size="small"
               icon={<EditOutlined />}
-              onClick={() => navigate(`/editor/${record.id}`)}
+              onClick={() => navigate(`/editor/${record.slug}`)}
               className="page-list__action-btn"
             >
               编辑
@@ -430,7 +430,7 @@ const PageList: React.FC = () => {
               icon={<HistoryOutlined />}
               onClick={(e) => {
                 e.stopPropagation();
-                navigate(`/versions/${record.id}`);
+                navigate(`/versions/${record.slug}`);
               }}
               className="page-list__action-btn"
             >
@@ -440,7 +440,7 @@ const PageList: React.FC = () => {
               <Button
                 type="link"
                 size="small"
-                onClick={() => navigate(`/editor/${record.id}?publish=true`)}
+                onClick={() => navigate(`/editor/${record.slug}?publish=true`)}
                 className="page-list__action-btn"
               >
                 发布

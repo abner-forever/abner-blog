@@ -140,7 +140,7 @@ const TranslationPanel: React.FC<TranslationPanelProps> = ({
           size="small"
           onClick={() => {
             onClose();
-            navigate(`/editor/${record.id}`);
+            navigate(`/editor/${record.slug}`);
           }}
         >
           编辑

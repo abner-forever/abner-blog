@@ -162,7 +162,7 @@ const ReviewList: React.FC = () => {
             type="link"
             size="small"
             icon={<EditOutlined />}
-            onClick={() => navigate(`/editor/${record.id}`)}
+            onClick={() => navigate(`/editor/${record.slug}`)}
           >
             编辑
           </Button>
@@ -207,7 +207,7 @@ const ReviewList: React.FC = () => {
           <Button
             type="text"
             icon={<RollbackOutlined />}
-            onClick={() => navigate("/")}
+            onClick={() => navigate("/pages")}
             className="review-list__back-btn"
           />
           <h1 className="review-list__title">审核管理</h1>

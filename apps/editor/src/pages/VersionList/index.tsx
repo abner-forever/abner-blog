@@ -23,9 +23,9 @@ import "./index.less";
 const { Text } = Typography;
 
 const VersionList: React.FC = () => {
-  const { pageId } = useParams<{ pageId: string }>();
+  const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
-  const numericPageId = pageId ? parseInt(pageId, 10) : 0;
+  const [numericPageId, setNumericPageId] = useState(0);
 
   const [versions, setVersions] = useState<PageVersion[]>([]);
   const [pageInfo, setPageInfo] = useState<Page | null>(null);
@@ -33,21 +33,20 @@ const VersionList: React.FC = () => {
   const [restoringId, setRestoringId] = useState<number | null>(null);
 
   const fetchData = useCallback(async () => {
-    if (!numericPageId) return;
+    if (!slug) return;
     setLoading(true);
     try {
-      const [versionData, pageData] = await Promise.all([
-        versionApi.list(numericPageId),
-        pageApi.getById(numericPageId),
-      ]);
+      const page = await pageApi.getBySlug(slug);
+      setPageInfo(page);
+      setNumericPageId(page.id);
+      const versionData = await versionApi.list(page.id);
       setVersions(versionData);
-      setPageInfo(pageData);
     } catch {
       message.error("加载版本列表失败");
     } finally {
       setLoading(false);
     }
-  }, [numericPageId]);
+  }, [slug]);
 
   useEffect(() => {
     fetchData();
@@ -58,7 +57,7 @@ const VersionList: React.FC = () => {
     try {
       await versionApi.restore(numericPageId, versionId);
       message.success("已恢复到选中版本");
-      navigate(`/editor/${numericPageId}`);
+      navigate(`/editor/${slug}`);
     } catch {
       message.error("恢复失败");
     } finally {

@@ -28,7 +28,7 @@ import "./index.less";
 type SaveStatus = "saved" | "saving" | "unsaved" | "auto-saving";
 
 const PageEditor: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
+  const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const shouldPublish = searchParams.get("publish") === "true";
@@ -69,16 +69,10 @@ const PageEditor: React.FC = () => {
 
   /** 加载页面数据 */
   useEffect(() => {
-    if (!id) return;
-    const numericId = parseInt(id, 10);
-    if (isNaN(numericId)) {
-      message.error("无效的页面 ID");
-      navigate("/");
-      return;
-    }
+    if (!slug) return;
 
     pageApi
-      .getById(numericId)
+      .getBySlug(slug)
       .then((page) => {
         pageDataRef.current = page;
         setLoading(false);
@@ -87,7 +81,7 @@ const PageEditor: React.FC = () => {
         message.error("页面不存在");
         navigate("/");
       });
-  }, [id, navigate]);
+  }, [slug, navigate]);
 
   /** 自动发布模式提示 */
   useEffect(() => {
@@ -99,7 +93,8 @@ const PageEditor: React.FC = () => {
   /** 发布页面 */
   const handlePublish = useCallback(
     async ({ editor }: { editor: Editor }) => {
-      if (!id) return;
+      const pageId = pageDataRef.current?.id;
+      if (!pageId) return;
 
       Modal.confirm({
         title: "确认发布",
@@ -123,7 +118,7 @@ const PageEditor: React.FC = () => {
               }
             }
 
-            await pageApi.publish(parseInt(id, 10), {
+            await pageApi.publish(pageId, {
               schema: fullSchema,
               // 发布时带上封面，优先使用已设置的 cover，其次用 ogImage
               cover: pageDataRef.current?.cover || pageDataRef.current?.ogImage || undefined,
@@ -138,7 +133,7 @@ const PageEditor: React.FC = () => {
         },
       });
     },
-    [id],
+    [],
   );
 
   /** 打开 SEO 设置 */
@@ -158,7 +153,8 @@ const PageEditor: React.FC = () => {
   const handleSaveSEO = useCallback(async () => {
     try {
       const values = await seoForm.validateFields();
-      if (!id) return;
+      const pageId = pageDataRef.current?.id;
+      if (!pageId) return;
 
       const dto: Record<string, unknown> = {
         title: values.title,
@@ -167,13 +163,13 @@ const PageEditor: React.FC = () => {
         ogImage: values.ogImage || undefined,
       };
 
-      await pageApi.update(parseInt(id, 10), dto);
+      await pageApi.update(pageId, dto);
       message.success("SEO 设置已保存");
       setSeoModalOpen(false);
     } catch {
       // 表单校验失败，不关闭弹窗
     }
-  }, [id, seoForm]);
+  }, [seoForm]);
 
   /** 打开保存为模板弹窗 */
   const _handleOpenSaveTemplate = useCallback(() => {
@@ -222,7 +218,8 @@ const PageEditor: React.FC = () => {
 
   /** 提交审核 */
   const handleSubmitReview = useCallback(async () => {
-    if (!id) return;
+    const pageId = pageDataRef.current?.id;
+    if (!pageId) return;
     setReviewLoading(true);
     try {
       // 提交前先保存编辑器内容
@@ -230,7 +227,7 @@ const PageEditor: React.FC = () => {
       if (editor) {
         await editor.store();
       }
-      await reviewApi.submit(parseInt(id, 10));
+      await reviewApi.submit(pageId);
       message.success("已提交审核");
       if (pageDataRef.current) {
         pageDataRef.current.reviewStatus = "reviewing";
@@ -244,7 +241,7 @@ const PageEditor: React.FC = () => {
     } finally {
       setReviewLoading(false);
     }
-  }, [id]);
+  }, []);
 
   /**
    * 刷新弹窗列表（从编辑器 modals-container 中提取）
@@ -905,7 +902,8 @@ const PageEditor: React.FC = () => {
               };
             },
             onSave: async ({ project }) => {
-              if (!id) return;
+              const pageId = pageDataRef.current?.id;
+              if (!pageId) return;
 
               // 生成页面 Schema（含编辑器数据用于恢复）
               const editor = editorRef.current;
@@ -923,7 +921,7 @@ const PageEditor: React.FC = () => {
                 }
               }
 
-              await pageApi.update(parseInt(id, 10), {
+              await pageApi.update(pageId, {
                 ...(fullSchema ? { schema: fullSchema } : {}),
               });
               lastSavedComponentsRef.current = JSON.stringify(project);
@@ -1884,7 +1882,7 @@ const PageEditor: React.FC = () => {
                           id: "versions",
                           icon: `<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/><path d="M12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>`,
                           tooltip: "版本历史",
-                          onClick: () => navigate(`/versions/${id}`),
+                          onClick: () => navigate(`/versions/${slug}`),
                         },
                         {
                           id: "themeToggle",
@@ -1988,7 +1986,7 @@ const PageEditor: React.FC = () => {
       {/* 多语言管理面板 */}
       <TranslationPanel
         open={translationPanelOpen}
-        pageId={id ? parseInt(id, 10) : 0}
+        pageId={pageDataRef.current?.id ?? 0}
         currentLocale={pageDataRef.current?.locale || "zh-CN"}
         onClose={() => setTranslationPanelOpen(false)}
       />

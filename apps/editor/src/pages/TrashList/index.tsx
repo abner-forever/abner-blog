@@ -145,7 +145,7 @@ const TrashList: React.FC = () => {
           <Button
             type="text"
             icon={<ArrowLeftOutlined />}
-            onClick={() => navigate("/")}
+            onClick={() => navigate("/pages")}
             className="trash-list__back-btn"
           >
             返回列表

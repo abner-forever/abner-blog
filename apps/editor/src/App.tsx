@@ -8,12 +8,14 @@ import type { RootState } from "./store";
 import { setSSOCredentials } from "./store/authSlice";
 import { getSSOStatus, parseSSOUser } from "./services/sso";
 import Login from "./pages/Login";
+import HomeDashboard from "./pages/HomeDashboard";
 import PageList from "./pages/PageList";
 import PageEditor from "./pages/PageEditor";
 import PagePreview from "./pages/PagePreview";
 import TrashList from "./pages/TrashList";
 import ReviewList from "./pages/ReviewList";
 import VersionList from "./pages/VersionList";
+import AppLayout from "./components/AppLayout";
 
 function App() {
   const { token, user } = useSelector((state: RootState) => state.auth);
@@ -58,7 +60,8 @@ function App() {
 
     const exactTitles: Record<string, string> = {
       '/login': '登录',
-      '/': '页面列表',
+      '/': '首页',
+      '/pages': '页面列表',
       '/trash': '回收站',
       '/review': '审核列表',
     };
@@ -81,23 +84,21 @@ function App() {
       element: token ? <Navigate to="/" replace /> : <Login />,
     },
     {
-      path: "/",
-      element: token ? <PageList /> : <Navigate to="/login" replace state={{ from: location.pathname }} />,
+      // 需要认证的页面，包裹在 AppLayout（侧边栏）中
+      element: token ? <AppLayout /> : <Navigate to="/login" replace state={{ from: location.pathname }} />,
+      children: [
+        { index: true, element: <HomeDashboard /> },
+        { path: "pages", element: <PageList /> },
+        { path: "trash", element: <TrashList /> },
+        { path: "review", element: <ReviewList /> },
+      ],
     },
     {
-      path: "/editor/:id",
+      path: "/editor/:slug",
       element: token ? <PageEditor /> : <Navigate to="/login" replace state={{ from: location.pathname }} />,
     },
     {
-      path: "/trash",
-      element: token ? <TrashList /> : <Navigate to="/login" replace state={{ from: location.pathname }} />,
-    },
-    {
-      path: "/review",
-      element: token ? <ReviewList /> : <Navigate to="/login" replace state={{ from: location.pathname }} />,
-    },
-    {
-      path: "/versions/:pageId",
+      path: "/versions/:slug",
       element: token ? <VersionList /> : <Navigate to="/login" replace state={{ from: location.pathname }} />,
     },
     {
