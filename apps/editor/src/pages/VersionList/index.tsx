@@ -145,7 +145,7 @@ const VersionList: React.FC = () => {
             返回
           </Button>
           <div className="version-list__header-divider" />
-          <HistoryOutlined style={{ fontSize: 18, color: "var(--brand-color, #1890ff)" }} />
+          <HistoryOutlined style={{ fontSize: 18, color: "var(--brand-color, #2f81f7)" }} />
           <h1 className="version-list__title">版本历史</h1>
           {pageInfo && (
             <>

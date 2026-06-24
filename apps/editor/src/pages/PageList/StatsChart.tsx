@@ -68,7 +68,7 @@ const SimpleLineChart: React.FC<{
       <polyline
         points={linePath}
         fill="none"
-        stroke="#1890ff"
+        stroke="#2f81f7"
         strokeWidth={2}
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -80,7 +80,7 @@ const SimpleLineChart: React.FC<{
         const y = padding.top + chartH - (d.count / maxVal) * chartH;
         return (
           <g key={i}>
-            <circle cx={x} cy={y} r={3} fill="#1890ff" />
+            <circle cx={x} cy={y} r={3} fill="#2f81f7" />
             <title>{`${d.date}: ${d.count}`}</title>
           </g>
         );
@@ -170,7 +170,7 @@ const StatsChart: React.FC<StatsChartProps> = ({
               textAlign: "center",
               fontSize: 28,
               fontWeight: 600,
-              color: "#1890ff",
+              color: "#2f81f7",
               marginBottom: 8,
             }}
           >

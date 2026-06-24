@@ -678,7 +678,9 @@ const PageEditor: React.FC = () => {
   if (loading) {
     return (
       <div className="page-editor__loading">
-        <div style={{ padding: 24, width: "100%" }}>
+        <div className="page-editor__loading-glow page-editor__loading-glow--1" />
+        <div className="page-editor__loading-glow page-editor__loading-glow--2" />
+        <div style={{ padding: 24, width: "100%", position: "relative", zIndex: 1 }}>
           <Skeleton active paragraph={{ rows: 1 }} />
           <div style={{ height: 16 }} />
           <Skeleton active paragraph={{ rows: 8 }} />
@@ -704,10 +706,10 @@ const PageEditor: React.FC = () => {
 
   /** 保存状态对应的颜色和文案 */
   const saveStatusConfig: Record<SaveStatus, { color: string; text: string }> = {
-    saved: { color: "#52c41a", text: "已保存" },
-    saving: { color: "#1890ff", text: "保存中..." },
-    "auto-saving": { color: "#faad14", text: "自动保存..." },
-    unsaved: { color: "#ff4d4f", text: "未保存的更改" },
+    saved: { color: "#22c55e", text: "已保存" },
+    saving: { color: "#2f81f7", text: "保存中..." },
+    "auto-saving": { color: "#eab308", text: "自动保存..." },
+    unsaved: { color: "#ef4444", text: "未保存的更改" },
   };
 
   /** 语言标识 */
@@ -773,7 +775,7 @@ const PageEditor: React.FC = () => {
           </Tag>
           {/* 语言标识 */}
           {pageDataRef.current && (
-            <Tag color="blue" className="page-editor__save-tag">
+            <Tag color="#2f81f7" className="page-editor__save-tag">
               <GlobalOutlined style={{ marginRight: 2 }} />
               {localeAbbr[pageDataRef.current.locale] ||
                 pageDataRef.current.locale}
@@ -829,15 +831,15 @@ const PageEditor: React.FC = () => {
           licenseKey: "LOCAL_LICENSE_KEY",
           /** 主题跟随 Redux 状态（light/dark 可切换） */
           theme: themeMode,
-          /** 自定义主题色，与 Ant Design 主色 #1890ff 保持一致 */
+          /** 自定义主题色，与主站一致 #2f81f7 */
           customTheme: {
             default: {
               colors: {
                 primary: {
-                  background1: "#1890ff",
-                  background2: themeMode === "dark" ? "#003a8c" : "#e6f7ff",
+                  background1: "#2f81f7",
+                  background2: themeMode === "dark" ? "#003a8c" : "#eaf2fd",
                   background3: themeMode === "dark" ? "#002766" : "#f0f5ff",
-                  backgroundHover: themeMode === "dark" ? "#40a9ff" : "#096dd9",
+                  backgroundHover: themeMode === "dark" ? "#4a9aff" : "#1a6de0",
                   text: "#ffffff",
                 },
               },

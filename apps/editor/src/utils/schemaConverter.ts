@@ -212,7 +212,7 @@ function extractTabsProps(el: HTMLElement): Record<string, unknown> {
   tabButtons.forEach((btn, i) => {
     const btnEl = btn as HTMLElement;
     const style = btnEl.getAttribute('style') || '';
-    if (style.includes('border-bottom:2px solid #1890ff') || style.includes('background:#fff')) {
+    if (style.includes('border-bottom:2px solid #2f81f7') || style.includes('background:#fff')) {
       activeIndex = i;
     }
   });

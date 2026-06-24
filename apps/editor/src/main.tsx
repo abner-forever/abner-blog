@@ -44,7 +44,7 @@ const ThemedApp = () => {
       theme={{
         algorithm: themeMode === "dark" ? theme.darkAlgorithm : theme.defaultAlgorithm,
         token: {
-          colorPrimary: "#1890ff",
+          colorPrimary: "#2f81f7",
           borderRadius: 10,
           colorBgContainer: themeMode === "dark" ? "#1a1c2a" : "#ffffff",
           colorBgElevated: themeMode === "dark" ? "#1e2030" : "#ffffff",

@@ -137,7 +137,7 @@ const Login: React.FC = () => {
         <div className="al-right__wrapper">
           {/* Mobile brand */}
           <div className="al-right__mobile-brand">
-            <svg viewBox="0 0 32 32" fill="none" width="22" height="22" style={{ color: "#1890ff" }}>
+            <svg viewBox="0 0 32 32" fill="none" width="22" height="22" style={{ color: "#2f81f7" }}>
               <rect x="2" y="2" width="28" height="28" rx="8" stroke="currentColor" strokeWidth="2" fill="none" />
               <path d="M8 16l6 6 10-10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>

@@ -29,7 +29,7 @@ export const blocks: BlockProperties[] = [
     id: "button",
     label: "按钮",
     content:
-      '<a data-schema-type="button" href="#" style="display:inline-flex;align-items:center;gap:6px;padding:10px 24px;background:#1890ff;color:#fff;border-radius:4px;text-decoration:none;font-size:14px;cursor:pointer;"><span>●</span><span>按钮</span></a>',
+      '<a data-schema-type="button" href="#" style="display:inline-flex;align-items:center;gap:6px;padding:10px 24px;background:#2f81f7;color:#fff;border-radius:4px;text-decoration:none;font-size:14px;cursor:pointer;"><span>●</span><span>按钮</span></a>',
     category: "内容组件",
   },
   {
@@ -96,7 +96,7 @@ export const blocks: BlockProperties[] = [
     media:
       '<svg viewBox="0 0 24 24" width="24" height="24"><rect x="3" y="6" width="18" height="14" rx="1" fill="none" stroke="currentColor" stroke-width="1.5"/><line x1="3" y1="11" x2="21" y2="11" stroke="currentColor" stroke-width="1.5"/></svg>',
     content:
-      '<div data-schema-type="tabs" data-tabs style="border:1px solid #d9d9d9;border-radius:6px;overflow:hidden;"><div style="display:flex;gap:0;background:#fafafa;border-bottom:1px solid #d9d9d9;"><button data-tab="1" style="flex:1;padding:10px 16px;border:none;background:#fff;cursor:pointer;font-weight:500;border-bottom:2px solid #1890ff;">标签1</button><button data-tab="2" style="flex:1;padding:10px 16px;border:none;background:transparent;cursor:pointer;color:#666;">标签2</button></div><div data-tab-content="1" style="padding:16px;">标签页一内容</div><div data-tab-content="2" style="padding:16px;display:none;">标签页二内容</div></div>',
+      '<div data-schema-type="tabs" data-tabs style="border:1px solid #d9d9d9;border-radius:6px;overflow:hidden;"><div style="display:flex;gap:0;background:#fafafa;border-bottom:1px solid #d9d9d9;"><button data-tab="1" style="flex:1;padding:10px 16px;border:none;background:#fff;cursor:pointer;font-weight:500;border-bottom:2px solid #2f81f7;">标签1</button><button data-tab="2" style="flex:1;padding:10px 16px;border:none;background:transparent;cursor:pointer;color:#666;">标签2</button></div><div data-tab-content="1" style="padding:16px;">标签页一内容</div><div data-tab-content="2" style="padding:16px;display:none;">标签页二内容</div></div>',
     category: "内容组件",
   },
   {
@@ -154,7 +154,7 @@ export const blocks: BlockProperties[] = [
     media:
       '<svg viewBox="0 0 24 24" width="24" height="24"><rect x="3" y="3" width="18" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><line x1="7" y1="8" x2="17" y2="8" stroke="currentColor" stroke-width="1.5"/><line x1="7" y1="12" x2="17" y2="12" stroke="currentColor" stroke-width="1.5"/><line x1="7" y1="16" x2="12" y2="16" stroke="currentColor" stroke-width="1.5"/></svg>',
     content:
-      '<form data-schema-type="form" data-page-form="true" style="padding:24px;border:2px dashed #1890ff;border-radius:8px;background:#fafafa;"><div style="margin-bottom:16px;font-size:14px;color:#888;">📋 将表单字段拖入此区域</div><div style="display:flex;flex-direction:column;gap:12px;"><button type="submit" style="align-self:flex-start;padding:10px 24px;background:#1890ff;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:14px;">提交</button></div></form>',
+      '<form data-schema-type="form" data-page-form="true" style="padding:24px;border:2px dashed #2f81f7;border-radius:8px;background:#fafafa;"><div style="margin-bottom:16px;font-size:14px;color:#888;">📋 将表单字段拖入此区域</div><div style="display:flex;flex-direction:column;gap:12px;"><button type="submit" style="align-self:flex-start;padding:10px 24px;background:#2f81f7;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:14px;">提交</button></div></form>',
     category: { id: "form", label: "表单组件", open: true },
   },
   {
@@ -199,7 +199,7 @@ export const blocks: BlockProperties[] = [
     media:
       '<svg viewBox="0 0 24 24" width="24" height="24"><rect x="4" y="4" width="16" height="16" rx="4" fill="none" stroke="currentColor" stroke-width="1.5"/><polyline points="9,12 11,14 15,10" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>',
     content:
-      '<button data-schema-type="form-submit" type="submit" style="padding:10px 32px;background:#1890ff;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:14px;font-weight:500;">提交</button>',
+      '<button data-schema-type="form-submit" type="submit" style="padding:10px 32px;background:#2f81f7;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:14px;font-weight:500;">提交</button>',
     category: "表单组件",
   },
 
@@ -230,7 +230,7 @@ export const blocks: BlockProperties[] = [
     media:
       '<svg viewBox="0 0 24 24" width="24" height="24"><rect x="3" y="4" width="18" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><line x1="8" y1="9" x2="16" y2="9" stroke="currentColor" stroke-width="1"/><line x1="8" y1="13" x2="16" y2="13" stroke="currentColor" stroke-width="1"/><line x1="8" y1="17" x2="12" y2="17" stroke="currentColor" stroke-width="1"/></svg>',
     content:
-      '<div data-schema-type="data-list" data-datalist style="padding:20px;border:1px dashed #1890ff;border-radius:8px;background:#f0f9ff;"><div style="font-size:14px;color:#1890ff;margin-bottom:12px;font-weight:500;">📊 数据列表</div><div style="display:flex;flex-direction:column;gap:8px;"><div style="padding:12px;background:#fff;border-radius:6px;border:1px solid #e8e8e8;"><div style="font-weight:500;">标题</div><div style="font-size:13px;color:#666;margin-top:4px;">描述文本</div></div><div style="padding:12px;background:#fff;border-radius:6px;border:1px solid #e8e8e8;"><div style="font-weight:500;">标题</div><div style="font-size:13px;color:#666;margin-top:4px;">描述文本</div></div><div style="padding:12px;background:#fff;border-radius:6px;border:1px solid #e8e8e8;"><div style="font-weight:500;">标题</div><div style="font-size:13px;color:#666;margin-top:4px;">描述文本</div></div></div><div style="margin-top:12px;font-size:12px;color:#aaa;text-align:center;">此组件可作为数据展示模板</div></div>',
+      '<div data-schema-type="data-list" data-datalist style="padding:20px;border:1px dashed #2f81f7;border-radius:8px;background:#f0f9ff;"><div style="font-size:14px;color:#2f81f7;margin-bottom:12px;font-weight:500;">📊 数据列表</div><div style="display:flex;flex-direction:column;gap:8px;"><div style="padding:12px;background:#fff;border-radius:6px;border:1px solid #e8e8e8;"><div style="font-weight:500;">标题</div><div style="font-size:13px;color:#666;margin-top:4px;">描述文本</div></div><div style="padding:12px;background:#fff;border-radius:6px;border:1px solid #e8e8e8;"><div style="font-weight:500;">标题</div><div style="font-size:13px;color:#666;margin-top:4px;">描述文本</div></div><div style="padding:12px;background:#fff;border-radius:6px;border:1px solid #e8e8e8;"><div style="font-weight:500;">标题</div><div style="font-size:13px;color:#666;margin-top:4px;">描述文本</div></div></div><div style="margin-top:12px;font-size:12px;color:#aaa;text-align:center;">此组件可作为数据展示模板</div></div>',
     category: { id: "data", label: "动态数据", open: true },
   },
   {
@@ -239,7 +239,7 @@ export const blocks: BlockProperties[] = [
     media:
       '<svg viewBox="0 0 24 24" width="24" height="24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.5"/><text x="12" y="16" text-anchor="middle" font-size="10" fill="currentColor">N</text></svg>',
     content:
-      '<div data-schema-type="data-badge" style="display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:20px;font-size:14px;"><span>关注者</span><span style="background:#1890ff;color:#fff;border-radius:10px;padding:2px 8px;font-size:12px;font-weight:500;">1,234</span></div>',
+      '<div data-schema-type="data-badge" style="display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:20px;font-size:14px;"><span>关注者</span><span style="background:#2f81f7;color:#fff;border-radius:10px;padding:2px 8px;font-size:12px;font-weight:500;">1,234</span></div>',
     category: "动态数据",
   },
 

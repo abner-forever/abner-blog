@@ -286,7 +286,7 @@ const SchemaPreview: React.FC<SchemaPreviewProps> = ({ editorRef }) => {
             {schema?.root && (
               <Badge
                 count={countNodes(schema.root)}
-                style={{ backgroundColor: '#1890ff' }}
+                style={{ backgroundColor: '#2f81f7' }}
                 showZero
                 overflowCount={999}
                 title="节点数"

@@ -501,7 +501,7 @@ const PageList: React.FC = () => {
             <div className="page-list__user-info">
               <Avatar
                 size={28}
-                style={{ backgroundColor: "#1890ff", flexShrink: 0 }}
+                style={{ backgroundColor: "#2f81f7", flexShrink: 0 }}
               >
                 {user.username.charAt(0).toUpperCase()}
               </Avatar>
@@ -650,7 +650,7 @@ const PageList: React.FC = () => {
       <Modal
         title={
           <Space>
-            <PlusOutlined style={{ color: "#1890ff" }} />
+            <PlusOutlined style={{ color: "#2f81f7" }} />
             <span>新建页面</span>
           </Space>
         }
