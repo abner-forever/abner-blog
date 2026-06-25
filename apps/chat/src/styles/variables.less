@@ -1,0 +1,76 @@
+// 设计稿尺寸
+@design-width: 375px;
+
+// 将 px 转换为 vw 的函数
+.px2vw(@px) {
+  @result: (@px / @design-width) * 100vw;
+}
+
+// ======================= 响应式断点 =======================
+@screen-xs: 320px;
+@screen-sm: 576px;
+@screen-md: 768px;
+@screen-compact: 480px;
+@screen-lg: 992px;
+@screen-xl: 1200px;
+@screen-xxl: 1400px;
+@screen-xxxl: 1600px;
+@screen-ultra: 1920px;
+
+// ======================= 现代风格主题颜色 (使用 CSS 变量实现) =======================
+@primary-color: var(--primary-color);
+@primary-hover: var(--primary-hover);
+@surface-color: var(--surface-color, #f6f5f4);
+@bg-color: var(--bg-color);
+@card-bg: var(--card-bg);
+@text-main: var(--text-main);
+@text-secondary: var(--text-secondary);
+@text-muted: var(--text-muted);
+@border-color: var(--border-color);
+@divider-color: var(--divider-color);
+
+// ======================= 阴影 =======================
+@box-shadow-sm: var(--shadow-sm);
+@box-shadow-md: var(--shadow-md);
+@box-shadow-lg: var(--shadow-lg);
+
+// ======================= 间距 =======================
+@layout-max-width: 1360px;
+@header-height: 64px;
+@footer-height: 60px;
+@content-margin-top: 16px;
+@border-radius-base: 12px;
+@border-radius-sm: 8px;
+
+// ======================= 混合器 =======================
+.flex-center() {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flex-between() {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.text-ellipsis() {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.text-ellipsis-multiple(@lines: 2) {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: @lines;
+  overflow: hidden;
+}
+
+.card-style() {
+  background: @card-bg;
+  border-radius: 12px;
+  border: 1px solid @border-color;
+  transition: all 0.15s ease;
+}

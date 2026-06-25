@@ -20,4 +20,4 @@ export const dayjsLocales: Record<SupportedLocale, string> = {
 export const TAB_PATHS = ['/', '/blogs', '/notes', '/todos', '/profile'] as const;
 
 /** 自带移动端 header 的页面（移动端不显示全局 MobilePageHeader） */
-export const CUSTOM_MOBILE_HEADER_PATHS = ['/chat'] as const;
+export const CUSTOM_MOBILE_HEADER_PATHS = [] as const;

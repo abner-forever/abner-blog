@@ -27,8 +27,6 @@ const AboutPage = lazy(() => import('@pages/about'));
 const InterviewPage = lazy(() => import('@pages/interview/index.tsx'));
 const SearchPage = lazy(() => import('@pages/search'));
 const UserHomePage = lazy(() => import('@pages/user/UserHome'));
-const ChatPage = lazy(() => import('@pages/chat'));
-const ChatSharePage = lazy(() => import('@pages/chat/share'));
 const NoteList = lazy(() => import('@pages/note/NoteList'));
 const NoteDetail = lazy(() => import('@pages/note/NoteDetail'));
 const TopicDetail = lazy(() => import('@pages/note/TopicDetail'));
@@ -187,16 +185,6 @@ export const routeConfig: RouteConfig[] = [
   {
     path: '/user/:id',
     element: <UserHomePage />,
-    requireAuth: false,
-  },
-  {
-    path: '/chat',
-    element: <ChatPage />,
-    requireAuth: false,
-  },
-  {
-    path: '/chat/share/:shareId',
-    element: <ChatSharePage />,
     requireAuth: false,
   },
   {

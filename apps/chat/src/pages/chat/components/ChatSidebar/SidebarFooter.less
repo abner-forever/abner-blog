@@ -1,0 +1,123 @@
+.sidebar-footer {
+  padding: 8px 12px;
+
+  .sidebar-footer-divider {
+    height: 1px;
+    background: var(--ds-border);
+    margin-bottom: 8px;
+  }
+
+  .sidebar-footer-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .sidebar-user-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    color: var(--ds-text-secondary);
+    font-size: 13px;
+    width: 100%;
+    justify-content: flex-start;
+    height: auto;
+
+    &:hover {
+      background: var(--ds-bg-tertiary);
+      color: var(--ds-text);
+    }
+
+    .user-avatar {
+      flex-shrink: 0;
+      background: var(--ds-accent, #4D6BFE);
+    }
+
+    .user-name {
+      flex: 1;
+      text-align: left;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  .sidebar-footer-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    color: var(--ds-text-secondary);
+    font-size: 13px;
+    justify-content: flex-start;
+
+    &:hover {
+      background: var(--ds-bg-tertiary);
+      color: var(--ds-text);
+    }
+
+    &.active {
+      background: rgba(77, 107, 254, 0.12);
+      border-color: rgba(77, 107, 254, 0.2);
+      color: var(--ds-accent);
+    }
+  }
+}
+
+// User dropdown menu styles
+.user-dropdown-overlay {
+  .ant-dropdown-menu {
+    padding: 4px;
+    min-width: 200px;
+    border-radius: 10px;
+    box-shadow: 0 4px 24px var(--ds-shadow, rgba(0, 0, 0, 0.4));
+    background: var(--ds-bg-secondary, #2f2f2f);
+    border: 1px solid var(--ds-border, #3a3a3a);
+  }
+
+  .ant-dropdown-menu-item {
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-size: 13px;
+    color: var(--ds-text, #e8e8e8);
+
+    &:hover {
+      background: var(--ds-bg-tertiary, #383838);
+    }
+
+    &-danger {
+      color: var(--error-color, #ef4444);
+
+      &:hover {
+        background: rgba(239, 68, 68, 0.12);
+      }
+    }
+  }
+
+  .theme-toggle-item,
+  .language-toggle-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-width: 120px;
+    color: var(--ds-text, #e8e8e8);
+  }
+}
+
+// Collapsed sidebar user button (when sidebar is collapsed to just the toggle)
+.chat-sidebar.collapsed {
+  .sidebar-footer {
+    display: none;
+  }
+}
+
+// Collapsed state with toggle visible
+.chat-sidebar.collapsed ~ .sidebar-user-collapsed {
+  display: flex;
+}
+

@@ -10,7 +10,6 @@ import {
   MessageOutlined,
   ReadOutlined,
   RightOutlined,
-  RobotOutlined,
   RocketOutlined,
   ToolOutlined,
   UserOutlined,
@@ -177,13 +176,6 @@ export const FeatureShowcase: FC<FeatureShowcaseProps> = ({ title, subtitle }) =
       desc: '生活记录与思考碎片',
       gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
       path: '/moments',
-    },
-    {
-      icon: <RobotOutlined />,
-      title: 'AI 助手',
-      desc: '智能对话，探索无限可能',
-      gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-      path: '/chat',
     },
     {
       icon: <ReadOutlined />,
