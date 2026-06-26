@@ -4,15 +4,21 @@
  * 与 Form 容器的 FormContext 联动管理值状态
  */
 
-import React, { useEffect, useId } from 'react';
+import React, { useEffect, useId, useState } from 'react';
 import type { BaseComponentProps, FormCheckboxNodeProps } from '../types';
 import { useFormContext } from './Form';
 
 const FormCheckbox: React.FC<BaseComponentProps> = ({ node }) => {
-  const { label, name, required } = node.props as unknown as FormCheckboxNodeProps;
+  const { label, name, required, value: propValue } =
+    node.props as unknown as FormCheckboxNodeProps;
   const style = node.props.style as React.CSSProperties | undefined;
   const formCtx = useFormContext();
   const id = useId();
+
+  // 独立使用时的内部状态
+  const [internalChecked, setInternalChecked] = useState(
+    propValue === 'true' || propValue === '1',
+  );
 
   useEffect(() => {
     if (formCtx && name) {
@@ -20,11 +26,24 @@ const FormCheckbox: React.FC<BaseComponentProps> = ({ node }) => {
     }
   }, [formCtx, name, required]);
 
-  const checked = formCtx ? !!(formCtx.values[name]) : false;
+  // 当 props.value 变化时（变量绑定更新），同步到内部状态
+  useEffect(() => {
+    if (propValue !== undefined && !formCtx) {
+      setInternalChecked(propValue === 'true' || propValue === '1');
+    }
+  }, [propValue, formCtx]);
+
+  // 有 FormContext 时使用 FormContext 的值，否则使用内部状态
+  const checked = formCtx ? !!(formCtx.values[name]) : internalChecked;
   const error = formCtx ? formCtx.errors[name] : undefined;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    formCtx?.setValue(name, e.target.checked);
+    const newValue = e.target.checked;
+    if (formCtx) {
+      formCtx.setValue(name, newValue);
+    } else {
+      setInternalChecked(newValue);
+    }
   };
 
   const containerStyle: React.CSSProperties = {

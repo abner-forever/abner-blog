@@ -3,9 +3,10 @@
  *
  * 支持 text、email、tel、number、password 类型
  * 与 Form 容器的 FormContext 联动管理值状态
+ * 也可独立使用（无 Form 容器时使用内部状态）
  */
 
-import React, { useEffect, useId } from 'react';
+import React, { useEffect, useId, useState } from 'react';
 import type { BaseComponentProps, FormInputNodeProps } from '../types';
 import { useFormContext } from './Form';
 
@@ -16,10 +17,22 @@ const FormInput: React.FC<BaseComponentProps> = ({ node }) => {
     placeholder,
     required,
     type = 'text',
+    value: propValue,
   } = node.props as unknown as FormInputNodeProps;
   const style = node.props.style as React.CSSProperties | undefined;
   const formCtx = useFormContext();
   const id = useId();
+
+  // 独立使用时的内部状态，优先使用 props 中的 value（变量绑定）
+  const [internalValue, setInternalValue] = useState(propValue ?? '');
+  const [internalError, setInternalError] = useState<string | undefined>();
+
+  // 当 props.value 变化时（变量绑定更新），同步到内部状态
+  useEffect(() => {
+    if (propValue !== undefined && !formCtx) {
+      setInternalValue(propValue);
+    }
+  }, [propValue, formCtx]);
 
   useEffect(() => {
     if (formCtx && name) {
@@ -27,11 +40,25 @@ const FormInput: React.FC<BaseComponentProps> = ({ node }) => {
     }
   }, [formCtx, name, required]);
 
-  const value = formCtx ? (formCtx.values[name] as string) ?? '' : '';
-  const error = formCtx ? formCtx.errors[name] : undefined;
+  // 有 FormContext 时使用 FormContext 的值，否则使用内部状态
+  const value = formCtx
+    ? (formCtx.values[name] as string) ?? ''
+    : internalValue;
+  const error = formCtx ? formCtx.errors[name] : internalError;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    formCtx?.setValue(name, e.target.value);
+    const newValue = e.target.value;
+    if (formCtx) {
+      formCtx.setValue(name, newValue);
+    } else {
+      setInternalValue(newValue);
+      // 简单的必填验证
+      if (required && !newValue.trim()) {
+        setInternalError('此字段为必填项');
+      } else {
+        setInternalError(undefined);
+      }
+    }
   };
 
   const containerStyle: React.CSSProperties = {

@@ -506,6 +506,13 @@ const GRAPESJS_TYPE_MAP: Record<string, string> = {
   video: 'video',
   label: 'text',
   wrapper: 'container',
+  // GrapesJS 内置表单组件映射
+  select: 'form-select',
+  input: 'form-input',
+  textarea: 'form-textarea',
+  checkbox: 'form-checkbox',
+  radio: 'form-checkbox',
+  submit: 'form-submit',
 };
 
 /* ==================== 工具函数 ==================== */
@@ -622,6 +629,34 @@ function convertComponent(comp: Component): SchemaNode | null {
 
   const events = el ? extractEvents(el, comp) : undefined;
   const node: SchemaNode = { id, type, props, ...(events ? { events } : {}) };
+
+  // 提取条件显示配置
+  const attrs = comp.getAttributes();
+  const conditionStr = attrs['data-condition'];
+  if (conditionStr) {
+    try {
+      const condition = JSON.parse(conditionStr);
+      if (condition.field) {
+        node.props.condition = condition;
+      }
+    } catch { /* 忽略 */ }
+  }
+
+  // 提取直接隐藏配置
+  if (attrs['data-conditional-hidden'] === 'true') {
+    node.props.show = false;
+  }
+
+  // 提取变量绑定配置（用于模板变量替换）
+  const bindingsStr = attrs['data-variable-bindings'];
+  if (bindingsStr) {
+    try {
+      const bindings = JSON.parse(bindingsStr);
+      if (Array.isArray(bindings) && bindings.length > 0) {
+        node.props.variableBindings = bindings;
+      }
+    } catch { /* 忽略 */ }
+  }
 
   // 递归处理子组件
   const childComponents = comp.components();

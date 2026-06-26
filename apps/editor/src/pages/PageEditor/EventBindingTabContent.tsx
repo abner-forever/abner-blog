@@ -843,30 +843,43 @@ const EventBindingTabContent: React.FC<EventBindingTabContentProps> = ({ editor 
         )}
       </div>
 
-      {/* 事件绑定列表 */}
-      {events.length === 0 ? (
-        <div
-          style={{
-            textAlign: 'center',
-            padding: '16px 0',
-            color: '#bbb',
-          }}
-        >
-          <Text type="secondary" style={{ fontSize: 12 }}>
-            尚未配置事件绑定
-          </Text>
-        </div>
-      ) : (
-        events.map((binding, idx) => (
-          <EventBindingCard
-            key={`${binding.event}_${idx}`}
-            binding={binding}
-            index={idx}
-            onChange={updateBinding}
-            onRemove={removeBinding}
-          />
-        ))
-      )}
+      {/* 事件绑定列表（过滤掉自动生成的同步变量事件） */}
+      {(() => {
+        // 过滤掉自动生成的同步变量事件（id 以 auto_ 开头）
+        const userEvents = events.filter((binding) =>
+          !binding.actions?.some((a) => a.id?.startsWith('auto_'))
+        );
+
+        if (userEvents.length === 0) {
+          return (
+            <div
+              style={{
+                textAlign: 'center',
+                padding: '16px 0',
+                color: '#bbb',
+              }}
+            >
+              <Text type="secondary" style={{ fontSize: 12 }}>
+                尚未配置事件绑定
+              </Text>
+            </div>
+          );
+        }
+
+        return userEvents.map((binding, idx) => {
+          // 找到原始 events 中的真实索引
+          const realIdx = events.indexOf(binding);
+          return (
+            <EventBindingCard
+              key={`${binding.event}_${realIdx}`}
+              binding={binding}
+              index={realIdx}
+              onChange={updateBinding}
+              onRemove={removeBinding}
+            />
+          );
+        });
+      })()}
 
       {/* 添加按钮 */}
       <Button

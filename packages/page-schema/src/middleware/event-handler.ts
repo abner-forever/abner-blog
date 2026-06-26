@@ -1,5 +1,5 @@
 /**
- * EventHandler 中间件 v2
+ * EventHandler 中间件 v3
  *
  * 将 SchemaNode.events 中定义的 JSON 可序列化事件绑定，
  * 转换为真实 DOM 事件监听器。
@@ -12,10 +12,7 @@
  *
  * 事件绑定实现方式：
  * - 中间件通过包裹式 span（display: contents）附加事件处理函数
- * - 这样做是因为组件（Container/Text 等）只接收 {node, children} 而不会透传
- *   额外 props，用 React.cloneElement 注入 onClick 等 props 时，
- *   组件不接收这些 prop 导致事件处理函数无法到达真实 DOM 元素。
- * - 使用包裹式 span 可以避免修改所有组件，事件绑定自动生效。
+ * - 对于 change 事件，使用原生 DOM 事件监听器确保冒泡正常工作
  *
  * 使用方式（由 RendererProvider 自动注入，宿主无需手动添加）：
  * ```tsx
@@ -25,12 +22,81 @@
  * ```
  */
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import type { SchemaNode, Middleware, EventBinding } from '../types';
 import type { ActionContext } from '../event-engine/action-context';
 import { executeActions } from '../event-engine/executor';
 
 /* ==================== 工厂函数 ==================== */
+
+/**
+ * 事件处理器包装组件
+ * 使用原生 DOM 事件监听器确保 change 事件正常工作
+ */
+interface EventHandlerWrapperProps {
+  events: EventBinding[];
+  context: ActionContext;
+  children?: React.ReactNode;
+}
+
+const EventHandlerWrapper: React.FC<EventHandlerWrapperProps> = ({
+  events,
+  context,
+  children,
+}) => {
+  const wrapperRef = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => {
+    const wrapper = wrapperRef.current;
+    if (!wrapper) return;
+
+    const cleanupFns: Array<() => void> = [];
+
+    // 直接找到内部的表单元素（input/select/textarea），在元素上监听
+    const findFormElement = (): HTMLElement | null => {
+      return wrapper.querySelector('input, select, textarea');
+    };
+
+    for (const binding of events) {
+      const handler = createBindingHandler(binding, context);
+
+      // 在包裹 span 上使用 capture 阶段捕获，确保不被 React 拦截
+      wrapper.addEventListener(binding.event, handler, true);
+
+      // 对于 change 事件，额外监听 input 事件实现实时更新
+      // （select 不支持 input 事件，但 change 已经能捕获）
+      if (binding.event === 'change') {
+        wrapper.addEventListener('input', handler, true);
+        cleanupFns.push(() => {
+          wrapper.removeEventListener('input', handler, true);
+        });
+
+        // 直接在表单元素上也监听 change，防止冒泡丢失
+        const formEl = findFormElement();
+        if (formEl) {
+          formEl.addEventListener('change', handler);
+          cleanupFns.push(() => {
+            formEl.removeEventListener('change', handler);
+          });
+        }
+      }
+
+      cleanupFns.push(() => {
+        wrapper.removeEventListener(binding.event, handler, true);
+      });
+    }
+
+    return () => {
+      cleanupFns.forEach((fn) => fn());
+    };
+  }, [events, context]);
+
+  return React.createElement(
+    'span',
+    { ref: wrapperRef, style: { display: 'contents' } },
+    children,
+  );
+};
 
 /**
  * 创建事件绑定中间件
@@ -54,24 +120,10 @@ export function createEventHandler(context: ActionContext): Middleware {
       return result;
     }
 
-    const extraProps: Record<string, unknown> = {};
-
-    // 从 node.events 读 JSON 事件绑定
-    for (const binding of events) {
-      const handler = createBindingHandler(binding, context);
-      // 将 DOM 事件名（click）转为 React 事件 prop 名（onClick）
-      const reactEventName = toReactEventProp(binding.event);
-      extraProps[reactEventName] = handler;
-    }
-
-    // 使用包裹式 span 而非 React.cloneElement：
-    // 组件只接收 {node, children} 不会透传额外 props，
-    // cloneElement 注入的 onClick 等事件处理函数无法到达 DOM。
-    // span + display:contents 对布局无影响，事件可以正常触发。
-    // 此处使用 createElement 因为文件为 .ts 而非 .tsx
+    // 使用 EventHandlerWrapper 组件来处理事件绑定
     return React.createElement(
-      'span',
-      { style: { display: 'contents' }, ...extraProps },
+      EventHandlerWrapper,
+      { events, context },
       result,
     );
   };
@@ -144,18 +196,4 @@ function throttle<T extends unknown[]>(
       fn(...args);
     }
   };
-}
-
-/**
- * 将 DOM 事件名转为 React 事件 prop 名
- *
- * 示例：
- *   'click'      → 'onClick'
- *   'mouseenter' → 'onMouseEnter'
- *   'change'     → 'onChange'
- *   'submit'     → 'onSubmit'
- *   'focus'      → 'onFocus'
- */
-function toReactEventProp(domEvent: string): string {
-  return `on${domEvent.charAt(0).toUpperCase()}${domEvent.slice(1)}`;
 }

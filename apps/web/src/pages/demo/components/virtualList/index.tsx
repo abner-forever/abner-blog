@@ -1,33 +1,77 @@
-import { useState } from 'react';
+import React, { useMemo, useState, type UIEvent } from 'react';
 
-function VirtualList({ list }: { list: string[] }) {
-  const itemHeight = 40; // 每项高度
-  const visibleCount = 10; // 可视区域10条数据
+interface VirtualListProps<T> {
+  data: T[];
+  height: number;
+  itemHeight: number;
+  overscan?: number;
+  renderItem: (item: T, index: number) => React.ReactNode;
+}
 
+function VirtualList<T>({
+  data,
+  height,
+  itemHeight,
+  overscan = 5,
+  renderItem,
+}: VirtualListProps<T>) {
   const [scrollTop, setScrollTop] = useState(0);
 
-  // 根据滚动计算起始节点下标
-  const start = Math.floor(scrollTop / itemHeight);
+  const visibleCount = Math.ceil(height / itemHeight);
 
-  const end = start + visibleCount;
+  const startIndex = Math.max(
+    0,
+    Math.floor(scrollTop / itemHeight) - overscan,
+  );
 
-  // 可视 区域的数据
-  const visible = list.slice(start, end);
+  const endIndex = Math.min(
+    data.length,
+    startIndex + visibleCount + overscan * 2,
+  );
 
-  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+  const visibleData = useMemo(() => {
+    return data.slice(startIndex, endIndex);
+  }, [data, startIndex, endIndex]);
+
+  const offsetY = startIndex * itemHeight;
+
+  const totalHeight = data.length * itemHeight;
+
+  const handleScroll = (e: UIEvent<HTMLDivElement>) => {
     setScrollTop(e.currentTarget.scrollTop);
   };
 
   return (
-    <div style={{ height: 400, overflow: 'auto' }} onScroll={handleScroll}>
-      <div style={{ height: `${list.length * itemHeight}px` }}>
+    <div
+      style={{
+        height,
+        overflowY: 'auto',
+        overflowAnchor: 'none',
+      }}
+      onScroll={handleScroll}
+    >
+      <div
+        style={{
+          height: totalHeight,
+          position: 'relative',
+        }}
+      >
         <div
           style={{
-            transform: `translateY(${start * itemHeight}px)`,
+            transform: `translateY(${offsetY}px)`,
+            willChange: 'transform',
           }}
         >
-          {visible.map((item) => (
-            <div style={{ height: itemHeight }}>{item}</div>
+          {visibleData.map((item, index) => (
+            <div
+              key={startIndex + index}
+              style={{
+                height: itemHeight,
+                boxSizing: 'border-box',
+              }}
+            >
+              {renderItem(item, startIndex + index)}
+            </div>
           ))}
         </div>
       </div>

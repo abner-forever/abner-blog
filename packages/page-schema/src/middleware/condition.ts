@@ -95,9 +95,10 @@ function evaluateCondition(
 
   switch (condition.operator) {
     case 'eq':
-      return actualValue === value;
+      // 严格相等，或类型不同时尝试字符串比较（处理输入框值为字符串的情况）
+      return actualValue === value || String(actualValue) === String(value);
     case 'neq':
-      return actualValue !== value;
+      return actualValue !== value && String(actualValue) !== String(value);
     case 'gt':
       return (
         typeof actualValue === 'number' &&
@@ -138,7 +139,13 @@ function evaluateCondition(
 /* ==================== 中间件工厂 ==================== */
 
 /**
- * 创建条件渲染中间件
+ * 创建条件渲染中间件（静态上下文）
+ *
+ * 适用于变量不会变化的场景，传入固定的 context 对象。
+ *
+ * 优先级规则：
+ * - 如果存在 condition 配置，由 condition 控制显隐（忽略 show 属性）
+ * - 如果只有 show 属性（无 condition），由 show 控制显隐
  *
  * @param context - 求值上下文，包含所有可用的状态变量
  * @returns Middleware
@@ -147,16 +154,83 @@ export function createConditionMiddleware(
   context: Record<string, unknown>,
 ): Middleware {
   return (node: SchemaNode, next) => {
-    // 1. show 布尔值
+    // 读取 condition 配置
+    const condition = node.props.condition as ConditionConfig | undefined;
+
+    // 如果存在 condition，由 condition 控制显隐（忽略 show 属性）
+    if (condition && condition.field) {
+      const met = evaluateCondition(condition, context);
+      if (!met) return null;
+      return next(node);
+    }
+
+    // 如果没有 condition，检查 show 属性（向后兼容）
     const show = node.props.show as boolean | undefined;
     if (show === false) return null;
 
-    // 2. condition 条件判断
+    // 条件满足，正常渲染
+    return next(node);
+  };
+}
+
+/**
+ * 创建动态条件渲染中间件
+ *
+ * 适用于需要与 ActionContext.variables 实时联动的场景。
+ * 通过 getter 函数在每次渲染时动态获取变量值，
+ * 确保 set-variable 动作修改变量后，condition 中间件能读取到最新值。
+ *
+ * 优先级规则：
+ * - 如果存在 condition 配置，由 condition 控制显隐（忽略 show 属性）
+ * - 如果只有 show 属性（无 condition），由 show 控制显隐
+ *
+ * 用法：
+ * ```tsx
+ * // 共享变量存储
+ * const pageVars: Record<string, unknown> = {};
+ *
+ * // 动态中间件：每次渲染时从 pageVars 读取最新值
+ * const conditionMiddleware = createDynamicConditionMiddleware(() => pageVars);
+ *
+ * // actionContext 也使用同一个 pageVars
+ * const actionContextFactory = (rootNode) => ({
+ *   variables: {
+ *     get: (key) => pageVars[key],
+ *     set: (key, value) => { pageVars[key] = value; },
+ *     ...
+ *   },
+ *   ...
+ * });
+ *
+ * <RendererProvider
+ *   extraMiddlewares={[styleInjector, conditionMiddleware]}
+ *   actionContextFactory={actionContextFactory}
+ * >
+ *   <PageRenderer />
+ * </RendererProvider>
+ * ```
+ *
+ * @param getContext - 返回当前变量上下文的函数，每次渲染时调用
+ * @returns Middleware
+ */
+export function createDynamicConditionMiddleware(
+  getContext: () => Record<string, unknown>,
+): Middleware {
+  return (node: SchemaNode, next) => {
+    // 读取 condition 配置
     const condition = node.props.condition as ConditionConfig | undefined;
-    if (condition) {
+
+    // 如果存在 condition，由 condition 控制显隐（忽略 show 属性）
+    if (condition && condition.field) {
+      const context = getContext();
       const met = evaluateCondition(condition, context);
       if (!met) return null;
+      return next(node);
     }
+
+    // 如果没有 condition，检查 show 属性（向后兼容）
+    const show = node.props.show as boolean | undefined;
+    if (show === false) return null;
 
     // 条件满足，正常渲染
     return next(node);

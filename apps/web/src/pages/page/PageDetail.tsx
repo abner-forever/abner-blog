@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Spin, Result, Tag, message } from 'antd';
@@ -10,6 +10,8 @@ import {
   ModalProvider,
   ModalPortals,
   styleInjector,
+  createDynamicConditionMiddleware,
+  createDynamicVariableParserMiddleware,
   Container,
   Section,
   Row,
@@ -39,7 +41,7 @@ import {
   DataList,
   DataBadge,
 } from '@abner-blog/page-schema';
-import type { PageSchema, ActionContext, SchemaNode, ModalApi } from '@abner-blog/page-schema';
+import type { PageSchema, ActionContext, SchemaNode, ModalApi, Middleware } from '@abner-blog/page-schema';
 
 interface PageData {
   title?: string;
@@ -58,6 +60,19 @@ const PageDetail: React.FC = () => {
   const [error, setError] = useState(false);
   const fetchIdRef = useRef(0);
   const modalApiRef = useRef<ModalApi>({ open: () => {}, close: () => {} });
+
+  // 共享变量存储 - actionContext 和动态中间件都使用这个
+  const pageVarsRef = useRef<Record<string, unknown>>({});
+
+  // 创建动态中间件 - 每次渲染时从 pageVarsRef 读取最新变量值
+  const conditionMiddleware = useMemo<Middleware>(
+    () => createDynamicConditionMiddleware(() => pageVarsRef.current),
+    [],
+  );
+  const variableParserMiddleware = useMemo<Middleware>(
+    () => createDynamicVariableParserMiddleware(() => pageVarsRef.current),
+    [],
+  );
 
   useEffect(() => {
     if (!slug) return;
@@ -88,7 +103,6 @@ const PageDetail: React.FC = () => {
   /** 事件执行上下文工厂 — 提供 toast/navigate/变量/事件总线等运行时能力（modals 由 modalApi 注入） */
   const actionContextFactory = useCallback(
     (rootNode: SchemaNode): ActionContext => {
-      const pageVars: Record<string, unknown> = {};
       const eventHandlers: Record<string, Array<(detail?: unknown) => void>> = {};
 
       return {
@@ -114,12 +128,13 @@ const PageDetail: React.FC = () => {
             modalApiRef.current.close(modalId);
           },
         },
+        // 变量操作指向共享的 pageVarsRef
         variables: {
-          get: (key: string) => pageVars[key],
-          set: (key: string, value: unknown) => { pageVars[key] = value; },
-          delete: (key: string) => { delete pageVars[key]; },
+          get: (key: string) => pageVarsRef.current[key],
+          set: (key: string, value: unknown) => { pageVarsRef.current[key] = value; },
+          delete: (key: string) => { delete pageVarsRef.current[key]; },
           clear: () => {
-            Object.keys(pageVars).forEach((k) => { delete pageVars[k]; });
+            Object.keys(pageVarsRef.current).forEach((k) => { delete pageVarsRef.current[k]; });
           },
         },
         eventBus: {
@@ -266,7 +281,7 @@ const PageDetail: React.FC = () => {
                 'data-list': DataList,
                 'data-badge': DataBadge,
               }}
-              extraMiddlewares={[styleInjector]}
+              extraMiddlewares={[styleInjector, conditionMiddleware, variableParserMiddleware]}
               actionContextFactory={actionContextFactory}
             >
               <PageRenderer

@@ -7,89 +7,16 @@ import {
   ClockCircleOutlined,
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import Loading from '@/components/Loading';
+
 import './index.less';
 import CountAdd from './components/CountAdd';
+import VirtualList from './components/virtualList';
 
 const { Title, Text } = Typography;
 const { useBreakpoint } = Grid;
 
-// Virtual List Component
-const VirtualList: React.FC = () => {
-  const [list, setList] = useState<number[]>([]);
-  const [loading, setLoading] = useState(true);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [visibleRange, setVisibleRange] = useState({ start: 0, end: 50 });
-  const ITEM_HEIGHT = 60;
 
-  useEffect(() => {
-    setTimeout(() => {
-      setList(Array.from({ length: 10000 }, (_, i) => i + 1));
-      setLoading(false);
-    }, 500);
-  }, []);
-
-  const handleScroll = useCallback(
-    (e: React.UIEvent<HTMLDivElement>) => {
-      const scrollTop = e.currentTarget.scrollTop;
-      const containerHeight = e.currentTarget.clientHeight;
-      const start = Math.floor(scrollTop / ITEM_HEIGHT);
-      const end = Math.ceil((scrollTop + containerHeight) / ITEM_HEIGHT);
-      setVisibleRange({
-        start: Math.max(0, start - 5),
-        end: Math.min(list.length, end + 5),
-      });
-    },
-    [list.length],
-  );
-
-  if (loading) return <Loading />;
-
-  const visibleItems = list
-    .slice(visibleRange.start, visibleRange.end)
-    .map((item) => ({
-      index: item,
-      style: {
-        position: 'absolute' as const,
-        top: (item - 1) * ITEM_HEIGHT,
-        height: ITEM_HEIGHT,
-        left: 0,
-        right: 0,
-        padding: '0 20px',
-        display: 'flex',
-        alignItems: 'center',
-        borderBottom: '1px solid #f0f0f0',
-      },
-    }));
-
-  return (
-    <div className="virtual-list-demo">
-      <div className="virtual-list-header">
-        <Text>共 {list.length} 条数据</Text>
-        <Text>
-          显示 {visibleRange.start + 1} - {visibleRange.end} 条
-        </Text>
-      </div>
-      <div
-        className="virtual-list-container"
-        ref={containerRef}
-        onScroll={handleScroll}
-      >
-        <div
-          style={{ height: list.length * ITEM_HEIGHT, position: 'relative' }}
-        >
-          {visibleItems.map(({ index, style }) => (
-            <div key={index} style={style}>
-              <Text>
-                第 {index} 条数据 - Item {index}
-              </Text>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-};
+const demoList = new Array(1000).fill('Item ');
 
 const TETRIS_SHAPES = [
   { shape: [[1, 1, 1, 1]], color: '#00f0f0' },
@@ -458,12 +385,23 @@ const DemoPage: React.FC = () => {
         <div className="demo-modal-overlay" onClick={() => setActiveDemo(null)}>
           <div
             onClick={(e) => e.stopPropagation()}
-            style={{ width: '80%', maxWidth: 600 }}
+            style={{ width: '80%', maxWidth: 600, backgroundColor:'#fff' }}
           >
             <Title level={3} className="modal-title">
               {t('demo.virtualList')}
             </Title>
-            <VirtualList />
+            <VirtualList
+              data={demoList}
+              height={400}
+              itemHeight={50}
+              overscan={2}
+              renderItem={(item, index) => (
+                <span>
+                  {item}
+                  {index}
+                </span>
+              )}
+            />
           </div>
         </div>
       )}

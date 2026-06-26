@@ -334,6 +334,7 @@ export interface FormInputNodeProps {
   placeholder?: string;
   required?: boolean;
   type?: 'text' | 'email' | 'tel' | 'number' | 'password';
+  value?: string;
   style?: React.CSSProperties;
 }
 
@@ -344,6 +345,7 @@ export interface FormTextareaNodeProps {
   placeholder?: string;
   required?: boolean;
   rows?: number;
+  value?: string;
   style?: React.CSSProperties;
 }
 
@@ -351,8 +353,10 @@ export interface FormTextareaNodeProps {
 export interface FormSelectNodeProps {
   label?: string;
   name: string;
+  placeholder?: string;
   options?: Array<{ label: string; value: string }>;
   required?: boolean;
+  value?: string;
   style?: React.CSSProperties;
 }
 
@@ -361,6 +365,7 @@ export interface FormCheckboxNodeProps {
   label?: string;
   name: string;
   required?: boolean;
+  value?: string;
   style?: React.CSSProperties;
 }
 

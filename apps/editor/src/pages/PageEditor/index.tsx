@@ -23,6 +23,7 @@ import TranslationPanel from "./TranslationPanel";
 import { buildPageSchemaJson } from "@/utils/schemaConverter";
 import SchemaPreview from "./SchemaPreview";
 import EventBindingTabContent from "./EventBindingTabContent";
+import VariableBindingTabContent from "./VariableBindingTabContent";
 import "./index.less";
 
 type SaveStatus = "saved" | "saving" | "unsaved" | "auto-saving";
@@ -932,6 +933,11 @@ const PageEditor: React.FC = () => {
           /** 组件块 */
           blocks: {
             default: blocks,
+            // 禁用 Studio SDK 内置组件，只使用自定义组件
+            appendOnClick: ({ block }) => {
+              // 允许所有自定义组件的点击插入
+              return true;
+            },
           },
           /** 模板：从服务器 API 获取，带本地 fallback */
           templates: {
@@ -1213,6 +1219,144 @@ const PageEditor: React.FC = () => {
               }
             };
             injectModalCss();
+
+            // ========== 翻译内置表单组件标签 ==========
+            const translateFormBlocks = () => {
+              try {
+                const blocks = editor.Blocks;
+                if (!blocks) return;
+
+                const translations: Record<string, string> = {
+                  'form': '表单',
+                  'input': '输入框',
+                  'textarea': '多行文本',
+                  'select': '下拉选择',
+                  'checkbox': '复选框',
+                  'radio': '单选按钮',
+                  'button': '按钮',
+                  'submit': '提交按钮',
+                  'label': '标签',
+                  'field': '表单字段',
+                };
+
+                blocks.getAll().forEach((block) => {
+                  const id = block.getId();
+                  const label = block.getLabel();
+                  // 翻译表单组件
+                  for (const [key, value] of Object.entries(translations)) {
+                    if (id.toLowerCase().includes(key) || label.toLowerCase().includes(key)) {
+                      block.set('label', value);
+                      break;
+                    }
+                  }
+                });
+              } catch { /* 忽略 */ }
+            };
+            translateFormBlocks();
+
+            // ========== 通过 DomComponents 给表单组件设置默认样式 ==========
+            // 与 input 一样，样式跟着组件走，不注入 CSS
+            if (domComps) {
+              const FORM_FIELD_STYLE = {
+                width: '100%',
+                padding: '8px 12px',
+                border: '1px solid #d9d9d9',
+                borderRadius: '4px',
+                fontSize: '14px',
+                boxSizing: 'border-box',
+                background: '#fff',
+                color: '#333',
+                outline: 'none',
+                display: 'block',
+              };
+              const SELECT_ARROW_SVG = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")`;
+
+              // select 组件默认样式
+              try {
+                const existingSelect = domComps.getType('select');
+                if (existingSelect) {
+                  domComps.addType('select', {
+                    model: {
+                      defaults: {
+                        'style-default': {
+                          ...FORM_FIELD_STYLE,
+                          cursor: 'pointer',
+                          appearance: 'none',
+                          backgroundImage: SELECT_ARROW_SVG,
+                          backgroundRepeat: 'no-repeat',
+                          backgroundPosition: 'right 12px center',
+                          backgroundSize: '16px',
+                          paddingRight: '40px',
+                        },
+                      },
+                    },
+                  });
+                }
+              } catch { /* 忽略 */ }
+
+              // textarea 组件默认样式
+              try {
+                const existingTextarea = domComps.getType('textarea');
+                if (existingTextarea) {
+                  domComps.addType('textarea', {
+                    model: {
+                      defaults: {
+                        'style-default': {
+                          ...FORM_FIELD_STYLE,
+                          resize: 'vertical',
+                          minHeight: '80px',
+                          fontFamily: 'inherit',
+                          lineHeight: '1.5',
+                        },
+                      },
+                    },
+                  });
+                }
+              } catch { /* 忽略 */ }
+
+              // button 组件默认样式
+              try {
+                const existingButton = domComps.getType('button');
+                if (existingButton) {
+                  domComps.addType('button', {
+                    model: {
+                      defaults: {
+                        'style-default': {
+                          padding: '8px 20px',
+                          background: '#2f81f7',
+                          color: '#fff',
+                          border: 'none',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          fontSize: '14px',
+                          fontWeight: '500',
+                        },
+                      },
+                    },
+                  });
+                }
+              } catch { /* 忽略 */ }
+
+              // label 组件默认样式
+              try {
+                const existingLabel = domComps.getType('label');
+                if (existingLabel) {
+                  domComps.addType('label', {
+                    model: {
+                      defaults: {
+                        'style-default': {
+                          display: 'block',
+                          marginBottom: '4px',
+                          fontSize: '14px',
+                          fontWeight: '500',
+                          color: '#333',
+                        },
+                      },
+                    },
+                  });
+                }
+              } catch { /* 忽略 */ }
+            }
 
             // ========== Modal 双区域结构构建 ==========
             // 将现有组件分为 page-content 和 modals-container 两个区域
@@ -1933,6 +2077,14 @@ const PageEditor: React.FC = () => {
                         children: {
                           type: "custom",
                           component: EventBindingTabContent,
+                        },
+                      },
+                      {
+                        id: "variables",
+                        label: "变量",
+                        children: {
+                          type: "custom",
+                          component: VariableBindingTabContent,
                         },
                       },
                     ],

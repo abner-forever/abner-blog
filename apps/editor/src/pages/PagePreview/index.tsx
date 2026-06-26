@@ -9,6 +9,8 @@ import {
   ModalProvider,
   ModalPortals,
   styleInjector,
+  createDynamicConditionMiddleware,
+  createDynamicVariableParserMiddleware,
   Container,
   Section,
   Row,
@@ -38,7 +40,7 @@ import {
   DataList,
   DataBadge,
 } from "@abner-blog/page-schema";
-import type { PageSchema, ActionContext, SchemaNode, ModalApi } from "@abner-blog/page-schema";
+import type { PageSchema, ActionContext, SchemaNode, ModalApi, Middleware } from "@abner-blog/page-schema";
 
 const PagePreview: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -48,6 +50,21 @@ const PagePreview: React.FC = () => {
   const [error, setError] = useState(false);
   const fetchIdRef = useRef(0);
   const modalApiRef = useRef<ModalApi>({ open: () => {}, close: () => {} });
+
+  // 共享变量存储 - actionContext 和动态中间件都使用这个
+  const pageVarsRef = useRef<Record<string, unknown>>({});
+  // 变量版本号，用于触发重新渲染
+  const [, setVarVersion] = useState(0);
+
+  // 创建动态中间件 - 每次渲染时从 pageVarsRef 读取最新变量值
+  const conditionMiddleware = useMemo<Middleware>(
+    () => createDynamicConditionMiddleware(() => pageVarsRef.current),
+    [],
+  );
+  const variableParserMiddleware = useMemo<Middleware>(
+    () => createDynamicVariableParserMiddleware(() => pageVarsRef.current),
+    [],
+  );
 
   useEffect(() => {
     if (!slug) return;
@@ -77,7 +94,6 @@ const PagePreview: React.FC = () => {
   /** 事件执行上下文工厂 — 提供 toast/navigate/modals/变量/事件总线等运行时能力 */
   const actionContextFactory = useCallback(
     (rootNode: SchemaNode): ActionContext => {
-      const pageVars: Record<string, unknown> = {};
       const eventHandlers: Record<string, Array<(detail?: unknown) => void>> = {};
 
       return {
@@ -103,12 +119,23 @@ const PagePreview: React.FC = () => {
             modalApiRef.current.close(modalId);
           },
         },
+        // 变量操作指向共享的 pageVarsRef
         variables: {
-          get: (key: string) => pageVars[key],
-          set: (key: string, value: unknown) => { pageVars[key] = value; },
-          delete: (key: string) => { delete pageVars[key]; },
+          get: (key: string) => pageVarsRef.current[key],
+          set: (key: string, value: unknown) => {
+            pageVarsRef.current[key] = value;
+            // 触发重新渲染，让条件中间件和变量解析中间件读取最新值
+            setVarVersion((v) => v + 1);
+          },
+          delete: (key: string) => {
+            delete pageVarsRef.current[key];
+            setVarVersion((v) => v + 1);
+          },
           clear: () => {
-            Object.keys(pageVars).forEach((k) => { delete pageVars[k]; });
+            Object.keys(pageVarsRef.current).forEach((k) => {
+              delete pageVarsRef.current[k];
+            });
+            setVarVersion((v) => v + 1);
           },
         },
         eventBus: {
@@ -292,7 +319,7 @@ const PagePreview: React.FC = () => {
                     "data-list": DataList,
                     "data-badge": DataBadge,
                   }}
-                  extraMiddlewares={[styleInjector]}
+                  extraMiddlewares={[styleInjector, conditionMiddleware, variableParserMiddleware]}
                   actionContextFactory={actionContextFactory}
                 >
                   <PageRenderer

@@ -22,7 +22,13 @@
  * 每个节点都是独立可测试的纯函数/工厂函数。
  */
 
-import { StateGraph, Annotation, START, END } from '@langchain/langgraph';
+import {
+  StateGraph,
+  Annotation,
+  START,
+  END,
+  CompiledStateGraph,
+} from '@langchain/langgraph';
 import { SystemMessage, HumanMessage } from '@langchain/core/messages';
 import { IntentType } from '../dto/extraction-result.dto';
 import type { ChatLLM } from '../langchain/model';
@@ -303,7 +309,7 @@ function mapIntentFromText(text: string): IntentType | null {
 function createCheckPreconditionsNode(
   shouldUseFastPath: (msg: string) => boolean,
 ) {
-  return async (state: GraphState): Promise<Partial<GraphState>> => {
+  return (state: GraphState): Partial<GraphState> => {
     const { userInput, hasImages } = state;
     // userId 在运行时可能为 undefined（Annotation<number> 默认值），此处视作游客
     const isGuest = !state.userId;
@@ -322,7 +328,7 @@ function createCheckPreconditionsNode(
  * 第 2 步：基于正则规则的意图检测
  */
 function createRuleBasedDetectionNode() {
-  return async (state: GraphState): Promise<Partial<GraphState>> => {
+  return (state: GraphState): Partial<GraphState> => {
     const { userInput } = state;
     const ruleResult = detectIntentByRules(userInput);
 
@@ -363,7 +369,7 @@ function createLlmDetectionNode(llm: ChatLLM) {
         llmIntent: mappedIntent,
       } satisfies LlmDetectionResult as Partial<GraphState>;
     } catch (error: unknown) {
-      const msg = error instanceof Error ? error.message : String(error);
+      const msg = error instanceof Error ? error.message : 'Unknown error';
       process.stderr.write(`[AI Intent Graph] LLM error: ${msg}\n`);
       return {
         llmRawOutput: null,
@@ -378,7 +384,7 @@ function createLlmDetectionNode(llm: ChatLLM) {
  * 优先级：fast_path → LLM 匹配 → 规则匹配 → CHAT 兜底
  */
 function createResolveIntentNode() {
-  return async (state: GraphState): Promise<Partial<GraphState>> => {
+  return (state: GraphState): Partial<GraphState> => {
     const { useFastPath, ruleResult, llmIntent } = state;
 
     // 快速路径 → CHAT
@@ -462,5 +468,8 @@ export function createIntentGraph(
     .addEdge('llmDetection', 'resolveIntent')
     .addEdge('resolveIntent', END);
 
-  return workflow.compile();
+  return workflow.compile() as CompiledStateGraph<
+    GraphState,
+    Partial<GraphState>
+  >;
 }

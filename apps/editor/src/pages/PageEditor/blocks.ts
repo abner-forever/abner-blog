@@ -147,62 +147,6 @@ export const blocks: BlockProperties[] = [
     category: "布局组件",
   },
 
-  // ==================== 表单组件 ====================
-  {
-    id: "form-container",
-    label: "表单容器",
-    media:
-      '<svg viewBox="0 0 24 24" width="24" height="24"><rect x="3" y="3" width="18" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><line x1="7" y1="8" x2="17" y2="8" stroke="currentColor" stroke-width="1.5"/><line x1="7" y1="12" x2="17" y2="12" stroke="currentColor" stroke-width="1.5"/><line x1="7" y1="16" x2="12" y2="16" stroke="currentColor" stroke-width="1.5"/></svg>',
-    content:
-      '<form data-schema-type="form" data-page-form="true" style="padding:24px;border:2px dashed #2f81f7;border-radius:8px;background:#fafafa;"><div style="margin-bottom:16px;font-size:14px;color:#888;">📋 将表单字段拖入此区域</div><div style="display:flex;flex-direction:column;gap:12px;"><button type="submit" style="align-self:flex-start;padding:10px 24px;background:#2f81f7;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:14px;">提交</button></div></form>',
-    category: { id: "form", label: "表单组件", open: true },
-  },
-  {
-    id: "form-input",
-    label: "输入框",
-    media:
-      '<svg viewBox="0 0 24 24" width="24" height="24"><rect x="3" y="8" width="18" height="8" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><text x="6" y="15" font-size="6" fill="currentColor">ab</text></svg>',
-    content:
-      '<div data-schema-type="form-input" class="form-field" style="margin-bottom:4px;"><label style="display:block;margin-bottom:4px;font-size:14px;font-weight:500;color:#333;">姓名</label><input type="text" name="name" placeholder="请输入" style="width:100%;padding:8px 12px;border:1px solid #d9d9d9;border-radius:4px;font-size:14px;box-sizing:border-box;"/></div>',
-    category: "表单组件",
-  },
-  {
-    id: "form-textarea",
-    label: "多行文本",
-    media:
-      '<svg viewBox="0 0 24 24" width="24" height="24"><rect x="3" y="5" width="18" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><line x1="6" y1="10" x2="18" y2="10" stroke="currentColor" stroke-width="0.5"/><line x1="6" y1="13" x2="18" y2="13" stroke="currentColor" stroke-width="0.5"/></svg>',
-    content:
-      '<div data-schema-type="form-textarea" class="form-field" style="margin-bottom:4px;"><label style="display:block;margin-bottom:4px;font-size:14px;font-weight:500;color:#333;">留言</label><textarea name="message" rows="4" placeholder="请输入" style="width:100%;padding:8px 12px;border:1px solid #d9d9d9;border-radius:4px;font-size:14px;box-sizing:border-box;resize:vertical;"></textarea></div>',
-    category: "表单组件",
-  },
-  {
-    id: "form-select",
-    label: "下拉选择",
-    media:
-      '<svg viewBox="0 0 24 24" width="24" height="24"><rect x="3" y="8" width="18" height="8" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><polyline points="16,11 12,15 8,11" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>',
-    content:
-      '<div data-schema-type="form-select" class="form-field" style="margin-bottom:4px;"><label style="display:block;margin-bottom:4px;font-size:14px;font-weight:500;color:#333;">选择</label><select name="option" style="width:100%;padding:8px 12px;border:1px solid #d9d9d9;border-radius:4px;font-size:14px;box-sizing:border-box;background:#fff;"><option value="">请选择</option><option value="1">选项一</option><option value="2">选项二</option><option value="3">选项三</option></select></div>',
-    category: "表单组件",
-  },
-  {
-    id: "form-checkbox",
-    label: "复选框",
-    media:
-      '<svg viewBox="0 0 24 24" width="24" height="24"><rect x="4" y="4" width="16" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><polyline points="8,12 11,15 16,9" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>',
-    content:
-      '<div data-schema-type="form-checkbox" class="form-field" style="margin-bottom:4px;"><label style="display:flex;align-items:center;gap:8px;font-size:14px;cursor:pointer;"><input type="checkbox" name="agree" value="1" style="width:16px;height:16px;cursor:pointer;"/> 同意条款</label></div>',
-    category: "表单组件",
-  },
-  {
-    id: "form-submit",
-    label: "提交按钮",
-    media:
-      '<svg viewBox="0 0 24 24" width="24" height="24"><rect x="4" y="4" width="16" height="16" rx="4" fill="none" stroke="currentColor" stroke-width="1.5"/><polyline points="9,12 11,14 15,10" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>',
-    content:
-      '<button data-schema-type="form-submit" type="submit" style="padding:10px 32px;background:#2f81f7;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:14px;font-weight:500;">提交</button>',
-    category: "表单组件",
-  },
-
   // ==================== 导航组件 ====================
   {
     id: "nav-menu",

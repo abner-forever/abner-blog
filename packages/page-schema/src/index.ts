@@ -34,8 +34,8 @@ export { animationInjector } from './middleware/animation';
 export type { AnimationConfig } from './middleware/animation';
 export { createAnalyticsMiddleware } from './middleware/analytics';
 export type { AnalyticsEvent, AnalyticsTracker, AnalyticsNodeProps } from './middleware/analytics';
-export { createVariableParserMiddleware } from './middleware/variable-parser';
-export { createConditionMiddleware } from './middleware/condition';
+export { createVariableParserMiddleware, createDynamicVariableParserMiddleware } from './middleware/variable-parser';
+export { createConditionMiddleware, createDynamicConditionMiddleware } from './middleware/condition';
 export type { ConditionConfig, ConditionOperator } from './middleware/condition';
 export type { Middleware } from './types';
 
