@@ -34,7 +34,13 @@ const FormCheckbox: React.FC<BaseComponentProps> = ({ node }) => {
   }, [propValue, formCtx]);
 
   // 有 FormContext 时使用 FormContext 的值，否则使用内部状态
-  const checked = formCtx ? !!(formCtx.values[name]) : internalChecked;
+  // propValue 已由 variable-parser 中间件解析（{{query.xxx}} → 实际值）
+  // formCtx.values[name] === undefined 时回退到 propValue 作为初始选中状态
+  const checked = formCtx
+    ? formCtx.values[name] === undefined
+      ? (propValue === 'true' || propValue === '1')
+      : !!formCtx.values[name]
+    : internalChecked;
   const error = formCtx ? formCtx.errors[name] : undefined;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

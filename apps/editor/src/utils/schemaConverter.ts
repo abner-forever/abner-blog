@@ -293,7 +293,7 @@ function extractFormProps(el: HTMLElement): Record<string, unknown> {
   };
 }
 
-/** FormInput：提取 label、name、placeholder、required、type */
+/** FormInput：提取 label、name、placeholder、required、type、value */
 function extractFormInputProps(el: HTMLElement): Record<string, unknown> {
   const input = el.querySelector('input') || el;
   const label = el.querySelector('label');
@@ -304,10 +304,11 @@ function extractFormInputProps(el: HTMLElement): Record<string, unknown> {
     placeholder: getAttr(input as HTMLElement, 'placeholder') || '',
     required: (input as HTMLInputElement).required || el.querySelector('[required]') !== null,
     type: getAttr(input as HTMLElement, 'type') || 'text',
+    value: getAttr(input as HTMLElement, 'value') || undefined,
   };
 }
 
-/** FormTextarea：提取 label、name、placeholder、required、rows */
+/** FormTextarea：提取 label、name、placeholder、required、rows、value */
 function extractFormTextareaProps(el: HTMLElement): Record<string, unknown> {
   const textarea = el.querySelector('textarea') || el;
   const label = el.querySelector('label');
@@ -318,10 +319,11 @@ function extractFormTextareaProps(el: HTMLElement): Record<string, unknown> {
     placeholder: getAttr(textarea as HTMLElement, 'placeholder') || '',
     required: (textarea as HTMLTextAreaElement).required || el.querySelector('[required]') !== null,
     rows: parseInt(getAttr(textarea as HTMLElement, 'rows') || '4', 10),
+    value: getAttr(textarea as HTMLElement, 'value') || undefined,
   };
 }
 
-/** FormSelect：提取 label、name、options、required */
+/** FormSelect：提取 label、name、options、required、value */
 function extractFormSelectProps(el: HTMLElement): Record<string, unknown> {
   const select = el.querySelector('select') || el;
   const label = el.querySelector('label');
@@ -341,10 +343,11 @@ function extractFormSelectProps(el: HTMLElement): Record<string, unknown> {
     name: selectEl.name || getAttr(select as HTMLElement, 'name') || '',
     options: options.length > 0 ? options : undefined,
     required: selectEl.required || el.querySelector('[required]') !== null,
+    value: getAttr(select as HTMLElement, 'value') || undefined,
   };
 }
 
-/** FormCheckbox：提取 label、name、required */
+/** FormCheckbox：提取 label、name、required、value */
 function extractFormCheckboxProps(el: HTMLElement): Record<string, unknown> {
   const input = el.querySelector('input') || el;
   const label = el.querySelector('label');
@@ -361,6 +364,7 @@ function extractFormCheckboxProps(el: HTMLElement): Record<string, unknown> {
     label: labelText || '',
     name: (input as HTMLInputElement).name || getAttr(input as HTMLElement, 'name') || '',
     required: (input as HTMLInputElement).required || el.querySelector('[required]') !== null,
+    value: getAttr(input as HTMLElement, 'value') || undefined,
   };
 }
 

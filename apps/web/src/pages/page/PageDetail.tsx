@@ -42,6 +42,7 @@ import {
   DataBadge,
 } from '@abner-blog/page-schema';
 import type { PageSchema, ActionContext, SchemaNode, ModalApi, Middleware } from '@abner-blog/page-schema';
+import { VariableStore } from '@abner-blog/page-schema';
 
 interface PageData {
   title?: string;
@@ -61,17 +62,17 @@ const PageDetail: React.FC = () => {
   const fetchIdRef = useRef(0);
   const modalApiRef = useRef<ModalApi>({ open: () => {}, close: () => {} });
 
-  // 共享变量存储 - actionContext 和动态中间件都使用这个
-  const pageVarsRef = useRef<Record<string, unknown>>({});
+  // 响应式变量存储 - 组件间通信的数据源（替换原有的 pageVarsRef 模式）
+  const variableStore = useMemo(() => new VariableStore(), []);
 
-  // 创建动态中间件 - 每次渲染时从 pageVarsRef 读取最新变量值
+  // 创建动态中间件 - 每次渲染时从 VariableStore 读取最新变量值
   const conditionMiddleware = useMemo<Middleware>(
-    () => createDynamicConditionMiddleware(() => pageVarsRef.current),
-    [],
+    () => createDynamicConditionMiddleware(() => variableStore.getAll()),
+    [variableStore],
   );
   const variableParserMiddleware = useMemo<Middleware>(
-    () => createDynamicVariableParserMiddleware(() => pageVarsRef.current),
-    [],
+    () => createDynamicVariableParserMiddleware(() => variableStore.getAll()),
+    [variableStore],
   );
 
   useEffect(() => {
@@ -100,7 +101,8 @@ const PageDetail: React.FC = () => {
       });
   }, [slug]);
 
-  /** 事件执行上下文工厂 — 提供 toast/navigate/变量/事件总线等运行时能力（modals 由 modalApi 注入） */
+  /** 事件执行上下文工厂 — 提供 toast/navigate/modals/事件总线等运行时能力 */
+  /** 注意：variables 由 RendererProvider 从 VariableStore 自动注入，此处不需要提供 */
   const actionContextFactory = useCallback(
     (rootNode: SchemaNode): ActionContext => {
       const eventHandlers: Record<string, Array<(detail?: unknown) => void>> = {};
@@ -128,14 +130,13 @@ const PageDetail: React.FC = () => {
             modalApiRef.current.close(modalId);
           },
         },
-        // 变量操作指向共享的 pageVarsRef
+        // variables 由 RendererProvider 从 VariableStore 自动注入，此处提供占位
+        // 相比之前：Web 端现在自动支持变量变化触发界面更新
         variables: {
-          get: (key: string) => pageVarsRef.current[key],
-          set: (key: string, value: unknown) => { pageVarsRef.current[key] = value; },
-          delete: (key: string) => { delete pageVarsRef.current[key]; },
-          clear: () => {
-            Object.keys(pageVarsRef.current).forEach((k) => { delete pageVarsRef.current[k]; });
-          },
+          get: () => undefined,
+          set: () => {},
+          delete: () => {},
+          clear: () => {},
         },
         eventBus: {
           emit: (name: string, detail?: unknown) => {
@@ -250,6 +251,7 @@ const PageDetail: React.FC = () => {
           return (
             <RendererProvider
               schema={data.schema || { root: { id: 'empty', type: 'container', props: {} } }}
+              variableStore={variableStore}
               modalApi={modalApi}
               extraComponents={{
                 container: Container,

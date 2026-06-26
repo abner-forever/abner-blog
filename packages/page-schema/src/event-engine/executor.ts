@@ -13,6 +13,7 @@
 
 import type { EventAction, EventActionType } from '../types';
 import type { ActionContext } from './action-context';
+import { resolveObjectTemplates } from '../resolve-template';
 
 /* ==================== 动作处理器类型 ==================== */
 
@@ -102,7 +103,17 @@ export async function executeActions(
     }
 
     try {
-      await handler(action, context, event);
+      // 自动解析 action.config 中的 {{varName}} 模板变量
+      // 支持 {{urlParams.id}} 等点号路径，从 current VariableStore 取值
+      const resolvedConfig = resolveObjectTemplates(
+        action.config,
+        (key) => context.variables.get(key),
+      );
+      const resolvedAction = resolvedConfig !== action.config
+        ? { ...action, config: resolvedConfig }
+        : action;
+
+      await handler(resolvedAction, context, event);
     } catch (err) {
       // 单个动作执行失败不影响后续动作
       console.error(

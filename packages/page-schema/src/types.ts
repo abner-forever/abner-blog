@@ -135,6 +135,103 @@ export interface PageMeta {
   description?: string;
 }
 
+/* ==================== 数据来源 ==================== */
+
+/**
+ * URL 参数映射配置
+ *
+ * 将 URL search params 中的值映射为页面变量。
+ * 支持类型转换和兜底默认值。
+ * 支持 captureAll 模式：一键抓取全部参数存为对象。
+ *
+ * @example
+ * ```json
+ * // 逐一映射
+ * { "param": "id", "as": "articleId", "type": "number", "default": "" }
+ * { "param": "tags", "as": "tagList", "type": "array", "separator": "," }
+ *
+ * // 全部捕获（推荐，参数多时用）
+ * { "as": "urlParams", "captureAll": true }
+ * ```
+ */
+export interface UrlMappingItem {
+  /**
+   * 捕获全部 URL 参数存为一个对象
+   * 设为 true 时，param/type/separator/default 不生效。
+   * 通过 {{urlParams.xxx}} 模板语法使用各个参数。
+   */
+  captureAll?: boolean;
+  /** URL 参数名，如 ?id=xxx 中的 "id"（captureAll=true 时不生效） */
+  param?: string;
+  /** 对应的变量名（支持点号嵌套，如 "filters.price"） */
+  as: string;
+  /** 类型转换，默认 "string" */
+  type?: 'string' | 'number' | 'boolean' | 'array';
+  /** 数组分隔符（仅 type=array 时生效，默认 ","） */
+  separator?: string;
+  /**
+   * 兜底默认值
+   * 语义：仅当 URL 中无此参数**且** initial 中也无此变量时生效
+   */
+  default?: string;
+}
+
+/**
+ * API 数据源配置
+ *
+ * 声明页面挂载时自动请求的 API 数据源。
+ * 按数组顺序串行执行，同 parallelGroup 组内并行。
+ */
+export interface DataSourceItem {
+  /** 数据源名称（日志/调试用） */
+  name: string;
+  /**
+   * API 地址
+   * 支持 {{varName}} 模板语法，从 VariableStore 当前值解析。
+   * 依赖前一个数据源的结果时，在 url 中引用即可（利用串行顺序）。
+   */
+  url: string;
+  method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
+  headers?: Record<string, string>;
+  body?: unknown;
+  /** 响应存入的变量名（必填） */
+  assignTo: string;
+  /** 并行分组 —— 同组数据源在同一个 Promise.all 中并行执行 */
+  parallelGroup?: string;
+  /** 请求成功后的额外动作链 */
+  onSuccess?: EventAction[];
+  /** 请求失败后的额外动作链 */
+  onError?: EventAction[];
+}
+
+/**
+ * 页面变量配置
+ *
+ * 声明页面的变量来源，包括初始值、URL 参数映射和 API 数据源。
+ * 挂在 PageSchema.variables 下，编辑器可序列化配置。
+ */
+export interface PageVariables {
+  /** 初始变量值（硬编码默认值） */
+  initial?: Record<string, unknown>;
+  /** URL 参数到变量的映射 */
+  urlMapping?: UrlMappingItem[];
+  /** API 数据源（页面挂载时按序执行） */
+  dataSources?: DataSourceItem[];
+  /** 页面生命周期事件 */
+  events?: {
+    /**
+     * 页面加载完成事件
+     *
+     * 在 initial + urlMapping 初始化完成后立即触发。
+     * dataSources 是异步的，不阻塞此事件。
+     * 如需在数据源加载后做操作，使用 DataSourceItem.onSuccess。
+     */
+    onPageLoad?: EventAction[];
+  };
+  /** 扩展槽 —— 供后续或宿主自定义扩展 */
+  extensions?: Record<string, unknown>;
+}
+
 /**
  * 页面 Schema - 页面完整的 JSON 描述
  * 整个页面渲染为一个 SchemaNode 树
@@ -146,6 +243,8 @@ export interface PageSchema {
   css?: string;
   /** 页面元信息 */
   meta?: PageMeta;
+  /** 数据来源配置（页面变量初始化方案） */
+  variables?: PageVariables;
 }
 
 /* ==================== 组件 Props 接口契约 ==================== */

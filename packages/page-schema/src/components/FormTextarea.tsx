@@ -33,8 +33,10 @@ const FormTextarea: React.FC<BaseComponentProps> = ({ node }) => {
   }, [propValue, formCtx]);
 
   // 有 FormContext 时使用 FormContext 的值，否则使用内部状态
+  // propValue 已由 variable-parser 中间件解析（{{query.xxx}} → 实际值）
+  // ?? propValue 确保 URL 参数等变量能作为表单字段的初始值
   const value = formCtx
-    ? (formCtx.values[name] as string) ?? ''
+    ? (formCtx.values[name] as string) ?? propValue ?? ''
     : internalValue;
   const error = formCtx ? formCtx.errors[name] : internalError;
 

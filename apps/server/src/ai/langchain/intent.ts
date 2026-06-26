@@ -70,5 +70,6 @@ export async function detectIntent(
     currentDate,
   });
 
-  return result.finalIntent ?? IntentType.CHAT;
+  const finalIntent = result.finalIntent as IntentType | undefined;
+  return finalIntent ?? IntentType.CHAT;
 }

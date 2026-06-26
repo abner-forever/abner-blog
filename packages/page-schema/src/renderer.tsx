@@ -27,6 +27,7 @@ import { applyMiddlewares } from './middleware/types';
 import { createEventHandler } from './middleware/event-handler';
 import { UnknownComponent } from './components/Unknown';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { useVariableSubscription, extractNodeVariableDeps } from './variable-store';
 
 /* ==================== 状态组件 ==================== */
 
@@ -114,19 +115,26 @@ interface RenderNodeProps {
 const RenderNode: React.FC<RenderNodeProps> = ({ node, depth }) => {
   const { registry, middlewares, actionContext } = useRendererContext();
 
-  // 构建中间件列表：有 actionContext 时自动注入事件中间件
+  // Hooks 必须在条件返回前统一调用（React Rules of Hooks）
+  // ========== 变量订阅：按需重渲染 ==========
+  const varDeps = useMemo(() => extractNodeVariableDeps(node.props), [node]);
+  const varSnapshot = useVariableSubscription(varDeps);
+
+  const memoKey = useMemo(
+    () => `${node.id || node.type}_${depth}_${varSnapshot}`,
+    [node, depth, varSnapshot],
+  );
+
   const allMiddlewares = useMemo(() => {
     if (!actionContext) return middlewares;
     return [createEventHandler(actionContext), ...middlewares];
   }, [middlewares, actionContext]);
 
-  // 1. 隐藏节点跳过
+  // 条件跳过（放在 hooks 之后，避免破坏 hooks 调用顺序）
   if (node.hidden) return null;
-
-  // 2. Modal 节点跳过（由 ModalProvider 统一通过 Portal 渲染）
   if (node.type === 'modal') return null;
 
-  // 2. 创建组件渲染函数（中间件链末端 identity，产生真实 React 元素）
+  // 创建组件渲染函数（中间件链末端 identity，产生真实 React 元素）
   const renderComponent = (n: SchemaNode): React.ReactNode => {
     const children = n.children?.map((child) => (
       <RenderNode key={child.id} node={child} depth={depth + 1} />
@@ -138,17 +146,13 @@ const RenderNode: React.FC<RenderNodeProps> = ({ node, depth }) => {
     return <Component node={n}>{children}</Component>;
   };
 
-  // 3. 中间件链处理：链末端 renderComponent 渲染组件，
-  //    前面中间件拿到真实元素后修改（注入事件、样式等）
-  const middlewareResult = applyMiddlewares(
-    node,
-    allMiddlewares,
-    renderComponent,
+  // 缓存中间件链结果：仅当依赖的变量或节点结构变化时才重执行
+  const middlewareResult = useMemo(
+    () => applyMiddlewares(node, allMiddlewares, renderComponent),
+    [memoKey, node, allMiddlewares],
   );
 
-  // 中间件返回 null 表示跳过渲染
   if (middlewareResult === null) return null;
-
   return middlewareResult;
 };
 

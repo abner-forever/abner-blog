@@ -3,8 +3,9 @@
  *
  * 功能：
  * - 读取 node.props 中所有字符串值，查找 `{{variableName}}` 模板语法
+ * - 支持点号路径，如 `{{urlParams.id}}`、`{{articleDetail.author.name}}`
  * - 从外部传入的 variables 对象中查找并替换
- * - 未找到的变量保留原样（不报错）
+ * - 未找到的变量返回空字符串（不报错）
  *
  * 用法（Schema 中设置 node.props）：
  * ```json
@@ -18,8 +19,7 @@
  * ```tsx
  * const variableParser = createVariableParserMiddleware({
  *   username: "张三",
- *   userId: "12345",
- *   siteName: "Abner's Blog"
+ *   urlParams: { id: "123", tab: "overview" },
  * });
  *
  * <RendererProvider
@@ -30,43 +30,14 @@
  * ```
  *
  * v1 实现：字符串 props 的模板变量替换
+ * v2 增强：支持 {{urlParams.key}} 点号路径
  * 预留扩展：深层嵌套变量、数组变量遍历、异步变量解析
  */
 
 import type { SchemaNode, Middleware } from '../types';
-
-/* ==================== 常量 ==================== */
-
-/** 变量模板正则：匹配 {{variableName}} */
-const VARIABLE_REGEX = /\{\{([^}]+)\}\}/g;
+import { resolveTemplateVars } from '../resolve-template';
 
 /* ==================== 变量解析核心 ==================== */
-
-/**
- * 解析字符串中的模板变量
- *
- * @param template - 包含 {{key}} 模板的字符串
- * @param variables - 变量字典
- * @returns 替换后的字符串
- */
-function resolveTemplate(
-  template: string,
-  variables: Record<string, unknown>,
-): string {
-  return template.replace(VARIABLE_REGEX, (_, varName: string) => {
-    const trimmed = varName.trim();
-    if (trimmed in variables) {
-      const value = variables[trimmed];
-      // 如果变量值为空字符串或 undefined，返回空字符串
-      if (value === undefined || value === null || value === '') {
-        return '';
-      }
-      return String(value);
-    }
-    // 变量不存在时返回空字符串，而不是模板字符串
-    return '';
-  });
-}
 
 /**
  * 解析节点 props 中的所有模板变量
@@ -84,7 +55,7 @@ function resolveProps(
 
   for (const [key, value] of Object.entries(props)) {
     if (typeof value === 'string' && value.includes('{{')) {
-      const resolved = resolveTemplate(value, variables);
+      const resolved = resolveTemplateVars(value, (varName) => variables[varName]);
       if (resolved !== value) {
         resolvedProps[key] = resolved;
         hasReplacement = true;

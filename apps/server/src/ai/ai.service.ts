@@ -231,7 +231,8 @@ export class AIService {
     if (event === 'chat') {
       return {
         type: 'chat',
-        content: typeof payload?.content === 'string' ? payload.content : undefined,
+        content:
+          typeof payload?.content === 'string' ? payload.content : undefined,
       };
     }
 

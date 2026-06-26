@@ -25,6 +25,7 @@
 import {
   StateGraph,
   Annotation,
+  AnnotationRoot,
   START,
   END,
   CompiledStateGraph,
@@ -51,9 +52,13 @@ type LlmDetectionResult = {
 
 // ──────────── State 定义 ────────────
 
-const IntentDetectionState = Annotation.Root({
+/**
+ * 将 spec 提取为独立 const，再用 `AnnotationRoot<typeof spec>` 显式注解，
+ * 避免 TypeScript 在 declaration emit 时从 Annotation.Root() 深推 AnnotationRoot 类型。
+ */
+const intentDetectionStateSpec = {
   /** 用户原始输入 */
-  userInput: Annotation<string>,
+  userInput: Annotation<string>(),
   /** 当前日期 ISO 字符串 */
   currentDate: Annotation<string>(),
   /** 用户 ID（undefined ＝ 游客） */
@@ -82,7 +87,10 @@ const IntentDetectionState = Annotation.Root({
     },
     default: () => [],
   }),
-});
+};
+
+const IntentDetectionState: AnnotationRoot<typeof intentDetectionStateSpec> =
+  Annotation.Root(intentDetectionStateSpec);
 
 type GraphState = typeof IntentDetectionState.State;
 

@@ -1891,7 +1891,44 @@ const PageEditor: React.FC = () => {
               mobilePortrait: "移动端竖屏",
               mobileLandscape: "移动端横屏",
             };
-            if (locale === "zh-CN") {
+            // ========== 给表单组件添加"默认值"属性（支持 {{query.xxx}} 变量绑定） ==========
+            // 用 getType + addType 重新定义完整的 traits 列表（保留原有 + 追加 value）
+            const addValueTrait = (typeName: string, existingTraitNames: string[]) => {
+              try {
+                const compType = domComps.getType(typeName);
+                if (!compType) return;
+                const ModelClass = compType.getModel();
+                const defaults = ModelClass.prototype.defaults || {};
+                const existing: Record<string, unknown>[] = (defaults.traits || []).map(
+                  (t: string | Record<string, unknown>) => (typeof t === 'string' ? { type: 'text', name: t } : t),
+                );
+                const hasValue = existing.some(
+                  (t) => t.name === 'value',
+                );
+                if (hasValue) return;
+                // 读不到的 traits 从参数补全
+                const seen = new Set(existing.map((t) => t.name));
+                const missing = existingTraitNames.filter((n) => !seen.has(n));
+                domComps.addType(typeName, {
+                  model: {
+                    defaults: {
+                      ...defaults,
+                      traits: [
+                        ...existing,
+                        ...missing.map((n) => (typeof n === 'string' ? { type: 'text', name: n } : n)),
+                        { type: 'text', name: 'value', label: '默认值', placeholder: '如 {{query.title}}' },
+                      ],
+                    },
+                  },
+                });
+              } catch { /* 忽略 */ }
+            };
+            addValueTrait('input', ['name', 'placeholder', 'required', 'type']);
+            addValueTrait('textarea', ['name', 'placeholder', 'required', 'rows']);
+            addValueTrait('select', ['name', 'options', 'required']);
+            addValueTrait('checkbox', ['name', 'required']);
+
+          if (locale === "zh-CN") {
               const devices = editor.Devices.getDevices();
               devices.forEach((device) => {
                 const id = device.get("id") as string;

@@ -12,7 +12,7 @@
  * Context 值对引用稳定性做了保证（避免不必要的重渲染）。
  */
 
-import React, { useMemo, useState, useCallback } from 'react';
+import React, { useMemo, useState, useCallback, useEffect } from 'react';
 import type {
   PageSchema,
   ComponentRegistry,
@@ -26,6 +26,11 @@ import { registerBuiltInActions } from './event-engine/built-in-actions';
 import { applyMiddlewares } from './middleware/types';
 import { createEventHandler } from './middleware/event-handler';
 import { Modal } from './components';
+import { VariableStore, useVariableSubscription, extractNodeVariableDeps } from './variable-store';
+import { VariableContext } from './variable-store';
+import { resolveUrlMappings } from './resolve-url-mappings';
+import { executeDataSources } from './execute-data-sources';
+import { executeActions } from './event-engine/executor';
 
 /* ==================== Context 定义 ==================== */
 
@@ -38,6 +43,8 @@ export interface RendererContextValue {
   css?: string;
   /** 事件执行上下文（由事件中间件使用） */
   actionContext: ActionContext | null;
+  /** 响应式变量存储（组件间通信的数据源） */
+  variableStore: VariableStore | null;
 }
 
 const RendererContext = React.createContext<RendererContextValue | null>(null);
@@ -201,7 +208,13 @@ export const ModalProvider: React.FC<ModalProviderProps> = ({
 const ModalChildNode: React.FC<{ node: SchemaNode }> = ({ node }) => {
   const { registry, middlewares, actionContext } = useRendererContext();
 
-  // 构建中间件列表：有 actionContext 时自动注入事件中间件
+  // Hooks 必须在条件返回前统一调用
+  const varDeps = useMemo(() => extractNodeVariableDeps(node.props), [node]);
+  const varSnapshot = useVariableSubscription(varDeps);
+  const memoKey = useMemo(
+    () => `${node.id || node.type}_${varSnapshot}`,
+    [node, varSnapshot],
+  );
   const allMiddlewares = useMemo(() => {
     if (!actionContext) return middlewares;
     return [createEventHandler(actionContext), ...middlewares];
@@ -221,11 +234,10 @@ const ModalChildNode: React.FC<{ node: SchemaNode }> = ({ node }) => {
     return <Component node={n}>{children}</Component>;
   };
 
-  // 中间件链处理：事件中间件在这里注入事件监听
-  const middlewareResult = applyMiddlewares(
-    node,
-    allMiddlewares,
-    renderComponent,
+  // 缓存中间件链结果
+  const middlewareResult = useMemo(
+    () => applyMiddlewares(node, allMiddlewares, renderComponent),
+    [memoKey, node, allMiddlewares],
   );
 
   if (middlewareResult === null) return null;
@@ -295,25 +307,42 @@ export interface RendererProviderProps {
    */
   modalApi?: ModalApi;
   /**
+   * 变量存储实例（可选）
+   *
+   * 提供此实例时，页面引擎使用它作为组件间通信的变量数据源。
+   * 会将 store 的 set/get/delete/clear 自动注入到 ActionContext.variables，
+   * 并放入 RendererContext 供 RenderNode 做细粒度订阅。
+   *
+   * 宿主应用通过此方式创建中间件：
+   * ```tsx
+   * const store = useMemo(() => new VariableStore(), []);
+   * const variableParser = useMemo(
+   *   () => createDynamicVariableParserMiddleware(() => store),
+   *   [store],
+   * );
+   * ```
+   *
+   * 不提供时，Provider 内部创建一个默认 store（不影响功能，但无法在外部访问）。
+   */
+  variableStore?: VariableStore;
+  /**
    * 事件执行上下文工厂（可选）
    *
    * 提供此工厂时，事件系统自动启用。
    * 工厂接收当前渲染的根节点，返回 ActionContext。
+   * 注意：variables 字段会被 variableStore 的实现覆盖，
+   * 因此工厂中只需提供 toast/navigate/modals/eventBus 等宿主能力。
    *
-   * 宿主应用在此工厂中注入具体能力（toast/navigate/modals 等）：
    * ```tsx
    * <RendererProvider
    *   schema={schema}
-   *   modalApi={modalApi}
    *   actionContextFactory={(rootNode) => ({
    *     sourceNode: rootNode,
-   *     toast: { success: message.success, error: message.error, ... },
-   *     modals: { open: modalApi.open, close: modalApi.close },
-   *     ...
+   *     toast: { success: message.success, ... },
+   *     navigate: ...,
+   *     // variables 会被自动注入
    *   })}
    * >
-   *   <PageRenderer />
-   * </RendererProvider>
    * ```
    */
   actionContextFactory?: (rootNode: SchemaNode) => ActionContext;
@@ -339,43 +368,115 @@ export const RendererProvider: React.FC<RendererProviderProps> = ({
   schema,
   extraComponents,
   extraMiddlewares,
-  modalApi,
   actionContextFactory,
+  variableStore: externalStore,
   children,
 }) => {
-  const contextValue = useMemo<RendererContextValue>(() => {
-    // 确保内置动作已注册（幂等，多次调用不会重复注册）
-    registerBuiltInActions();
+  // 确保内置动作已注册（幂等，多次调用不会重复注册）
+  registerBuiltInActions();
 
-    // 构建注册表：内置组件 + 扩展组件
-    const registry =
+  // 响应式变量存储：优先使用外部传入的，否则内部创建
+  // 抽出为独立 useMemo，便于 useEffect 初始化阶段访问
+  const variableStore = useMemo(
+    () => externalStore ?? new VariableStore(),
+    [externalStore],
+  );
+
+  // 创建事件执行上下文
+  // 注：store-backed variables 会覆盖 host 提供的 variables，
+  // 确保 set-variable 动作写入 store 后能触发订阅者的重渲染。
+  const actionContext = useMemo(() => {
+    if (!actionContextFactory) return null;
+    const hostCtx = actionContextFactory(schema.root);
+    if (!hostCtx) return null;
+    return {
+      ...hostCtx,
+      variables: {
+        get: (key: string) => variableStore.get(key),
+        set: (key: string, value: unknown) => {
+          variableStore.set(key, value);
+        },
+        delete: (key: string) => {
+          variableStore.delete(key);
+        },
+        clear: () => {
+          variableStore.clear();
+        },
+      },
+    };
+  }, [actionContextFactory, schema.root, variableStore]);
+
+  const contextValue = useMemo<RendererContextValue>(() => ({
+    registry:
       extraComponents && Object.keys(extraComponents).length > 0
         ? new DefaultComponentRegistry(extraComponents)
-        : new DefaultComponentRegistry();
-
-    // 创建事件执行上下文
-    const actionContext = actionContextFactory
-      ? actionContextFactory(schema.root)
-      : null;
-
-    return {
-      registry,
-      middlewares: extraMiddlewares ?? [],
-      css: schema.css,
-      actionContext,
-    };
-  }, [
-    schema.css,
-    schema.root,
+        : new DefaultComponentRegistry(),
+    middlewares: extraMiddlewares ?? [],
+    css: schema.css,
+    actionContext,
+    variableStore,
+  }), [
     extraComponents,
     extraMiddlewares,
-    modalApi,
-    actionContextFactory,
+    schema.css,
+    actionContext,
+    variableStore,
   ]);
+
+  // 初始化流水线：initial → urlMapping → onPageLoad → dataSources
+  //
+  // 页面挂载时自动执行：
+  //   ① store.setMany(initial)              ← 同步，硬编码默认值
+  //   ② resolveUrlMappings(urlMapping)       ← 同步，URL 参数→变量
+  //   ③ events.onPageLoad                    ← 同步，执行页面加载事件动作
+  //   ④ executeDataSources(dataSources)      ← 异步，API 串行请求
+  //
+  // schema.variables 变化时重新执行（编辑器预览场景）。
+  useEffect(() => {
+    const variablesConfig = schema.variables;
+
+    // Phase 1: 初始变量值落盘
+    if (variablesConfig?.initial) {
+      variableStore.setMany(variablesConfig.initial);
+    }
+
+    // Phase 2: URL 参数映射
+    if (variablesConfig?.urlMapping?.length) {
+      // 使用页面显式配置的映射规则
+      resolveUrlMappings(variablesConfig.urlMapping, variableStore);
+    } else {
+      // 自动兜底：当页面未配置 urlMapping 但 URL 有参数时，
+      // 自动全部捕获到 query 变量，使 {{query.xxx}} 零配置可用
+      const hasParams = typeof window !== 'undefined' && window.location.search.length > 1;
+      if (hasParams) {
+        resolveUrlMappings([{ as: 'query', captureAll: true }], variableStore);
+      }
+    }
+
+    // Phase 3: 页面加载事件（在 initial + urlMapping 完成后触发）
+    // 此时所有同步变量已就绪，动作配置中的 {{query.xxx}} 可正常解析
+    if (variablesConfig?.events?.onPageLoad?.length && actionContext) {
+      executeActions(variablesConfig.events.onPageLoad, actionContext, null as unknown as Event);
+    }
+
+    // Phase 4: API 数据源（需要 actionContext 执行 onSuccess/onError 动作链）
+    if (variablesConfig?.dataSources?.length && actionContext) {
+      executeDataSources(
+        variablesConfig?.dataSources,
+        variableStore,
+        actionContext,
+      ).catch((err) => {
+        console.error('[RendererProvider] dataSource execution error:', err);
+      });
+    }
+  }, [schema.variables, variableStore, actionContext]);
 
   return (
     <RendererContext.Provider value={contextValue}>
-      {children}
+      {/* VariableContext 确保 useVariableSubscription 能获取到 store 实例 */}
+      <VariableContext.Provider value={contextValue.variableStore}>
+        {children}
+      </VariableContext.Provider>
     </RendererContext.Provider>
   );
 };

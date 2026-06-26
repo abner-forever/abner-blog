@@ -41,6 +41,7 @@ import {
   DataBadge,
 } from "@abner-blog/page-schema";
 import type { PageSchema, ActionContext, SchemaNode, ModalApi, Middleware } from "@abner-blog/page-schema";
+import { VariableStore } from "@abner-blog/page-schema";
 
 const PagePreview: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -51,19 +52,18 @@ const PagePreview: React.FC = () => {
   const fetchIdRef = useRef(0);
   const modalApiRef = useRef<ModalApi>({ open: () => {}, close: () => {} });
 
-  // 共享变量存储 - actionContext 和动态中间件都使用这个
-  const pageVarsRef = useRef<Record<string, unknown>>({});
-  // 变量版本号，用于触发重新渲染
-  const [, setVarVersion] = useState(0);
+  // 响应式变量存储 - 组件间通信的数据源
+  // 替换原有的 pageVarsRef + setVarVersion 模式
+  const variableStore = useMemo(() => new VariableStore(), []);
 
-  // 创建动态中间件 - 每次渲染时从 pageVarsRef 读取最新变量值
+  // 创建动态中间件 - 每次渲染时从 VariableStore 读取最新变量值
   const conditionMiddleware = useMemo<Middleware>(
-    () => createDynamicConditionMiddleware(() => pageVarsRef.current),
-    [],
+    () => createDynamicConditionMiddleware(() => variableStore.getAll()),
+    [variableStore],
   );
   const variableParserMiddleware = useMemo<Middleware>(
-    () => createDynamicVariableParserMiddleware(() => pageVarsRef.current),
-    [],
+    () => createDynamicVariableParserMiddleware(() => variableStore.getAll()),
+    [variableStore],
   );
 
   useEffect(() => {
@@ -91,7 +91,8 @@ const PagePreview: React.FC = () => {
       });
   }, [slug]);
 
-  /** 事件执行上下文工厂 — 提供 toast/navigate/modals/变量/事件总线等运行时能力 */
+  /** 事件执行上下文工厂 — 提供 toast/navigate/modals/事件总线等运行时能力 */
+  /** 注意：variables 由 RendererProvider 从 VariableStore 自动注入，此处不需要提供 */
   const actionContextFactory = useCallback(
     (rootNode: SchemaNode): ActionContext => {
       const eventHandlers: Record<string, Array<(detail?: unknown) => void>> = {};
@@ -119,24 +120,13 @@ const PagePreview: React.FC = () => {
             modalApiRef.current.close(modalId);
           },
         },
-        // 变量操作指向共享的 pageVarsRef
+        // variables 会被 RendererProvider 中的 store-backed 实现覆盖
+        // 此处提供占位以满足 ActionContext 类型，实际行为由 store 决定
         variables: {
-          get: (key: string) => pageVarsRef.current[key],
-          set: (key: string, value: unknown) => {
-            pageVarsRef.current[key] = value;
-            // 触发重新渲染，让条件中间件和变量解析中间件读取最新值
-            setVarVersion((v) => v + 1);
-          },
-          delete: (key: string) => {
-            delete pageVarsRef.current[key];
-            setVarVersion((v) => v + 1);
-          },
-          clear: () => {
-            Object.keys(pageVarsRef.current).forEach((k) => {
-              delete pageVarsRef.current[k];
-            });
-            setVarVersion((v) => v + 1);
-          },
+          get: () => undefined,
+          set: () => {},
+          delete: () => {},
+          clear: () => {},
         },
         eventBus: {
           emit: (name: string, detail?: unknown) => {
@@ -288,6 +278,7 @@ const PagePreview: React.FC = () => {
               return (
                 <RendererProvider
                   schema={parsedSchema!}
+                  variableStore={variableStore}
                   modalApi={modalApi}
                   extraComponents={{
                     container: Container,

@@ -30,6 +30,15 @@ export type { PageRendererProps } from './renderer';
 export { applyMiddlewares, isMiddlewarePass } from './middleware/types';
 export { styleInjector } from './middleware/style-injector';
 export { createEventHandler } from './middleware/event-handler';
+
+// 响应式变量存储
+export { VariableStore, VariableProvider, useVariableStore, useVariableSubscription, extractNodeVariableDeps } from './variable-store';
+
+// 数据来源初始化
+export { resolveUrlMappings } from './resolve-url-mappings';
+export { executeDataSources } from './execute-data-sources';
+export { resolveTemplateVars, resolveObjectTemplates } from './resolve-template';
+export type { PageVariables, UrlMappingItem, DataSourceItem } from './types';
 export { animationInjector } from './middleware/animation';
 export type { AnimationConfig } from './middleware/animation';
 export { createAnalyticsMiddleware } from './middleware/analytics';
