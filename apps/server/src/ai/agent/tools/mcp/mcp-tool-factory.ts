@@ -16,21 +16,27 @@ import { Logger } from '@nestjs/common';
 const BUILTIN_TOOL_DESCRIPTIONS: Record<string, string> = {
   search:
     '执行联网搜索，获取新闻/资讯/网页信息，返回搜索摘要。当用户询问最新消息、实时信息或需要查资料时使用。参数：query（搜索关键词）',
-  get_user_info: '获取当前登录用户的基本信息（昵称、邮箱、角色、头像等）',
+  get_user_info: '获取当前登录用户的基本信息（昵称、邮箱、角色、头像等）。无需参数。仅当用户明确询问"我的信息""我的账号""我是谁"等个人信息时使用，不要因为其他问题调用此工具。',
+  get_weather:
+    '查询实时天气预报（气温、降水、风力、空气质量等）。当用户询问天气、气温、降雨、台风、空气质量等情况时使用。参数：city（城市名，必填）、date（可选日期，格式 YYYY-MM-DD）',
   weather:
-    '查询实时天气预报（气温、降水、风力、空气质量等）。参数：city（城市名）、date（可选日期）',
-  list_issues: '列出 GitHub 仓库的 Issue 列表',
-  list_prs: '列出 GitHub 仓库的 Pull Request 列表',
-  get_repo: '获取 GitHub 仓库的详细信息',
-  create_issue: '在 GitHub 仓库创建 Issue',
-  create_todo: '[MCP] 创建待办事项',
-  update_todo: '[MCP] 更新待办事项',
-  delete_todo: '[MCP] 删除待办事项',
-  list_todos: '[MCP] 列出所有待办事项',
-  create_event: '[MCP] 创建日程事件',
-  update_event: '[MCP] 更新日程事件',
-  delete_event: '[MCP] 删除日程事件',
-  list_events: '[MCP] 列出日程事件',
+    '⚠️ 此名称已弃用，请使用 get_weather',
+  get_air_quality:
+    '查询空气质量指数（AQI）、PM2.5、PM10、臭氧等数据。当用户询问空气质量、雾霾、空气污染时使用。参数：city（城市名）',
+  list_issues: '列出用户 GitHub 仓库的 Issue 列表。仅当用户明确询问"我的 issue""仓库 issue"等 GitHub Issue 相关问题时使用。',
+  list_prs: '列出用户 GitHub 仓库的 Pull Request 列表。仅当用户明确询问"我的 PR""Pull Request"等 GitHub PR 相关问题时使用。',
+  get_repo: '获取用户 GitHub 仓库的详细信息。仅当用户明确询问"我的仓库""代码仓库"等 GitHub 仓库相关信息时使用。',
+  create_issue: '在 GitHub 仓库创建 Issue。仅当用户明确要求创建 Issue 时使用。参数：title（标题，必填）、body（正文，可选）',
+  create_pr: '在 GitHub 仓库创建 Pull Request。仅当用户明确要求创建 PR 时使用。参数：title（标题，必填）、body（正文，可选）、headBranch（源分支，必填）、baseBranch（目标分支，必填）',
+  get_page_content: '获取指定 URL 网页的完整内容。仅当需要获取网页正文全文进行深度分析时使用。参数：url（网页地址，必填）',
+  create_todo: '创建待办事项。仅当用户说"添加待办""创建任务""提醒我"等时使用。参数：title（标题，必填）、dueDate（截止日期，ISO字符串，可选）',
+  update_todo: '更新待办事项。仅当用户说"修改待办""更新任务""完成待办"等时使用。参数：id（待办ID，必填）、title（新标题，可选）、completed（是否完成，可选）',
+  delete_todo: '删除待办事项。仅当用户说"删除待办""移除任务"等时使用。参数：id（待办ID，必填）或 title（标题）',
+  list_todos: '列出所有待办事项。仅当用户说"查看待办""我的任务""有什么待办"等时使用。无需参数。',
+  create_event: '创建日程事件。仅当用户说"添加日程""创建事件""安排会议"等时使用。参数：title（标题，必填）、startTime（开始时间，ISO字符串，必填）、endTime（结束时间，ISO字符串，可选）、allDay（是否为全天事件，可选）、location（地点，可选）',
+  update_event: '更新日程事件。仅当用户说"修改日程""改时间"等时使用。参数：id（日程ID，必填）、title（新标题，可选）、startTime（开始时间，可选）、endTime（结束时间，可选）',
+  delete_event: '删除日程事件。仅当用户说"取消日程""删除事件"等时使用。参数：id（日程ID，必填）或 title（标题）',
+  list_events: '列出用户的日程事件。当用户询问"我的日程""今天日程""本月安排"等时使用。参数：startDate（开始日期，可选）、endDate（结束日期，可选）',
 };
 
 /**
@@ -46,7 +52,7 @@ function describeMcpTool(
     return `[${serverName}] ${known}`;
   }
   const typeLabel = _serverType === 'builtin' ? '内置' : '远程';
-  return `[${typeLabel}/${serverName}] 调用 MCP 工具 "${toolName}"。注意：这是一个${typeLabel}服务器工具，具体功能由其提供方定义。`;
+  return `[${typeLabel}/${serverName}] ${toolName} 工具。仅当用户明确提到与此工具相关的内容时使用，不要随意调用。`;
 }
 
 /**

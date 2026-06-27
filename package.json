@@ -35,6 +35,7 @@
     "semantic-release": "semantic-release",
     "commit": "git-cz",
     "prepare": "husky install",
+    "dev:chroma": "chroma run --path data/chromadb",
     "dev:services": "cd docker && docker-compose up -d",
     "stop:services": "cd docker && docker-compose down"
   },

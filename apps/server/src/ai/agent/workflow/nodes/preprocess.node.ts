@@ -134,6 +134,8 @@ export function createPreprocessNode(deps: WorkflowDeps) {
       '3. 可以多次调用不同工具以获得完整信息',
       '4. 根据工具结果回答，不要编造信息',
       '5. 不需要工具时直接回答',
+      '6. 回答用户时，**不要提及工具名称或内部调用过程**，直接给出结果即可',
+      '7. 用户只需要知道最终答案，不需要知道你是否使用了工具',
     );
 
     // Skills system prompt

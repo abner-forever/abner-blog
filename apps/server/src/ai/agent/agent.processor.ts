@@ -140,11 +140,13 @@ export class AgentProcessor {
 
       try {
         let done = false;
+        let yieldedDoneOrError = false;
         while (!done) {
           while (eventQueue.length > 0) {
             const event = eventQueue.shift()!;
             yield event;
             if (event.event === 'done' || event.event === 'error') {
+              yieldedDoneOrError = true;
               done = true;
               break;
             }
@@ -163,16 +165,16 @@ export class AgentProcessor {
             while (eventQueue.length > 0) {
               const event = eventQueue.shift()!;
               yield event;
-              if (event.event === 'done' || event.event === 'error') break;
+              if (event.event === 'done' || event.event === 'error') {
+                yieldedDoneOrError = true;
+                break;
+              }
             }
           }
         }
 
-        // Ensure at least one done event
-        const hasDone = [...eventQueue].some(
-          (e) => e.event === 'done' || e.event === 'error',
-        );
-        if (!hasDone) {
+        // Ensure at least one done event (fallback for edge cases)
+        if (!yieldedDoneOrError) {
           yield { event: 'done', payload: { type: 'chat' } };
         }
       } finally {
@@ -239,17 +241,11 @@ export class AgentProcessor {
       case 'error':
         return { event, payload };
       case 'tool_call_start':
-        return {
-          event: 'chat',
-          payload: { content: `[使用工具: ${payload?.toolName as string}]` },
-        };
+        return null;
       case 'tool_call_error':
-        return {
-          event: 'chat',
-          payload: {
-            content: `[工具 ${payload?.toolName as string} 异常，已处理]`,
-          },
-        };
+        // 工具执行失败但 workflow 会继续（LLM 从预处理的上下文回答）
+        // 不注入可见 chat 文本，避免错误信息与正常回复拼接
+        return null;
       case 'tool_call_result':
       case 'preprocess_done':
       case 'agent_thinking':

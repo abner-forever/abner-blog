@@ -3,10 +3,12 @@ import {
   AIMessage,
   HumanMessage,
   SystemMessage,
+  ToolMessage,
 } from '@langchain/core/messages';
 import { Logger } from '@nestjs/common';
 import { appendAiStreamDebugLine } from '../utils/ai-stream-debug';
 import { LLM_TIMEOUT_MS } from '../utils/timeout';
+import { z } from 'zod/v3';
 
 const minimaxDebugLogger = new Logger('AI-LLM-MiniMax');
 
@@ -33,9 +35,32 @@ type MultimodalContentPart =
   | { type: 'text'; text: string }
   | { type: 'image_url'; image_url: { url: string } };
 
+interface ToolCallPayload {
+  id: string;
+  type: 'function';
+  function: {
+    name: string;
+    arguments: string;
+  };
+}
+
 interface ChatMessagePayload {
-  role: 'system' | 'user' | 'assistant';
-  content: string | MultimodalContentPart[];
+  role: 'system' | 'user' | 'assistant' | 'tool';
+  content: string | null | MultimodalContentPart[];
+  tool_calls?: ToolCallPayload[];
+  tool_call_id?: string;
+}
+
+/**
+ * OpenAI 兼容的工具定义格式（tools 参数）
+ */
+export interface ToolDefinition {
+  type: 'function';
+  function: {
+    name: string;
+    description: string;
+    parameters: Record<string, unknown>;
+  };
 }
 
 export interface ChatModelConfig {
@@ -71,6 +96,7 @@ export interface LLMCallOptions {
   temperature?: number;
   maxTokens?: number;
   signal?: AbortSignal;
+  tools?: ToolDefinition[];
 }
 
 export interface LLMStreamChunk {
@@ -119,7 +145,18 @@ export class UniversalChatLLM implements ChatLLM {
     const payload = await this.requestJson(messages, {
       ...invokeOpts,
       stream: false,
+      tools: options?.tools,
     });
+
+    // ⭐ 优先检查原生 tool_calls（OpenAI 兼容格式）
+    const toolCalls = extractToolCalls(payload);
+    if (toolCalls && toolCalls.length > 0) {
+      return new AIMessage({
+        content: '',
+        tool_calls: toolCalls,
+      });
+    }
+
     const content = extractUniversalText(
       payload,
       this.cfg.provider,
@@ -223,6 +260,7 @@ export class UniversalChatLLM implements ChatLLM {
       maxTokens,
       stream: options.stream,
       signal: options.signal,
+      tools: options.tools,
     });
 
     const response = await fetch(url, {
@@ -265,6 +303,7 @@ export class UniversalChatLLM implements ChatLLM {
       maxTokens,
       stream: options.stream,
       signal: options.signal,
+      tools: options.tools,
     });
 
     const response = await fetch(url, {
@@ -303,6 +342,7 @@ interface BuildRequestOptions {
   maxTokens: number;
   stream: boolean;
   signal?: AbortSignal;
+  tools?: ToolDefinition[];
 }
 
 /** MiniMax：国际默认 api.minimax.io；国内控制台密钥需配 MINIMAX_API_BASE=https://api.minimaxi.com */
@@ -455,6 +495,16 @@ function buildProviderRequest(
   };
   if (cfg.thinkingEnabled) {
     body.reasoning_effort = 'medium';
+  }
+
+  // 当提供 tools 时，某些 provider 不支持 thinking + tools 同时启用
+  if (opts.tools && opts.tools.length > 0) {
+    // DeepSeek 开启 thinking 时，如果同时传 tools 可能出错，降级为无 thinking
+    if (cfg.provider === 'deepseek' && cfg.thinkingEnabled) {
+      body.thinking = { type: 'disabled' };
+      delete body.reasoning_effort;
+    }
+    body.tools = opts.tools as unknown[];
   }
   return {
     url: baseUrl,
@@ -850,10 +900,33 @@ function toChatMessage(msg: BaseMessage): ChatMessagePayload {
     return { role: 'system', content: baseMessageTextFallback(msg) };
   }
   if (msg instanceof AIMessage) {
-    return { role: 'assistant', content: baseMessageTextFallback(msg) };
+    const payload: ChatMessagePayload = {
+      role: 'assistant',
+      content: baseMessageTextFallback(msg) || null,
+    };
+    // ⭐ 携带原生 tool_calls 供 API 识别
+    if (msg.tool_calls && msg.tool_calls.length > 0) {
+      payload.tool_calls = msg.tool_calls.map((tc) => ({
+        id: tc.id || `call_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+        type: 'function' as const,
+        function: {
+          name: tc.name,
+          arguments: JSON.stringify(tc.args),
+        },
+      }));
+    }
+    return payload;
   }
   if (msg instanceof HumanMessage) {
     return humanMessageToPayload(msg);
+  }
+  // ⭐ ToolMessage → tool role
+  if (msg instanceof ToolMessage) {
+    return {
+      role: 'tool',
+      content: baseMessageTextFallback(msg),
+      tool_call_id: msg.tool_call_id,
+    };
   }
   return { role: 'user', content: baseMessageTextFallback(msg) };
 }
@@ -861,4 +934,133 @@ function toChatMessage(msg: BaseMessage): ChatMessagePayload {
 function clampTemperature(value: number): number {
   if (Number.isNaN(value)) return 7;
   return Math.min(10, Math.max(0, value));
+}
+
+// ──────────────────────────────────────────
+// 原生工具调用支持
+// ──────────────────────────────────────────
+
+/**
+ * 从 OpenAI 兼容的 API 响应中提取 tool_calls
+ */
+function extractToolCalls(
+  data: Record<string, unknown>,
+): AIMessage['tool_calls'] | null {
+  const choices = data.choices as Array<Record<string, unknown>> | undefined;
+  const first = choices?.[0];
+  const message = first?.message as Record<string, unknown> | undefined;
+  const rawCalls = message?.tool_calls as
+    | Array<Record<string, unknown>>
+    | undefined;
+  if (!rawCalls || rawCalls.length === 0) return null;
+
+  return rawCalls.map((tc) => {
+    const fn = tc.function as Record<string, unknown> | undefined;
+    const argsStr = (fn?.arguments as string) || '{}';
+    return {
+      name: (fn?.name as string) || '',
+      args: (() => {
+        try {
+          return JSON.parse(argsStr);
+        } catch {
+          return {};
+        }
+      })(),
+      id: (tc.id as string) || `call_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+      type: 'tool_call' as const,
+    };
+  });
+}
+
+/**
+ * 将 Zod schema 转成 JSON Schema（OpenAI tools 参数格式）
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function zodToJsonSchema(schema: z.ZodTypeAny): Record<string, unknown> {
+  const def = (schema as { _def?: Record<string, unknown> })._def;
+  const typeName = def?.typeName as string | undefined;
+
+  if (typeName === 'ZodObject') {
+    const rawShape = def?.shape;
+    const shape = typeof rawShape === 'function' ? rawShape() : rawShape;
+    const properties: Record<string, unknown> = {};
+    const required: string[] = [];
+
+    if (shape && typeof shape === 'object') {
+      for (const [key, field] of Object.entries(shape as Record<string, z.ZodTypeAny>)) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const fieldDef = (field as any)._def;
+        const fieldType = fieldDef?.typeName as string | undefined;
+        if (fieldType === 'ZodOptional' || fieldType === 'ZodDefault') {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const inner = (field as any)._def?.innerType ?? (field as any).unwrap?.();
+          properties[key] = inner ? zodToJsonSchema(inner) : { type: 'string' };
+        } else {
+          properties[key] = zodToJsonSchema(field);
+          required.push(key);
+        }
+      }
+    }
+
+    return {
+      type: 'object',
+      properties,
+      ...(required.length > 0 ? { required } : {}),
+    };
+  }
+
+  if (typeName === 'ZodString') {
+    return { type: 'string' };
+  }
+  if (typeName === 'ZodNumber') {
+    return { type: 'number' };
+  }
+  if (typeName === 'ZodBoolean') {
+    return { type: 'boolean' };
+  }
+  if (typeName === 'ZodEnum') {
+    return { type: 'string', enum: (def?.values as unknown[]) || [] };
+  }
+  if (typeName === 'ZodOptional' || typeName === 'ZodDefault') {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const inner = (schema as any)._def?.innerType ?? (schema as any).unwrap?.();
+    return inner ? zodToJsonSchema(inner) : { type: 'string' };
+  }
+  if (typeName === 'ZodNullable') {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const nullableInner = (schema as any)._def?.innerType ?? (schema as any).unwrap?.();
+    return nullableInner ? { ...zodToJsonSchema(nullableInner), nullable: true } : { type: 'string', nullable: true };
+  }
+  if (typeName === 'ZodArray') {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const elementSchema = (schema as any)._def?.type ?? (schema as any).element;
+    return { type: 'array', items: elementSchema ? zodToJsonSchema(elementSchema) : { type: 'string' } };
+  }
+  if (typeName === 'ZodUnion' || typeName === 'ZodDiscriminatedUnion') {
+    const options = (def?.options as z.ZodTypeAny[]) || [];
+    return { anyOf: options.map((o) => zodToJsonSchema(o)) };
+  }
+
+  return { type: 'string' }; // fallback
+}
+
+/**
+ * 将 Zod schema 转成 JSON Schema，并合并 describe() 描述
+ * 导出供 agent.node.ts 使用
+ */
+export function zodSchemaToJsonSchema(schema: z.ZodTypeAny): Record<string, unknown> {
+  const jsonSchema = zodToJsonSchema(schema);
+  return mergeDescribeToJsonSchema(schema, jsonSchema);
+}
+
+/** 将 describe() 元数据合并到 JSON Schema */
+function mergeDescribeToJsonSchema(
+  schema: z.ZodTypeAny,
+  jsonSchema: Record<string, unknown>,
+): Record<string, unknown> {
+  const def = schema._def as Record<string, unknown> | undefined;
+  if (def?.description && typeof def.description === 'string') {
+    return { ...jsonSchema, description: def.description };
+  }
+  return jsonSchema;
 }

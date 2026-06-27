@@ -25,6 +25,7 @@ export type AgentEventType =
   | 'tool_call_error'
   | 'thinking_delta'
   | 'chat_delta'
+  | 'chat'
   | 'web_search_status'
   | 'done'
   | 'error'

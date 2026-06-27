@@ -10,6 +10,7 @@ import type { AgentStateType } from '../state';
 import { splitThinkTaggedDelta } from '../../../utils/think-tag-split';
 import type { WorkflowDeps } from '../workflow';
 import { Logger } from '@nestjs/common';
+import type { AgentEvent } from '../../event-bus/agent-event-bus';
 
 const logger = new Logger('StreamEmitterNode');
 
@@ -17,9 +18,7 @@ const logger = new Logger('StreamEmitterNode');
  * 创建 Stream Emitter 节点
  */
 export function createStreamEmitterNode(deps: WorkflowDeps) {
-  return async (
-    state: AgentStateType,
-  ): Promise<Partial<AgentStateType>> => {
+  return async (state: AgentStateType): Promise<Partial<AgentStateType>> => {
     const { messages, streamChannel, userId, sessionId, userInput } = state;
 
     const lastMsg = messages[messages.length - 1];
@@ -34,9 +33,7 @@ export function createStreamEmitterNode(deps: WorkflowDeps) {
     }
 
     const rawContent =
-      typeof lastMsg.content === 'string'
-        ? lastMsg.content
-        : '';
+      typeof lastMsg.content === 'string' ? lastMsg.content : '';
 
     if (!rawContent.trim()) {
       // 空内容（纯工具调用消息），不输出
@@ -58,11 +55,16 @@ export function createStreamEmitterNode(deps: WorkflowDeps) {
     const finalAnswer = tagged.answerDelta || rawContent;
 
     // ── 2. 规范化并 emit ──
-    const normalized =
-      deps.chatResponseService.normalizeAssistantReply(finalAnswer.trim());
+    const normalized = deps.chatResponseService.normalizeAssistantReply(
+      finalAnswer.trim(),
+    );
 
     // 分块 emit chat_delta
-    await deps.chatStreamService.emitChatDeltaChunks(normalized);
+    for (const event of deps.chatStreamService.emitChatDeltaChunks(
+      normalized,
+    )) {
+      streamChannel.emit(event as unknown as AgentEvent);
+    }
 
     // ── 3. 保存会话历史 ──
     const sessionKey = deps.chatSessionService.getSessionKey(
