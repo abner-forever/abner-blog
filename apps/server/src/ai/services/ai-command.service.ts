@@ -28,7 +28,6 @@ export class AICommandService {
   async handleDeleteTodo(
     message: string,
     userId: number,
-    useMcpTools = false,
   ): Promise<ChatResponseDto> {
     const todos = (await this.todosService.findAll(userId)).todos;
     const target = this.findBestTodoMatch(message, todos);
@@ -39,15 +38,11 @@ export class AICommandService {
         suggestion: '请告诉我要删除哪个待办，例如："删除待办：买牛奶"',
       });
     }
-    if (useMcpTools) {
-      try {
-        await this.mcpServersService.callToolForUser(userId, 'delete_todo', {
-          id: target.id,
-        });
-      } catch {
-        await this.todosService.remove(target.id, userId);
-      }
-    } else {
+    try {
+      await this.mcpServersService.callToolForUser(userId, 'delete_todo', {
+        id: target.id,
+      });
+    } catch {
       await this.todosService.remove(target.id, userId);
     }
     return {
@@ -64,7 +59,6 @@ export class AICommandService {
     message: string,
     userId: number,
     currentDate: string,
-    useMcpTools = false,
   ): Promise<ChatResponseDto> {
     const { startIso, endIso } = buildIsoDateRangeAround(
       currentDate,
@@ -85,15 +79,11 @@ export class AICommandService {
         suggestion: '请告诉我要取消哪个日程，例如："取消明天的跑步"',
       });
     }
-    if (useMcpTools) {
-      try {
-        await this.mcpServersService.callToolForUser(userId, 'delete_event', {
-          id: target.id,
-        });
-      } catch {
-        await this.calendarService.remove(target.id, userId);
-      }
-    } else {
+    try {
+      await this.mcpServersService.callToolForUser(userId, 'delete_event', {
+        id: target.id,
+      });
+    } catch {
       await this.calendarService.remove(target.id, userId);
     }
     return {
@@ -109,7 +99,6 @@ export class AICommandService {
   async handleUpdateTodo(
     message: string,
     userId: number,
-    useMcpTools = false,
   ): Promise<ChatResponseDto> {
     const todos = (await this.todosService.findAll(userId)).todos;
     const target = this.findBestTodoMatch(message, todos);
@@ -138,36 +127,28 @@ export class AICommandService {
       description?: string;
       completed?: boolean;
     };
-    if (useMcpTools) {
-      try {
-        const mcpResult = await this.mcpServersService.callToolForUser(
-          userId,
-          'update_todo',
-          { id: target.id, title: nextTitle },
-        );
-        const sc = mcpResult.structuredContent;
-        updated = {
-          id: this.getNumberField(sc, 'id') ?? target.id,
-          title: this.getStringField(sc, 'title') ?? nextTitle,
-          description:
-            this.getStringField(sc, 'description') ??
-            ('description' in target && typeof target.description === 'string'
-              ? target.description
-              : ''),
-          completed:
-            this.getBooleanField(sc, 'completed') ??
-            ('completed' in target && typeof target.completed === 'boolean'
-              ? target.completed
-              : false),
-        };
-      } catch {
-        updated = await this.todosService.update(
-          target.id,
-          { title: nextTitle },
-          userId,
-        );
-      }
-    } else {
+    try {
+      const mcpResult = await this.mcpServersService.callToolForUser(
+        userId,
+        'update_todo',
+        { id: target.id, title: nextTitle },
+      );
+      const sc = mcpResult.structuredContent;
+      updated = {
+        id: this.getNumberField(sc, 'id') ?? target.id,
+        title: this.getStringField(sc, 'title') ?? nextTitle,
+        description:
+          this.getStringField(sc, 'description') ??
+          ('description' in target && typeof target.description === 'string'
+            ? target.description
+            : ''),
+        completed:
+          this.getBooleanField(sc, 'completed') ??
+          ('completed' in target && typeof target.completed === 'boolean'
+            ? target.completed
+            : false),
+      };
+    } catch {
       updated = await this.todosService.update(
         target.id,
         { title: nextTitle },
@@ -190,7 +171,6 @@ export class AICommandService {
     message: string,
     userId: number,
     currentDate: string,
-    useMcpTools = false,
   ): Promise<ChatResponseDto> {
     const { startIso, endIso } = buildIsoDateRangeAround(
       currentDate,
@@ -239,39 +219,31 @@ export class AICommandService {
       location?: string;
       allDay?: boolean;
     };
-    if (useMcpTools) {
-      try {
-        const mcpResult = await this.mcpServersService.callToolForUser(
-          userId,
-          'update_event',
-          { id: target.id, ...updateData },
-        );
-        const sc = mcpResult.structuredContent;
-        updated = {
-          id: this.getNumberField(sc, 'id') ?? target.id,
-          title:
-            this.getStringField(sc, 'title') ??
-            updateData.title ??
-            target.title,
-          startDate: this.getUnknownField(sc, 'startDate') ?? target.startDate,
-          endDate: this.getUnknownField(sc, 'endDate') ?? target.endDate,
-          location:
-            this.getStringField(sc, 'location') ??
-            (typeof updateData.location === 'string'
-              ? updateData.location
-              : target.location),
-          allDay:
-            this.getBooleanField(sc, 'allDay') ??
-            Boolean(updateData.allDay ?? target.allDay),
-        };
-      } catch {
-        updated = await this.calendarService.update(
-          target.id,
-          updateData,
-          userId,
-        );
-      }
-    } else {
+    try {
+      const mcpResult = await this.mcpServersService.callToolForUser(
+        userId,
+        'update_event',
+        { id: target.id, ...updateData },
+      );
+      const sc = mcpResult.structuredContent;
+      updated = {
+        id: this.getNumberField(sc, 'id') ?? target.id,
+        title:
+          this.getStringField(sc, 'title') ??
+          updateData.title ??
+          target.title,
+        startDate: this.getUnknownField(sc, 'startDate') ?? target.startDate,
+        endDate: this.getUnknownField(sc, 'endDate') ?? target.endDate,
+        location:
+          this.getStringField(sc, 'location') ??
+          (typeof updateData.location === 'string'
+            ? updateData.location
+            : target.location),
+        allDay:
+          this.getBooleanField(sc, 'allDay') ??
+          Boolean(updateData.allDay ?? target.allDay),
+      };
+    } catch {
       updated = await this.calendarService.update(
         target.id,
         updateData,
@@ -295,7 +267,6 @@ export class AICommandService {
     llm: ChatLLM,
     message: string,
     userId: number,
-    useMcpTools = false,
   ): Promise<ChatResponseDto> {
     const extraction = await extractTodoEntities(llm, message);
 
@@ -314,35 +285,28 @@ export class AICommandService {
       completed?: boolean;
       createdAt?: unknown;
     };
-    if (useMcpTools) {
-      try {
-        const mcpResult = await this.mcpServersService.callToolForUser(
-          userId,
-          'create_todo',
-          {
-            title: extraction.title,
-            description: extraction.description,
-          },
-        );
-        const sc = mcpResult.structuredContent;
-        todo = {
-          id: this.getNumberField(sc, 'id') ?? 0,
-          title: this.getStringField(sc, 'title') ?? extraction.title,
-          description:
-            this.getStringField(sc, 'description') ??
-            extraction.description ??
-            '',
-          completed: this.getBooleanField(sc, 'completed') ?? false,
-          createdAt:
-            this.getUnknownField(sc, 'createdAt') ?? new Date().toISOString(),
-        };
-      } catch {
-        todo = await this.todosService.create(
-          { title: extraction.title, description: extraction.description },
-          userId,
-        );
-      }
-    } else {
+    try {
+      const mcpResult = await this.mcpServersService.callToolForUser(
+        userId,
+        'create_todo',
+        {
+          title: extraction.title,
+          description: extraction.description,
+        },
+      );
+      const sc = mcpResult.structuredContent;
+      todo = {
+        id: this.getNumberField(sc, 'id') ?? 0,
+        title: this.getStringField(sc, 'title') ?? extraction.title,
+        description:
+          this.getStringField(sc, 'description') ??
+          extraction.description ??
+          '',
+        completed: this.getBooleanField(sc, 'completed') ?? false,
+        createdAt:
+          this.getUnknownField(sc, 'createdAt') ?? new Date().toISOString(),
+      };
+    } catch {
       todo = await this.todosService.create(
         { title: extraction.title, description: extraction.description },
         userId,
@@ -366,7 +330,6 @@ export class AICommandService {
     message: string,
     userId: number,
     currentDate: string,
-    useMcpTools = false,
   ): Promise<ChatResponseDto> {
     const extraction = await extractEventEntities(llm, message, currentDate);
 
@@ -388,50 +351,36 @@ export class AICommandService {
       location?: string;
       allDay?: boolean;
     };
-    if (useMcpTools) {
-      try {
-        const mcpResult = await this.mcpServersService.callToolForUser(
-          userId,
-          'create_event',
-          {
-            title: extraction.title,
-            description: extraction.description,
-            startDate: extraction.startDate,
-            endDate: extraction.endDate,
-            location: extraction.location,
-            allDay: extraction.allDay,
-          },
-        );
-        const sc = mcpResult.structuredContent;
-        event = {
-          id: this.getNumberField(sc, 'id') ?? 0,
-          title: this.getStringField(sc, 'title') ?? extraction.title,
-          description:
-            this.getStringField(sc, 'description') ??
-            extraction.description ??
-            '',
-          startDate:
-            this.getUnknownField(sc, 'startDate') ?? extraction.startDate,
-          endDate: this.getUnknownField(sc, 'endDate') ?? extraction.endDate,
-          location:
-            this.getStringField(sc, 'location') ?? extraction.location ?? '',
-          allDay:
-            this.getBooleanField(sc, 'allDay') ?? Boolean(extraction.allDay),
-        };
-      } catch {
-        event = await this.calendarService.create(
-          {
-            title: extraction.title,
-            description: extraction.description,
-            startDate: extraction.startDate,
-            endDate: extraction.endDate,
-            location: extraction.location,
-            allDay: extraction.allDay,
-          },
-          userId,
-        );
-      }
-    } else {
+    try {
+      const mcpResult = await this.mcpServersService.callToolForUser(
+        userId,
+        'create_event',
+        {
+          title: extraction.title,
+          description: extraction.description,
+          startDate: extraction.startDate,
+          endDate: extraction.endDate,
+          location: extraction.location,
+          allDay: extraction.allDay,
+        },
+      );
+      const sc = mcpResult.structuredContent;
+      event = {
+        id: this.getNumberField(sc, 'id') ?? 0,
+        title: this.getStringField(sc, 'title') ?? extraction.title,
+        description:
+          this.getStringField(sc, 'description') ??
+          extraction.description ??
+          '',
+        startDate:
+          this.getUnknownField(sc, 'startDate') ?? extraction.startDate,
+        endDate: this.getUnknownField(sc, 'endDate') ?? extraction.endDate,
+        location:
+          this.getStringField(sc, 'location') ?? extraction.location ?? '',
+        allDay:
+          this.getBooleanField(sc, 'allDay') ?? Boolean(extraction.allDay),
+      };
+    } catch {
       event = await this.calendarService.create(
         {
           title: extraction.title,
@@ -462,7 +411,6 @@ export class AICommandService {
   async handleQuerySchedule(
     llm: ChatLLM,
     userId: number,
-    useMcpTools = false,
   ): Promise<ChatResponseDto> {
     const now = new Date();
     const startOfWeek = new Date(now);
@@ -477,36 +425,34 @@ export class AICommandService {
     let events = await this.calendarService.findAll(userId, startIso, endIso);
     let todos = (await this.todosService.findAll(userId)).todos;
 
-    if (useMcpTools) {
-      try {
-        const eventResult = await this.mcpServersService.callToolForUser(
-          userId,
-          'list_events',
-          {
-            startDate: startIso,
-            endDate: endIso,
-          },
-        );
-        const rawEvents = eventResult.structuredContent?.events;
-        if (Array.isArray(rawEvents)) {
-          events = rawEvents as typeof events;
-        }
-      } catch {
-        // keep fallback
+    try {
+      const eventResult = await this.mcpServersService.callToolForUser(
+        userId,
+        'list_events',
+        {
+          startDate: startIso,
+          endDate: endIso,
+        },
+      );
+      const rawEvents = eventResult.structuredContent?.events;
+      if (Array.isArray(rawEvents)) {
+        events = rawEvents as typeof events;
       }
-      try {
-        const todoResult = await this.mcpServersService.callToolForUser(
-          userId,
-          'list_todos',
-          {},
-        );
-        const rawTodos = todoResult.structuredContent?.todos;
-        if (Array.isArray(rawTodos)) {
-          todos = rawTodos as typeof todos;
-        }
-      } catch {
-        // keep fallback
+    } catch {
+      // keep fallback
+    }
+    try {
+      const todoResult = await this.mcpServersService.callToolForUser(
+        userId,
+        'list_todos',
+        {},
+      );
+      const rawTodos = todoResult.structuredContent?.todos;
+      if (Array.isArray(rawTodos)) {
+        todos = rawTodos as typeof todos;
       }
+    } catch {
+      // keep fallback
     }
 
     // 调用 LLM 进行分析

@@ -6,7 +6,6 @@
  * - 新代码建议直接从 `intent` / `extractors/*` / `parsers` 按需导入。
  * - 待上层调用全部迁移完成后，可评估移除此兼容层。
  */
-export { detectIntent } from './intent';
 export {
   extractTodoEntities,
   analyzeTodoSchedule,

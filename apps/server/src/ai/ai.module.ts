@@ -18,8 +18,8 @@ import { WebSearchModule } from '../web-search/web-search.module';
 import { SkillsModule } from '../skills/skills.module';
 import { ChatSession } from '../entities/chat-session.entity';
 import { ChatHistoryService } from './orchestrator/chat-history.service';
-import { ChatMcpRouterService } from './orchestrator/chat-mcp-router.service';
 import { ChatStreamService } from './orchestrator/chat-stream.service';
+import { AgentModule } from './agent/agent.module';
 
 @Module({
   imports: [
@@ -32,6 +32,7 @@ import { ChatStreamService } from './orchestrator/chat-stream.service';
     McpModule,
     KnowledgeBaseModule,
     SkillsModule,
+    AgentModule, // ← LangGraph Agent Workflow
   ],
   controllers: [AIController, AISessionController],
   providers: [
@@ -42,7 +43,6 @@ import { ChatStreamService } from './orchestrator/chat-stream.service';
     AIWeatherService,
     AIChatResponseService,
     ChatHistoryService,
-    ChatMcpRouterService,
     ChatStreamService,
   ],
   exports: [AIService],

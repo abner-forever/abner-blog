@@ -138,13 +138,13 @@ LLM 提示模板见 `prompts.ts` 第 1-57 行，要求严格输出 9 种标签�
 
 ```typescript
 switch (intent) {
-  case CREATE_TODO:  return handleCreateTodo(llm, message, userId, useMcpTools);
-  case CREATE_EVENT: return handleCreateEvent(llm, message, userId, currentDate, useMcpTools);
-  case UPDATE_TODO:  return handleUpdateTodo(message, userId, useMcpTools);
-  case UPDATE_EVENT: return handleUpdateEvent(llm, message, userId, currentDate, useMcpTools);
-  case DELETE_TODO:  return handleDeleteTodo(message, userId, useMcpTools);
-  case DELETE_EVENT: return handleDeleteEvent(llm, message, userId, currentDate, useMcpTools);
-  case QUERY_SCHEDULE: return handleQuerySchedule(llm, userId, useMcpTools);
+  case CREATE_TODO:  return handleCreateTodo(llm, message, userId);
+  case CREATE_EVENT: return handleCreateEvent(llm, message, userId, currentDate);
+  case UPDATE_TODO:  return handleUpdateTodo(message, userId);
+  case UPDATE_EVENT: return handleUpdateEvent(llm, message, userId, currentDate);
+  case DELETE_TODO:  return handleDeleteTodo(message, userId);
+  case DELETE_EVENT: return handleDeleteEvent(llm, message, userId, currentDate);
+  case QUERY_SCHEDULE: return handleQuerySchedule(llm, userId);
   case QUERY_WEATHER:  return handleQueryWeather(llm, message, userId, currentDate, sessionId);
 }
 ```
@@ -159,26 +159,8 @@ switch (intent) {
 当意图为 `CHAT` 时，进入 `streamChatOrSearchIntent()`（第 394 行），**先尝试 MCP 工具**：
 
 ```
-streamChatOrSearchIntent()
-├── if (useMcpTools) ─── tryHandleUserInfoViaMcp()
-│   └── 正则匹配 "用户信息/我的资料/个人资料" → 调 MCP get_user_info
-│       ├── 成功 → 返回用户信息，结束流程
-│       └── MCP 未安装 → 提示用户去 MCP 面板安装
-│
-├── if (useMcpTools) ─── tryHandleGithubChatViaMcp()
-│   └── 正则匹配 owner/repo + GitHub 关键词
-│       ├── 含 create/open/file → 调用 create_issue（需提取 title）
-│       ├── 含 issue/问题单 → 调用 list_issues
-│       ├── 含 PR/pull request → 调用 list_prs
-│       ├── 含 repo/仓库 → 调用 get_repo
-│       ├── 成功 → 返回结果，结束流程
-│       └── MCP 未安装 → 提示用户去 MCP 面板安装
-│
-└── 继续往下走→联网搜索判定
-```
-
-- `useMcpTools` 是用户配置中的开关，开启后才会尝试
-- GitHub 仓库正则提取见 `utils/github-chat.ts`
+注：旧意图检测 + MCP 工具拦截流程已由 AgentProcessor（LangGraph Agent Workflow）替代。
+Agent 工作流自动注册所有可用工具（含 MCP），由 LLM 按需调用，不再依赖 useMcpTools 开关。
 
 ### 第 4 层：联网搜索触发
 
@@ -194,14 +176,13 @@ streamChatOrSearchIntent()
 | 时间+信息组合 | "明天/今天/这周" + "谁/哪队/比分" | "明天谁和谁踢"（且不包含待办/天气词） |
 | 宽松搜索动词 | 含"搜一下/查一下网上/百度一下"等 | "帮我搜一下..."（且不包含待办/天气词） |
 
-触发后执行搜索（`resolveWebSearchDigestForUser()`，第 1138 行）：
+触发后执行搜索（由 AgentProcessor Preprocess Node 处理）：
 
 ```
-resolveWebSearchDigestForUser()
-├── useMcpTools ─── 优先调 MCP 的 search 工具
+Preprocess Node
+├── 优先调 MCP search 工具
 │   ├── 成功 → 返回摘要文本
-│   └── MCP 未安装 → 返回 blocked 提示（"请到 MCP 面板安装网页检索"）
-│   └── MCP 调用异常 → 回退到直连 API
+│   └── 失败 → 回退到直连 API
 │
 └── 调 WebSearchService.searchDigest(query) → 返回摘要文本
 ```
@@ -279,9 +260,7 @@ buildSystemPromptForChat(userId, skillId?, userMessage?)
               ├─ delete_todo/delete_event         ├── 优先 MCP 调用
               ├─ query_schedule                    └── 回退本地数据库
               │
-              ├─ query_weather → AIWeatherService
-              │   ├── useMcpTools? → 调 MCP get_weather
-              │   └── 回退内置天气服务
+              ├─ query_weather → 调 MCP get_weather 优先，失败回退内置天气服务
               │
               └─ CHAT → streamChatOrSearchIntent()
                    ├── MCP 工具拦截

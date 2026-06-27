@@ -134,7 +134,7 @@ interface ChatState {
   thinkingBudget: number;   // 思维链预算
   enableThinking: boolean;  // 是否启用思维链
   enableWebSearch: boolean; // 是否启用联网搜索
-  useMcpTools: boolean;     // 是否使用 MCP 工具
+  // MCP 工具：工作流自动注册，由 LLM 按需调用，不再通过前端开关控制
   
   // 面板
   showKnowledgeBase: boolean;

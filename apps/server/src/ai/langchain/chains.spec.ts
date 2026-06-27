@@ -1,7 +1,6 @@
 import { AIMessage } from '@langchain/core/messages';
 import {
   cleanTitle,
-  detectIntent,
   extractEventEntities,
   extractTodoEntities,
 } from './chains';
@@ -69,94 +68,6 @@ describe('IntentType enum', () => {
     expect(IntentType.QUERY_SCHEDULE).toBe('query_schedule');
     expect(IntentType.QUERY_WEATHER).toBe('query_weather');
     expect(IntentType.CHAT).toBe('chat');
-  });
-});
-
-describe('detectIntent', () => {
-  const createMockLlm = (content: string) =>
-    ({
-      invoke: jest.fn().mockResolvedValue(new AIMessage({ content })),
-    }) as unknown as {
-      invoke: jest.Mock;
-    };
-
-  it('should detect create_event by time expression rules', async () => {
-    const llm = createMockLlm('chat');
-    const intent = await detectIntent(llm as never, '明上午9到10点复习面试');
-    expect(intent).toBe(IntentType.CREATE_EVENT);
-    expect(llm.invoke).not.toHaveBeenCalled();
-  });
-
-  it('should detect delete_event for cancel sentence with time', async () => {
-    const llm = createMockLlm('chat');
-    const intent = await detectIntent(llm as never, '取消明晚7点的遛弯儿');
-    expect(intent).toBe(IntentType.DELETE_EVENT);
-    expect(llm.invoke).not.toHaveBeenCalled();
-  });
-
-  it('should map chinese llm result to create_event', async () => {
-    const llm = createMockLlm('创建日程');
-    const intent = await detectIntent(llm as never, '帮我安排一下');
-    expect(intent).toBe(IntentType.CREATE_EVENT);
-    expect(llm.invoke).toHaveBeenCalledTimes(1);
-  });
-
-  it('should return chat for normal daily conversation', async () => {
-    const llm = createMockLlm('chat');
-    const intent = await detectIntent(
-      llm as never,
-      '今天心情有点一般，想聊聊天',
-    );
-    expect(intent).toBe(IntentType.CHAT);
-  });
-
-  it('should detect compact todo query as query_schedule', async () => {
-    const llm = createMockLlm('chat');
-    const intent = await detectIntent(llm as never, '我最近的待办');
-    expect(intent).toBe(IntentType.QUERY_SCHEDULE);
-    expect(llm.invoke).not.toHaveBeenCalled();
-  });
-
-  it('should fallback to chat when llm returns verbose sentence', async () => {
-    const llm = createMockLlm(
-      '请告诉我要删除哪个待办，例如："删除待办：买牛奶"',
-    );
-    const intent = await detectIntent(
-      llm as never,
-      'MiniMax-M2.7对比上一代有哪些变化',
-    );
-    expect(intent).toBe(IntentType.CHAT);
-  });
-
-  it('should confirm medium schedule query by llm', async () => {
-    const llm = createMockLlm('query_schedule');
-    const intent = await detectIntent(llm as never, '看看我这周有什么安排');
-    expect(intent).toBe(IntentType.QUERY_SCHEDULE);
-    expect(llm.invoke).toHaveBeenCalledTimes(1);
-  });
-
-  it('should detect news query as chat (web search handled via MCP in chat path)', async () => {
-    const llm = createMockLlm('chat');
-    const intent = await detectIntent(llm as never, '今天有什么新闻');
-    expect(intent).toBe(IntentType.CHAT);
-    expect(llm.invoke).toHaveBeenCalledTimes(1);
-  });
-
-  it('should detect 帮我总结新闻 as chat without fast-path web_search intent', async () => {
-    const llm = createMockLlm('chat');
-    const intent = await detectIntent(
-      llm as never,
-      '帮我总结一下今天的科技新闻',
-    );
-    expect(intent).toBe(IntentType.CHAT);
-    expect(llm.invoke).toHaveBeenCalledTimes(1);
-  });
-
-  it('should strip redacted_thinking from intent model output before mapping', async () => {
-    const llm = createMockLlm('<think>分析中</think>\n\nchat');
-    const intent = await detectIntent(llm as never, '查询一下最新新闻');
-    expect(intent).toBe(IntentType.CHAT);
-    expect(llm.invoke).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -249,13 +160,6 @@ describe('extractTodoEntities', () => {
     }) as unknown as {
       invoke: jest.Mock;
     };
-
-  it('should detect create_todo for "记一下"', async () => {
-    const llm = createMockLlm('chat');
-    const intent = await detectIntent(llm as never, '记一下明天带简历');
-    expect(intent).toBe(IntentType.CREATE_TODO);
-    expect(llm.invoke).not.toHaveBeenCalled();
-  });
 
   it('should fallback todo extraction when llm output is invalid', async () => {
     const llm = createMockLlm('无法解析');

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button, Input, Select, Slider, Switch } from 'antd';
+import { Button, Input, Select, Slider } from 'antd';
 import { MODEL_VENDORS } from '../constants';
 import type { VendorType } from '../types';
 
@@ -13,7 +13,6 @@ interface Props {
   contextWindow: number;
   enableThinking: boolean;
   thinkingBudget: number;
-  useMcpTools: boolean;
   hasApiKeyByProvider: Record<string, boolean>;
   onApiKeysChange: React.Dispatch<React.SetStateAction<Record<string, string>>>;
   onVendorChange: (value: VendorType) => void;
@@ -23,7 +22,6 @@ interface Props {
   onContextWindowChange: (value: number) => void;
   onEnableThinkingChange: (value: boolean) => void;
   onThinkingBudgetChange: (value: number) => void;
-  onUseMcpToolsChange: (value: boolean) => void;
   onSave: () => void;
   apiKeyConfiguredText: string;
   apiKeyNotConfiguredText: string;
@@ -38,7 +36,6 @@ const ChatSettingsPanel: React.FC<Props> = ({
   contextWindow,
   enableThinking,
   thinkingBudget,
-  useMcpTools,
   hasApiKeyByProvider,
   onApiKeysChange,
   onVendorChange,
@@ -48,7 +45,6 @@ const ChatSettingsPanel: React.FC<Props> = ({
   onContextWindowChange,
   onEnableThinkingChange,
   onThinkingBudgetChange,
-  onUseMcpToolsChange,
   onSave,
   apiKeyConfiguredText,
   apiKeyNotConfiguredText,
@@ -150,16 +146,6 @@ const ChatSettingsPanel: React.FC<Props> = ({
             { label: t('chat.disabled'), value: false },
           ]}
         />
-      </div>
-
-      <div className="settings-group switch-group">
-        <div className="settings-label">
-          {t('chat.mcpToolMode', { defaultValue: 'MCP Tool Mode' })}
-          <span style={{ fontSize: 12, opacity: 0.7, marginLeft: 8 }}>
-            {t('chat.mcpToolModeHint', { defaultValue: '(Call weather, schedule tools via MCP protocol)' })}
-          </span>
-        </div>
-        <Switch checked={useMcpTools} onChange={onUseMcpToolsChange} />
       </div>
 
       <div className="settings-group">

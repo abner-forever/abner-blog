@@ -47,7 +47,6 @@ interface ChatState {
   thinkingBudget: number;
   enableThinking: boolean;
   enableWebSearch: boolean;
-  useMcpTools: boolean;
   expandedThinkingMessageIds: Set<string>;
   // Panels
   showKnowledgeBase: boolean;
@@ -80,7 +79,6 @@ type ChatAction =
   | { type: 'SET_THINKING_BUDGET'; payload: number }
   | { type: 'SET_ENABLE_THINKING'; payload: boolean }
   | { type: 'SET_ENABLE_WEB_SEARCH'; payload: boolean }
-  | { type: 'SET_USE_MCP_TOOLS'; payload: boolean }
   | { type: 'TOGGLE_THINKING_EXPANDED'; payload: string }
   | { type: 'SET_SHOW_KNOWLEDGE_BASE'; payload: boolean }
   | { type: 'SET_SHOW_MCP_SERVER'; payload: boolean }
@@ -115,7 +113,6 @@ const initialState: ChatState = {
   thinkingBudget: 0,
   enableThinking: true,
   enableWebSearch: false,
-  useMcpTools: false,
   expandedThinkingMessageIds: new Set(),
   showKnowledgeBase: false,
   showMCPServer: false,
@@ -225,8 +222,6 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
       return { ...state, enableThinking: action.payload };
     case 'SET_ENABLE_WEB_SEARCH':
       return { ...state, enableWebSearch: action.payload };
-    case 'SET_USE_MCP_TOOLS':
-      return { ...state, useMcpTools: action.payload };
     case 'TOGGLE_THINKING_EXPANDED': {
       const newSet = new Set(state.expandedThinkingMessageIds);
       if (newSet.has(action.payload)) {
@@ -688,7 +683,6 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       contextWindow,
       enableThinking,
       thinkingBudget,
-      useMcpTools,
       currentSessionId,
       messages,
     } = stateRef.current;
@@ -762,7 +756,6 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         contextWindow,
         thinkingEnabled: enableThinking,
         thinkingBudget,
-        useMcpTools,
         signal: abortControllerRef.current.signal,
       });
 
@@ -968,7 +961,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    const { vendor, model, temperature, maxTokens, contextWindow, enableThinking, thinkingBudget, useMcpTools, apiKeys } = stateRef.current;
+    const { vendor, model, temperature, maxTokens, contextWindow, enableThinking, thinkingBudget, apiKeys } = stateRef.current;
     try {
       await saveAIConfig({
         provider: vendor,
@@ -978,7 +971,6 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         contextWindow,
         thinkingEnabled: enableThinking,
         thinkingBudget,
-        useMcpTools,
         apiKeys,
       });
       dispatch({
@@ -1008,7 +1000,6 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         if (typeof data.contextWindow === 'number') dispatch({ type: 'SET_CONTEXT_WINDOW', payload: data.contextWindow });
         if (typeof data.thinkingEnabled === 'boolean') dispatch({ type: 'SET_ENABLE_THINKING', payload: data.thinkingEnabled });
         if (typeof data.thinkingBudget === 'number') dispatch({ type: 'SET_THINKING_BUDGET', payload: data.thinkingBudget });
-        if (typeof data.useMcpTools === 'boolean') dispatch({ type: 'SET_USE_MCP_TOOLS', payload: data.useMcpTools });
         if (data.hasApiKeyByProvider && typeof data.hasApiKeyByProvider === 'object') {
           dispatch({ type: 'SET_HAS_API_KEY_BY_PROVIDER', payload: data.hasApiKeyByProvider });
         }

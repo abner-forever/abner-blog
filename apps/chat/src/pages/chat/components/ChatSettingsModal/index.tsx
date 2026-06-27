@@ -70,7 +70,6 @@ const ChatSettingsModal: React.FC<ChatSettingsModalProps> = memo(function ChatSe
     contextWindow,
     enableThinking,
     thinkingBudget,
-    useMcpTools,
     enableWebSearch,
     hasApiKeyByProvider,
   } = state;
@@ -347,20 +346,6 @@ const ChatSettingsModal: React.FC<ChatSettingsModalProps> = memo(function ChatSe
               </div>
             )}
 
-            <div className="settings-divider" />
-
-            <div className="settings-toggle-row">
-              <div className="settings-toggle-info">
-                <div className="settings-toggle-label">{t('chat.mcpToolMode')}</div>
-                <div className="settings-toggle-desc">{t('chat.mcpToolModeHint')}</div>
-              </div>
-              <div
-                className={`custom-switch ${useMcpTools ? 'checked' : ''}`}
-                onClick={() => chatDispatch({ type: 'SET_USE_MCP_TOOLS', payload: !useMcpTools })}
-              >
-                <div className="custom-switch-knob" />
-              </div>
-            </div>
           </div>
         );
 

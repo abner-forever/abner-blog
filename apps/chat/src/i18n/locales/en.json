@@ -59,8 +59,6 @@
     "enableWebSearch": "Web Search",
     "enableWebSearchHint": "Search the internet for real-time information",
     "enableThinkingHint": "Model will reason before answering when enabled",
-    "useMcpTools": "MCP Tools",
-    "useMcpToolsHint": "Allow calling weather, calendar, and other external tools",
     "language": "Language",
     "saveConfig": "Save",
     "saveSuccess": "Settings saved",

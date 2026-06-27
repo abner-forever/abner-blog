@@ -2,75 +2,18 @@
 process.env.OPENAI_API_KEY = 'test-api-key';
 
 import { Test, TestingModule } from '@nestjs/testing';
-import { AICommandService } from './services/ai-command.service';
 import { AIService } from './ai.service';
-import { CalendarService } from '../calendar/calendar.service';
-import { TodosService } from '../todos/todos.service';
-import { WeatherService, type WeatherData } from '../weather/weather.service';
 import { AIConfigService } from './services/ai-config.service';
-import { AIChatSessionService } from './services/ai-chat-session.service';
-import { AIWeatherService } from './services/ai-weather.service';
-import { AIChatResponseService } from './services/ai-chat-response.service';
-import { WebSearchService } from '../web-search/web-search.service';
-import { MCPServersService } from '../mcp';
-import { KnowledgeBaseService } from '../knowledge-base/knowledge-base.service';
-import { SkillsService } from '../skills/skills.service';
-import { ChatHistoryService } from './orchestrator/chat-history.service';
-import { ChatMcpRouterService } from './orchestrator/chat-mcp-router.service';
-import { ChatStreamService } from './orchestrator/chat-stream.service';
-import {
-  CalendarEvent,
-  CalendarEventType,
-} from '../entities/calendar-event.entity';
-import { Todo } from '../entities/todo.entity';
+import { AgentProcessor } from './agent/agent.processor';
+import type { AIStreamEvent } from './orchestrator/types';
 
-// 模拟 LLM - 通过 spyOn buildLLM 注入，避免 jest.mock factory hoisting 问题
-const makeEmptyAsyncIterable = () => ({
-  [Symbol.asyncIterator]: async function* (): AsyncGenerator<{
-    answerDelta: string;
-    reasoningDelta: string;
-  }> {
-    // empty - 流式调用不产生 delta，触发回退到 invoke
-  },
-});
-const mockInvoke = jest.fn();
-const mockInvokeStream = jest.fn().mockReturnValue(makeEmptyAsyncIterable());
-
-/** 固定「当前时间」，避免天气用例依赖运行日期的日历偏移 */
-const WEATHER_CURRENT_DATE = '2026-04-01T12:00:00.000Z';
-
-describe('AIService Integration', () => {
+describe('AIService', () => {
   let service: AIService;
-  let calendarService: jest.Mocked<CalendarService>;
-  let todosService: jest.Mocked<TodosService>;
-  let weatherService: jest.Mocked<WeatherService>;
-  let todosCreateMock: jest.Mock;
-  let getWeatherMock: jest.Mock;
+  let mockAIConfigService: jest.Mocked<AIConfigService>;
+  let mockAgentProcessor: jest.Mocked<AgentProcessor>;
 
   beforeEach(async () => {
-    mockInvoke.mockReset();
-    mockInvokeStream.mockReset().mockReturnValue(makeEmptyAsyncIterable());
-
-    const mockCalendarService = {
-      create: jest.fn(),
-      findAll: jest.fn(),
-    };
-
-    const mockTodosService = {
-      create: jest.fn(),
-      findAll: jest.fn(),
-    };
-
-    const mockWeatherService = {
-      getWeather: jest.fn(),
-      getAirQuality: jest.fn().mockResolvedValue(null),
-      getWeatherIndices: jest.fn().mockResolvedValue(null),
-      getWeatherText: jest.fn().mockReturnValue('晴'),
-    };
-
-    todosCreateMock = mockTodosService.create;
-    getWeatherMock = mockWeatherService.getWeather;
-    const mockAIConfigService = {
+    mockAIConfigService = {
       resolveModelConfig: jest.fn().mockResolvedValue({
         provider: 'minimax',
         model: 'MiniMax-M2.5',
@@ -78,383 +21,162 @@ describe('AIService Integration', () => {
         temperature: 7,
         maxTokens: 4096,
       }),
-      getUserConfig: jest.fn(),
-      saveUserConfig: jest.fn(),
-    };
+      resolveDefaultConfig: jest.fn().mockResolvedValue({
+        provider: 'minimax',
+        model: 'MiniMax-M2.5',
+        apiKey: 'test-key',
+        temperature: 7,
+        maxTokens: 4096,
+      }),
+      getUserConfig: jest.fn().mockResolvedValue({ provider: 'minimax' }),
+      saveUserConfig: jest.fn().mockResolvedValue(undefined),
+      getConfigTransportPublicKeyDerBase64: jest.fn().mockReturnValue('mock-public-key'),
+      decryptConfigTransportApiKeys: jest.fn().mockReturnValue({}),
+    } as unknown as jest.Mocked<AIConfigService>;
 
-    const mockWebSearchCore = {
-      searchDigest: jest
-        .fn()
-        .mockRejectedValue(new Error('未配置搜索密钥（测试占位）')),
-    };
-
-    const mockMcpServersService = {
-      callToolForUser: jest.fn(),
-    };
-    const mockKnowledgeBaseService = {
-      search: jest.fn().mockResolvedValue([]),
-    };
-    const mockSkillsService = {
-      buildSystemPromptForChat: jest.fn().mockResolvedValue(null),
-    };
+    mockAgentProcessor = {
+      processMessageStream: jest.fn(),
+    } as unknown as jest.Mocked<AgentProcessor>;
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AIService,
-        AICommandService,
-        AIChatSessionService,
-        AIWeatherService,
-        AIChatResponseService,
-        { provide: WebSearchService, useValue: mockWebSearchCore },
-        { provide: MCPServersService, useValue: mockMcpServersService },
-        { provide: KnowledgeBaseService, useValue: mockKnowledgeBaseService },
-        { provide: SkillsService, useValue: mockSkillsService },
-        { provide: CalendarService, useValue: mockCalendarService },
-        { provide: TodosService, useValue: mockTodosService },
-        { provide: WeatherService, useValue: mockWeatherService },
         { provide: AIConfigService, useValue: mockAIConfigService },
-        ChatHistoryService,
-        ChatMcpRouterService,
-        ChatStreamService,
+        { provide: AgentProcessor, useValue: mockAgentProcessor },
       ],
     }).compile();
 
     service = module.get<AIService>(AIService);
-
-    // Mock buildLLM 以注入受控的 mock LLM，避免 jest.mock factory hoisting 问题
-    jest
-      .spyOn(AIService.prototype as unknown as { buildLLM: () => Promise<unknown> }, 'buildLLM')
-      .mockResolvedValue({
-        llm: { invoke: mockInvoke, invokeStream: mockInvokeStream },
-        thinkingEnabled: false,
-        useMcpTools: false,
-      });
-
-    calendarService = module.get(CalendarService);
-    todosService = module.get(TodosService);
-    weatherService = module.get(WeatherService);
-  });
-
-  function buildCalendarEvent(
-    partial: Pick<CalendarEvent, 'id' | 'title' | 'startDate' | 'endDate'>,
-  ): CalendarEvent {
-    const e = new CalendarEvent();
-    e.id = partial.id;
-    e.title = partial.title;
-    e.startDate = partial.startDate;
-    e.endDate = partial.endDate;
-    e.description = '';
-    e.type = CalendarEventType.EVENT;
-    e.allDay = false;
-    e.location = '';
-    e.color = '';
-    e.isPublic = true;
-    e.completed = false;
-    e.createdAt = new Date();
-    e.updatedAt = new Date();
-    return e;
-  }
-
-  function buildTodoCreated(
-    partial: Pick<
-      Todo,
-      'id' | 'title' | 'description' | 'completed' | 'createdAt'
-    >,
-  ): Omit<Todo, 'user'> {
-    return {
-      id: partial.id,
-      title: partial.title,
-      description: partial.description ?? '',
-      completed: partial.completed,
-      createdAt: partial.createdAt,
-      updatedAt: partial.createdAt,
-    };
-  }
-
-  describe('processMessage', () => {
-    it('should detect create_event intent and create event', async () => {
-      // Mock LLM responses: intent -> event extraction
-      mockInvoke
-        .mockResolvedValueOnce({ content: 'create_event' }) // intent detection
-        .mockResolvedValueOnce({
-          content: JSON.stringify({
-            title: '复习面试',
-            startDate: '2026-03-27T01:00:00.000Z',
-            endDate: '2026-03-27T02:00:00.000Z',
-          }),
-        }); // event extraction
-
-      calendarService.create.mockResolvedValue(
-        buildCalendarEvent({
-          id: 1,
-          title: '复习面试',
-          startDate: new Date('2026-03-27T01:00:00.000Z'),
-          endDate: new Date('2026-03-27T02:00:00.000Z'),
-        }),
-      );
-
-      const result = await service.processMessage(
-        '明上午9到10点复习面试',
-        1,
-        '2026-03-26T00:00:00.000Z',
-      );
-
-      expect(result.type).toBe('event_created');
-      expect(result.data).toHaveProperty('title', '复习面试');
-    });
-
-    it('should detect create_todo intent and create todo', async () => {
-      mockInvoke
-        .mockResolvedValueOnce({ content: 'create_todo' })
-        .mockResolvedValueOnce({
-          content: JSON.stringify({
-            title: '买牛奶',
-            description: null,
-          }),
-        });
-
-      todosService.create.mockResolvedValue(
-        buildTodoCreated({
-          id: 1,
-          title: '买牛奶',
-          description: '',
-          completed: false,
-          createdAt: new Date(),
-        }),
-      );
-
-      const result = await service.processMessage('提醒我买牛奶', 1);
-
-      expect(result.type).toBe('todo_created');
-      expect(result.data).toHaveProperty('title', '买牛奶');
-    });
-
-    it('should detect query_schedule intent', async () => {
-      mockInvoke
-        .mockResolvedValueOnce({ content: 'query_schedule' })
-        .mockResolvedValueOnce({
-          content: JSON.stringify({
-            completionRate: 0,
-            total: 0,
-            completed: 0,
-            pending: 0,
-            overdueCount: 0,
-            distribution: '均匀',
-            priorityItems: [],
-            summary: '暂无数据',
-            suggestion: '',
-          }),
-        });
-
-      calendarService.findAll.mockResolvedValue([]);
-      todosService.findAll.mockResolvedValue({
-        todos: [],
-        stats: { total: 0, completed: 0, pending: 0 },
-      });
-
-      const result = await service.processMessage('查看我的日程', 1);
-
-      expect(result.type).toBe('schedule_query');
-    });
-
-    it('should handle chat intent when message is unclear', async () => {
-      mockInvoke.mockResolvedValueOnce({ content: '你好！有什么我可以帮你的？' });
-
-      const result = await service.processMessage('你好', 1);
-      expect(result.type).toBe('chat');
-    });
-
-    it('should query weather with beijing fallback when city is missing', async () => {
-      mockInvoke.mockResolvedValueOnce({ content: 'NONE' });
-      const beijingWeather: WeatherData = {
-        city: '北京',
-        latitude: 39.9042,
-        longitude: 116.4074,
-        temperature: 18,
-        temperatureMax: 22,
-        temperatureMin: 12,
-        weatherCode: 0,
-        weatherText: '晴',
-        weatherEmoji: '☀️',
-        isDay: true,
-        windspeed: 8,
-      };
-      weatherService.getWeather.mockResolvedValue(beijingWeather);
-
-      const result = await service.processMessage(
-        '今天天气怎么样',
-        1,
-        WEATHER_CURRENT_DATE,
-      );
-
-      expect(getWeatherMock).toHaveBeenCalledWith(
-        'unknown',
-        '北京',
-        undefined,
-        '2026-04-01',
-      );
-      expect(result.type).toBe('chat');
-      expect(result.content).toContain('当前温度18');
-    });
-
-    it('should query shanghai weather when message contains specific city', async () => {
-      mockInvoke.mockResolvedValueOnce({ content: '上海' });
-      const shanghaiWeather: WeatherData = {
-        city: '上海',
-        latitude: 31.2304,
-        longitude: 121.4737,
-        temperature: 21,
-        temperatureMax: 25,
-        temperatureMin: 16,
-        weatherCode: 0,
-        weatherText: '晴',
-        weatherEmoji: '☀️',
-        isDay: true,
-        windspeed: 10,
-      };
-      weatherService.getWeather.mockResolvedValue(shanghaiWeather);
-
-      const result = await service.processMessage(
-        '明天上海天气',
-        1,
-        WEATHER_CURRENT_DATE,
-      );
-
-      expect(getWeatherMock).toHaveBeenCalledWith(
-        'unknown',
-        '上海',
-        undefined,
-        '2026-04-02',
-      );
-      expect(result.type).toBe('chat');
-      expect(result.content).toContain('当前温度21');
-    });
-
-    it('should query county weather when location has no suffix', async () => {
-      mockInvoke.mockResolvedValueOnce({ content: 'NONE' });
-      const jiangeWeather: WeatherData = {
-        city: '剑阁',
-        latitude: 32.28,
-        longitude: 105.53,
-        temperature: 17,
-        temperatureMax: 21,
-        temperatureMin: 11,
-        weatherCode: 0,
-        weatherText: '晴',
-        weatherEmoji: '☀️',
-        isDay: true,
-        windspeed: 6,
-      };
-      weatherService.getWeather.mockResolvedValue(jiangeWeather);
-
-      const result = await service.processMessage(
-        '剑阁天气怎么样',
-        1,
-        WEATHER_CURRENT_DATE,
-      );
-
-      expect(getWeatherMock).toHaveBeenCalledWith(
-        'unknown',
-        '剑阁',
-        undefined,
-        '2026-04-01',
-      );
-      expect(result.type).toBe('chat');
-      expect(result.content).toContain('当前温度17');
-    });
-
-    it('should use helpful chat fallback instead of apology', async () => {
-      mockInvoke.mockResolvedValueOnce({ content: '' });
-
-      const result = await service.processMessage('React 是啥', 1);
-
-      expect(result.type).toBe('chat');
-      expect(result.content).toContain('React');
-      expect(result.content).not.toContain('抱歉，我没有理解你的意思');
-    });
-
-    it('should return clarification when event extraction fails', async () => {
-      mockInvoke
-        .mockResolvedValueOnce({ content: 'create_event' })
-        .mockResolvedValueOnce({ content: 'invalid json' });
-
-      const result = await service.processMessage(
-        '明上午开会',
-        1,
-        '2026-03-26T00:00:00.000Z',
-      );
-
-      expect(result.type).toBe('clarification_needed');
-    });
-
-    it('should clean title by removing time prefix', async () => {
-      mockInvoke
-        .mockResolvedValueOnce({ content: 'create_todo' })
-        .mockResolvedValueOnce({
-          content: JSON.stringify({
-            title: '9-买牛奶',
-            description: null,
-          }),
-        });
-
-      todosService.create.mockResolvedValue(
-        buildTodoCreated({
-          id: 1,
-          title: '买牛奶',
-          description: '',
-          completed: false,
-          createdAt: new Date(),
-        }),
-      );
-
-      const result = await service.processMessage('提醒我9-买牛奶', 1);
-
-      expect(result.type).toBe('todo_created');
-      expect(todosCreateMock).toHaveBeenCalledWith(
-        expect.objectContaining({ title: '买牛奶' }),
-        1,
-      );
-    });
   });
 
   describe('processMessageStream', () => {
-    it('should return weather chat_delta for weather query', async () => {
-      mockInvoke.mockResolvedValueOnce({ content: 'NONE' });
-      const streamBeijingWeather: WeatherData = {
-        city: '北京',
-        latitude: 39.9042,
-        longitude: 116.4074,
-        temperature: 18,
-        temperatureMax: 22,
-        temperatureMin: 12,
-        weatherCode: 0,
-        weatherText: '晴',
-        weatherEmoji: '☀️',
-        isDay: true,
-        windspeed: 8,
-      };
-      weatherService.getWeather.mockResolvedValue(streamBeijingWeather);
+    it('should delegate to AgentProcessor', async () => {
+      const events: AIStreamEvent[] = [
+        { event: 'chat_delta', payload: { delta: '你好' } },
+        { event: 'chat_delta', payload: { delta: '世界' } },
+        { event: 'done', payload: { type: 'chat' } },
+      ];
+      mockAgentProcessor.processMessageStream.mockReturnValue(
+        (async function* () {
+          for (const e of events) yield e;
+        })(),
+      );
 
-      const events: Array<{
-        event: string;
-        payload?: Record<string, unknown>;
-      }> = [];
+      const result: AIStreamEvent[] = [];
       for await (const event of service.processMessageStream(
-        '明天天气',
+        '你好',
         1,
-        WEATHER_CURRENT_DATE,
+        '2026-06-26T00:00:00.000Z',
+        'session-1',
+        { message: '你好' },
       )) {
-        events.push(event);
+        result.push(event);
       }
 
-      expect(getWeatherMock).toHaveBeenCalledWith(
-        'unknown',
-        '北京',
+      expect(mockAgentProcessor.processMessageStream).toHaveBeenCalledWith(
+        '你好',
+        1,
+        expect.any(Object),
+        '2026-06-26T00:00:00.000Z',
+        'session-1',
+        { message: '你好' },
         undefined,
-        '2026-04-02',
       );
-      expect(events.some((e) => e.event === 'chat_delta' || e.event === 'chat')).toBe(true);
-      expect(events[events.length - 1]?.event).toBe('done');
+      expect(result).toHaveLength(3);
+      expect(result[0]).toEqual({ event: 'chat_delta', payload: { delta: '你好' } });
+    });
+
+    it('should yield error event on exception', async () => {
+      mockAgentProcessor.processMessageStream.mockImplementation(() => {
+        throw new Error('LLM connection failed');
+      });
+
+      const result: AIStreamEvent[] = [];
+      for await (const event of service.processMessageStream(
+        'hi', undefined,
+      )) {
+        result.push(event);
+      }
+
+      expect(result[0].event).toBe('error');
+    });
+  });
+
+  describe('processMessage', () => {
+    it('should aggregate stream events into ChatResponseDto', async () => {
+      const events: AIStreamEvent[] = [
+        { event: 'chat_delta', payload: { delta: 'Hello' } },
+        { event: 'chat_delta', payload: { delta: ' World' } },
+        { event: 'done', payload: { type: 'chat' } },
+      ];
+      mockAgentProcessor.processMessageStream.mockReturnValue(
+        (async function* () {
+          for (const e of events) yield e;
+        })(),
+      );
+
+      const result = await service.processMessage('hello', 1);
+
+      expect(result.type).toBe('chat');
+      expect(result.content).toBe('Hello World');
+    });
+
+    it('should return error response on stream error', async () => {
+      mockAgentProcessor.processMessageStream.mockReturnValue(
+        (async function* () {
+          yield { event: 'error', payload: { error: 'something went wrong' } };
+        })(),
+      );
+
+      const result = await service.processMessage('hello', 1);
+
+      expect(result.type).toBe('error');
+      expect(result.error).toBe('something went wrong');
+    });
+
+    it('should stop collecting on error event', async () => {
+      const events: AIStreamEvent[] = [
+        { event: 'chat_delta', payload: { delta: 'partial' } },
+        { event: 'error', payload: { error: 'fail' } },
+        { event: 'chat_delta', payload: { delta: 'ignored' } },
+        { event: 'done', payload: { type: 'chat' } },
+      ];
+      mockAgentProcessor.processMessageStream.mockReturnValue(
+        (async function* () {
+          for (const e of events) yield e;
+        })(),
+      );
+
+      const result = await service.processMessage('hi', 1);
+
+      expect(result.type).toBe('error');
+    });
+  });
+
+  describe('getUserAIConfig', () => {
+    it('should delegate to AIConfigService', async () => {
+      await service.getUserAIConfig(1);
+      expect(mockAIConfigService.getUserConfig).toHaveBeenCalledWith(1);
+    });
+  });
+
+  describe('saveUserAIConfig', () => {
+    it('should delegate to AIConfigService', async () => {
+      await service.saveUserAIConfig(1, {
+        provider: 'openai',
+        model: 'gpt-4',
+        temperature: 7,
+        maxTokens: 4096,
+      });
+      expect(mockAIConfigService.saveUserConfig).toHaveBeenCalled();
+    });
+  });
+
+  describe('getConfigTransportPublicKey', () => {
+    it('should return public key info', () => {
+      const result = service.getConfigTransportPublicKey();
+      expect(result.algorithm).toBe('RSA-OAEP-256');
+      expect(result.publicKeyDerBase64).toBe('mock-public-key');
     });
   });
 });

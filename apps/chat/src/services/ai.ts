@@ -14,7 +14,6 @@ interface ChatStreamRequest {
   contextWindow?: number;
   thinkingEnabled?: boolean;
   thinkingBudget?: number;
-  useMcpTools?: boolean;
   /** 随消息上传的图片（Base64，与后端 ChatImageDto 一致） */
   images?: ChatStreamImagePart[];
   /** 可选：仅注入指定技能；不传则由服务端合并该用户所有「已激活」技能 */
@@ -127,7 +126,6 @@ export const requestAIChatStream = async ({
   contextWindow,
   thinkingEnabled,
   thinkingBudget,
-  useMcpTools,
   images,
   skillId,
   signal,
@@ -149,7 +147,6 @@ export const requestAIChatStream = async ({
       contextWindow,
       thinkingEnabled,
       thinkingBudget,
-      useMcpTools,
       ...(skillId ? { skillId } : {}),
     }),
     signal,
@@ -170,7 +167,6 @@ export interface SaveAIConfigRequest {
   contextWindow: number;
   thinkingEnabled: boolean;
   thinkingBudget: number;
-  useMcpTools?: boolean;
   apiKeys: Record<string, string>;
 }
 

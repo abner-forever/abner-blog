@@ -59,8 +59,6 @@
     "enableWebSearch": "聯網搜尋",
     "enableWebSearchHint": "開啟後可即時檢索網際網路資訊",
     "enableThinkingHint": "開啟後模型將先進行推理再回答",
-    "useMcpTools": "MCP 工具",
-    "useMcpToolsHint": "允許呼叫天氣、日程等外部工具",
     "language": "語言",
     "saveConfig": "儲存設定",
     "saveSuccess": "設定已儲存",

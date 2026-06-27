@@ -112,7 +112,7 @@ interface ChatState {
   thinkingBudget: number;          // 思考预算
   enableThinking: boolean;         // 深度思考开关
   enableWebSearch: boolean;        // 联网搜索开关
-  useMcpTools: boolean;            // MCP 工具开关
+  // MCP 工具开关已移除，工作流自动注册所有工具供 LLM 按需调用
   // ... 面板状态、UI 状态
 }
 ```
@@ -324,7 +324,6 @@ Request Body:
   contextWindow?: number;   // 上下文窗口
   thinkingEnabled?: boolean;// 深度思考
   thinkingBudget?: number;  // 思考预算
-  useMcpTools?: boolean;    // MCP 工具
   skillId?: string;         // 指定技能
 }
 
