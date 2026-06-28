@@ -10,6 +10,7 @@ import {
   ArrowRightOutlined,
   AppstoreOutlined,
   BlockOutlined,
+  RobotOutlined,
 } from "@ant-design/icons";
 import { pageApi, statsApi } from "@/services/api";
 import "./index.less";
@@ -163,11 +164,11 @@ const HomeDashboard: React.FC = () => {
                   新建页面
                 </Button>
                 <Button
-                  icon={<ArrowRightOutlined />}
-                  onClick={() => navigate("/pages")}
+                  icon={<RobotOutlined />}
+                  onClick={() => navigate("/editor/ai-create")}
                   className="home-dashboard__action-btn"
                 >
-                  前往页面管理
+                  AI 页面生成
                 </Button>
               </Space>
             </div>
@@ -251,6 +252,19 @@ const HomeDashboard: React.FC = () => {
                 <div className="home-dashboard__quick-info">
                   <Text strong>页面管理</Text>
                   <Text type="secondary">创建和管理低代码页面</Text>
+                </div>
+                <ArrowRightOutlined className="home-dashboard__quick-arrow" />
+              </div>
+            </Col>
+            <Col xs={24} sm={12} md={8}>
+              <div
+                className="home-dashboard__quick-item"
+                onClick={() => navigate("/editor/ai-create")}
+              >
+                <RobotOutlined className="home-dashboard__quick-icon" style={{ color: "#722ed1" }} />
+                <div className="home-dashboard__quick-info">
+                  <Text strong>AI 页面生成</Text>
+                  <Text type="secondary">用自然语言描述，AI 自动生成页面</Text>
                 </div>
                 <ArrowRightOutlined className="home-dashboard__quick-arrow" />
               </div>

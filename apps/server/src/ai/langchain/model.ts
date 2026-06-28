@@ -1048,7 +1048,9 @@ function zodToJsonSchema(schema: z.ZodTypeAny): Record<string, unknown> {
  * 将 Zod schema 转成 JSON Schema，并合并 describe() 描述
  * 导出供 agent.node.ts 使用
  */
-export function zodSchemaToJsonSchema(schema: z.ZodTypeAny): Record<string, unknown> {
+export function zodSchemaToJsonSchema(
+  schema: z.ZodTypeAny,
+): Record<string, unknown> {
   const jsonSchema = zodToJsonSchema(schema);
   return mergeDescribeToJsonSchema(schema, jsonSchema);
 }

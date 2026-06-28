@@ -26,6 +26,7 @@
     "init:topics": "ts-node -r tsconfig-paths/register src/scripts/init-topics.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.106.0",
     "@langchain/community": "^1.1.25",
     "@langchain/langgraph": "^1.2.5",
     "@modelcontextprotocol/sdk": "^1.29.0",
@@ -58,6 +59,7 @@
     "multer": "^1.4.5-lts.1",
     "mysql2": "^3.14.1",
     "nodemailer": "^6.9.16",
+    "openai": "^6.45.0",
     "openid-client": "^6.1.7",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",

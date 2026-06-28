@@ -81,6 +81,9 @@ import { BlockTemplate } from './pages/entities/block-template.entity';
 import { PageVersion } from './pages/entities/page-version.entity';
 import { PagePV } from './pages/entities/page-pv.entity';
 import { CustomComponent } from './pages/entities/custom-component.entity';
+import { PageGeneratorModule } from './page-generator/page-generator.module';
+import { PageGeneratorConfig } from './page-generator/entities/page-generator-config.entity';
+import { AiGenerationTask } from './page-generator/entities/ai-generation-task.entity';
 
 @Module({
   imports: [
@@ -144,6 +147,8 @@ import { CustomComponent } from './pages/entities/custom-component.entity';
         PageVersion,
         PagePV,
         CustomComponent,
+        PageGeneratorConfig,
+        AiGenerationTask,
       ],
       synchronize: process.env.NODE_ENV !== 'production',
     }),
@@ -173,6 +178,7 @@ import { CustomComponent } from './pages/entities/custom-component.entity';
     KnowledgeBaseModule,
     SkillsModule,
     PagesModule,
+    PageGeneratorModule,
   ],
   controllers: [AppController],
   providers: [

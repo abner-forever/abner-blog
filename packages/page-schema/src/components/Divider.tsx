@@ -9,8 +9,7 @@ import React from 'react';
 import type { BaseComponentProps, DividerNodeProps } from '../types';
 
 const Divider: React.FC<BaseComponentProps> = ({ node }) => {
-  const { color = '#e8e8e8', height = 1, style: lineStyle = 'solid' } = node.props as DividerNodeProps;
-  const containerStyle = node.props.style as React.CSSProperties | undefined;
+  const { color = '#e8e8e8', height = 1, style: lineStyle = 'solid' } = node.props as unknown as DividerNodeProps;
 
   return (
     <div
@@ -18,7 +17,6 @@ const Divider: React.FC<BaseComponentProps> = ({ node }) => {
       style={{
         width: '100%',
         padding: '10px 0',
-        ...containerStyle,
       }}
     >
       <hr

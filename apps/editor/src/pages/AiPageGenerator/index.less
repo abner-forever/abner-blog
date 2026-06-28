@@ -1,0 +1,325 @@
+@import '../../styles/variables.less';
+
+.ai-page-generator {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+
+  // ========== Steps ==========
+
+  &__steps {
+    display: flex;
+    align-items: flex-start;
+    gap: 0;
+    padding: 24px 0;
+    justify-content: center;
+  }
+
+  &__step-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    padding: 8px 16px;
+    border-radius: 8px;
+    transition: all 0.3s;
+
+    &:hover:not(.disabled) {
+      background: #f5f5f5;
+    }
+
+    &.active {
+      background: #e6f4ff;
+    }
+
+    &.disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+
+    &.completed {
+      .ai-page-generator__step-number {
+        background: #52c41a;
+        color: #fff;
+      }
+    }
+  }
+
+  &__step-number {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #e8e8e8;
+    color: #999;
+    font-weight: 600;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+
+  &__step-title {
+    font-weight: 600;
+    font-size: 14px;
+    white-space: nowrap;
+  }
+
+  &__step-desc {
+    font-size: 12px;
+    color: #999;
+    white-space: nowrap;
+  }
+
+  &__step-connector {
+    width: 60px;
+    height: 2px;
+    background: #e8e8e8;
+    margin: 15px 8px 0;
+    flex-shrink: 0;
+  }
+
+  // ========== Content ==========
+
+  &__content {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  &__card {
+    margin-bottom: 24px;
+  }
+
+  // ========== Step 1: Config ==========
+
+  // Config form styled inline in the component
+
+  // ========== Step 2: Prompt ==========
+
+  &__prompt-layout {
+    display: flex;
+    gap: 24px;
+  }
+
+  &__style-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  &__style-card {
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+
+    &:hover {
+      border-color: #2f81f7;
+    }
+
+    &.selected {
+      border-color: #2f81f7;
+      box-shadow: 0 0 0 2px rgba(47, 129, 247, 0.2);
+    }
+
+    :global {
+      .ant-card-body {
+        padding: 12px;
+      }
+    }
+  }
+
+  &__style-color {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    margin: 0 auto 8px;
+    border: 2px solid #f0f0f0;
+  }
+
+  &__style-name {
+    font-weight: 600;
+    font-size: 13px;
+    margin-bottom: 4px;
+  }
+
+  &__style-desc {
+    font-size: 11px;
+    color: #999;
+    line-height: 1.4;
+  }
+
+  // ========== Step 3: Preview ==========
+
+  &__preview-layout {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+  }
+
+  &__preview-main {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__preview-card {
+    :global {
+      .ant-card-body {
+        padding: 16px;
+      }
+    }
+  }
+
+  // ========== Regions ==========
+
+  &__regions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  &__region {
+    border: 1px solid #f0f0f0;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: all 0.3s;
+
+    &.error {
+      border-color: #ff4d4f;
+    }
+  }
+
+  &__region-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background: #fafafa;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  &__region-content {
+    padding: 12px;
+  }
+
+  &__region-error {
+    text-align: center;
+    padding: 24px;
+  }
+
+  &__page-complete {
+    margin-top: 16px;
+  }
+
+  // ========== Chat Panel ==========
+
+  &__chat-panel {
+    width: 340px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 24px;
+  }
+
+  &__chat-card {
+    :global {
+      .ant-card-body {
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        height: 500px;
+      }
+    }
+  }
+
+  &__chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    margin-bottom: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  &__chat-empty {
+    text-align: center;
+    padding: 40px 16px;
+  }
+
+  &__chat-message {
+    display: flex;
+
+    &.user {
+      justify-content: flex-end;
+
+      .ai-page-generator__chat-bubble {
+        background: #2f81f7;
+        color: #fff;
+        border-radius: 12px 4px 12px 12px;
+      }
+    }
+
+    &.assistant {
+      justify-content: flex-start;
+
+      .ai-page-generator__chat-bubble {
+        background: #f5f5f5;
+        border-radius: 4px 12px 12px 12px;
+      }
+    }
+  }
+
+  &__chat-bubble {
+    max-width: 85%;
+    padding: 8px 12px;
+    font-size: 13px;
+    line-height: 1.5;
+    word-wrap: break-word;
+  }
+
+  &__chat-input {
+    border-top: 1px solid #f0f0f0;
+    padding-top: 12px;
+  }
+}
+
+// ========== Region Preview Styles (injected into preview) ==========
+
+.region-preview {
+  .preview-text {
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  .preview-button {
+    padding: 6px 16px;
+    border: none;
+    border-radius: 4px;
+    background: #2f81f7;
+    color: #fff;
+    cursor: pointer;
+    font-size: 13px;
+  }
+
+  .preview-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 80px;
+    background: #fafafa;
+    border: 1px dashed #d9d9d9;
+    border-radius: 4px;
+    color: #999;
+    font-size: 13px;
+  }
+
+  .preview-container {
+    // Container for nested elements
+  }
+}

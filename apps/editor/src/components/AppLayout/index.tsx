@@ -12,6 +12,7 @@ import {
   CheckOutlined,
   GlobalOutlined,
   LogoutOutlined,
+  RobotOutlined,
 } from "@ant-design/icons";
 import type { RootState } from "@/store";
 import { toggleTheme } from "@/store/themeSlice";
@@ -30,6 +31,11 @@ export interface NavItem {
 const menuItems: NavItem[] = [
   { key: "/", icon: <HomeOutlined />, label: "首页" },
   { key: "/pages", icon: <FileTextOutlined />, label: "页面管理" },
+  {
+    key: "/editor/ai-create",
+    icon: <RobotOutlined />,
+    label: "AI 生成",
+  },
   { key: "/templates", icon: <AppstoreOutlined />, label: "模板管理", disabled: true },
   { key: "/components", icon: <BlockOutlined />, label: "自定义组件", disabled: true },
 ];

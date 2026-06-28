@@ -15,6 +15,7 @@ import PagePreview from "./pages/PagePreview";
 import TrashList from "./pages/TrashList";
 import ReviewList from "./pages/ReviewList";
 import VersionList from "./pages/VersionList";
+import AiPageGenerator from "./pages/AiPageGenerator";
 import AppLayout from "./components/AppLayout";
 
 function App() {
@@ -64,6 +65,7 @@ function App() {
       '/pages': '页面列表',
       '/trash': '回收站',
       '/review': '审核列表',
+      '/editor/ai-create': 'AI 页面生成',
     };
 
     const prefixTitles: [string, string][] = [
@@ -96,6 +98,10 @@ function App() {
     {
       path: "/editor/:slug",
       element: token ? <PageEditor /> : <Navigate to="/login" replace state={{ from: location.pathname }} />,
+    },
+    {
+      path: "/editor/ai-create",
+      element: token ? <AiPageGenerator /> : <Navigate to="/login" replace state={{ from: location.pathname }} />,
     },
     {
       path: "/versions/:slug",

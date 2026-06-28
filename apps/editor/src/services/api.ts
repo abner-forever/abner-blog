@@ -325,6 +325,96 @@ export const translationApi = {
 
 /* ==================== 审批 API ==================== */
 
+/* ==================== AI 页面生成 API ==================== */
+
+export interface PageGeneratorConfig {
+  provider: string;
+  hasApiKey?: boolean;
+  baseUrl?: string;
+  model?: string;
+}
+
+export interface GeneratePageDto {
+  prompt: string;
+  style?: string;
+  regions?: string[];
+  sessionId?: string;
+}
+
+export interface RefinePageDto {
+  sessionId: string;
+  message: string;
+}
+
+export interface LoadPageDto {
+  sessionId: string;
+  title: string;
+}
+
+export const pageGeneratorApi = {
+  /** 获取 LLM 配置 */
+  getConfig: () =>
+    httpMutator<PageGeneratorConfig>({
+      url: "/api/page-generator/config",
+      method: "GET",
+    }),
+
+  /** 保存 LLM 配置 */
+  saveConfig: (dto: { provider: string; apiKey?: string; baseUrl?: string; model?: string }) =>
+    httpMutator<PageGeneratorConfig>({
+      url: "/api/page-generator/config",
+      method: "POST",
+      data: dto,
+    }),
+
+  /** 删除 LLM 配置 */
+  deleteConfig: () =>
+    httpMutator<void>({ url: "/api/page-generator/config", method: "DELETE" }),
+
+  /** 获取生成任务 */
+  getTask: (sessionId: string) =>
+    httpMutator<{
+      status: string;
+      sessionId: string;
+      schema?: Record<string, unknown>;
+      regions?: Array<{ regionId: string; regionType: string; name: string; status: string }>;
+      error?: string;
+      pageId?: number;
+    }>({
+      url: `/api/page-generator/tasks/${sessionId}`,
+      method: "GET",
+    }),
+
+  /** 获取任务历史 */
+  getTaskHistory: () =>
+    httpMutator<
+      Array<{
+        sessionId: string;
+        prompt: string;
+        status: string;
+        createdAt: string;
+      }>
+    >({
+      url: "/api/page-generator/tasks",
+      method: "GET",
+    }),
+
+  /** 取消任务 */
+  cancelTask: (sessionId: string) =>
+    httpMutator<void>({
+      url: `/api/page-generator/tasks/${sessionId}/cancel`,
+      method: "POST",
+    }),
+
+  /** 载入编辑器 */
+  loadIntoEditor: (dto: LoadPageDto) =>
+    httpMutator<{ pageId: number; slug: string }>({
+      url: "/api/page-generator/load",
+      method: "POST",
+      data: dto,
+    }),
+};
+
 export const reviewApi = {
   /** 提交审核 */
   submit: (pageId: number) =>

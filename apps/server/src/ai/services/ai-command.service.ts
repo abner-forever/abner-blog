@@ -229,9 +229,7 @@ export class AICommandService {
       updated = {
         id: this.getNumberField(sc, 'id') ?? target.id,
         title:
-          this.getStringField(sc, 'title') ??
-          updateData.title ??
-          target.title,
+          this.getStringField(sc, 'title') ?? updateData.title ?? target.title,
         startDate: this.getUnknownField(sc, 'startDate') ?? target.startDate,
         endDate: this.getUnknownField(sc, 'endDate') ?? target.endDate,
         location:

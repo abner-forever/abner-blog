@@ -175,7 +175,7 @@ function extractCardProps(el: HTMLElement): Record<string, unknown> {
   const link = el.closest('a') || el.querySelector('a');
 
   return {
-    imageSrc: img?.src || getAttr(img as HTMLElement, 'src') || '',
+    imageSrc: img?.getAttribute('src') || img?.src || '',
     imageAlt: img?.alt || '',
     title: h3?.textContent || '',
     description: p?.textContent || '',
