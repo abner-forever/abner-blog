@@ -21,6 +21,8 @@ const initialState: AuthState = {
   error: null,
 };
 
+console.log('1212')
+
 const authSlice = createSlice({
   name: 'auth',
   initialState,
