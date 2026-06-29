@@ -4,13 +4,14 @@
 
 ## 项目概述
 
-**龙码 (LongMa)** — 基于 **pnpm monorepo** 架构的全栈博客 + 低代码平台系统，包含四个应用：
+**龙码 (LongMa)** — 基于 **pnpm monorepo** 架构的全栈博客 + 低代码平台系统，包含五个应用：
 
 | 应用            | 技术栈                                                            | 端口 |
 | --------------- | ----------------------------------------------------------------- | ---- |
 | `apps/server` | NestJS 11 + TypeORM + MySQL + Redis + JWT（服务端）                 | 8080 |
-| `apps/web` | React 18 + Vite 6 + Ant Design 6 + Redux Toolkit + TanStack Query（用户站） | 3000 |
-| `apps/admin`    | React 18 + Vite 6 + Ant Design 6 + ECharts（管理后台）            | 3001 |
+| `apps/web` | React 18 + Vite 8 + Ant Design 6 + Redux Toolkit + TanStack Query（用户站） | 3000 |
+| `apps/admin`    | React 18 + Vite 8 + Ant Design 6 + ECharts（管理后台）            | 3001 |
+| `apps/chat`     | React 18 + Vite 8 + Ant Design 6 + Redux Toolkit + TanStack Query（AI 聊天） | 3002 |
 | `apps/editor`   | React 18 + Vite 8 + GrapesJS Studio SDK（低代码页面编辑器）       | 5175 |
 
 ## 常用命令
@@ -21,6 +22,7 @@ pnpm run dev              # 并行启动 web + server
 pnpm run dev:server       # 仅启动后端 (nest start --watch)
 pnpm run dev:web          # 仅启动用户站
 pnpm run dev:admin        # 启动管理后台
+pnpm run dev:chat         # 启动 AI 聊天
 pnpm run dev:editor       # 启动低代码编辑器
 pnpm run dev:services     # 启动 Docker 服务 (MySQL, Redis 等)
 
@@ -29,11 +31,12 @@ pnpm run build            # 构建 web + server
 pnpm run build:server     # 仅构建后端
 pnpm run build:web        # 仅构建用户站
 pnpm run build:admin      # 仅构建管理后台
+pnpm run build:chat       # 仅构建 AI 聊天
 pnpm run build:editor     # 仅构建编辑器
 
 # 质量检查
-pnpm run lint             # 对所有项目运行 ESLint（含 editor）
-pnpm run typecheck        # 运行 TypeScript 类型检查（含 editor）
+pnpm run lint             # 对所有项目运行 ESLint（含 chat、editor）
+pnpm run typecheck        # 运行 TypeScript 类型检查（含 chat、editor）
 pnpm run test:unit        # 运行单元测试（后端 jest + 前端 vitest）
 pnpm run check:ci         # lint + typecheck + test:unit（提交前运行）
 
@@ -87,7 +90,6 @@ apps/
 │       ├── pages/          # 页面组件（按路由组织）
 │       │   ├── home/       # 首页（Hero + Feature + 最新内容）
 │       │   ├── blog/       # 博客（列表、创建、编辑、详情）
-│       │   ├── chat/       # AI 聊天（含分享、设置面板）
 │       │   ├── todo/       # 待办（列表 + Schedule-X 日历视图）
 │       │   ├── note/       # 笔记（列表、创建、详情、话题）
 │       │   ├── moment/     # 动态（列表、创建、详情）
@@ -123,6 +125,20 @@ apps/
 │       ├── services/       # API 层 (Orval 生成)
 │       ├── store/          # Redux slices
 │       └── i18n/           # 国际化
+├── chat/             # AI 聊天应用（独立部署，端口 3002）
+│   └── src/
+│       ├── pages/
+│       │   ├── auth/       # 登录（JWT + SSO）
+│       │   └── chat/       # 聊天主页
+│       │       ├── context/        # ChatContext (useReducer)
+│       │       ├── components/     # 聊天子组件
+│       │       ├── share/          # 分享页
+│       │       └── utils/          # SSE 解析、图片处理、导出
+│       ├── services/       # API 层 (Orval 生成)
+│       ├── store/          # Redux slices (auth, theme)
+│       ├── hooks/          # 自定义 hooks
+│       ├── i18n/           # 国际化（中英繁三语）
+│       └── styles/         # 全局样式、变量
 └── editor/           # 低代码页面编辑器
     └── src/
         ├── pages/
@@ -173,13 +189,10 @@ packages/
 - **国际化**：所有用户可见文本必须使用 `useTranslation()` hook
 - **页面渲染**：低代码页面通过 `page-schema` 包渲染（组件注册、中间件、事件系统）
 - **日历**：Schedule-X 替代 antd Calendar，自定义 HTML5 拖拽
-- **聊天**：WebSocket 实时通信 + SSE 流式 AI 响应
 
 ## 开发规范
 
 ### 后端 (NestJS)
-
-详细文档：`docs/DEVELOPMENT_NESTJS.md`
 
 - Controller 保持轻量（仅路由），Service 处理业务逻辑
 - 所有请求/响应使用 DTO + `class-validator`
@@ -187,8 +200,6 @@ packages/
 - 分页参数：`page` / `pageSize`
 
 ### 前端 (React)
-
-详细文档：`docs/DEVELOPMENT_REACT.md`
 
 - **组件文件结构**：React imports → 内部 imports → 类型定义 → 组件实现 → export
 - **禁止**：`any` 类型、硬编码颜色、硬编码 API URL、硬编码用户文本
@@ -303,3 +314,12 @@ MySQL + TypeORM。核心实体关系：
 - 使用 `pnpm run commit` 进行交互式提交（Commitizen）
 - Pre-commit 钩子：lint 检查
 - Commit-msg 钩子：约定式提交格式验证
+
+## 文档结构
+
+- `openspec/`：OpenSpec 规范库（低代码平台、AI 聊天、Admin SSO 等迭代文档）
+- `docs/interview/`：面试准备文档
+- `docs/mcp/`：MCP 协议相关文档
+- `docs/rendering-engine/`：渲染引擎架构与路线图
+- `DESIGN.md`：设计系统规范
+- `.claude/skills/`：AI 编码指导 Skills

@@ -1,6 +1,6 @@
 # ABNER Blog — 管理后台（`apps/admin`）
 
-基于 **React 18 + Vite 6 + Ant Design 6 + ECharts** 的运营与内容管理端，与用户站（`apps/web`）共享 monorepo 工作流。
+基于 **React 18 + Vite 8 + Ant Design 6 + ECharts** 的运营与内容管理端，与用户站（`apps/web`）共享 monorepo 工作流。
 
 - 开发端口见 [`vite.config.ts`](./vite.config.ts)（默认 **3001**）。
 - API 客户端可通过 Orval 从后端 OpenAPI 生成，配置与脚本与用户站类似。

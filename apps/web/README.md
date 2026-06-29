@@ -1,6 +1,6 @@
 # ABNER Blog — 用户站（`apps/web`）
 
-基于 **React 18 + Vite 6 + Ant Design 6 + Redux Toolkit + TanStack Query** 的博客用户端。
+基于 **React 18 + Vite 8 + Ant Design 6 + Redux Toolkit + TanStack Query** 的博客用户端。
 
 - 开发端口见 [`vite.config.ts`](./vite.config.ts)（默认 **3000**）。
 - HTTP 与 API 封装见 `src/services/`；服务端数据优先使用 TanStack Query，全局状态见 `src/store/`。
@@ -55,7 +55,6 @@ pnpm run generate:api
 | `/todos` | 待办 | 登录 |
 | `/notes`、`/notes/create`、`/notes/:id` | 笔记 | 依页面 |
 | `/moments` | 动态流 | 公开 |
-| `/chat` | 聊天 | 公开 |
 | `/messages` | 私信 | 登录 |
 | `/notifications` | 通知 | 登录 |
 | `/news`、`/tools`、`/about`、`/interview`、`/search` | 资讯 / 工具 / 关于等 | 公开 |

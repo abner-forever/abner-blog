@@ -54,7 +54,7 @@ LongMa Chat 是龙码 (LongMa) 全栈博客平台中的独立 AI 聊天应用，
 | 分类 | 技术 |
 |------|------|
 | 框架 | React 18 + TypeScript |
-| 构建 | Vite 6 |
+| 构建 | Vite 8 |
 | UI 库 | Ant Design 6 |
 | 状态管理 | Redux Toolkit + React Context (useReducer) |
 | 服务端数据 | TanStack Query |
@@ -208,3 +208,5 @@ pnpm run generate:api     # 从 OpenAPI 规范生成 API 客户端
 6. **性能优化**：虚拟列表、懒加载、消息批处理更新
 7. **主题系统**：CSS 变量 + data-theme + antd ConfigProvider 三重保障
 8. **国际化**：完整的 i18n 方案，覆盖中英繁三语
+
+面试详细文档见 [`docs/interview/`](../../docs/interview/) 目录。

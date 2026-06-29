@@ -1,6 +1,6 @@
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
-import { resolve } from 'path';
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import { resolve } from "path";
 
 export default defineConfig({
   plugins: [react()],
@@ -14,32 +14,27 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@': resolve(__dirname, 'src'),
-      '@components': resolve(__dirname, 'src/components'),
-      '@pages': resolve(__dirname, 'src/pages'),
-      '@services': resolve(__dirname, 'src/services'),
-      '@store': resolve(__dirname, 'src/store'),
-      '@hooks': resolve(__dirname, 'src/hooks'),
-      '@utils': resolve(__dirname, 'src/utils'),
+      "@": resolve(__dirname, "src"),
+      "@components": resolve(__dirname, "src/components"),
+      "@pages": resolve(__dirname, "src/pages"),
+      "@services": resolve(__dirname, "src/services"),
+      "@store": resolve(__dirname, "src/store"),
+      "@hooks": resolve(__dirname, "src/hooks"),
+      "@utils": resolve(__dirname, "src/utils"),
     },
   },
   server: {
-    host: '0.0.0.0',
+    host: "0.0.0.0",
     port: 3002,
     proxy: {
-      '/api': {
-        target: 'http://localhost:8080',
+      "/api": {
+        target: "http://localhost:8080",
         changeOrigin: true,
       },
-      '/assets': {
-        target: 'http://localhost:8080',
+      "/assets": {
+        target: "http://localhost:8080",
         changeOrigin: true,
       },
     },
-  },
-  build: {
-    target: 'es2015',
-    outDir: 'dist',
-    assetsDir: 'static',
   },
 });

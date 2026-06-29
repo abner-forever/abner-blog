@@ -21,13 +21,16 @@
 - JWT / SSO 认证、博客 CRUD、Markdown 编辑
 - 评论 / 点赞 / 收藏、待办事项（Schedule-X 日历视图）
 - 笔记（类 Notion 富文本）、动态/朋友圈、话题
-- AI 聊天（LangChain + LangGraph，流式输出、意图识别）
-- 聊天分享、知识库（向量检索）、AI 技能管理
 - 私信（WebSocket）、通知、系统公告
 - 低代码页面渲染（page-schema 引擎）
 - 搜索、天气、热搜、工具集、面试题
 - 文件与分片上传、视频封面
 - i18n 国际化、主题皮肤（15+ 套）、响应式布局
+
+**AI 聊天（chat）**
+- 多模型 AI 对话（OpenAI、Anthropic、Gemini、DeepSeek、通义千问、MiniMax）
+- SSE 流式响应、知识库增强、MCP 工具调用、技能系统
+- 会话管理、分享、博客发布、国际化（中英繁三语）
 
 **低代码编辑器（editor）**
 - GrapesJS Studio SDK 可视化页面编辑
@@ -67,6 +70,7 @@ pnpm run dev             # 启动 web + server
 | -- | --- |
 | 用户站 | http://localhost:3000 |
 | 管理后台 | http://localhost:3001 |
+| AI 聊天 | http://localhost:3002 |
 | 低代码编辑器 | http://localhost:5175 |
 | 后端 API | http://localhost:8080/api |
 | Swagger | http://localhost:8080/api-docs |
@@ -84,6 +88,7 @@ pnpm run dev             # 启动 web + server
 | [`apps/server/README.md`](./apps/server/README.md) | 后端技术栈、环境、**数据模型**、**API 文档**、测试、部署、架构 |
 | [`apps/web/README.md`](./apps/web/README.md) | 用户站技术栈、**路由**、脚本、测试、Orval |
 | [`apps/admin/README.md`](./apps/admin/README.md) | 管理后台脚本与说明 |
+| [`apps/chat/README.md`](./apps/chat/README.md) | AI 聊天（多模型对话、知识库、MCP、技能） |
 | [`apps/editor/README.md`](./apps/editor/README.md) | 低代码页面编辑器（GrapesJS Studio SDK） |
 | [`packages/upload/README.md`](./packages/upload/README.md) | 分片 / 直传、预览等上传工具包 |
 | [`packages/utils/README.md`](./packages/utils/README.md) | 共享工具方法 |
@@ -91,6 +96,17 @@ pnpm run dev             # 启动 web + server
 | [`packages/shared-ui/README.md`](./packages/shared-ui/README.md) | 共享 UI 组件（登录页、动画角色等） |
 | [`packages/analytics/README.md`](./packages/analytics/README.md) | 埋点 SDK（自动追踪、性能监控） |
 | [`packages/env-tool/README.md`](./packages/env-tool/README.md) | 环境工具（CSS 注入、DOM 工具） |
+
+**规范与架构文档：**
+
+| 路径 | 内容 |
+| ---- | ---- |
+| [`openspec/`](./openspec/) | OpenSpec 规范库（低代码平台、AI 聊天、Admin SSO 等） |
+| [`docs/interview/`](./docs/interview/) | 面试准备文档（Chat 技术文档、MCP 面试文档） |
+| [`docs/rendering-engine/`](./docs/rendering-engine/) | 渲染引擎架构与路线图 |
+| [`docs/mcp/`](./docs/mcp/) | MCP 协议相关文档 |
+| [`DESIGN.md`](./DESIGN.md) | 设计系统规范 |
+| [`CLAUDE.md`](./CLAUDE.md) | Claude Code 开发规范 |
 
 仓库级命令与目录约定还可参考 **[`CLAUDE.md`](./CLAUDE.md)**；Nest / React 专项开发说明见 `docs/`（若存在）。
 
@@ -104,6 +120,7 @@ abner-blog/
 │   ├── server/     # NestJS API → README 见上
 │   ├── web/        # 用户站
 │   ├── admin/      # 管理后台
+│   ├── chat/       # AI 聊天
 │   └── editor/     # 低代码页面编辑器
 ├── packages/
 │   ├── utils/
@@ -112,9 +129,13 @@ abner-blog/
 │   ├── shared-ui/
 │   ├── analytics/
 │   └── env-tool/
+├── openspec/       # OpenSpec 规范库（低代码平台、AI 聊天等）
+├── docs/           # 文档（面试、MCP、渲染引擎等）
 ├── docker/         # Docker Compose + Keycloak
-├── docs/           # 项目文档
+├── .claude/        # Claude Code Skills 与配置
 ├── scripts/
+├── DESIGN.md       # 设计系统规范
+├── CLAUDE.md       # Claude Code 开发规范
 ├── package.json
 ├── pnpm-workspace.yaml
 └── README.md       # 本文件：整体介绍
@@ -128,6 +149,7 @@ abner-blog/
 pnpm run dev              # web + server（含后端 watch）
 pnpm run dev:web
 pnpm run dev:admin
+pnpm run dev:chat
 pnpm run dev:editor
 pnpm run dev:server       # 仅 nest start --watch
 pnpm run dev:services     # Docker 服务 (MySQL, Redis 等)
@@ -136,6 +158,7 @@ pnpm run build            # 当前通常含 web + server
 pnpm run build:web
 pnpm run build:server
 pnpm run build:admin
+pnpm run build:chat
 pnpm run build:editor
 
 pnpm run lint
@@ -169,7 +192,7 @@ pnpm run semantic-release
 
 ## 🎉 现状与说明
 
-Monorepo 含 **server / web / admin / editor** 四端与 **`packages/utils`、`packages/upload`、`packages/page-schema`、`packages/shared-ui`、`packages/analytics`、`packages/env-tool`**；联调以 **Swagger** 与 **Orval 生成客户端** 为准。若文档与实现不一致，以 **源码与 Swagger** 为准。
+Monorepo 含 **server / web / admin / chat / editor** 五端与 **`packages/utils`、`packages/upload`、`packages/page-schema`、`packages/shared-ui`、`packages/analytics`、`packages/env-tool`**；联调以 **Swagger** 与 **Orval 生成客户端** 为准。若文档与实现不一致，以 **源码与 Swagger** 为准。
 
 ---
 
