@@ -101,7 +101,6 @@ export class SaveAIConfigDto {
   @IsOptional()
   @IsObject()
   encryptedApiKeys?: Record<string, string>;
-
 }
 
 export class ChatRequestDto {
@@ -182,4 +181,11 @@ export class ChatRequestDto {
   @IsOptional()
   @IsString()
   skillId?: string;
+
+  @ApiPropertyOptional({
+    description: '是否开启联网搜索（在预处理阶段自动调用 MCP web-search）',
+  })
+  @IsOptional()
+  @IsBoolean()
+  enableWebSearch?: boolean;
 }

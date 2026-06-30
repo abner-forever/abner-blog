@@ -39,6 +39,8 @@ const agentStateSpec = {
   currentDate: Annotation<string>(),
   /** 请求配置中的上下文窗口大小 */
   contextWindow: Annotation<number>(),
+  /** 用户是否开启了联网搜索 */
+  enableWebSearch: Annotation<boolean>(),
 
   // ── 配置（由 Preprocess Node 填充） ──
   /** 构建好的 System Prompt（含 Skills + 基础指令） */

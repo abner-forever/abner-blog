@@ -596,15 +596,25 @@ function extractUniversalText(
   const first = choices?.[0];
   const message = first?.message as Record<string, unknown> | undefined;
   const content = message?.content;
-  if (typeof content === 'string' && content.trim()) return content;
-  // MiniMax M2.x：非流式常见 message.content 为空串，正文在 reasoning_content / reasoning_details
-  if (provider === 'minimax' && thinkingEnabled && message) {
+  const contentStr = typeof content === 'string' ? content : '';
+
+  // ⭐ 开启深度思考时，将 reasoning_content 用 <redacted_thinking> 标签包裹，
+  // 让 stream-emitter.node 能正确识别并发射 thinking_delta 事件
+  if (thinkingEnabled && message) {
     const reasoning = message.reasoning_content;
-    if (typeof reasoning === 'string' && reasoning.trim()) return reasoning;
-    const rd = joinReasoningDetailsText(message.reasoning_details);
-    if (rd.trim()) return rd;
+    if (typeof reasoning === 'string' && reasoning.trim()) {
+      return `<redacted_thinking>${reasoning}</redacted_thinking>\n${contentStr}`;
+    }
+    // MiniMax 特有的 reasoning_details 数组
+    if (provider === 'minimax') {
+      const rd = joinReasoningDetailsText(message.reasoning_details);
+      if (rd.trim()) {
+        return `<redacted_thinking>${rd}</redacted_thinking>\n${contentStr}`;
+      }
+    }
   }
-  if (typeof content === 'string') return content;
+
+  if (contentStr.trim()) return contentStr;
   if (typeof first?.text === 'string') return first.text;
   if (typeof data.text === 'string') return data.text;
   if (typeof data.reply === 'string') return data.reply;
@@ -907,7 +917,9 @@ function toChatMessage(msg: BaseMessage): ChatMessagePayload {
     // ⭐ 携带原生 tool_calls 供 API 识别
     if (msg.tool_calls && msg.tool_calls.length > 0) {
       payload.tool_calls = msg.tool_calls.map((tc) => ({
-        id: tc.id || `call_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+        id:
+          tc.id ||
+          `call_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
         type: 'function' as const,
         function: {
           name: tc.name,
@@ -961,12 +973,14 @@ function extractToolCalls(
       name: (fn?.name as string) || '',
       args: (() => {
         try {
-          return JSON.parse(argsStr);
+          return JSON.parse(argsStr) as Record<string, unknown>;
         } catch {
           return {};
         }
       })(),
-      id: (tc.id as string) || `call_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+      id:
+        (tc.id as string) ||
+        `call_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
       type: 'tool_call' as const,
     };
   });
@@ -974,8 +988,11 @@ function extractToolCalls(
 
 /**
  * 将 Zod schema 转成 JSON Schema（OpenAI tools 参数格式）
+ *
+ * 访问 Zod 内部属性（_def、typeName、innerType、unwrap 等）是必要的，
+ * 因为相应类型未在 Zod 的公共类型中暴露。
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-argument */
 function zodToJsonSchema(schema: z.ZodTypeAny): Record<string, unknown> {
   const def = (schema as { _def?: Record<string, unknown> })._def;
   const typeName = def?.typeName as string | undefined;
@@ -987,13 +1004,14 @@ function zodToJsonSchema(schema: z.ZodTypeAny): Record<string, unknown> {
     const required: string[] = [];
 
     if (shape && typeof shape === 'object') {
-      for (const [key, field] of Object.entries(shape as Record<string, z.ZodTypeAny>)) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      for (const [key, field] of Object.entries(
+        shape as Record<string, z.ZodTypeAny>,
+      )) {
         const fieldDef = (field as any)._def;
         const fieldType = fieldDef?.typeName as string | undefined;
         if (fieldType === 'ZodOptional' || fieldType === 'ZodDefault') {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const inner = (field as any)._def?.innerType ?? (field as any).unwrap?.();
+          const inner =
+            (field as any)._def?.innerType ?? (field as any).unwrap?.();
           properties[key] = inner ? zodToJsonSchema(inner) : { type: 'string' };
         } else {
           properties[key] = zodToJsonSchema(field);
@@ -1022,19 +1040,24 @@ function zodToJsonSchema(schema: z.ZodTypeAny): Record<string, unknown> {
     return { type: 'string', enum: (def?.values as unknown[]) || [] };
   }
   if (typeName === 'ZodOptional' || typeName === 'ZodDefault') {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const inner = (schema as any)._def?.innerType ?? (schema as any).unwrap?.();
     return inner ? zodToJsonSchema(inner) : { type: 'string' };
   }
   if (typeName === 'ZodNullable') {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const nullableInner = (schema as any)._def?.innerType ?? (schema as any).unwrap?.();
-    return nullableInner ? { ...zodToJsonSchema(nullableInner), nullable: true } : { type: 'string', nullable: true };
+    const nullableInner =
+      (schema as any)._def?.innerType ?? (schema as any).unwrap?.();
+    return nullableInner
+      ? { ...zodToJsonSchema(nullableInner), nullable: true }
+      : { type: 'string', nullable: true };
   }
   if (typeName === 'ZodArray') {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const elementSchema = (schema as any)._def?.type ?? (schema as any).element;
-    return { type: 'array', items: elementSchema ? zodToJsonSchema(elementSchema) : { type: 'string' } };
+    return {
+      type: 'array',
+      items: elementSchema
+        ? zodToJsonSchema(elementSchema)
+        : { type: 'string' },
+    };
   }
   if (typeName === 'ZodUnion' || typeName === 'ZodDiscriminatedUnion') {
     const options = (def?.options as z.ZodTypeAny[]) || [];
@@ -1043,6 +1066,7 @@ function zodToJsonSchema(schema: z.ZodTypeAny): Record<string, unknown> {
 
   return { type: 'string' }; // fallback
 }
+/* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-argument */
 
 /**
  * 将 Zod schema 转成 JSON Schema，并合并 describe() 描述

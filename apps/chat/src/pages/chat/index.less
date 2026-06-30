@@ -105,21 +105,13 @@
 
 .chat-header {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   padding: 0 20px;
   height: 52px;
   min-height: 52px;
   border-bottom: 1px solid var(--ds-border);
   background: var(--ds-bg-secondary);
-
-  .chat-header-left {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
-    min-width: 0;
-  }
 
   .chat-active-skill {
     display: inline-flex;
@@ -145,25 +137,6 @@
     display: flex;
     align-items: center;
     gap: 8px;
-  }
-
-  .model-selector {
-    min-width: 200px;
-
-    .ant-select-selector {
-      border-radius: 8px;
-      background: var(--ds-bg-tertiary) !important;
-      border-color: var(--ds-border) !important;
-      color: var(--ds-text) !important;
-    }
-
-    .ant-select-selection-item {
-      color: var(--ds-text) !important;
-    }
-
-    .ant-select-arrow {
-      color: var(--ds-text-secondary);
-    }
   }
 
   .chat-title {
@@ -231,6 +204,12 @@
       color: var(--ds-accent);
       background: rgba(77, 107, 254, 0.12);
     }
+  }
+
+  // Mobile-only header elements — hidden on desktop
+  .header-left,
+  .chat-title {
+    display: none;
   }
 }
 
@@ -1282,6 +1261,23 @@
     min-width: 100%;
     border-left: none;
     box-shadow: none;
+    max-width: 100vw;
+    z-index: 200;
+
+    .knowledge-base-panel,
+    .mcp-server-panel,
+    .skill-panel {
+      .panel-header {
+        padding: 12px 14px;
+      }
+      .panel-content {
+        padding: 12px 12px 16px;
+      }
+      .panel-tabs .tab-item {
+        padding: 10px 10px;
+        font-size: 13px;
+      }
+    }
   }
 }
 
@@ -1831,6 +1827,74 @@
       }
     }
 
+    // Model selector inside chat input — compact pill style on right side
+    .chat-input-model-selector {
+      height: 28px;
+      line-height: 28px;
+
+      .ant-select-selector {
+        border-radius: 999px !important;
+        padding: 0 20px 0 8px !important;
+        height: 28px !important;
+        background: transparent !important;
+        border: 1px solid var(--ds-border) !important;
+        transition: all 0.15s ease !important;
+      }
+
+      .ant-select-selection-item {
+        font-size: 12px;
+        line-height: 26px !important;
+        color: var(--ds-text-secondary) !important;
+        font-weight: 400;
+      }
+
+      .ant-select-arrow {
+        color: var(--ds-text-secondary);
+        font-size: 10px;
+        inset-inline-end: 6px;
+      }
+
+      &:hover {
+        .ant-select-selector {
+          border-color: var(--ds-border-light) !important;
+          background: var(--ds-bg-tertiary) !important;
+        }
+      }
+
+      &.ant-select-focused {
+        .ant-select-selector {
+          border-color: var(--ds-accent) !important;
+          box-shadow: none !important;
+        }
+
+        .ant-select-selection-item {
+          color: var(--ds-accent) !important;
+        }
+
+        .ant-select-arrow {
+          color: var(--ds-accent);
+        }
+      }
+    }
+
+    // Model selector dropdown — compact items
+    .chat-input-model-selector-dropdown {
+      .ant-select-item {
+        font-size: 12px;
+        padding: 4px 8px;
+        min-height: 28px;
+        line-height: 20px;
+      }
+
+      .ant-select-item-option-content {
+        font-size: 12px;
+      }
+
+      .ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
+        font-weight: 500;
+      }
+    }
+
     .chat-send-fab.ant-btn.ant-btn-primary {
       width: 36px;
       height: 36px;
@@ -1970,16 +2034,7 @@
     }
   }
 
-  .model-selector .ant-select-selector {
-    background: #fff !important;
-    border-color: #d9d9d9 !important;
-    color: #333 !important;
   }
-
-  .model-selector .ant-select-selection-item {
-    color: #333 !important;
-  }
-}
 
 // 移动端适配
 @media (max-width: 768px) {
@@ -2014,6 +2069,9 @@
     padding-top: env(safe-area-inset-top);
 
     .header-left {
+      display: flex;
+      align-items: center;
+
       .menu-btn {
         width: 36px;
         height: 36px;
@@ -2102,6 +2160,15 @@
         .anticon {
           font-size: 18px;
         }
+      }
+    }
+
+    // Also hide btn-text for chat-header-right on mobile
+    .chat-header-right {
+      gap: 4px;
+
+      .header-btn .btn-text {
+        display: none;
       }
     }
   }
@@ -2369,6 +2436,63 @@
         line-height: 1.6;
       }
     }
+
+    // Mobile drawer footer — knowledge base, MCP, skills toggles
+    .drawer-footer {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 12px;
+      border-top: 1px solid var(--ds-border);
+      background: var(--ds-bg);
+      flex-shrink: 0;
+
+      .drawer-footer-btn {
+        flex: 1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        height: 34px;
+        padding: 0 6px;
+        border-radius: 8px;
+        border: 1px solid var(--ds-border);
+        background: transparent;
+        color: var(--ds-text-secondary);
+        font-size: 12px;
+        transition: all 0.15s ease;
+        min-width: 0;
+        overflow: hidden;
+
+        &:hover {
+          border-color: var(--ds-border-light);
+          color: var(--ds-text);
+          background: var(--ds-bg-tertiary);
+        }
+
+        &.active {
+          border-color: var(--ds-accent);
+          color: var(--ds-accent);
+          background: rgba(77, 107, 254, 0.1);
+        }
+
+        .anticon {
+          font-size: 14px;
+          flex-shrink: 0;
+        }
+
+        span:not(.anticon) {
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+      }
+    }
+
+    // Touch-friendly: always show delete buttons on mobile
+    .drawer-item .item-delete {
+      opacity: 1;
+    }
   }
 }
 
@@ -2444,6 +2568,23 @@
     &__text {
       color: #666;
     }
+  }
+}
+
+// antd Drawer dark theme — for mobile history drawer
+.chat-history-drawer {
+  .ant-drawer-content {
+    background: var(--ds-bg);
+  }
+
+  .ant-drawer-mask {
+    background: rgba(0, 0, 0, 0.5);
+  }
+}
+
+[data-theme="light"] .chat-history-drawer {
+  .ant-drawer-content {
+    background: var(--ds-bg);
   }
 }
 

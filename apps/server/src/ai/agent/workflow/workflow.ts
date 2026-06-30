@@ -27,17 +27,15 @@ import { createPreprocessNode } from './nodes/preprocess.node';
 import { createAgentNode } from './nodes/agent.node';
 import { createStreamEmitterNode } from './nodes/stream-emitter.node';
 import { validateToolResults } from '../validation/tool-result-validator';
+import type { DynamicStructuredTool } from '@langchain/core/tools';
 import type { ChatLLM } from '../../langchain/model';
 import type { AIChatSessionService } from '../../services/ai-chat-session.service';
 import type { ChatHistoryService } from '../../orchestrator/chat-history.service';
 import type { AIChatResponseService } from '../../services/ai-chat-response.service';
-import type { AICommandService } from '../../services/ai-command.service';
-import type { AIWeatherService } from '../../services/ai-weather.service';
+
 import type { KnowledgeBaseService } from '../../../knowledge-base/knowledge-base.service';
-import type { WebSearchService } from '../../../web-search/web-search.service';
 import type { MCPServersService } from '../../../mcp/services/mcp-servers.service';
 import type { SkillsService } from '../../../skills/skills.service';
-import type { TodosService } from '../../../todos/todos.service';
 import type { ChatImageDto } from '../../dto/chat.dto';
 import { ChatStreamService } from '../../orchestrator/chat-stream.service';
 
@@ -47,13 +45,9 @@ export interface WorkflowDeps {
   chatSessionService: AIChatSessionService;
   chatHistoryService: ChatHistoryService;
   chatResponseService: AIChatResponseService;
-  commandService: AICommandService;
-  weatherService: AIWeatherService;
   knowledgeBaseService: KnowledgeBaseService;
-  webSearchService: WebSearchService;
   mcpServersService: MCPServersService;
   skillsService: SkillsService;
-  todosService: TodosService;
   chatStreamService: ChatStreamService;
   // Per-request
   llm: ChatLLM;
@@ -67,7 +61,8 @@ type GraphState = AgentStateType;
  *
  * 从最后一条 AIMessage 中提取 tool_calls，执行对应工具，返回 ToolMessages。
  */
-function createToolExecutionNode(deps: WorkflowDeps) {
+function createToolExecutionNode(_deps: WorkflowDeps) {
+  void _deps;
   return async (state: GraphState): Promise<Partial<GraphState>> => {
     const { messages, tools, streamChannel, retryCount, maxRetries } = state;
 
@@ -97,8 +92,9 @@ function createToolExecutionNode(deps: WorkflowDeps) {
 
       const startTime = Date.now();
       try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const result = await (toolConfig.tool as any).invoke(tc.args);
+        const result: unknown = await (
+          toolConfig.tool as DynamicStructuredTool
+        ).invoke(tc.args);
         const resultStr =
           typeof result === 'string' ? result : JSON.stringify(result);
         const duration = Date.now() - startTime;
@@ -135,7 +131,6 @@ function createToolExecutionNode(deps: WorkflowDeps) {
         );
       } catch (error) {
         const msg = error instanceof Error ? error.message : String(error);
-        const duration = Date.now() - startTime;
         streamChannel.emitToolCallError(tc.name, msg, false);
 
         toolResults.push(
@@ -153,25 +148,9 @@ function createToolExecutionNode(deps: WorkflowDeps) {
 }
 
 /**
- * 工具名称 → 意图名称 映射
+ * 工具名称 → 意图名称 映射（MCP 工具动态生成，此处为空）
  */
-const TOOL_TO_INTENT: Record<string, Record<string, string>> = {
-  manage_todos: {
-    create: 'create_todo',
-    update: 'update_todo',
-    delete: 'delete_todo',
-    query: 'query_schedule',
-  },
-  manage_events: {
-    create: 'create_event',
-    update: 'update_event',
-    delete: 'delete_event',
-    query: 'query_schedule',
-  },
-  query_weather: {
-    _: 'query_weather',
-  },
-};
+const TOOL_TO_INTENT: Record<string, Record<string, string>> = {};
 
 /**
  * 从工具结果字符串中提取结构化数据，通过 EventBus 发射对应 SSE 事件。
@@ -195,7 +174,7 @@ function emitStructuredToolEvent(
     // 解析结果
     let parsed: Record<string, unknown> | null = null;
     try {
-      parsed = JSON.parse(resultStr);
+      parsed = JSON.parse(resultStr) as Record<string, unknown> | null;
     } catch {
       return; // 非 JSON 结果，不发射结构化事件
     }
@@ -239,10 +218,6 @@ function emitStructuredToolEvent(
           | Record<string, unknown>
           | undefined;
         streamChannel.emitScheduleQuery(scheduleData, analysis);
-        break;
-      }
-      case 'query_weather': {
-        // 天气结果由 chat_delta 流 + done 事件解析，无需单独的结构化事件
         break;
       }
     }

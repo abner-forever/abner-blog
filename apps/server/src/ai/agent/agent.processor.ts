@@ -19,17 +19,13 @@ import { mapLlmErrorForUser } from '../utils/llm-user-facing-error';
 import { createAgentWorkflow } from './workflow/workflow';
 import { AgentEventBus } from './event-bus/agent-event-bus';
 import { DEFAULT_MAX_RETRIES, DEFAULT_CONTEXT_WINDOW } from './workflow/state';
-import { AICommandService } from '../services/ai-command.service';
 import { AIChatSessionService } from '../services/ai-chat-session.service';
-import { AIWeatherService } from '../services/ai-weather.service';
 import { AIChatResponseService } from '../services/ai-chat-response.service';
 import { ChatHistoryService } from '../orchestrator/chat-history.service';
 import { ChatStreamService } from '../orchestrator/chat-stream.service';
 import { MCPServersService } from '../../mcp/services/mcp-servers.service';
-import { WebSearchService } from '../../web-search/web-search.service';
 import { KnowledgeBaseService } from '../../knowledge-base/knowledge-base.service';
 import { SkillsService } from '../../skills/skills.service';
-import { TodosService } from '../../todos/todos.service';
 
 const logger = new Logger('AgentProcessor');
 
@@ -39,13 +35,9 @@ export class AgentProcessor {
     private readonly chatSessionService: AIChatSessionService,
     private readonly chatHistoryService: ChatHistoryService,
     private readonly chatResponseService: AIChatResponseService,
-    private readonly commandService: AICommandService,
-    private readonly weatherService: AIWeatherService,
     private readonly knowledgeBaseService: KnowledgeBaseService,
-    private readonly webSearchService: WebSearchService,
     private readonly mcpServersService: MCPServersService,
     private readonly skillsService: SkillsService,
-    private readonly todosService: TodosService,
     private readonly chatStreamService: ChatStreamService,
   ) {}
 
@@ -57,13 +49,9 @@ export class AgentProcessor {
       chatSessionService: this.chatSessionService,
       chatHistoryService: this.chatHistoryService,
       chatResponseService: this.chatResponseService,
-      commandService: this.commandService,
-      weatherService: this.weatherService,
       knowledgeBaseService: this.knowledgeBaseService,
-      webSearchService: this.webSearchService,
       mcpServersService: this.mcpServersService,
       skillsService: this.skillsService,
-      todosService: this.todosService,
       chatStreamService: this.chatStreamService,
       llm,
       images,
@@ -97,6 +85,7 @@ export class AgentProcessor {
         hasImages,
         currentDate,
         contextWindow,
+        enableWebSearch: requestConfig?.enableWebSearch ?? false,
         systemPrompt: '',
         tools: [],
         toolNames: [] as string[],
@@ -143,7 +132,7 @@ export class AgentProcessor {
         let yieldedDoneOrError = false;
         while (!done) {
           while (eventQueue.length > 0) {
-            const event = eventQueue.shift()!;
+            const event = eventQueue.shift();
             yield event;
             if (event.event === 'done' || event.event === 'error') {
               yieldedDoneOrError = true;
@@ -163,7 +152,7 @@ export class AgentProcessor {
           if (raceResult === 'done') {
             done = true;
             while (eventQueue.length > 0) {
-              const event = eventQueue.shift()!;
+              const event = eventQueue.shift();
               yield event;
               if (event.event === 'done' || event.event === 'error') {
                 yieldedDoneOrError = true;

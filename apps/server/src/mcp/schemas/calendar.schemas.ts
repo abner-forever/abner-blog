@@ -4,8 +4,12 @@ import { z } from 'zod';
 export const ListEventsSchema = z.object({
   startDate: z
     .string()
-    .describe('开始日期，格式为 YYYY-MM-DD，如 "2026-04-01"'),
-  endDate: z.string().describe('结束日期，格式为 YYYY-MM-DD，如 "2026-04-07"'),
+    .optional()
+    .describe('开始日期，格式为 YYYY-MM-DD，如 "2026-04-01"；不提供则返回全部'),
+  endDate: z
+    .string()
+    .optional()
+    .describe('结束日期，格式为 YYYY-MM-DD，如 "2026-04-07"；不提供则返回全部'),
 });
 
 export type ListEventsInput = z.infer<typeof ListEventsSchema>;

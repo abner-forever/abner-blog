@@ -36,13 +36,20 @@ export function validateToolResults(
   maxRetries: number,
 ): ValidationResult[] {
   return toolMessages
-    .filter((msg): msg is ToolMessage => msg.constructor?.name === 'ToolMessage')
+    .filter(
+      (msg): msg is ToolMessage => msg.constructor?.name === 'ToolMessage',
+    )
     .map((msg) => {
       const content =
-        typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content);
+        typeof msg.content === 'string'
+          ? msg.content
+          : JSON.stringify(msg.content);
 
       // 检查是否包含错误
-      if (content.includes('"status":"error"') || content.includes('"status": "error"')) {
+      if (
+        content.includes('"status":"error"') ||
+        content.includes('"status": "error"')
+      ) {
         if (retryCount < maxRetries) {
           return {
             valid: false,

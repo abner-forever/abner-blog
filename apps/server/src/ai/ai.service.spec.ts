@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/require-await, @typescript-eslint/unbound-method */
 // Mock environment before imports
 process.env.OPENAI_API_KEY = 'test-api-key';
 
@@ -30,7 +31,9 @@ describe('AIService', () => {
       }),
       getUserConfig: jest.fn().mockResolvedValue({ provider: 'minimax' }),
       saveUserConfig: jest.fn().mockResolvedValue(undefined),
-      getConfigTransportPublicKeyDerBase64: jest.fn().mockReturnValue('mock-public-key'),
+      getConfigTransportPublicKeyDerBase64: jest
+        .fn()
+        .mockReturnValue('mock-public-key'),
       decryptConfigTransportApiKeys: jest.fn().mockReturnValue({}),
     } as unknown as jest.Mocked<AIConfigService>;
 
@@ -83,7 +86,10 @@ describe('AIService', () => {
         undefined,
       );
       expect(result).toHaveLength(3);
-      expect(result[0]).toEqual({ event: 'chat_delta', payload: { delta: '你好' } });
+      expect(result[0]).toEqual({
+        event: 'chat_delta',
+        payload: { delta: '你好' },
+      });
     });
 
     it('should yield error event on exception', async () => {
@@ -92,9 +98,7 @@ describe('AIService', () => {
       });
 
       const result: AIStreamEvent[] = [];
-      for await (const event of service.processMessageStream(
-        'hi', undefined,
-      )) {
+      for await (const event of service.processMessageStream('hi', undefined)) {
         result.push(event);
       }
 

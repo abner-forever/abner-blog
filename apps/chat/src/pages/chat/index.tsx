@@ -13,7 +13,7 @@ import KnowledgeBasePanel from './components/KnowledgeBasePanel';
 import MCPServerPanel from './components/MCPServerPanel';
 import SkillPanel from './components/SkillPanel';
 import WelcomeScreen from './components/WelcomeScreen';
-import { isChatImageSupportedVendor } from './constants';
+import { MODEL_VENDORS, isChatImageSupportedVendor } from './constants';
 import { readFileAsChatImage, revokeChatImagePreview, CHAT_MAX_IMAGES, type ChatImagePayload } from './utils/chat-images';
 import { useAppSelector } from '@/store/reduxHooks';
 import { useAuthCheck } from '@/hooks/useAuthCheck';
@@ -58,6 +58,7 @@ const ChatPageContent: React.FC = () => {
     showKnowledgeBase,
     showMCPServer,
     showSkill,
+    hasApiKeyByProvider,
   } = state;
 
   // Add files to pending
@@ -190,6 +191,22 @@ const ChatPageContent: React.FC = () => {
     dispatch({ type: 'SET_ENABLE_WEB_SEARCH', payload: !enableWebSearch });
   }, [dispatch, enableWebSearch]);
 
+  const handleModelChange = useCallback(
+    (value: string) => {
+      const selectedModel = MODEL_VENDORS.flatMap((v) => v.models).find((m) => m.value === value);
+      if (selectedModel) {
+        const selectedVendor = MODEL_VENDORS.find((v) =>
+          v.models.some((m) => m.value === value),
+        );
+        if (selectedVendor) {
+          dispatch({ type: 'SET_VENDOR', payload: selectedVendor.value });
+        }
+        dispatch({ type: 'SET_MODEL', payload: value });
+      }
+    },
+    [dispatch],
+  );
+
   const toggleThinkingExpanded = useCallback(
     (messageId: string) => {
       dispatch({ type: 'TOGGLE_THINKING_EXPANDED', payload: messageId });
@@ -307,6 +324,9 @@ const ChatPageContent: React.FC = () => {
             onToggleWebSearch={handleToggleWebSearch}
             deepThinkingLabel={t('chat.deepThinking', { defaultValue: '深度思考' })}
             smartSearchLabel={t('chat.smartSearch', { defaultValue: '智能搜索' })}
+            model={state.model}
+            onModelChange={handleModelChange}
+            hasApiKeyByProvider={hasApiKeyByProvider}
           />
         )}
       </div>

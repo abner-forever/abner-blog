@@ -25,21 +25,14 @@ apps/server/src/ai/agent/
 │   ├── state.ts                 # AgentState 类型定义（含 MessagesReducer）
 │   ├── workflow.ts              # LangGraph StateGraph 定义 + 条件边
 │   └── nodes/
-│       ├── preprocess.node.ts       # KB 查询、历史加载、权限检查
+│       ├── preprocess.node.ts       # KB 查询、历史加载、MCP 工具注入
 │       ├── agent.node.ts            # LLM 推理 + Tool Calling
-│       ├── tool-executor.node.ts    # 执行 Built-in 工具
-│       ├── mcp-executor.node.ts     # 执行动态注入的 MCP 工具
-│       ├── tool-validator.node.ts   # 验证结果质量 + 驱动重试
-│       └── stream-emitter.node.ts   # EventBus → SSE 输出
+│       ├── stream-emitter.node.ts   # EventBus → SSE 输出
 │
 ├── tools/
-│   ├── index.ts                     # combineBuiltInTools() + combineMcpTools()
+│   ├── index.ts                     # combineTools() 合并 built-in + MCP
 │   ├── built-in/
-│   │   ├── manage-todos.tool.ts     # todo CRUD
-│   │   ├── manage-events.tool.ts    # calendar CRUD
-│   │   ├── query-weather.tool.ts    # 天气查询
-│   │   ├── search-web.tool.ts       # 网页搜索
-│   │   └── search-knowledge.tool.ts # 知识库检索
+│   │   └── search-knowledge.tool.ts # 知识库检索（唯一内置工具）
 │   └── mcp/
 │       └── mcp-tool-factory.ts      # 根据用户配置动态生成 MCP Tool 列表
 │
@@ -108,14 +101,20 @@ START → PREPROCESS → AGENT →┐
 
 ## 工具定义（中粒度）
 
-|工具|参数|实现|Fallback|
+|工具|参数|实现|说明|
 |---|---|---|---|
-|`manage_todos`|`{action, title?, dueDate?, id?}`|AICommandService|Direct|
-|`manage_events`|`{action, title?, startTime?, endTime?}`|AICommandService|Direct|
-|`query_weather`|`{city, adm?, date?}`|AIWeatherService|MCP→Direct|
-|`search_web`|`{query}`|MCP Search→WebSearchService|MCP→Direct|
-|`search_knowledge`|`{query}`|KnowledgeBaseService|-|
-|`mcp_*` (动态)|由 MCP Server 定义|MCPServersService|-|
+|`search_knowledge`|`{query}`|KnowledgeBaseService|唯一内置工具，知识库检索|
+|`mcp_*` (动态)|由 MCP Server 定义|MCPServersService|根据用户启用的 MCP 服务器动态生成|
+
+### MCP 工具（由 MCP 服务器提供）
+
+- `search` — 联网搜索
+- `create_todo` / `update_todo` / `delete_todo` / `list_todos` — 待办事项管理
+- `create_event` / `update_event` / `delete_event` / `list_events` — 日程事件管理
+- `get_weather` / `get_air_quality` — 天气查询
+- `get_user_info` — 用户信息
+- `list_issues` / `list_prs` / `get_repo` / `create_issue` / `create_pr` — GitHub 集成
+- `get_page_content` — 网页内容获取
 
 ## SSE 协议扩展
 
@@ -130,9 +129,9 @@ START → PREPROCESS → AGENT →┐
 
 ## 优雅降级策略
 
-每个工具函数内部实现 fallback 链：
-```
-MCP 优先 → Direct Service fallback → 返回结果/错误说明给 LLM
-```
+工具执行策略：
+- **内置工具**：`search_knowledge` 直接调用 KnowledgeBaseService
+- **MCP 工具**：由 `mcp-tool-factory.ts` 根据用户启用的 MCP 服务器动态生成
+- **无 MCP 服务器**：用户未配置 MCP 服务器时，只有 `search_knowledge` 可用
 
-ToolResultValidator Node 额外检查结果质量，驱动重试逻辑。
+ToolResultValidator Node 检查结果质量，驱动重试逻辑。

@@ -1,4 +1,4 @@
-import React, { memo, useMemo, useCallback, useRef, useState } from 'react';
+import React, { memo, useMemo, useRef, useState, useCallback } from 'react';
 import { flushSync } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -6,10 +6,11 @@ import {
   Modal,
   Input,
   message,
-  Select,
   Spin,
 } from 'antd';
 import {
+  MenuOutlined,
+  MessageOutlined,
   ShareAltOutlined,
   SettingOutlined,
   CopyOutlined,
@@ -18,7 +19,6 @@ import {
   DownloadOutlined,
 } from '@ant-design/icons';
 import { useChat } from '../../context/ChatContext';
-import { MODEL_VENDORS } from '../../constants';
 import type { ChatSession } from '../../types';
 import ChatConversationPreview from '../ChatConversationPreview';
 import { useChatShareControllerCreate } from '@services/generated/chat-share/chat-share';
@@ -34,7 +34,7 @@ import { assistantMarkdownForRender } from '../../utils/assistant-markdown';
 const ChatHeader: React.FC = memo(function ChatHeader() {
   const { t } = useTranslation();
   const { state, dispatch, isDark } = useChat();
-  const { model, sessions, currentSessionId } = state;
+  const { sessions, currentSessionId } = state;
   const { checkAuth } = useAuthCheck();
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [shareUrl, setShareUrl] = useState('');
@@ -46,32 +46,6 @@ const ChatHeader: React.FC = memo(function ChatHeader() {
   const [exportMount, setExportMount] = useState(false);
   const imageBusy = imageExporting || imageDownloading;
   const captureOffscreenRef = useRef<HTMLDivElement>(null);
-
-  const modelOptions = useMemo(() => {
-    return MODEL_VENDORS.flatMap((v) =>
-      v.models.map((m) => ({
-        label: `${v.label} - ${m.label}`,
-        value: m.value,
-        vendor: v.value,
-      })),
-    );
-  }, []);
-
-  const handleModelChange = useCallback(
-    (value: string) => {
-      const selectedModel = MODEL_VENDORS.flatMap((v) => v.models).find((m) => m.value === value);
-      if (selectedModel) {
-        const selectedVendor = MODEL_VENDORS.find((v) =>
-          v.models.some((m) => m.value === value),
-        );
-        if (selectedVendor) {
-          dispatch({ type: 'SET_VENDOR', payload: selectedVendor.value });
-        }
-        dispatch({ type: 'SET_MODEL', payload: value });
-      }
-    },
-    [dispatch],
-  );
 
   const { mutateAsync: createShare } = useChatShareControllerCreate();
 
@@ -243,16 +217,27 @@ const ChatHeader: React.FC = memo(function ChatHeader() {
 
   return (
     <div className="chat-header">
-      <div className="chat-header-left">
-        <Select
-          value={model}
-          onChange={handleModelChange}
-          options={modelOptions}
-          className="model-selector"
-          popupMatchSelectWidth={false}
-          placeholder={t('chat.selectModelPlaceholder')}
+      {/* Mobile: left hamburger menu — hidden on desktop */}
+      <div className="header-left">
+        <Button
+          type="text"
+          icon={<MenuOutlined />}
+          onClick={() => dispatch({ type: 'SET_MOBILE_DRAWER_OPEN', payload: true })}
+          className="menu-btn"
         />
       </div>
+
+      {/* Mobile: center title — hidden on desktop */}
+      <div className="chat-title">
+        <div className="title-icon">
+          <MessageOutlined />
+        </div>
+        <div className="title-text">
+          <span className="title-main">龙码 AI</span>
+          <span className="title-sub">LongMa AI</span>
+        </div>
+      </div>
+
       <div className="chat-header-right">
         <Button
           type="text"

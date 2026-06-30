@@ -12,29 +12,44 @@
 import { SystemMessage } from '@langchain/core/messages';
 import type { AgentStateType } from '../state';
 import { DEFAULT_CONTEXT_WINDOW } from '../state';
-import { combineTools, createDynamicMcpTools } from '../../tools';
-import { createManageTodosTool } from '../../tools/built-in/manage-todos.tool';
-import { createManageEventsTool } from '../../tools/built-in/manage-events.tool';
-import { createQueryWeatherTool } from '../../tools/built-in/query-weather.tool';
-import { createSearchWebTool } from '../../tools/built-in/search-web.tool';
+import { combineTools } from '../../tools/combine-tools';
 import { createSearchKnowledgeTool } from '../../tools/built-in/search-knowledge.tool';
+import { createDynamicMcpTools } from '../../tools/mcp/mcp-tool-factory';
 import type { WorkflowDeps } from '../workflow';
 import { buildChatHumanMessage } from '../../../utils/build-chat-human-message';
-import { shouldOfferWebSearchMcp } from '../../../utils/web-search-mcp-trigger';
+
+/**
+ * 判断用户查询是否明显是本地数据操作，无需自动联网搜索。
+ * 匹配后跳过预处理的自动搜索，避免浪费 API 调用。
+ * LLM 仍然可以使用工具列表中的 search 工具自行决定搜索。
+ */
+function isLocalDataQuery(query: string): boolean {
+  const patterns = [
+    // 查询/查看本地数据
+    /^(查询|查看|看看|浏览|列出|打开|进入|显示)\s*(我的|个人)?\s*(待办|日程|笔记|收藏|关注|粉丝|通知|消息|评论|点赞|信息|资料|设置|配置|订单|地址|文章|博客|动态|话题|草稿|用户)/i,
+    // 创建/修改/删除本地数据
+    /^(创建|新建|添加|增加|新增|修改|更新|编辑|删除|移除|取消|完成)\s*(待办|日程|笔记|收藏|文章|博客|评论|动态|任务|事件)/i,
+    // "我的XXX"
+    /^我的\s*(待办|日程|笔记|收藏|关注|粉丝|通知|消息|信息|资料|订单|地址|文章|博客|动态|话题|草稿)/i,
+    // "有什么/有哪些 XXX"
+    /^(有什么|有哪些)\s*(待办|日程|笔记|任务|通知|消息|收藏)/i,
+    // "今天/明天/昨天 XXX (含日程/待办相关)"
+    /^(今天|明天|后天|昨天)\s*(的)?\s*(日程|待办|笔记|任务|安排)/i,
+    // 个人信息查询
+    /^(我是谁|我的个人信息|查看个人|我的账号|查看账号)/i,
+    // 纯问候/闲聊（无需搜索）
+    /^(你好|您好|hi|hello|嗨|早上好|下午好|晚上好|再见|拜拜|谢谢|感谢)$/i,
+  ];
+  return patterns.some((re) => re.test(query.trim()));
+}
 
 /**
  * 创建预处理节点
  */
 export function createPreprocessNode(deps: WorkflowDeps) {
   return async (state: AgentStateType): Promise<Partial<AgentStateType>> => {
-    const {
-      userInput,
-      userId,
-      sessionId,
-      currentDate,
-      contextWindow,
-      streamChannel,
-    } = state;
+    const { userInput, userId, sessionId, contextWindow, streamChannel } =
+      state;
 
     const effectiveContextWindow = contextWindow || DEFAULT_CONTEXT_WINDOW;
 
@@ -71,40 +86,28 @@ export function createPreprocessNode(deps: WorkflowDeps) {
       }
     }
 
-    // ── 4. 可选自动 WebSearch ──
+    // ── 4. 可选 WebSearch（由 enableWebSearch 控制，且仅对非本地数据查询触发） ──
     let webSearchContext: string | null = null;
-    if (shouldOfferWebSearchMcp(userInput) && userId) {
+    const needsSearch =
+      userId && state.enableWebSearch && !isLocalDataQuery(userInput);
+    if (needsSearch) {
       streamChannel.emit({
         event: 'web_search_status',
         payload: { status: 'searching' },
       });
-
       try {
-        // MCP search 优先，失败降级到 Direct API
-        try {
-          const mcpResult = await deps.mcpServersService.callToolForUser(
-            userId,
-            'search',
-            { query: userInput },
-          );
-          const first = mcpResult.content.find((c) => c.type === 'text');
-          if (first?.text?.trim()) {
-            webSearchContext = first.text.trim();
-          }
-        } catch {
-          // MCP fallback → direct API
-        }
-
-        if (!webSearchContext) {
-          const digest = await deps.webSearchService.searchDigest(userInput);
-          if (digest?.trim()) {
-            webSearchContext = digest;
-          }
+        const mcpResult = await deps.mcpServersService.callToolForUser(
+          userId,
+          'search',
+          { query: userInput },
+        );
+        const first = mcpResult.content.find((c) => c.type === 'text');
+        if (first?.text?.trim()) {
+          webSearchContext = first.text.trim();
         }
       } catch {
-        // Search failed
+        // MCP search 未配置或失败，跳过
       }
-
       streamChannel.emit({
         event: 'web_search_status',
         payload: { status: 'done' },
@@ -115,28 +118,14 @@ export function createPreprocessNode(deps: WorkflowDeps) {
     const parts: string[] = [
       '你是一个智能 AI 助手。你可以使用工具来帮助用户完成各种任务。',
       '',
-      '## 可用工具',
-      '- manage_todos: 创建/更新/删除/查询待办事项',
-      '- manage_events: 创建/更新/删除/查询日程事件',
-      '- query_weather: 查询天气信息',
-      '- search_web: 联网搜索最新信息',
-    ];
-
-    if (userId) {
-      parts.push('- search_knowledge: 搜索个人知识库');
-    }
-
-    parts.push(
-      '',
       '## 工具使用规则',
-      '1. 需要实时信息时使用 search_web',
-      '2. 询问个人知识时使用 search_knowledge',
-      '3. 可以多次调用不同工具以获得完整信息',
-      '4. 根据工具结果回答，不要编造信息',
-      '5. 不需要工具时直接回答',
-      '6. 回答用户时，**不要提及工具名称或内部调用过程**，直接给出结果即可',
-      '7. 用户只需要知道最终答案，不需要知道你是否使用了工具',
-    );
+      '1. 根据用户需求选择合适的工具',
+      '2. 可以多次调用不同工具以获得完整信息',
+      '3. 根据工具结果回答，不要编造信息',
+      '4. 不需要工具时直接回答',
+      '5. 回答用户时，**不要提及工具名称或内部调用过程**，直接给出结果即可',
+      '6. 用户只需要知道最终答案，不需要知道你是否使用了工具',
+    ];
 
     // Skills system prompt
     if (userId) {
@@ -173,38 +162,16 @@ export function createPreprocessNode(deps: WorkflowDeps) {
     const systemMsg = new SystemMessage(systemPromptContent);
 
     // ── 6. 构建工具列表 ──
-    const builtInTools = [
-      createManageTodosTool(deps.commandService, deps.llm, userId),
-      createManageEventsTool(
-        deps.commandService,
-        deps.llm,
-        userId,
-        currentDate,
-      ),
-      createQueryWeatherTool(
-        deps.weatherService,
-        deps.mcpServersService,
-        deps.llm,
-        userId,
-        currentDate,
-      ),
-      createSearchWebTool(
-        deps.mcpServersService,
-        deps.webSearchService,
-        userId,
-      ),
-    ];
+    const builtInTools = userId
+      ? [createSearchKnowledgeTool(deps.knowledgeBaseService, userId)]
+      : [];
 
-    const allBuiltIn = userId
-      ? [
-          ...builtInTools,
-          createSearchKnowledgeTool(deps.knowledgeBaseService, userId),
-        ]
-      : builtInTools;
+    const mcpTools = await createDynamicMcpTools(
+      deps.mcpServersService,
+      userId,
+    );
 
-    const mcpTools = await createDynamicMcpTools(deps.mcpServersService, userId);
-
-    const tools = combineTools(allBuiltIn, mcpTools);
+    const tools = combineTools(builtInTools, mcpTools);
     const toolNames = tools.map((t) => t.name);
 
     // ── 7. emit preprocess_done ──

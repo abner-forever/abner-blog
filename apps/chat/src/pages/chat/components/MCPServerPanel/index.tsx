@@ -93,7 +93,7 @@ const MCPServerPanel: React.FC<Props> = ({ onClose }) => {
         name: marketplaceServer.name,
         allowedTools: marketplaceServer.tools,
       });
-      message.success(t('chat.installSuccess') || `${marketplaceServer.name} 安装成功`);
+      message.success(t('chat.installSuccess', { name: marketplaceServer.name }) || `${marketplaceServer.name} 安装成功`);
       loadData();
     } catch {
       message.error(t('chat.installFailed') || '安装失败');

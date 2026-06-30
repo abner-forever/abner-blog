@@ -18,6 +18,8 @@ interface ChatStreamRequest {
   images?: ChatStreamImagePart[];
   /** 可选：仅注入指定技能；不传则由服务端合并该用户所有「已激活」技能 */
   skillId?: string;
+  /** 是否开启联网搜索 */
+  enableWebSearch?: boolean;
   signal?: AbortSignal;
 }
 
@@ -128,6 +130,7 @@ export const requestAIChatStream = async ({
   thinkingBudget,
   images,
   skillId,
+  enableWebSearch,
   signal,
 }: ChatStreamRequest): Promise<Response> => {
   const headers = await getChatStreamHeaders();
@@ -148,6 +151,7 @@ export const requestAIChatStream = async ({
       thinkingEnabled,
       thinkingBudget,
       ...(skillId ? { skillId } : {}),
+      ...(enableWebSearch !== undefined ? { enableWebSearch } : {}),
     }),
     signal,
   });

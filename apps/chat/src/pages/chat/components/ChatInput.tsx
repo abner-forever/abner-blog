@@ -1,5 +1,5 @@
-import React, { memo } from 'react';
-import { Button, Input } from 'antd';
+import React, { memo, useMemo } from 'react';
+import { Button, Input, Select } from 'antd';
 import {
   ArrowUpOutlined,
   PictureOutlined,
@@ -7,6 +7,7 @@ import {
   BulbOutlined,
   SearchOutlined,
 } from '@ant-design/icons';
+import { MODEL_VENDORS } from '../constants';
 import type { ChatImagePayload } from '../utils/chat-images';
 
 const { TextArea } = Input;
@@ -39,6 +40,9 @@ const ChatInput = memo<{
   onToggleWebSearch: () => void;
   deepThinkingLabel: string;
   smartSearchLabel: string;
+  model: string;
+  onModelChange: (value: string) => void;
+  hasApiKeyByProvider: Record<string, boolean>;
 }>(
   ({
     value,
@@ -68,8 +72,25 @@ const ChatInput = memo<{
     onToggleWebSearch,
     deepThinkingLabel,
     smartSearchLabel,
+    model,
+    onModelChange,
+    hasApiKeyByProvider,
   }) => {
     const expanded = inputFocused || value || attachments.length > 0;
+
+    const modelOptions = useMemo(() => {
+      return MODEL_VENDORS.flatMap((v) =>
+        v.models.map((m) => ({
+          label: m.label,
+          value: m.value,
+        })),
+      ).filter((opt) => {
+        const vendor = MODEL_VENDORS.find((v) =>
+          v.models.some((m) => m.value === opt.value),
+        );
+        return vendor ? hasApiKeyByProvider[vendor.value] : false;
+      });
+    }, [hasApiKeyByProvider]);
     const handleContainerClick = (e: React.MouseEvent<HTMLDivElement>) => {
       const target = e.target as HTMLElement;
       if (target.closest('button, a, input, textarea, [role="button"]')) {
@@ -147,6 +168,15 @@ const ChatInput = memo<{
                 </button>
               </div>
               <div className="chat-input-tools__right">
+                <Select
+                  value={model}
+                  onChange={onModelChange}
+                  options={modelOptions}
+                  className="chat-input-model-selector"
+                  popupMatchSelectWidth={false}
+                  popupClassName="chat-input-model-selector-dropdown"
+                  variant="borderless"
+                />
                 <span className="chat-input-footer__shortcut">
                   {sendShortcutHint}
                 </span>

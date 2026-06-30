@@ -18,7 +18,7 @@ const logger = new Logger('StreamEmitterNode');
  * 创建 Stream Emitter 节点
  */
 export function createStreamEmitterNode(deps: WorkflowDeps) {
-  return async (state: AgentStateType): Promise<Partial<AgentStateType>> => {
+  return (state: AgentStateType): Partial<AgentStateType> => {
     const { messages, streamChannel, userId, sessionId, userInput } = state;
 
     const lastMsg = messages[messages.length - 1];

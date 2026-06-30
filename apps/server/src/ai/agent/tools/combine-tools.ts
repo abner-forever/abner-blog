@@ -1,23 +1,20 @@
 /**
- * Tools 统一入口
- *
- * 组合 Built-in 工具 + 动态 MCP 工具。
- * 每个请求在 Preprocess Node 中调用此函数生成完整的工具列表。
+ * combineTools — 合并 Built-in 和 MCP 工具为统一的 ToolConfig 列表
  */
 
-import type { DynamicTool, DynamicStructuredTool } from '@langchain/core/tools';
+import type { DynamicStructuredTool } from '@langchain/core/tools';
 import { type ToolConfig } from '../workflow/state';
 
 /**
  * 合并 Built-in 和 MCP 工具为统一的 ToolConfig 列表
  *
  * @param builtInTools - 预定义的 StructuredTool 数组
- * @param mcpTools - 动态注入的 DynamicTool 数组
+ * @param mcpTools - 动态注入的 DynamicStructuredTool 数组
  * @returns ToolConfig 数组
  */
 export function combineTools(
   builtInTools: DynamicStructuredTool[],
-  mcpTools: DynamicTool[],
+  mcpTools: DynamicStructuredTool[],
 ): ToolConfig[] {
   const allTools: ToolConfig[] = [];
 
@@ -44,22 +41,3 @@ export function combineTools(
 
   return allTools;
 }
-
-export {
-  createManageTodosTool,
-} from './built-in/manage-todos.tool';
-export {
-  createManageEventsTool,
-} from './built-in/manage-events.tool';
-export {
-  createQueryWeatherTool,
-} from './built-in/query-weather.tool';
-export {
-  createSearchWebTool,
-} from './built-in/search-web.tool';
-export {
-  createSearchKnowledgeTool,
-} from './built-in/search-knowledge.tool';
-export {
-  createDynamicMcpTools,
-} from './mcp/mcp-tool-factory';

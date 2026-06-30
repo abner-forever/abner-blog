@@ -683,6 +683,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       contextWindow,
       enableThinking,
       thinkingBudget,
+      enableWebSearch,
       currentSessionId,
       messages,
     } = stateRef.current;
@@ -756,6 +757,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         contextWindow,
         thinkingEnabled: enableThinking,
         thinkingBudget,
+        enableWebSearch,
         signal: abortControllerRef.current.signal,
       });
 

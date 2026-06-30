@@ -8,7 +8,6 @@ export enum IntentType {
   DELETE_TODO = 'delete_todo',
   DELETE_EVENT = 'delete_event',
   QUERY_SCHEDULE = 'query_schedule',
-  QUERY_WEATHER = 'query_weather',
   CHAT = 'chat',
 }
 

@@ -34,17 +34,26 @@ interface ParsedToolCall {
  * 1. TOOL_CALL\n{"name":"xxx","args":{...}}\nTOOL_CALL_END
  * 2. TOOL_CALL: {"name":"xxx","args":{...}}
  */
-function tryParseToolCall(text: string): { toolCall: ParsedToolCall | null; cleanText: string } {
+function tryParseToolCall(text: string): {
+  toolCall: ParsedToolCall | null;
+  cleanText: string;
+} {
   // 格式1：TOOL_CALL ... TOOL_CALL_END 包裹的 JSON
   const block = text.match(/TOOL_CALL\s*\n?({[\s\S]*?})\s*(?:TOOL_CALL_END|$)/);
   if (block) {
     try {
-      const parsed = JSON.parse(block[1]);
-      if (parsed && typeof parsed.name === 'string' && typeof parsed.args === 'object') {
-        return {
-          toolCall: { name: parsed.name, args: parsed.args as Record<string, unknown> },
-          cleanText: text.replace(block[0], '').trim(),
-        };
+      const parsed: unknown = JSON.parse(block[1]);
+      if (parsed && typeof parsed === 'object') {
+        const obj = parsed as Record<string, unknown>;
+        if (typeof obj.name === 'string' && typeof obj.args === 'object') {
+          return {
+            toolCall: {
+              name: obj.name,
+              args: obj.args as Record<string, unknown>,
+            },
+            cleanText: text.replace(block[0], '').trim(),
+          };
+        }
       }
     } catch {
       // 解析失败，继续尝试下一种格式
@@ -55,12 +64,18 @@ function tryParseToolCall(text: string): { toolCall: ParsedToolCall | null; clea
   const inline = text.match(/TOOL_CALL:\s*({[\s\S]*?})/);
   if (inline) {
     try {
-      const parsed = JSON.parse(inline[1]);
-      if (parsed && typeof parsed.name === 'string' && typeof parsed.args === 'object') {
-        return {
-          toolCall: { name: parsed.name, args: parsed.args as Record<string, unknown> },
-          cleanText: text.replace(inline[0], '').trim(),
-        };
+      const parsed: unknown = JSON.parse(inline[1]);
+      if (parsed && typeof parsed === 'object') {
+        const obj = parsed as Record<string, unknown>;
+        if (typeof obj.name === 'string' && typeof obj.args === 'object') {
+          return {
+            toolCall: {
+              name: obj.name,
+              args: obj.args as Record<string, unknown>,
+            },
+            cleanText: text.replace(inline[0], '').trim(),
+          };
+        }
       }
     } catch {
       // ignore
@@ -81,14 +96,15 @@ function buildToolDefinitions(tools: ToolConfig[]): ToolDefinition[] {
     const tool = t.tool;
     // DynamicStructuredTool 自带 Zod schema
     if (isDynamicStructuredTool(tool)) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const schema = (tool as any).schema;
+      const schema = tool.schema;
       return {
         type: 'function',
         function: {
           name: tool.name,
           description: tool.description,
-          parameters: schema ? zodSchemaToJsonSchema(schema) : { type: 'object', properties: {} },
+          parameters: schema
+            ? zodSchemaToJsonSchema(schema)
+            : { type: 'object', properties: {} },
         },
       };
     }
@@ -102,8 +118,7 @@ function buildToolDefinitions(tools: ToolConfig[]): ToolDefinition[] {
           type: 'object',
           properties: {},
           additionalProperties: true,
-          description:
-            '工具参数，参考工具描述中的参数说明传递 JSON 键值对',
+          description: '工具参数，参考工具描述中的参数说明传递 JSON 键值对',
         },
       },
     };
@@ -169,7 +184,12 @@ export function createAgentNode(deps: WorkflowDeps) {
     // ── 3. 构建完全的消息列表 ──
     // 移除之前的 system 消息，只保持最新的
     const nonSystemMsgs = messages.filter(
-      (m) => !(m instanceof AIMessage && String(m.content).startsWith('你是一个 AI 助手')),
+      (m) =>
+        !(
+          m instanceof AIMessage &&
+          typeof m.content === 'string' &&
+          m.content.startsWith('你是一个 AI 助手')
+        ),
     );
 
     const fullMessages = [systemMsg, ...nonSystemMsgs];
@@ -190,7 +210,8 @@ export function createAgentNode(deps: WorkflowDeps) {
 
         if (validCalls.length === 0) {
           // 所有工具都不存在 → 当作文本返回
-          const rawText = response.content as string || '';
+          const rawText =
+            typeof response.content === 'string' ? response.content : '';
           return {
             messages: [
               new AIMessage({
@@ -201,10 +222,7 @@ export function createAgentNode(deps: WorkflowDeps) {
         }
 
         // 发射 tool_call_start 事件（取第一个工具）
-        streamChannel.emitToolCallStart(
-          validCalls[0].name,
-          validCalls[0].args,
-        );
+        streamChannel.emitToolCallStart(validCalls[0].name, validCalls[0].args);
 
         return {
           messages: [
@@ -213,7 +231,9 @@ export function createAgentNode(deps: WorkflowDeps) {
               tool_calls: validCalls.map((tc) => ({
                 name: tc.name,
                 args: tc.args,
-                id: tc.id || `tool_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+                id:
+                  tc.id ||
+                  `tool_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
                 type: 'tool_call' as const,
               })),
             }),
@@ -227,11 +247,13 @@ export function createAgentNode(deps: WorkflowDeps) {
       if (!rawText?.trim()) {
         logger.warn('Agent LLM returned empty response');
         return {
-          messages: [new AIMessage({ content: '抱歉，我暂时无法回答这个问题。' })],
+          messages: [
+            new AIMessage({ content: '抱歉，我暂时无法回答这个问题。' }),
+          ],
         };
       }
 
-      const { toolCall, cleanText } = tryParseToolCall(rawText);
+      const { toolCall } = tryParseToolCall(rawText);
 
       if (toolCall) {
         // 验证工具名
@@ -277,9 +299,7 @@ export function createAgentNode(deps: WorkflowDeps) {
       const msg = error instanceof Error ? error.message : String(error);
       logger.error(`Agent LLM invoke failed: ${msg}`);
       return {
-        messages: [
-          new AIMessage({ content: `抱歉，处理请求时发生了错误。` }),
-        ],
+        messages: [new AIMessage({ content: `抱歉，处理请求时发生了错误。` })],
       };
     }
   };

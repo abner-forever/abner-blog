@@ -32,8 +32,8 @@ export class ChatHistoryService {
     sessionId: string | undefined,
     result: ChatResponseDto,
   ): void {
-    // CHAT / QUERY_WEATHER 分支已在各自处理函数中写入历史，这里避免重复写入。
-    if (intent === IntentType.CHAT || intent === IntentType.QUERY_WEATHER) {
+    // CHAT 分支已在各自处理函数中写入历史，这里避免重复写入。
+    if (intent === IntentType.CHAT) {
       return;
     }
     const assistantReply = buildIntentMemoryReply(result);
