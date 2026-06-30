@@ -2,7 +2,7 @@ import React, { useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from 'antd';
 import { LoginOutlined } from '@ant-design/icons';
-import { ChatProvider, useChat } from './context/ChatContext';
+import { useChat } from './context/ChatContext';
 import ChatSidebar from './components/ChatSidebar';
 import ChatHeader from './components/ChatHeader';
 import ChatInput from './components/ChatInput';
@@ -369,11 +369,7 @@ const ChatPageContent: React.FC = () => {
 };
 
 const ChatPage: React.FC = () => {
-  return (
-    <ChatProvider>
-      <ChatPageContent />
-    </ChatProvider>
-  );
+  return <ChatPageContent />;
 };
 
 export default ChatPage;

@@ -12,12 +12,13 @@ import {
   MenuOutlined,
   MessageOutlined,
   ShareAltOutlined,
-  SettingOutlined,
   CopyOutlined,
   CheckOutlined,
   PictureOutlined,
   DownloadOutlined,
+  SettingOutlined,
 } from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
 import { useChat } from '../../context/ChatContext';
 import type { ChatSession } from '../../types';
 import ChatConversationPreview from '../ChatConversationPreview';
@@ -36,6 +37,7 @@ const ChatHeader: React.FC = memo(function ChatHeader() {
   const { state, dispatch, isDark } = useChat();
   const { sessions, currentSessionId } = state;
   const { checkAuth } = useAuthCheck();
+  const navigate = useNavigate();
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [shareUrl, setShareUrl] = useState('');
   const [copied, setCopied] = useState(false);
@@ -241,19 +243,19 @@ const ChatHeader: React.FC = memo(function ChatHeader() {
       <div className="chat-header-right">
         <Button
           type="text"
+          icon={<SettingOutlined />}
+          onClick={() => navigate('/chat/settings')}
+          className="header-btn mobile-settings-btn"
+        >
+          <span className="btn-text">{t('chat.settings')}</span>
+        </Button>
+        <Button
+          type="text"
           icon={<ShareAltOutlined />}
           onClick={() => void handleShare()}
           className="header-btn"
         >
           <span className="btn-text">{t('chat.shareAction')}</span>
-        </Button>
-        <Button
-          type="text"
-          icon={<SettingOutlined />}
-          className="header-btn"
-          onClick={() => dispatch({ type: 'SET_SHOW_CHAT_SETTINGS', payload: true })}
-        >
-          <span className="btn-text">{t('chat.settings')}</span>
         </Button>
       </div>
 

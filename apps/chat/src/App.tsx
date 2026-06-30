@@ -10,11 +10,18 @@ import { store, type RootState } from '@/store';
 import { queryClient } from '@/lib/query';
 import { setSSOCredentials } from '@/store/authSlice';
 import { getSSOStatus } from '@/services/sso';
+import { SKIN_COLORS } from '@/store/themeSlice';
 import { getCurrentLocale } from '@/i18n';
+import PageTransition from '@/components/PageTransition';
+import { ChatProvider } from '@/pages/chat/context/ChatContext';
 import Login from '@/pages/auth/Login';
 
 const ChatPage = React.lazy(() => import('@/pages/chat'));
 const ChatSharePage = React.lazy(() => import('@/pages/chat/share'));
+const SettingsPage = React.lazy(() => import('@/pages/chat/settings/SettingsPage'));
+const KnowledgeBasePage = React.lazy(() => import('@/pages/chat/settings/KnowledgeBasePage'));
+const MCPSettingsPage = React.lazy(() => import('@/pages/chat/settings/MCPSettingsPage'));
+const SkillSettingsPage = React.lazy(() => import('@/pages/chat/settings/SkillSettingsPage'));
 
 const antdLocales: Record<string, typeof zhCN> = {
   'zh-CN': zhCN,
@@ -38,6 +45,7 @@ const AppContent: React.FC = () => {
   const [initializing, setInitializing] = useState(true);
   const ssoChecked = React.useRef(false);
   const theme = useSelector((state: RootState) => state.theme.theme);
+  const skin = useSelector((state: RootState) => state.theme.skin);
 
   const locale = getCurrentLocale();
 
@@ -47,6 +55,12 @@ const AppContent: React.FC = () => {
       (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
     );
   }, [theme]);
+
+  // Skin primary color for Ant Design primary button / Switch / etc.
+  const colorPrimary = useMemo(() => {
+    const colors = SKIN_COLORS[skin];
+    return colors?.primary || '#6366f1';
+  }, [skin]);
 
   useEffect(() => {
     const checkSSO = async () => {
@@ -90,30 +104,44 @@ const AppContent: React.FC = () => {
       locale={antdLocales[locale] || zhCN}
       theme={{
         algorithm: isDark ? antdTheme.darkAlgorithm : antdTheme.defaultAlgorithm,
+        token: {
+          colorPrimary,
+        },
       }}
     >
       <AntdApp>
-        <React.Suspense
-          fallback={
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-              <Spin size="large" />
-            </div>
-          }
-        >
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route
-              path="/chat"
-              element={
-                <ProtectedRoute>
-                  <ChatPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route path="/chat/share/:shareId" element={<ChatSharePage />} />
-            <Route path="*" element={<Navigate to="/chat" replace />} />
-          </Routes>
-        </React.Suspense>
+        <div className="app-container" style={{ height: '100vh', overflow: 'hidden', position: 'relative' }}>
+          <React.Suspense
+            fallback={
+              <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+                <Spin size="large" />
+              </div>
+            }
+          >
+            <ChatProvider>
+              {/* 统一路由管理，所有页面通过 PageTransition 实现 iOS 风格转场动画 */}
+              <Routes>
+                <Route element={<PageTransition />}>
+                  <Route path="/login" element={<Login />} />
+                  <Route
+                    path="/chat"
+                    element={
+                      <ProtectedRoute>
+                        <ChatPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route path="/chat/share/:shareId" element={<ChatSharePage />} />
+                  <Route path="/chat/settings" element={<SettingsPage />} />
+                  <Route path="/chat/settings/knowledge-base" element={<KnowledgeBasePage />} />
+                  <Route path="/chat/settings/mcp" element={<MCPSettingsPage />} />
+                  <Route path="/chat/settings/skills" element={<SkillSettingsPage />} />
+                </Route>
+                <Route path="*" element={<Navigate to="/chat" replace />} />
+              </Routes>
+            </ChatProvider>
+          </React.Suspense>
+        </div>
       </AntdApp>
     </ConfigProvider>
   );

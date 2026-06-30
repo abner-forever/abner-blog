@@ -1,10 +1,10 @@
 .sidebar-footer {
-  padding: 8px 12px;
+  padding: var(--chat-space-2) var(--chat-space-3);
 
   .sidebar-footer-divider {
     height: 1px;
-    background: var(--ds-border);
-    margin-bottom: 8px;
+    background: var(--chat-border);
+    margin-bottom: var(--chat-space-2);
   }
 
   .sidebar-footer-buttons {
@@ -16,23 +16,23 @@
   .sidebar-user-btn {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 8px 12px;
-    border-radius: 8px;
-    color: var(--ds-text-secondary);
-    font-size: 13px;
+    gap: var(--chat-space-2);
+    padding: var(--chat-space-2) var(--chat-space-3);
+    border-radius: var(--chat-radius-md);
+    color: var(--chat-text-secondary);
+    font-size: var(--chat-font-sm);
     width: 100%;
     justify-content: flex-start;
     height: auto;
 
     &:hover {
-      background: var(--ds-bg-tertiary);
-      color: var(--ds-text);
+      background: var(--chat-bg-tertiary);
+      color: var(--chat-text);
     }
 
     .user-avatar {
       flex-shrink: 0;
-      background: var(--ds-accent, #4D6BFE);
+      background: var(--chat-accent);
     }
 
     .user-name {
@@ -47,23 +47,23 @@
   .sidebar-footer-btn {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 8px 12px;
-    border-radius: 8px;
+    gap: var(--chat-space-2);
+    padding: var(--chat-space-2) var(--chat-space-3);
+    border-radius: var(--chat-radius-md);
     border: 1px solid transparent;
-    color: var(--ds-text-secondary);
-    font-size: 13px;
+    color: var(--chat-text-secondary);
+    font-size: var(--chat-font-sm);
     justify-content: flex-start;
 
     &:hover {
-      background: var(--ds-bg-tertiary);
-      color: var(--ds-text);
+      background: var(--chat-bg-tertiary);
+      color: var(--chat-text);
     }
 
     &.active {
-      background: rgba(77, 107, 254, 0.12);
-      border-color: rgba(77, 107, 254, 0.2);
-      color: var(--ds-accent);
+      background: var(--chat-accent-soft);
+      border-color: color-mix(in srgb, var(--chat-accent) 20%, transparent);
+      color: var(--chat-accent);
     }
   }
 }
@@ -71,26 +71,26 @@
 // User dropdown menu styles
 .user-dropdown-overlay {
   .ant-dropdown-menu {
-    padding: 4px;
+    padding: var(--chat-space-1);
     min-width: 200px;
-    border-radius: 10px;
-    box-shadow: 0 4px 24px var(--ds-shadow, rgba(0, 0, 0, 0.4));
-    background: var(--ds-bg-secondary, #2f2f2f);
-    border: 1px solid var(--ds-border, #3a3a3a);
+    border-radius: var(--chat-radius-lg);
+    box-shadow: var(--chat-shadow-lg);
+    background: var(--chat-bg-secondary);
+    border: 1px solid var(--chat-border);
   }
 
   .ant-dropdown-menu-item {
-    border-radius: 6px;
-    padding: 10px 12px;
-    font-size: 13px;
-    color: var(--ds-text, #e8e8e8);
+    border-radius: var(--chat-radius-sm);
+    padding: var(--chat-space-2) var(--chat-space-3);
+    font-size: var(--chat-font-sm);
+    color: var(--chat-text);
 
     &:hover {
-      background: var(--ds-bg-tertiary, #383838);
+      background: var(--chat-bg-tertiary);
     }
 
     &-danger {
-      color: var(--error-color, #ef4444);
+      color: var(--chat-error);
 
       &:hover {
         background: rgba(239, 68, 68, 0.12);
@@ -103,9 +103,9 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
+    gap: var(--chat-space-3);
     min-width: 120px;
-    color: var(--ds-text, #e8e8e8);
+    color: var(--chat-text);
   }
 }
 
@@ -120,4 +120,3 @@
 .chat-sidebar.collapsed ~ .sidebar-user-collapsed {
   display: flex;
 }
-

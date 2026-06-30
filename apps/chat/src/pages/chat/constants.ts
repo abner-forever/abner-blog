@@ -1,4 +1,5 @@
 import { VendorType, type ChatSession, type ModelVendor } from './types';
+
 import { canonicalAssistantMarkdown } from './utils/assistant-markdown';
 
 export const STORAGE_KEY = 'chat_sessions';
@@ -105,3 +106,9 @@ export function isChatImageSupportedVendor(vendor: VendorType): boolean {
 export function isVendorType(value: string): value is VendorType {
   return Object.values(VendorType).includes(value as VendorType);
 }
+
+/** Sub-sheet types for mobile settings (V1, deprecated in V2) */
+export type SubSheetType = 'account' | 'model' | 'appearance' | 'data' | 'about' | 'logout';
+
+/** Sheet key types for V2 draggable sheet */
+export type SheetKey = 'account' | 'model' | 'appearance' | 'data' | 'about';

@@ -423,7 +423,7 @@ const MCPServerPanel: React.FC<Props> = ({ onClose }) => {
               locale={{ emptyText: <Empty description={t('chat.noServers')} image={Empty.PRESENTED_IMAGE_SIMPLE} /> }}
               renderItem={(server) => (
                 <List.Item
-                  className="server-item"
+                  className="server-item server-item--market"
                   actions={[
                     server.isInstalled ? (
                       <Tag key="installed" color="success">
@@ -478,7 +478,7 @@ const MCPServerPanel: React.FC<Props> = ({ onClose }) => {
               locale={{ emptyText: <Empty description={t('chat.noServers')} image={Empty.PRESENTED_IMAGE_SIMPLE} /> }}
               renderItem={(server) => (
                 <List.Item
-                  className="server-item"
+                  className="server-item server-item--market"
                   actions={[
                     server.isInstalled ? (
                       <Tag key="installed" color="success">

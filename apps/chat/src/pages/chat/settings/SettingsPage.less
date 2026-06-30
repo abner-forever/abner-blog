@@ -1,0 +1,226 @@
+.settings-page {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--chat-bg);
+
+  &__header {
+    display: flex;
+    align-items: center;
+    padding: var(--chat-space-3) var(--chat-space-4);
+    flex-shrink: 0;
+    border-bottom: 1px solid var(--chat-border);
+
+    &-back {
+      margin-right: var(--chat-space-2);
+      color: var(--chat-text-secondary);
+      font-size: 18px;
+      transition: color 0.15s;
+
+      &:hover {
+        color: var(--chat-text) !important;
+      }
+    }
+
+    &-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--chat-text);
+      letter-spacing: -0.3px;
+    }
+  }
+
+  &__content {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--chat-space-3) var(--chat-space-4) var(--chat-space-8);
+    -webkit-overflow-scrolling: touch;
+
+    &::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: var(--chat-border);
+      border-radius: 4px;
+    }
+  }
+
+  // 分组式列表
+  &__group {
+    margin-bottom: var(--chat-space-5);
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    &-title {
+      font-size: var(--chat-font-sm);
+      font-weight: 600;
+      color: var(--chat-text-secondary);
+      padding: 0 var(--chat-space-1) var(--chat-space-2);
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      &::before {
+        content: '';
+        width: 3px;
+        height: 12px;
+        border-radius: 2px;
+        background: var(--chat-accent);
+        flex-shrink: 0;
+      }
+    }
+  }
+
+  &__menu-item {
+    display: flex;
+    align-items: center;
+    padding: 15px var(--chat-space-4);
+    background: var(--chat-bg-secondary);
+    cursor: pointer;
+    transition: background 0.15s, padding-left 0.15s;
+    -webkit-tap-highlight-color: transparent;
+    position: relative;
+
+    &:hover {
+      background: var(--chat-bg-tertiary);
+    }
+
+    &:active {
+      background: var(--chat-hover);
+      padding-left: calc(var(--chat-space-4) + 4px);
+    }
+
+    // 菜单项之间的分隔线
+    & + & {
+      &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: calc(28px + var(--chat-space-3) + var(--chat-space-4));
+        right: var(--chat-space-4);
+        height: 1px;
+        background: var(--chat-border);
+      }
+    }
+
+    // 第一项的特殊分隔线处理
+    &:first-child + &::before {
+      left: var(--chat-space-4);
+    }
+
+    &-icon {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: var(--chat-space-3);
+      font-size: 16px;
+      color: var(--chat-accent);
+      background: var(--chat-accent-soft);
+      border-radius: var(--chat-radius-md);
+      flex-shrink: 0;
+    }
+
+    &-label {
+      flex: 1;
+      font-size: var(--chat-font-lg);
+      color: var(--chat-text);
+      font-weight: 500;
+    }
+
+    &-arrow {
+      color: var(--chat-text-secondary);
+      font-size: 13px;
+      opacity: 0.5;
+      transition: transform 0.15s, opacity 0.15s;
+    }
+
+    &:hover &-arrow {
+      opacity: 0.8;
+      transform: translateX(2px);
+    }
+
+    // 第一项和最后一项圆角
+    &:first-child {
+      border-radius: var(--chat-radius-lg) var(--chat-radius-lg) 0 0;
+    }
+    &:last-child {
+      border-radius: 0 0 var(--chat-radius-lg) var(--chat-radius-lg);
+    }
+    &:only-child {
+      border-radius: var(--chat-radius-lg);
+    }
+  }
+
+  // 退出按钮特殊样式
+  &__menu-item--logout {
+    .settings-page__menu-item-icon {
+      color: var(--chat-error);
+      background: rgba(239, 68, 68, 0.12);
+    }
+    .settings-page__menu-item-label {
+      color: var(--chat-error);
+    }
+  }
+}
+
+[data-theme="light"] {
+  .settings-page {
+    background: var(--chat-bg);
+
+    &__header {
+      border-bottom-color: var(--chat-border);
+
+      &-title {
+        color: var(--chat-text);
+      }
+    }
+
+    &__group-title {
+      color: var(--chat-text-secondary);
+    }
+
+    &__menu-item {
+      background: var(--chat-bg-secondary);
+
+      &:hover {
+        background: var(--chat-bg-tertiary);
+      }
+
+      &:active {
+        background: var(--chat-hover);
+      }
+
+      & + &::before {
+        background: var(--chat-border);
+      }
+
+      &-label {
+        color: var(--chat-text);
+      }
+
+      &-arrow {
+        color: var(--chat-text-secondary);
+      }
+
+      &-icon {
+        background: var(--chat-accent-soft);
+      }
+    }
+
+    &__menu-item--logout {
+      .settings-page__menu-item-icon {
+        background: rgba(239, 68, 68, 0.1);
+      }
+      .settings-page__menu-item-label {
+        color: var(--chat-error);
+      }
+    }
+  }
+}

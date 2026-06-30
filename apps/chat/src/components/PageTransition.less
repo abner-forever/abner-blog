@@ -1,0 +1,116 @@
+/**
+ * Route transition animations — iOS-style push/pop slide transitions.
+ *
+ * 使用 CSSTransition 的 classNames 机制：
+ * - classNames="forward" → forward-enter, forward-enter-active, forward-exit, forward-exit-active
+ * - classNames="back"    → back-enter, back-enter-active, back-exit, back-exit-active
+ *
+ * Reference: spark-go BaseLayout transition styles
+ */
+
+.route-transition-page {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* ──── Forward (PUSH) ──── */
+
+.forward-enter {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  opacity: 0;
+  transform: translate3d(100%, 0, 0);
+  z-index: 2;
+}
+
+.forward-enter-active {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+  transition: all 300ms;
+  z-index: 2;
+}
+
+.forward-exit {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+  z-index: 1;
+}
+
+.forward-exit-active {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  opacity: 0;
+  transform: translate3d(-20%, 0, 0);
+  transition: all 300ms;
+  z-index: 1;
+}
+
+/* ──── Back (POP) ──── */
+
+.back-enter {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  opacity: 0;
+  transform: translate3d(-20%, 0, 0);
+  z-index: 1;
+}
+
+.back-enter-active {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+  transition: all 300ms ease-out;
+  z-index: 1;
+}
+
+.back-exit {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+  z-index: 2;
+}
+
+.back-exit-active {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  opacity: 0;
+  transform: translate3d(100%, 0, 0);
+  transition: all 300ms ease-out;
+  z-index: 2;
+}

@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import React, { memo, useRef, useLayoutEffect, useCallback } from 'react';
 import { Spin, Tooltip } from 'antd';
 import { CopyOutlined, ReloadOutlined } from '@ant-design/icons';
 import AssistantCardRenderer from './ResultCards';
@@ -44,8 +44,36 @@ const ChatMessageList: React.FC<Props> = memo(function ChatMessageList({
   copyAriaLabel,
   regenerateAriaLabel,
 }) {
+  // 滚动容器引用
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  // 标记用户是否在底部（或接近底部），默认 true
+  const isAtBottomRef = useRef(true);
+
+  // 监听滚动事件，判断用户是否在底部
+  const handleScroll = useCallback(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    // 距离底部 50px 以内视为"在底部"
+    const threshold = 50;
+    const atBottom =
+      container.scrollHeight - container.scrollTop - container.clientHeight < threshold;
+    isAtBottomRef.current = atBottom;
+  }, []);
+
+  // 仅在用户位于底部时自动滚动到最新内容
+  useLayoutEffect(() => {
+    if (messages.length === 0) return;
+    if (!isAtBottomRef.current) return;
+    // 使用 setTimeout 确保在下一次绘制后滚动，避免与内容更新竞争
+    // （scrollIntoView 本身是同步的，但在流式更新频繁触发 layout effect 时，
+    //  延迟一帧可以让 DOM 先完成内容渲染再定位）
+    requestAnimationFrame(() => {
+      messagesEndRef.current?.scrollIntoView({ block: 'end' });
+    });
+  }, [messages, messagesEndRef]);
+
   return (
-    <div className="chat-messages">
+    <div className="chat-messages" ref={scrollContainerRef} onScroll={handleScroll}>
       {(messages || []).map((message) => (
         <div
           key={message.id}
@@ -60,7 +88,7 @@ const ChatMessageList: React.FC<Props> = memo(function ChatMessageList({
               }`}
             >
               {message.role === 'assistant' ? (
-                <div className="assistant-message">
+                <>
                   {message.webSearchStatus === 'searching' ? (
                     <div
                       className="assistant-web-search-loading"
@@ -146,7 +174,7 @@ const ChatMessageList: React.FC<Props> = memo(function ChatMessageList({
                         <span className="thinking-dots__dot" />
                       </span>
                     )}
-                </div>
+                </>
               ) : (
                 <div className="user-message-body">
                   {message.images && message.images.length > 0 && (

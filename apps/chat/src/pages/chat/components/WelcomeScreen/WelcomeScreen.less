@@ -1,10 +1,10 @@
-// WelcomeScreen — DeepSeek-style dark welcome page
+// WelcomeScreen — redesigned welcome page
 .welcome-screen {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 40px 24px;
+  padding: var(--chat-space-10) var(--chat-space-6);
   overflow-y: auto;
 
   &__content {
@@ -16,31 +16,32 @@
   }
 
   &__logo {
-    margin-bottom: 28px;
+    margin-bottom: var(--chat-space-6);
 
     svg {
-      filter: drop-shadow(0 4px 24px rgba(77, 107, 254, 0.3));
+      filter: drop-shadow(0 4px 24px color-mix(in srgb, var(--chat-accent) 30%, transparent));
     }
   }
 
   &__title {
-    font-size: 32px;
+    font-size: var(--chat-font-2xl);
     font-weight: 700;
-    color: var(--antd-colorText, #e8e8e8);
-    margin: 0 0 8px;
+    color: var(--chat-text);
+    margin: 0 0 var(--chat-space-2);
     letter-spacing: -0.02em;
+    text-wrap: balance;
   }
 
   &__subtitle {
-    font-size: 16px;
-    color: var(--antd-colorTextSecondary, #8e8ea0);
-    margin: 0 0 40px;
+    font-size: var(--chat-font-lg);
+    color: var(--chat-text-secondary);
+    margin: 0 0 var(--chat-space-10);
   }
 
   &__suggestions {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
+    gap: var(--chat-space-3);
     width: 100%;
     max-width: 560px;
   }
@@ -48,24 +49,30 @@
   &__suggestion-card {
     display: flex;
     align-items: flex-start;
-    gap: 10px;
-    padding: 14px 16px;
-    background: var(--antd-colorBgElevated, #2a2a2a);
-    border: 1px solid var(--antd-colorBorder, #333);
-    border-radius: 12px;
+    gap: var(--chat-space-2);
+    padding: var(--chat-space-3) var(--chat-space-4);
+    background: var(--chat-bg-secondary);
+    border: 1px solid var(--chat-border);
+    border-radius: var(--chat-radius-lg);
     cursor: pointer;
     text-align: left;
-    color: var(--antd-colorText, #e8e8e8);
-    font-size: 14px;
+    color: var(--chat-text);
+    font-size: var(--chat-font-base);
     line-height: 1.5;
-    transition: all 0.2s ease;
+    transition:
+      background 0.2s ease,
+      border-color 0.2s ease,
+      transform 0.15s ease,
+      box-shadow 0.2s ease;
     font-family: inherit;
+    position: relative;
+    overflow: hidden;
 
     &:hover {
-      background: var(--antd-colorBgSpotlight, #333);
-      border-color: #4D6BFE;
-      transform: translateY(-1px);
-      box-shadow: 0 4px 16px rgba(77, 107, 254, 0.15);
+      background: var(--chat-bg-tertiary);
+      border-color: var(--chat-accent);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px color-mix(in srgb, var(--chat-accent) 15%, transparent);
     }
 
     &:active {
@@ -84,25 +91,25 @@
   }
 }
 
-// Light theme adjustments
+// Light theme — inherits from CSS variables
 [data-theme="light"] {
   .welcome-screen {
     &__title {
-      color: #1a1a1a;
+      color: var(--chat-text);
     }
 
     &__subtitle {
-      color: #666;
+      color: var(--chat-text-secondary);
     }
 
     &__suggestion-card {
-      background: #fff;
-      border-color: #e5e5e5;
-      color: #333;
+      background: var(--chat-bg-secondary);
+      border-color: var(--chat-border);
+      color: var(--chat-text);
 
       &:hover {
-        background: #f5f5f5;
-        border-color: #4D6BFE;
+        background: var(--chat-bg-tertiary);
+        border-color: var(--chat-accent);
       }
     }
   }
@@ -111,15 +118,15 @@
 // Mobile responsive
 @media (max-width: 640px) {
   .welcome-screen {
-    padding: 24px 16px;
+    padding: var(--chat-space-6) var(--chat-space-4);
 
     &__title {
-      font-size: 24px;
+      font-size: var(--chat-font-xl);
     }
 
     &__subtitle {
-      font-size: 14px;
-      margin-bottom: 28px;
+      font-size: var(--chat-font-base);
+      margin-bottom: var(--chat-space-6);
     }
 
     &__suggestions {

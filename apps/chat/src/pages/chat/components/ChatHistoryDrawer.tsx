@@ -1,16 +1,15 @@
 import React, { memo } from 'react';
-import { Button, Drawer, Tooltip } from 'antd';
+import { useNavigate } from 'react-router-dom';
+import { Button, Drawer } from 'antd';
 import {
   DeleteOutlined,
-  DatabaseOutlined,
-  ApiOutlined,
-  RobotOutlined,
   LoginOutlined,
   MessageOutlined,
   PlusOutlined,
+  RightOutlined,
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import { useChat } from '../context/ChatContext';
+import { useAppSelector } from '@/store/reduxHooks';
 import { useAuthCheck } from '@/hooks/useAuthCheck';
 import CustomEmpty from '@/components/CustomEmpty';
 import type { ChatSession } from '../types';
@@ -38,8 +37,8 @@ const ChatHistoryDrawer: React.FC<Props> = memo(function ChatHistoryDrawer({
 }) {
   const { t } = useTranslation();
   const { checkAuth } = useAuthCheck();
-  const { state: chatState, dispatch } = useChat();
-  const { showKnowledgeBase, showMCPServer, showSkill } = chatState;
+  const user = useAppSelector((s) => s.auth.user);
+  const navigate = useNavigate();
 
   return (
     <Drawer
@@ -54,7 +53,7 @@ const ChatHistoryDrawer: React.FC<Props> = memo(function ChatHistoryDrawer({
       {isAuthenticated ? (
         <>
           <div className="drawer-header">
-            <span className="drawer-title">聊天历史</span>
+            <span className="drawer-title">{t('chat.chatHistory', { defaultValue: '聊天历史' })}</span>
             <Button
               type="primary"
               size="small"
@@ -62,12 +61,12 @@ const ChatHistoryDrawer: React.FC<Props> = memo(function ChatHistoryDrawer({
               onClick={onCreateSession}
               className="new-chat-btn"
             >
-              新建对话
+              {t('common.newChat')}
             </Button>
           </div>
           <div className="drawer-list">
             {sessions.length === 0 ? (
-              <CustomEmpty tip="暂无历史记录" />
+              <CustomEmpty tip={t('chat.noHistory', { defaultValue: '暂无历史记录' })} />
             ) : (
               sessions.map((session) => (
                 <div
@@ -90,50 +89,28 @@ const ChatHistoryDrawer: React.FC<Props> = memo(function ChatHistoryDrawer({
               ))
             )}
           </div>
-          {/* Mobile sidebar footer toggles — knowledge base, MCP, skills */}
-          <div className="drawer-footer">
-            <Tooltip title="知识库" placement="right">
-              <Button
-                type={showKnowledgeBase ? 'primary' : 'text'}
-                icon={<DatabaseOutlined />}
-                onClick={() => {
-                  if (!checkAuth()) return;
-                  onClose();
-                  dispatch({ type: 'SET_SHOW_KNOWLEDGE_BASE', payload: !showKnowledgeBase });
-                }}
-                className={`drawer-footer-btn ${showKnowledgeBase ? 'active' : ''}`}
-              >
-                <span>知识库</span>
-              </Button>
-            </Tooltip>
-            <Tooltip title="MCP 服务器" placement="right">
-              <Button
-                type={showMCPServer ? 'primary' : 'text'}
-                icon={<ApiOutlined />}
-                onClick={() => {
-                  if (!checkAuth()) return;
-                  onClose();
-                  dispatch({ type: 'SET_SHOW_MCP_SERVER', payload: !showMCPServer });
-                }}
-                className={`drawer-footer-btn ${showMCPServer ? 'active' : ''}`}
-              >
-                <span>MCP</span>
-              </Button>
-            </Tooltip>
-            <Tooltip title="技能市场" placement="right">
-              <Button
-                type={showSkill ? 'primary' : 'text'}
-                icon={<RobotOutlined />}
-                onClick={() => {
-                  if (!checkAuth()) return;
-                  onClose();
-                  dispatch({ type: 'SET_SHOW_SKILL', payload: !showSkill });
-                }}
-                className={`drawer-footer-btn ${showSkill ? 'active' : ''}`}
-              >
-                <span>技能</span>
-              </Button>
-            </Tooltip>
+          {/* Mobile drawer footer — user info + settings entry */}
+          <div
+            className="drawer-footer"
+            onClick={() => {
+              if (!checkAuth()) return;
+              onClose();
+              navigate('/chat/settings');
+            }}
+          >
+            <div className="drawer-user-avatar">
+              {user?.avatar ? (
+                <img src={user.avatar} alt="" className="drawer-user-avatar-img" />
+              ) : (
+                <div className="drawer-user-avatar-placeholder">
+                  {(user?.nickname || user?.username || 'U')[0].toUpperCase()}
+                </div>
+              )}
+            </div>
+            <div className="drawer-user-info">
+              <span className="drawer-user-name">{user?.nickname || user?.username || 'User'}</span>
+            </div>
+            <RightOutlined className="drawer-user-arrow" />
           </div>
         </>
       ) : (

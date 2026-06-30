@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { createContext, useContext, useReducer, useCallback, useEffect, useMemo, useRef, useState, useLayoutEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { message } from 'antd';
 import { useAppSelector, useAppDispatch } from '@/store/reduxHooks';
@@ -24,6 +24,7 @@ import { requestAIChatStream, saveAIConfig, getAIConfig, listChatSessions, saveC
 import { type ChatSession, type Message, type IntentName, type VendorType } from '../types';
 import { type ChatImagePayload } from '../utils/chat-images';
 import { canonicalAssistantMarkdown } from '../utils/assistant-markdown';
+import { SKIN_COLORS } from '@/store/themeSlice';
 
 interface ChatState {
   sessions: ChatSession[];
@@ -53,6 +54,7 @@ interface ChatState {
   showMCPServer: boolean;
   showSkill: boolean;
   showChatSettings: boolean;
+  // V1 mobile settings (removed in V2, replaced by DraggableSheet local state)
 }
 
 type ChatAction =
@@ -87,7 +89,7 @@ type ChatAction =
   | { type: 'SET_SESSIONS_LOADED'; payload: boolean }
   | { type: 'ADD_SESSION'; payload: ChatSession }
   | { type: 'DELETE_SESSION'; payload: string }
-  | { type: 'UPDATE_SESSION'; payload: { id: string; updates: Partial<ChatSession> } };
+  | { type: 'UPDATE_SESSION'; payload: { id: string; updates: Partial<ChatSession> } }
 
 const TYPEWRITER_BATCH_SIZE = 4;
 const TYPEWRITER_TICK_MS = 42;
@@ -287,7 +289,7 @@ const ChatContext = createContext<ChatContextValue | null>(null);
 export function ChatProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(chatReducer, initialState);
   const { t } = useTranslation();
-  const { theme } = useAppSelector((s) => s.theme);
+  const { theme, skin } = useAppSelector((s) => s.theme);
   const { isAuthenticated } = useAppSelector((s) => s.auth);
   const reduxDispatch = useAppDispatch();
 
@@ -337,7 +339,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     return theme === 'dark' || (theme === 'system' && systemDark);
   }, [theme, systemDark]);
 
-  // Apply theme to document root for CSS [data-theme] selectors
+  // Apply theme + skin to document root for CSS custom properties
   useEffect(() => {
     const root = document.documentElement;
     if (isDark) {
@@ -345,7 +347,20 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     } else {
       root.setAttribute('data-theme', 'light');
     }
-  }, [isDark]);
+
+    // Apply skin CSS custom properties
+    const colors = SKIN_COLORS[skin];
+    if (colors) {
+      root.style.setProperty('--skin-primary', colors.primary);
+      root.style.setProperty('--skin-secondary', colors.secondary);
+      root.style.setProperty('--skin-border-color', colors.borderColor);
+      root.style.setProperty('--chat-accent', colors.primary);
+      // Sync Ant Design v6 primary color tokens so antd components (Button, Switch, etc.) follow the skin
+      root.style.setProperty('--antd-colorPrimary', colors.primary);
+      root.style.setProperty('--antd-colorPrimaryHover', colors.secondary);
+      root.style.setProperty('--antd-colorPrimaryActive', colors.secondary);
+    }
+  }, [isDark, skin]);
 
   // Load sessions from server (authenticated) or localStorage (guest)
   useEffect(() => {
@@ -1012,13 +1027,8 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     loadRemoteConfig();
   }, [isAuthenticated]);
 
-  // Scroll to bottom on messages change
-  useEffect(() => {
-    const id = requestAnimationFrame(() => {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
-    });
-    return () => cancelAnimationFrame(id);
-  }, [state.messages]);
+  // 自动滚动逻辑已移至 ChatMessageList 组件中，
+  // 由该组件监听滚动容器事件，仅在用户位于底部时自动滚动。
 
   // Cleanup
   useEffect(() => {

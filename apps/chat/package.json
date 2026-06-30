@@ -12,6 +12,8 @@
     "generate:api": "orval --config orval.config.ts"
   },
   "dependencies": {
+    "@abner-blog/shared-ui": "workspace:*",
+    "@abner-blog/utils": "workspace:*",
     "@ant-design/cssinjs": "^1.23.0",
     "@ant-design/icons": "^6.1.0",
     "@reduxjs/toolkit": "^2.8.2",
@@ -21,6 +23,7 @@
     "axios": "^1.9.0",
     "classnames": "^2.5.1",
     "dayjs": "^1.11.13",
+    "react-transition-group": "^4.4.5",
     "fuse.js": "^7.3.0",
     "i18next": "^23.16.0",
     "i18next-browser-languagedetector": "^8.0.5",
@@ -32,15 +35,14 @@
     "react-redux": "^9.2.0",
     "react-router-dom": "^6.28.0",
     "react-syntax-highlighter": "^16.1.1",
-    "remark-gfm": "^4.0.1",
-    "@abner-blog/shared-ui": "workspace:*",
-    "@abner-blog/utils": "workspace:*"
+    "remark-gfm": "^4.0.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
     "@types/react-syntax-highlighter": "^15.5.13",
+    "@types/react-transition-group": "^4.4.10",
     "@vitejs/plugin-react": "^5.2.0",
     "eslint": "^10.0.3",
     "eslint-plugin-react-hooks": "^5.2.0",

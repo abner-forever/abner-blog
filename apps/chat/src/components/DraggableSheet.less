@@ -1,0 +1,234 @@
+/**
+ * DraggableSheet styles — 底部弹窗 + 高度塌陷关闭动画。
+ *
+ * 入场：通过 CSS transform 实现从底部滑入 + 遮罩淡入。
+ * 出场（关闭按钮 / 拖拽 / 遮罩点击）：高度逐渐缩小到 0 + 遮罩淡出。
+ */
+
+.draggable-sheet-wrapper {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  pointer-events: none;
+
+  /* ──── 入场基础：初始状态 ──── */
+
+  .draggable-sheet {
+    transform: translateY(100%);
+    transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+  }
+
+  .draggable-sheet__backdrop {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  /* ──── 入场完成 / 关闭中：sheet 保持展示位置 ──── */
+
+  &.sheet--entered,
+  &.sheet--closing {
+    .draggable-sheet {
+      transform: translateY(0);
+    }
+  }
+
+  /* ──── 入场完成：背景可见 ──── */
+
+  &.sheet--entered {
+    .draggable-sheet__backdrop {
+      opacity: 1;
+    }
+  }
+
+  /* ──── 关闭动画：遮罩淡出 ──── */
+
+  &.sheet--closing {
+    pointer-events: none; /* 关闭期间阻止交互 */
+
+    .draggable-sheet__backdrop {
+      opacity: 0;
+      transition: opacity 0.25s ease;
+    }
+  }
+}
+
+/* ──── 遮罩层 ──── */
+
+.draggable-sheet__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.55);
+  pointer-events: auto;
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+}
+
+[data-theme='light'] .draggable-sheet__backdrop {
+  background: rgba(0, 0, 0, 0.25);
+  -webkit-backdrop-filter: blur(1px);
+  backdrop-filter: blur(1px);
+}
+
+/* ──── Sheet 主体 ──── */
+
+.draggable-sheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1001;
+  display: flex;
+  flex-direction: column;
+  max-height: 86vh;
+  background: var(--chat-bg-secondary);
+  border-radius: 20px 20px 0 0;
+  box-shadow:
+    0 -2px 32px rgba(0, 0, 0, 0.3),
+    0 -1px 0 rgba(255, 255, 255, 0.04) inset;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+  pointer-events: auto;
+  transform: translateY(0);
+  will-change: transform, height;
+
+  // 顶部发光边缘
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent 15%,
+      rgba(255, 255, 255, 0.06) 50%,
+      transparent 85%
+    );
+    pointer-events: none;
+  }
+
+  &__handle {
+    width: 48px;
+    height: 4px;
+    margin: 10px auto 6px;
+    background: var(--chat-text-secondary);
+    border-radius: 4px;
+    flex-shrink: 0;
+    opacity: 0.35;
+    transition: opacity 0.2s;
+  }
+
+  // 拖拽时 handle 更亮
+  &:active &__handle,
+  &--dragging &__handle {
+    opacity: 0.6;
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px var(--chat-space-5) var(--chat-space-2);
+    flex-shrink: 0;
+
+    &-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--chat-text);
+      letter-spacing: -0.3px;
+    }
+
+    &-close {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: var(--chat-bg-tertiary);
+      color: var(--chat-text-secondary);
+      font-size: 16px;
+      cursor: pointer;
+      border: none;
+      transition: background 0.15s, color 0.15s;
+
+      &:hover {
+        background: var(--chat-hover);
+        color: var(--chat-text);
+      }
+
+      &:active {
+        transform: scale(0.92);
+      }
+    }
+  }
+
+  &__body {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 0 var(--chat-space-5) var(--chat-space-5);
+    overscroll-behavior: contain;
+
+    // 滚动条美化
+    &::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: var(--chat-border);
+      border-radius: 4px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+  }
+}
+
+/* ──── 关闭动画中禁止内容交互 ──── */
+
+.draggable-sheet--closing-anim {
+  pointer-events: none;
+}
+
+/* ──── Light theme ──── */
+
+[data-theme='light'] {
+  .draggable-sheet {
+    background: #f8f8fa;
+    box-shadow:
+      0 -2px 24px rgba(0, 0, 0, 0.08),
+      0 -1px 0 rgba(0, 0, 0, 0.04) inset;
+
+    &::before {
+      background: linear-gradient(
+        90deg,
+        transparent 15%,
+        rgba(0, 0, 0, 0.04) 50%,
+        transparent 85%
+      );
+    }
+
+    &__handle {
+      background: rgba(0, 0, 0, 0.18);
+    }
+
+    &__header {
+      &-title {
+        color: #1a1a1e;
+      }
+
+      &-close {
+        background: rgba(0, 0, 0, 0.06);
+        color: rgba(0, 0, 0, 0.45);
+
+        &:hover {
+          background: rgba(0, 0, 0, 0.1);
+          color: rgba(0, 0, 0, 0.75);
+        }
+      }
+    }
+  }
+}

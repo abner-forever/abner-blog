@@ -1,0 +1,124 @@
+// ============================================================
+// Chat Design System — CSS Custom Properties
+// Defined on :root so they are available globally, regardless
+// of which route/component is currently mounted.
+// Imported by main.tsx (always loaded) and index.less (for
+// backward compat when ChatPage is the entry point).
+// ============================================================
+:root {
+  // ------ Colors (Dark theme default) ------
+  --chat-bg: #1a1a1e;
+  --chat-bg-secondary: #252529;
+  --chat-bg-tertiary: #2d2d32;
+  --chat-bg-elevated: #121214;
+  --chat-border: #2e2e33;
+  --chat-border-light: #3a3a3f;
+  --chat-text: #e8e8ec;
+  --chat-text-secondary: #9ca3af;
+  // Dynamic accent — overridden by JS skin colors via --skin-primary
+  --chat-accent: var(--skin-primary, #6366f1);
+  --chat-accent-soft: color-mix(in srgb, var(--chat-accent) 12%, transparent);
+  --chat-input-bg: #252529;
+  --chat-hover: #2d2d32;
+  --chat-success: #22c55e;
+  --chat-warning: #f59e0b;
+  --chat-error: #ef4444;
+
+  // ------ Shadows ------
+  --chat-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --chat-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.25);
+  --chat-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.35);
+
+  // ------ Typography ------
+  --chat-font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans SC",
+    sans-serif;
+  --chat-font-mono: "SF Mono", "Fira Code", "Cascadia Code", Menlo, monospace;
+  --chat-font-xs: 11px;
+  --chat-font-sm: 12px;
+  --chat-font-base: 14px;
+  --chat-font-md: 15px;
+  --chat-font-lg: 16px;
+  --chat-font-xl: 20px;
+  --chat-font-2xl: 28px;
+  --chat-font-3xl: 36px;
+
+  // ------ Spacing (4px grid) ------
+  --chat-space-1: 4px;
+  --chat-space-2: 8px;
+  --chat-space-3: 12px;
+  --chat-space-4: 16px;
+  --chat-space-5: 20px;
+  --chat-space-6: 24px;
+  --chat-space-8: 32px;
+  --chat-space-10: 40px;
+
+  // ------ Border Radius ------
+  --chat-radius-sm: 6px;
+  --chat-radius-md: 8px;
+  --chat-radius-lg: 12px;
+  --chat-radius-xl: 16px;
+  --chat-radius-full: 9999px;
+
+  // ------ Gradients (dynamic via --skin-primary/--skin-secondary) ------
+  --chat-gradient: linear-gradient(135deg, var(--skin-primary, #6366f1), var(--skin-secondary, #818cf8));
+  --chat-gradient-soft: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--skin-primary, #6366f1) 12%, transparent),
+    color-mix(in srgb, var(--skin-secondary, #818cf8) 6%, transparent)
+  );
+  --chat-gradient-horizontal: linear-gradient(90deg, var(--skin-primary, #6366f1), var(--skin-secondary, #8b5cf6));
+
+  // ============================================================
+  // Backward-compatible aliases (migrate components to --chat-*)
+  // ============================================================
+  --ds-bg: var(--chat-bg);
+  --ds-bg-secondary: var(--chat-bg-secondary);
+  --ds-bg-tertiary: var(--chat-bg-tertiary);
+  --ds-bg-elevated: var(--chat-bg-elevated);
+  --ds-border: var(--chat-border);
+  --ds-border-light: var(--chat-border-light);
+  --ds-text: var(--chat-text);
+  --ds-text-secondary: var(--chat-text-secondary);
+  --ds-accent: var(--chat-accent);
+  --ds-input-bg: var(--chat-input-bg);
+  --ds-hover: var(--chat-hover);
+  --ds-shadow: var(--chat-shadow-md);
+
+  // Map standard CSS variables for panel compatibility
+  --border-color: var(--chat-border);
+  --bg-color: var(--chat-bg);
+  --card-bg: var(--chat-bg-secondary);
+  --text-color: var(--chat-text);
+  --text-main: var(--chat-text);
+  --text-secondary: var(--chat-text-secondary);
+  --text-color-secondary: var(--chat-text-secondary);
+  --primary-color: var(--chat-accent);
+  --hover-bg: var(--chat-bg-tertiary);
+  --active-bg: var(--chat-bg-tertiary);
+  --success-color: var(--chat-success);
+  --error-color: var(--chat-error);
+  --warning-color: var(--chat-warning);
+}
+
+// Light theme overrides — override CSS variables at the :root level
+[data-theme="light"] {
+  --chat-bg: #f5f5f7;
+  --chat-bg-secondary: #ffffff;
+  --chat-bg-tertiary: #f0f0f2;
+  --chat-bg-elevated: #ffffff;
+  --chat-border: #e5e5e7;
+  --chat-border-light: #d4d4d8;
+  --chat-text: #1a1a1e;
+  --chat-text-secondary: #6b7280;
+  // Accent follows skin — no static override needed
+  // --chat-accent soft variant via color-mix() already adapts to current accent
+  --chat-input-bg: #ffffff;
+  --chat-hover: #f0f0f2;
+  --chat-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --chat-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06);
+  --chat-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.08);
+  --chat-gradient: linear-gradient(135deg, var(--skin-primary, #6366f1), var(--skin-secondary, #818cf8));
+
+  // Compatibility aliases automatically follow via var() references
+}

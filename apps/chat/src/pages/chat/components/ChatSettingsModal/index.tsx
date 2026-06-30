@@ -9,6 +9,7 @@ import {
   Slider,
   message,
   Tooltip,
+  Popconfirm,
 } from 'antd';
 import {
   UserOutlined,
@@ -17,6 +18,10 @@ import {
   ThunderboltOutlined,
   RobotOutlined,
   GlobalOutlined,
+  DatabaseOutlined,
+  DownloadOutlined,
+  UploadOutlined,
+  DeleteOutlined,
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import i18n from '@/i18n';
@@ -25,11 +30,11 @@ import { setTheme, setSkin, skinCategories, type ThemeType } from '@/store/theme
 import { useUsersControllerUpdateProfile } from '@services/generated/users/users';
 import { useUploadControllerUploadImage } from '@services/generated/upload/upload';
 import { useChat } from '../../context/ChatContext';
-import { MODEL_VENDORS } from '../../constants';
-import type { VendorType } from '../../types';
+import { MODEL_VENDORS, STORAGE_KEY } from '../../constants';
+import type { VendorType, ChatSession } from '../../types';
 import './ChatSettingsModal.less';
 
-type SettingsTab = 'profile' | 'model' | 'chat' | 'appearance' | 'about';
+type SettingsTab = 'profile' | 'model' | 'chat' | 'data' | 'appearance' | 'about';
 
 interface ChatSettingsModalProps {
   open: boolean;
@@ -60,6 +65,7 @@ const ChatSettingsModal: React.FC<ChatSettingsModalProps> = memo(function ChatSe
   const [uploading, setUploading] = useState(false);
   const [editingApiKey, setEditingApiKey] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const importFileInputRef = useRef<HTMLInputElement>(null);
 
   const {
     apiKeys,
@@ -137,6 +143,57 @@ const ChatSettingsModal: React.FC<ChatSettingsModalProps> = memo(function ChatSe
     i18n.changeLanguage(value);
   }, []);
 
+  // Data management handlers
+  const handleExportData = useCallback(() => {
+    const savedSessions = localStorage.getItem(STORAGE_KEY);
+    if (!savedSessions) {
+      message.warning(t('chat.noDataToExport', { defaultValue: '没有可导出的数据' }));
+      return;
+    }
+    const blob = new Blob([savedSessions], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `chat-sessions-${Date.now()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    message.success(t('chat.exportSuccess', { defaultValue: '导出成功' }));
+  }, [t]);
+
+  const handleImportDataClick = useCallback(() => {
+    importFileInputRef.current?.click();
+  }, []);
+
+  const handleImportData = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        try {
+          const data = JSON.parse(ev.target?.result as string) as ChatSession[];
+          if (!Array.isArray(data)) {
+            message.error(t('chat.importInvalidFormat', { defaultValue: '无效的文件格式' }));
+            return;
+          }
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+          message.success(t('chat.importSuccess', { defaultValue: '导入成功，刷新后生效' }));
+        } catch {
+          message.error(t('chat.importInvalidFormat', { defaultValue: '无效的文件格式' }));
+        }
+      };
+      reader.readAsText(file);
+      if (e.target) e.target.value = '';
+    },
+    [t],
+  );
+
+  const handleClearAllData = useCallback(() => {
+    localStorage.removeItem(STORAGE_KEY);
+    message.success(t('chat.clearSuccess', { defaultValue: '已清除所有记录' }));
+    onClose();
+  }, [onClose, t]);
+
   const handleSaveAll = useCallback(async () => {
     await handleSaveSettings();
     message.success(t('chat.saveSuccess'));
@@ -179,6 +236,7 @@ const ChatSettingsModal: React.FC<ChatSettingsModalProps> = memo(function ChatSe
     { key: 'model', label: t('chat.modelSettings'), icon: <RobotOutlined /> },
     { key: 'chat', label: t('chat.chatSettings'), icon: <ThunderboltOutlined /> },
     { key: 'profile', label: t('chat.profile'), icon: <UserOutlined /> },
+    { key: 'data', label: t('chat.dataManagement', { defaultValue: '数据' }), icon: <DatabaseOutlined /> },
     { key: 'appearance', label: t('chat.appearanceSettings'), icon: <BgColorsOutlined /> },
     { key: 'about', label: t('chat.aboutSettings'), icon: <InfoCircleOutlined /> },
   ];
@@ -408,6 +466,57 @@ const ChatSettingsModal: React.FC<ChatSettingsModalProps> = memo(function ChatSe
           </div>
         );
 
+      case 'data':
+        return (
+          <div className="settings-tab-content">
+            <div className="settings-section">
+              <div className="settings-section-title">{t('chat.dataManagement', { defaultValue: '数据管理' })}</div>
+              <div className="settings-section-desc">{t('chat.dataManagementHint', { defaultValue: '导入、导出或清除聊天记录' })}</div>
+            </div>
+
+            <input
+              ref={importFileInputRef}
+              type="file"
+              accept=".json"
+              onChange={handleImportData}
+              style={{ display: 'none' }}
+            />
+
+            <div className="data-action-list">
+              <div className="data-action-item" onClick={handleImportDataClick}>
+                <UploadOutlined className="data-action-icon" />
+                <div className="data-action-info">
+                  <div className="data-action-label">{t('chat.importChatRecords', { defaultValue: '导入聊天记录' })}</div>
+                  <div className="data-action-desc">{t('chat.importChatRecordsHint', { defaultValue: '从 JSON 文件导入会话记录' })}</div>
+                </div>
+              </div>
+
+              <div className="data-action-item" onClick={handleExportData}>
+                <DownloadOutlined className="data-action-icon" />
+                <div className="data-action-info">
+                  <div className="data-action-label">{t('chat.exportChatRecords', { defaultValue: '导出聊天记录' })}</div>
+                  <div className="data-action-desc">{t('chat.exportChatRecordsHint', { defaultValue: '将所有会话导出为 JSON 文件' })}</div>
+                </div>
+              </div>
+
+              <Popconfirm
+                title={t('chat.clearAllConfirm', { defaultValue: '确定清除所有聊天记录？' })}
+                onConfirm={handleClearAllData}
+                okText={t('common.confirm')}
+                cancelText={t('common.cancel')}
+              >
+                <div className="data-action-item danger">
+                  <DeleteOutlined className="data-action-icon" />
+                  <div className="data-action-info">
+                    <div className="data-action-label">{t('chat.clearAllRecords', { defaultValue: '清除所有记录' })}</div>
+                    <div className="data-action-desc">{t('chat.clearAllRecordsHint', { defaultValue: '删除所有本地和服务端会话（不可恢复）' })}</div>
+                  </div>
+                </div>
+              </Popconfirm>
+            </div>
+          </div>
+        );
+
       case 'appearance':
         return (
           <div className="settings-tab-content">
@@ -431,19 +540,24 @@ const ChatSettingsModal: React.FC<ChatSettingsModalProps> = memo(function ChatSe
 
             <div className="settings-field">
               <div className="settings-field-label">{t('chat.skin')}</div>
-              <div className="skin-grid">
-                {skinCategories.classic.skins.map((skinName) => (
-                  <Tooltip key={skinName} title={skinName} placement="top">
-                    <div
-                      className={`skin-chip ${skin === skinName ? 'active' : ''}`}
-                      onClick={() => handleSkinChange(skinName)}
-                    >
-                      <div className={`skin-dot skin-${skinName}`} />
-                      {skin === skinName && <span className="skin-check">✓</span>}
-                    </div>
-                  </Tooltip>
-                ))}
-              </div>
+              {Object.entries(skinCategories).map(([categoryKey, category]) => (
+                <div key={categoryKey} className="skin-category">
+                  <div className="skin-category-label">{t(`chat.skinCategories.${categoryKey}`)}</div>
+                  <div className="skin-grid">
+                    {category.skins.map((skinName) => (
+                      <Tooltip key={skinName} title={t(`chat.skins.${skinName}`)} placement="top">
+                        <div
+                          className={`skin-chip ${skin === skinName ? 'active' : ''}`}
+                          onClick={() => handleSkinChange(skinName)}
+                        >
+                          <div className={`skin-dot skin-${skinName}`} />
+                          {skin === skinName && <span className="skin-check">✓</span>}
+                        </div>
+                      </Tooltip>
+                    ))}
+                  </div>
+                </div>
+              ))}
             </div>
 
             <div className="settings-divider" />

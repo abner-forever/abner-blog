@@ -57,7 +57,7 @@ const CodeBlock = memo<{
           fontSize: '14px',
           lineHeight: 1.6,
           maxHeight: isCollapsed ? '60px' : 'none',
-          overflow: isCollapsed ? 'hidden' : 'auto',
+          overflow: 'hidden',
         }}
       >
         {codeString}
@@ -125,27 +125,27 @@ const MarkdownRenderer = memo<{ content: string; isDark?: boolean }>(
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
-          table({ children, ...props }) {
+          table({ node: _node, children, ...props }) {
             return (
               <div className="markdown-gfm-table">
                 <table {...props}>{children}</table>
               </div>
             );
           },
-          td({ children, ...props }) {
+          td({ node: _node, children, ...props }) {
             return (
               <td {...props}>{renderLiteralBrInChildren(children)}</td>
             );
           },
-          th({ children, ...props }) {
+          th({ node: _node, children, ...props }) {
             return (
               <th {...props}>{renderLiteralBrInChildren(children)}</th>
             );
           },
-          p({ children, ...props }) {
+          p({ node: _node, children, ...props }) {
             return <p {...props}>{renderLiteralBrInChildren(children)}</p>;
           },
-          li({ children, ...props }) {
+          li({ node: _node, children, ...props }) {
             return <li {...props}>{renderLiteralBrInChildren(children)}</li>;
           },
           code({ node, className, children, ...props }) {

@@ -5,15 +5,15 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-  background: var(--ds-bg-elevated);
-  border-right: 1px solid var(--ds-border);
+  background: var(--chat-bg-elevated);
+  border-right: 1px solid var(--chat-border);
   overflow: hidden;
   transition: width 0.2s ease;
 
   &.collapsed {
     width: 56px;
     border-right: none;
-    background: var(--ds-bg-elevated);
+    background: var(--chat-bg-elevated);
 
     .sidebar-toggle {
       width: 100%;
@@ -42,16 +42,16 @@
   .sidebar-toggle {
     display: flex;
     padding: 8px;
-    border-bottom: 1px solid var(--ds-border);
+    border-bottom: 1px solid var(--chat-border);
     flex-shrink: 0;
 
     .toggle-btn {
-      color: var(--ds-text-secondary);
+      color: var(--chat-text-secondary);
       border-radius: 8px;
 
       &:hover {
-        color: var(--ds-text);
-        background: var(--ds-bg-tertiary);
+        color: var(--chat-text);
+        background: var(--chat-bg-tertiary);
       }
     }
   }
@@ -89,18 +89,21 @@
     padding: 12px;
 
     .new-chat-btn {
-      background: var(--ds-bg-secondary);
-      border: 1px solid var(--ds-border);
-      color: var(--ds-text);
+      background: var(--chat-bg-secondary);
+      border: 1px solid var(--chat-border);
+      color: var(--chat-text);
       font-weight: 500;
-      border-radius: 10px;
+      border-radius: var(--chat-radius-lg);
       box-shadow: none;
       height: 40px;
+      transition:
+        background 0.15s,
+        border-color 0.15s;
 
       &:hover {
-        background: var(--ds-bg-tertiary);
-        border-color: var(--ds-border-light);
-        color: var(--ds-text);
+        background: var(--chat-bg-tertiary);
+        border-color: var(--chat-border-light);
+        color: var(--chat-text);
       }
     }
   }
@@ -111,13 +114,13 @@
     position: relative;
 
     .sidebar-search-input {
-      border-radius: 8px;
-      background: var(--ds-bg-secondary);
-      border-color: var(--ds-border);
-      color: var(--ds-text);
+      border-radius: var(--chat-radius-md);
+      background: var(--chat-bg-secondary);
+      border-color: var(--chat-border);
+      color: var(--chat-text);
 
       &::placeholder {
-        color: var(--ds-text-secondary);
+        color: var(--chat-text-secondary);
       }
     }
 
@@ -126,10 +129,10 @@
       top: 100%;
       left: 12px;
       right: 12px;
-      background: var(--ds-bg-secondary);
-      border: 1px solid var(--ds-border);
-      border-radius: 8px;
-      box-shadow: 0 4px 20px var(--ds-shadow);
+      background: var(--chat-bg-secondary);
+      border: 1px solid var(--chat-border);
+      border-radius: var(--chat-radius-md);
+      box-shadow: var(--chat-shadow-lg);
       max-height: 300px;
       overflow-y: auto;
       z-index: 100;
@@ -138,26 +141,26 @@
     .sidebar-search-result-item {
       padding: 10px 12px;
       cursor: pointer;
-      border-bottom: 1px solid var(--ds-border);
+      border-bottom: 1px solid var(--chat-border);
 
       &:last-child {
         border-bottom: none;
       }
 
       &:hover {
-        background: var(--ds-bg-tertiary);
+        background: var(--chat-bg-tertiary);
       }
 
       .search-result-title {
         font-size: 13px;
         font-weight: 500;
-        color: var(--ds-text);
+        color: var(--chat-text);
         margin-bottom: 4px;
       }
 
       .search-result-preview {
         font-size: 12px;
-        color: var(--ds-text-secondary);
+        color: var(--chat-text-secondary);
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
@@ -167,7 +170,7 @@
     .sidebar-search-empty {
       padding: 16px;
       text-align: center;
-      color: var(--ds-text-secondary);
+      color: var(--chat-text-secondary);
       font-size: 13px;
     }
   }
@@ -187,18 +190,20 @@
         gap: 4px;
         font-size: 11px;
         font-weight: 600;
-        color: var(--ds-text-secondary);
+        color: var(--chat-text-secondary);
         text-transform: uppercase;
         letter-spacing: 0.04em;
         padding: 6px 8px;
         border-radius: 6px;
         cursor: pointer;
         user-select: none;
-        transition: background 0.15s, color 0.15s;
+        transition:
+          background 0.15s,
+          color 0.15s;
 
         &:hover {
-          background: var(--ds-bg-tertiary);
-          color: var(--ds-text);
+          background: var(--chat-bg-tertiary);
+          color: var(--chat-text);
         }
 
         .session-group-chevron {
@@ -214,7 +219,7 @@
         .session-group-label__count {
           font-size: 10px;
           font-weight: 400;
-          color: var(--ds-text-secondary);
+          color: var(--chat-text-secondary);
           min-width: 16px;
           text-align: right;
         }
@@ -245,7 +250,9 @@
       }
 
       .session-group-items {
-        transition: max-height 0.25s ease, opacity 0.2s ease;
+        transition:
+          max-height 0.25s ease,
+          opacity 0.2s ease;
       }
     }
 
@@ -254,16 +261,19 @@
       align-items: center;
       gap: 10px;
       padding: 10px 10px 10px 12px;
-      border-radius: 8px;
+      border-radius: var(--chat-radius-md);
       border: 1px solid transparent;
       cursor: pointer;
-      transition: background 0.15s;
+      transition:
+        background 0.15s,
+        border-color 0.15s;
       margin: 0 0 2px;
       width: 100%;
       box-sizing: border-box;
+      position: relative;
 
       &:hover {
-        background: var(--ds-bg-tertiary);
+        background: var(--chat-bg-tertiary);
 
         .sidebar-item-delete {
           opacity: 1;
@@ -271,11 +281,22 @@
       }
 
       &.active {
-        background: var(--ds-bg-tertiary);
-        border-color: var(--ds-border);
+        background: var(--chat-accent-soft);
+        border-color: var(--chat-border);
+
+        &::before {
+          content: "";
+          position: absolute;
+          left: -1px;
+          top: 6px;
+          bottom: 6px;
+          width: 3px;
+          border-radius: 2px;
+          background: var(--chat-accent);
+        }
 
         .sidebar-item-title {
-          color: var(--ds-text);
+          color: var(--chat-text);
           font-weight: 500;
         }
       }
@@ -283,7 +304,7 @@
       > .anticon {
         flex-shrink: 0;
         font-size: 15px;
-        color: var(--ds-text-secondary);
+        color: var(--chat-text-secondary);
       }
 
       .sidebar-item-content {
@@ -296,7 +317,7 @@
 
         .sidebar-item-title {
           font-size: 14px;
-          color: var(--ds-text-secondary);
+          color: var(--chat-text-secondary);
           flex: 1;
           line-height: 1.35;
           display: -webkit-box;
@@ -308,7 +329,7 @@
 
         .sidebar-item-date {
           font-size: 11px;
-          color: var(--ds-text-secondary);
+          color: var(--chat-text-secondary);
           flex-shrink: 0;
           line-height: 1;
           margin-top: 1px;
@@ -318,7 +339,7 @@
       .sidebar-item-delete {
         opacity: 0;
         transition: opacity 0.15s;
-        color: var(--ds-text-secondary);
+        color: var(--chat-text-secondary);
         flex-shrink: 0;
 
         &:hover {
@@ -329,7 +350,7 @@
 
     .sidebar-empty {
       text-align: center;
-      color: var(--ds-text-secondary);
+      color: var(--chat-text-secondary);
       padding: 24px 12px;
       font-size: 13px;
     }
