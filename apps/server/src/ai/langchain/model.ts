@@ -102,6 +102,21 @@ export interface LLMCallOptions {
 export interface LLMStreamChunk {
   answerDelta: string;
   reasoningDelta: string;
+  /** 流式工具调用增量（OpenAI 兼容格式） */
+  toolCallDelta?: {
+    id?: string;
+    name?: string;
+    args?: string;
+  };
+  /** 流结束原因 */
+  finishReason?: 'stop' | 'tool_calls' | 'length' | null;
+}
+
+/** 流式解析过程中累积的工具调用信息 */
+interface AccumulatedToolCall {
+  id: string;
+  name: string;
+  args: string;
 }
 
 export interface ChatLLM {
@@ -231,7 +246,8 @@ export class UniversalChatLLM implements ChatLLM {
           this.cfg.provider,
           this.cfg.thinkingEnabled,
         );
-        if (chunk.answerDelta || chunk.reasoningDelta) {
+        // yield 文本增量、推理增量、工具调用增量、或结束信号
+        if (chunk.answerDelta || chunk.reasoningDelta || chunk.toolCallDelta || chunk.finishReason) {
           if (this.cfg.provider === 'minimax') minimaxYielded += 1;
           yield chunk;
         }
@@ -626,6 +642,7 @@ function extractUniversalStreamChunk(
   provider: LLMProvider,
   thinkingEnabled: boolean,
 ): LLMStreamChunk {
+  // ── Anthropic ──
   if (provider === 'anthropic') {
     const type = typeof data.type === 'string' ? data.type : '';
     if (type !== 'content_block_delta') {
@@ -637,6 +654,8 @@ function extractUniversalStreamChunk(
       reasoningDelta: '',
     };
   }
+
+  // ── Gemini ──
   if (provider === 'gemini') {
     return {
       answerDelta: extractUniversalText(data, provider, thinkingEnabled),
@@ -644,15 +663,36 @@ function extractUniversalStreamChunk(
     };
   }
 
+  // ── OpenAI 兼容（MiniMax / DeepSeek / Qwen / OpenAI） ──
   const choices = data.choices as Array<Record<string, unknown>> | undefined;
   const first = choices?.[0];
   const delta = first?.delta as Record<string, unknown> | undefined;
+
   let answerDelta = '';
   let reasoningDelta = '';
+  let toolCallDelta: LLMStreamChunk['toolCallDelta'] = undefined;
+  const finishReason =
+    (first?.finish_reason as 'stop' | 'tool_calls' | 'length' | null) ?? null;
+
+  // ⭐ 流式工具调用检测
   if (delta) {
+    const rawToolCalls = delta.tool_calls as
+      | Array<Record<string, unknown>>
+      | undefined;
+    if (rawToolCalls && rawToolCalls.length > 0) {
+      const firstTc = rawToolCalls[0];
+      const fn = firstTc.function as Record<string, unknown> | undefined;
+      toolCallDelta = {
+        id: typeof firstTc.id === 'string' ? firstTc.id : undefined,
+        name: typeof fn?.name === 'string' ? fn.name : undefined,
+        args: typeof fn?.arguments === 'string' ? fn.arguments : undefined,
+      };
+    }
+
     const dc = delta.content;
     if (typeof dc === 'string' && dc.length > 0) answerDelta = dc;
-    // MiniMax M2.x 流式：可能仅推 reasoning_content / reasoning_details，content 长期为空
+
+    // MiniMax M2.x 流式：可能仅推 reasoning_content / reasoning_details
     if (provider === 'minimax' && thinkingEnabled) {
       const dr = delta.reasoning_content;
       if (typeof dr === 'string' && dr.length > 0) reasoningDelta = dr;
@@ -661,7 +701,9 @@ function extractUniversalStreamChunk(
     }
     if (!answerDelta && typeof dc === 'string') answerDelta = dc;
   }
+
   if (!answerDelta && typeof delta?.text === 'string') answerDelta = delta.text;
+
   const message = first?.message as Record<string, unknown> | undefined;
   if (!answerDelta && typeof message?.content === 'string') {
     answerDelta = message.content;
@@ -674,7 +716,8 @@ function extractUniversalStreamChunk(
   ) {
     reasoningDelta += message.reasoning_content;
   }
-  return { answerDelta, reasoningDelta };
+
+  return { answerDelta, reasoningDelta, toolCallDelta, finishReason };
 }
 
 function summarizeContentField(label: string, v: unknown): string {

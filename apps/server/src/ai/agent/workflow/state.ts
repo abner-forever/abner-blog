@@ -82,6 +82,13 @@ const agentStateSpec = {
   /** 事件总线引用 */
   streamChannel: Annotation<AgentEventBus>(),
 
+  // ── 流式输出状态 ──
+  /**
+   * 标记 LLM 节点是否已通过 EventBus 直接流式输出文本内容。
+   * 为 true 时，stream-emitter 节点应跳过 chat/thinking delta 发射（避免重复）。
+   */
+  streamedViaEventBus: Annotation<boolean>(),
+
   // ── 容错 ──
   /** 错误收集（reducer 累加） */
   errors: Annotation<string[]>({

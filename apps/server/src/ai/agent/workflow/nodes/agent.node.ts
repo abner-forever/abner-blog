@@ -1,18 +1,19 @@
 /**
  * Agent Node
  *
- * 核心 LLM 推理节点。
- * 将 state.messages 传入 LLM，解析输出：
- * - ⭐ 优先：LLM 返回原生 tool_calls → 构建带 tool_calls 的 AIMessage
- * - 降级：LLM 文本输出中标记了 TOOL_CALL → 构建带 tool_calls 的 AIMessage
+ * 核心 LLM 推理节点，使用流式调用实时发射 SSE。
+ * 将 state.messages 传入 LLM，逐 chunk 输出：
+ * - ⭐ 流式文本 → 逐 chunk 发射 chat_delta / thinking_delta 到 EventBus
+ * - ⭐ 流式工具调用 → 从 chunk 累积 toolCallDelta，构建带 tool_calls 的 AIMessage
+ * - 降级：累积文本中 TOOL_CALL 标记 → 构建带 tool_calls 的 AIMessage
  * - 否则 → 构建带 content 的 AIMessage（直接回答）
  *
  * 通过 messagesStateReducer 自动追加到 state.messages。
+ * 标记 streamedViaEventBus: true 通知 stream-emitter 跳过重复发射。
  */
 
 import { AIMessage } from '@langchain/core/messages';
 import type { AgentStateType, ToolConfig } from '../state';
-import { getTextContent } from '../../../langchain/parsers';
 import type { WorkflowDeps } from '../workflow';
 import { Logger } from '@nestjs/common';
 import type { ToolDefinition } from '../../../langchain/model';
@@ -134,6 +135,12 @@ function isDynamicStructuredTool(
 
 /**
  * 创建 Agent 节点
+ *
+ * 使用 invokeStream 实现流式输出：
+ * - LLM 文本回复 → 逐 chunk 发射 chat_delta / thinking_delta 到 EventBus
+ * - LLM 工具调用 → 从流式 chunk 中累积 toolCallDelta → 构建 AIMessage 带 tool_calls
+ * - 文本 TOOL_CALL 标记降级 → 在累积文本中检测
+ * - 标记 streamedViaEventBus: true 通知 stream-emitter 跳过重复发射
  */
 export function createAgentNode(deps: WorkflowDeps) {
   return async (state: AgentStateType): Promise<Partial<AgentStateType>> => {
@@ -194,110 +201,159 @@ export function createAgentNode(deps: WorkflowDeps) {
 
     const fullMessages = [systemMsg, ...nonSystemMsgs];
 
-    // ── 4. 构建原生工具定义并调用 LLM ──
+    // ── 4. 构建原生工具定义并使用流式调用 LLM ──
     try {
       const toolDefs = buildToolDefinitions(tools);
-      const response = await deps.llm.invoke(fullMessages, {
+
+      // 流式累积状态
+      let accumulatedContent = '';
+      let isToolCall = false;
+
+      // 流式工具调用累积（OpenAI 兼容格式）
+      // 第一块含 id + name，后续块只带 args 增量
+      let tcId = '';
+      let tcName = '';
+      let tcArgsAccum = '';
+
+      for await (const chunk of deps.llm.invokeStream(fullMessages, {
         tools: toolDefs,
-      });
+      })) {
+        // 推理增量 → thinking_delta
+        if (chunk.reasoningDelta) {
+          streamChannel.emit({
+            event: 'thinking_delta',
+            payload: { delta: chunk.reasoningDelta },
+          });
+        }
 
-      // ── 5. ⭐ 优先：检查原生 tool_calls ──
-      if (response.tool_calls && response.tool_calls.length > 0) {
-        // 验证工具名
-        const validCalls = response.tool_calls.filter((tc) =>
-          toolNames.includes(tc.name),
-        );
+        // 文本增量 → chat_delta + 累积
+        if (chunk.answerDelta) {
+          accumulatedContent += chunk.answerDelta;
+          streamChannel.emit({
+            event: 'chat_delta',
+            payload: { delta: chunk.answerDelta },
+          });
+        }
 
-        if (validCalls.length === 0) {
-          // 所有工具都不存在 → 当作文本返回
-          const rawText =
-            typeof response.content === 'string' ? response.content : '';
+        // 工具调用增量 → 累积 flat 字符串
+        if (chunk.toolCallDelta) {
+          isToolCall = true;
+          if (chunk.toolCallDelta.id) tcId = chunk.toolCallDelta.id;
+          if (chunk.toolCallDelta.name) tcName = chunk.toolCallDelta.name;
+          if (chunk.toolCallDelta.args) tcArgsAccum += chunk.toolCallDelta.args;
+        }
+
+        // 结束原因：工具调用
+        if (chunk.finishReason === 'tool_calls') {
+          isToolCall = true;
+        }
+      }
+
+      // ── 5. ⭐ 优先：流中原生 tool_calls ──
+      if (isToolCall && tcName) {
+        if (toolNames.includes(tcName)) {
+          let args: Record<string, unknown> = {};
+          try {
+            args = JSON.parse(tcArgsAccum) as Record<string, unknown>;
+          } catch {
+            logger.warn(
+              `Failed to parse tool call args for "${tcName}": ${tcArgsAccum.slice(0, 100)}`,
+            );
+          }
+
+          streamChannel.emitToolCallStart(tcName, args);
+
           return {
             messages: [
               new AIMessage({
-                content: rawText || '抱歉，无法完成此操作。',
+                content: '',
+                tool_calls: [
+                  {
+                    name: tcName,
+                    args,
+                    id:
+                      tcId ||
+                      `tool_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+                    type: 'tool_call' as const,
+                  },
+                ],
               }),
             ],
           };
         }
 
-        // 发射 tool_call_start 事件（取第一个工具）
-        streamChannel.emitToolCallStart(validCalls[0].name, validCalls[0].args);
-
+        // 工具不存在 → 当作文本返回
         return {
           messages: [
             new AIMessage({
-              content: '',
-              tool_calls: validCalls.map((tc) => ({
-                name: tc.name,
-                args: tc.args,
-                id:
-                  tc.id ||
-                  `tool_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-                type: 'tool_call' as const,
-              })),
+              content: accumulatedContent || '抱歉，无法完成此操作。',
             }),
           ],
         };
       }
 
       // ── 6. 降级：文本 TOOL_CALL 格式解析 ──
-      const rawText = getTextContent(response);
+      if (accumulatedContent.trim()) {
+        const { toolCall } = tryParseToolCall(accumulatedContent);
 
-      if (!rawText?.trim()) {
-        logger.warn('Agent LLM returned empty response');
-        return {
-          messages: [
-            new AIMessage({ content: '抱歉，我暂时无法回答这个问题。' }),
-          ],
-        };
-      }
+        if (toolCall) {
+          if (!toolNames.includes(toolCall.name)) {
+            logger.warn(`Invalid tool call: "${toolCall.name}"`);
+            return {
+              messages: [
+                new AIMessage({
+                  content:
+                    accumulatedContent +
+                    `\n(注意：工具 "${toolCall.name}" 不可用)`,
+                }),
+              ],
+            };
+          }
 
-      const { toolCall } = tryParseToolCall(rawText);
+          streamChannel.emitToolCallStart(toolCall.name, toolCall.args);
 
-      if (toolCall) {
-        // 验证工具名
-        if (!toolNames.includes(toolCall.name)) {
-          logger.warn(`Invalid tool call: "${toolCall.name}"`);
           return {
             messages: [
               new AIMessage({
-                content: rawText + `\n(注意：工具 "${toolCall.name}" 不可用)`,
+                content: '',
+                tool_calls: [
+                  {
+                    name: toolCall.name,
+                    args: toolCall.args,
+                    id: `tool_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+                    type: 'tool_call' as const,
+                  },
+                ],
               }),
             ],
           };
         }
+      }
 
-        streamChannel.emitToolCallStart(toolCall.name, toolCall.args);
+      // ── 7. 直接回答 ──
+      if (accumulatedContent.includes('TOOL_CALL')) {
+        logger.warn('TOOL_CALL marker found but parsing failed');
+      }
 
+      if (!accumulatedContent.trim()) {
+        logger.warn('Agent LLM stream returned empty response');
         return {
           messages: [
             new AIMessage({
-              content: '',
-              tool_calls: [
-                {
-                  name: toolCall.name,
-                  args: toolCall.args,
-                  id: `tool_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-                  type: 'tool_call' as const,
-                },
-              ],
+              content: '抱歉，我暂时无法回答这个问题。',
             }),
           ],
         };
       }
 
-      // ── 7. 直接回答 ──
-      if (rawText.includes('TOOL_CALL')) {
-        logger.warn('TOOL_CALL marker found but parsing failed');
-      }
-
       return {
-        messages: [new AIMessage({ content: rawText })],
+        messages: [new AIMessage({ content: accumulatedContent })],
+        // 标记文本已通过 EventBus 流式发射，stream-emitter 应跳过重复发射
+        streamedViaEventBus: true,
       };
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);
-      logger.error(`Agent LLM invoke failed: ${msg}`);
+      logger.error(`Agent LLM stream failed: ${msg}`);
       return {
         messages: [new AIMessage({ content: `抱歉，处理请求时发生了错误。` })],
       };

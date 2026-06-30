@@ -3,6 +3,10 @@
  *
  * 最终输出节点：将 AIMessage 内容通过 EventBus 推送给 SSE 响应。
  * 处理 think tag 分割、增量 delta 提取、历史保存。
+ *
+ * 当 state.streamedViaEventBus 为 true 时，LLM 节点已经通过 EventBus
+ * 实时发射了 chat_delta / thinking_delta 事件，此节点仅负责保存历史
+ * 和发射 done 事件。
  */
 
 import { AIMessage } from '@langchain/core/messages';
@@ -19,7 +23,7 @@ const logger = new Logger('StreamEmitterNode');
  */
 export function createStreamEmitterNode(deps: WorkflowDeps) {
   return (state: AgentStateType): Partial<AgentStateType> => {
-    const { messages, streamChannel, userId, sessionId, userInput } = state;
+    const { messages, streamChannel, userId, sessionId, userInput, streamedViaEventBus } = state;
 
     const lastMsg = messages[messages.length - 1];
 
@@ -37,6 +41,31 @@ export function createStreamEmitterNode(deps: WorkflowDeps) {
 
     if (!rawContent.trim()) {
       // 空内容（纯工具调用消息），不输出
+      streamChannel.emit({ event: 'done', payload: { type: 'chat' } });
+      return { isDone: true };
+    }
+
+    // ⭐ 如果 LLM 节点已经通过 EventBus 实时流式输出了文本内容，
+    // 跳过 chat/thinking delta 发射（避免重复），但仍需保存历史
+    if (streamedViaEventBus) {
+      const normalized = deps.chatResponseService.normalizeAssistantReply(
+        rawContent.trim(),
+      );
+      const sessionKey = deps.chatSessionService.getSessionKey(
+        userId || undefined,
+        sessionId,
+      );
+      deps.chatSessionService.appendHistory(
+        sessionKey,
+        userInput,
+        normalized,
+        10,
+      );
+
+      logger.log(
+        `[Agent] stream_end (streamed) userId=${userId} replyLen=${normalized.length}`,
+      );
+
       streamChannel.emit({ event: 'done', payload: { type: 'chat' } });
       return { isDone: true };
     }

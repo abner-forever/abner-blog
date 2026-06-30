@@ -98,6 +98,7 @@ export class AgentProcessor {
         retryCount: 0,
         maxRetries: DEFAULT_MAX_RETRIES,
         streamChannel: eventBus,
+        streamedViaEventBus: false,
         errors: [] as string[],
       };
 
