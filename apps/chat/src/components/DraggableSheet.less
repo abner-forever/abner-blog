@@ -119,10 +119,14 @@
     transition: opacity 0.2s;
   }
 
-  // 拖拽时 handle 更亮
+  // 拖拽时 handle 更亮，body 隐藏滚动条
   &:active &__handle,
   &--dragging &__handle {
     opacity: 0.6;
+  }
+
+  &--dragging &__body {
+    overflow: hidden;
   }
 
   &__header {
@@ -187,10 +191,14 @@
   }
 }
 
-/* ──── 关闭动画中禁止内容交互 ──── */
+/* ──── 关闭动画中禁止内容交互 + 隐藏滚动条 ──── */
 
 .draggable-sheet--closing-anim {
   pointer-events: none;
+
+  .draggable-sheet__body {
+    overflow: hidden;
+  }
 }
 
 /* ──── Light theme ──── */

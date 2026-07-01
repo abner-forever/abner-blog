@@ -17,7 +17,10 @@ import type { AgentStateType, ToolConfig } from '../state';
 import type { WorkflowDeps } from '../workflow';
 import { Logger } from '@nestjs/common';
 import type { ToolDefinition } from '../../../langchain/model';
-import { zodSchemaToJsonSchema } from '../../../langchain/model';
+import {
+  zodSchemaToJsonSchema,
+  buildModelIdentity,
+} from '../../../langchain/model';
 import { DynamicStructuredTool, type DynamicTool } from '@langchain/core/tools';
 
 const logger = new Logger('AgentNode');
@@ -180,7 +183,7 @@ export function createAgentNode(deps: WorkflowDeps) {
     // ── 2. 构建 system message ──
     const systemMsg = new AIMessage({
       content: [
-        '你是一个 AI 助手，可以使用工具完成用户的请求。',
+        buildModelIdentity(deps.llm.config),
         '',
         toolInstruction,
         '',

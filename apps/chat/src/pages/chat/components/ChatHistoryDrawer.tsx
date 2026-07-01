@@ -46,7 +46,7 @@ const ChatHistoryDrawer: React.FC<Props> = memo(function ChatHistoryDrawer({
       placement="left"
       closable={false}
       open={open}
-      width={300}
+      size={300}
       onClose={onClose}
       className="chat-history-drawer"
     >
@@ -100,7 +100,7 @@ const ChatHistoryDrawer: React.FC<Props> = memo(function ChatHistoryDrawer({
           >
             <div className="drawer-user-avatar">
               {user?.avatar ? (
-                <img src={user.avatar} alt="" className="drawer-user-avatar-img" />
+                <img src={user.avatar} alt="" className="drawer-user-avatar-img" loading="lazy" />
               ) : (
                 <div className="drawer-user-avatar-placeholder">
                   {(user?.nickname || user?.username || 'U')[0].toUpperCase()}

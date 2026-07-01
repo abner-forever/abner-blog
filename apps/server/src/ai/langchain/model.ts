@@ -120,11 +120,29 @@ interface AccumulatedToolCall {
 }
 
 export interface ChatLLM {
+  readonly config: { provider: LLMProvider; model: string };
   invoke(messages: BaseMessage[], options?: LLMCallOptions): Promise<AIMessage>;
   invokeStream(
     messages: BaseMessage[],
     options?: LLMCallOptions,
   ): AsyncGenerator<LLMStreamChunk>;
+}
+
+/** 根据提供商信息生成 AI 自我身份描述，供 system prompt 使用 */
+export function buildModelIdentity(config: {
+  provider: LLMProvider;
+  model: string;
+}): string {
+  const providerNames: Record<LLMProvider, string> = {
+    deepseek: 'DeepSeek',
+    anthropic: 'Anthropic',
+    openai: 'OpenAI',
+    gemini: 'Google',
+    qwen: '阿里云（通义千问）',
+    minimax: 'MiniMax',
+  };
+  const name = providerNames[config.provider] || config.provider;
+  return `你是一个 AI 助手，由 ${name} 开发（模型：${config.model}）。你可以使用工具来帮助用户完成各种任务。`;
 }
 
 export class UniversalChatLLM implements ChatLLM {
@@ -145,6 +163,10 @@ export class UniversalChatLLM implements ChatLLM {
       thinkingEnabled: config.thinkingEnabled ?? false,
       thinkingBudget: config.thinkingBudget ?? 0,
     };
+  }
+
+  get config(): { provider: LLMProvider; model: string } {
+    return { provider: this.cfg.provider, model: this.cfg.model };
   }
 
   async invoke(

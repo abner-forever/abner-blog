@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Button } from 'antd';
 import { LoginOutlined } from '@ant-design/icons';
 import { useChat } from './context/ChatContext';
+import { useChatMessages } from './context/ChatMessagesContext';
 import ChatSidebar from './components/ChatSidebar';
 import ChatHeader from './components/ChatHeader';
 import ChatInput from './components/ChatInput';
@@ -12,6 +13,7 @@ import ChatSettingsModal from './components/ChatSettingsModal';
 import KnowledgeBasePanel from './components/KnowledgeBasePanel';
 import MCPServerPanel from './components/MCPServerPanel';
 import SkillPanel from './components/SkillPanel';
+import AnimatedPanel from './components/AnimatedPanel';
 import WelcomeScreen from './components/WelcomeScreen';
 import { MODEL_VENDORS, isChatImageSupportedVendor } from './constants';
 import { readFileAsChatImage, revokeChatImagePreview, CHAT_MAX_IMAGES, type ChatImagePayload } from './utils/chat-images';
@@ -24,32 +26,39 @@ const ChatPageContent: React.FC = () => {
   const { t } = useTranslation();
   const { isAuthenticated } = useAppSelector((s) => s.auth);
   const { checkAuth } = useAuthCheck();
+
+  // 低变更上下文：会话、配置、主题
   const {
     state,
     dispatch,
-    messagesEndRef,
-    fileInputRef,
     createNewSession,
     switchSession,
     deleteSession,
+    isDark,
+  } = useChat();
+
+  // 高变更上下文：消息、流式交互
+  const {
+    messages,
+    loading,
+    input,
+    pendingImages,
+    inputFocused,
+    expandedThinkingMessageIds,
+    messagesEndRef,
+    fileInputRef,
     sendMessage,
     stopGeneration,
     handleCopy,
     regenerateMessage,
-    isDark,
-  } = useChat();
+    onToggleThinkingExpanded,
+  } = useChatMessages();
 
   const {
-    messages,
-    input,
-    pendingImages,
-    inputFocused,
-    loading,
     sessionsLoaded,
     vendor,
     enableThinking,
     enableWebSearch,
-    expandedThinkingMessageIds,
     sidebarCollapsed,
     mobileDrawerOpen,
     sessions,
@@ -207,13 +216,6 @@ const ChatPageContent: React.FC = () => {
     [dispatch],
   );
 
-  const toggleThinkingExpanded = useCallback(
-    (messageId: string) => {
-      dispatch({ type: 'TOGGLE_THINKING_EXPANDED', payload: messageId });
-    },
-    [dispatch]
-  );
-
   // Cleanup pending images on unmount
   useEffect(() => {
     return () => {
@@ -278,7 +280,7 @@ const ChatPageContent: React.FC = () => {
             loading={loading}
             isDark={isDark}
             expandedThinkingMessageIds={expandedThinkingMessageIds}
-            onToggleThinkingExpanded={toggleThinkingExpanded}
+            onToggleThinkingExpanded={onToggleThinkingExpanded}
             onCopyMessage={handleCopy}
             onRegenerateMessage={(assistantMessageId) => { void regenerateMessage(assistantMessageId); }}
             messagesEndRef={messagesEndRef as React.RefObject<HTMLDivElement>}
@@ -347,23 +349,17 @@ const ChatPageContent: React.FC = () => {
         onClose={handleCloseSettings}
       />
 
-      {showKnowledgeBase && (
-        <div className="knowledge-base-panel-wrapper">
-          <KnowledgeBasePanel onClose={handleCloseKnowledgeBase} />
-        </div>
-      )}
+      <AnimatedPanel visible={showKnowledgeBase}>
+        <KnowledgeBasePanel onClose={handleCloseKnowledgeBase} />
+      </AnimatedPanel>
 
-      {showMCPServer && (
-        <div className="knowledge-base-panel-wrapper">
-          <MCPServerPanel onClose={handleCloseMCPServer} />
-        </div>
-      )}
+      <AnimatedPanel visible={showMCPServer}>
+        <MCPServerPanel onClose={handleCloseMCPServer} />
+      </AnimatedPanel>
 
-      {showSkill && (
-        <div className="knowledge-base-panel-wrapper">
-          <SkillPanel onClose={handleCloseSkill} />
-        </div>
-      )}
+      <AnimatedPanel visible={showSkill}>
+        <SkillPanel onClose={handleCloseSkill} />
+      </AnimatedPanel>
     </div>
   );
 };

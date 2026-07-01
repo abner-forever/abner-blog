@@ -34,7 +34,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
   const location = useLocation();
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    return <Navigate to="/login" state={{ from: location.pathname }} replace />;
   }
 
   return <>{children}</>;
@@ -42,8 +42,11 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 
 const AppContent: React.FC = () => {
   const dispatch = useDispatch();
-  const [initializing, setInitializing] = useState(true);
+  // 同步检查 localStorage 中是否有 token：有则无需 SSO 检查，直接渲染
+  const hasLocalToken = Boolean(store.getState().auth.token);
+  const [initializing, setInitializing] = useState(!hasLocalToken);
   const ssoChecked = React.useRef(false);
+  const ssoAbortRef = React.useRef<AbortController | null>(null);
   const theme = useSelector((state: RootState) => state.theme.theme);
   const skin = useSelector((state: RootState) => state.theme.skin);
 
@@ -71,9 +74,21 @@ const AppContent: React.FC = () => {
         return;
       }
       ssoChecked.current = true;
+
+      // SSO 请求最多等 3 秒，超时就放弃，展示登录页
+      const controller = new AbortController();
+      ssoAbortRef.current = controller;
+      const timeoutId = setTimeout(() => controller.abort(), 3000);
+
       try {
-        const status = await getSSOStatus();
-        if (status.authenticated && status.userId && status.username && status.role) {
+        const status = await Promise.race([
+          getSSOStatus(),
+          new Promise<null>((resolve) => {
+            controller.signal.addEventListener('abort', () => resolve(null), { once: true });
+          }),
+        ]);
+        clearTimeout(timeoutId);
+        if (status && status.authenticated && status.userId && status.username && status.role) {
           dispatch(
             setSSOCredentials({
               id: status.userId,
@@ -89,6 +104,9 @@ const AppContent: React.FC = () => {
       }
     };
     checkSSO();
+    return () => {
+      ssoAbortRef.current?.abort();
+    };
   }, [dispatch]);
 
   if (initializing) {
@@ -151,7 +169,7 @@ const App: React.FC = () => {
   return (
     <Provider store={store}>
       <QueryClientProvider client={queryClient}>
-        <BrowserRouter>
+        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <AppContent />
         </BrowserRouter>
       </QueryClientProvider>

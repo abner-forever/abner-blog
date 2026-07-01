@@ -1,7 +1,139 @@
+/* ─── Chat Login Theme Overrides ───────────────────────────────────────────
+   Override the shared login page colors to match the chat app's dynamic
+   theme system (dark/light mode + skin colors via --skin-primary).
+
+   Backgrounds and text reference --chat-* CSS custom properties which
+   adapt automatically between dark ([data-theme] absent) and light modes
+   ([data-theme="light"]). Primary accent follows the user's selected skin.
+   ────────────────────────────────────────────────────────────────────────── */
+
 :root {
-  --al-primary-color: #7c3aed;
-  --al-primary-hover: #6d28d9;
+  /* Primary accent follows the user's selected skin color */
+  --al-primary-color: var(--skin-primary, #7c3aed);
+  --al-primary-hover: var(--skin-secondary, #6d28d9);
   --al-primary-active: #5b21b6;
-  --al-bg-start: #1e1b4b;
-  --al-bg-end: #312e81;
+  --al-primary-shadow: color-mix(in srgb, var(--skin-primary, #7c3aed) 25%, transparent);
+  --al-form-focus-shadow: color-mix(in srgb, var(--skin-primary, #7c3aed) 12%, transparent);
+  --al-sso-hover-bg: color-mix(in srgb, var(--skin-primary, #7c3aed) 8%, transparent);
+
+  /* Title / subtitle inherit from chat text colors */
+  --al-right-title-color: var(--chat-text, #e8e8ec);
+  --al-right-subtitle-color: var(--chat-text-secondary, #9ca3af);
+
+  /* Left panel gradient — soften for chat app dark aesthetic */
+  --al-bg-start: #0f0f13;
+  --al-bg-end: #1a1a2e;
+}
+
+/* ── Page container ──────────────────────────────────────────────────── */
+.al-page {
+  background: var(--chat-bg) !important;
+}
+
+/* ── Right panel ─────────────────────────────────────────────────────── */
+.al-right {
+  background: var(--chat-bg-secondary) !important;
+}
+
+/* ── Mobile brand ────────────────────────────────────────────────────── */
+.al-right__mobile-brand-text {
+  color: var(--chat-text) !important;
+}
+
+/* ── Tagline ─────────────────────────────────────────────────────────── */
+.al-right__tagline {
+  color: var(--chat-text-secondary) !important;
+}
+
+/* ── Form ────────────────────────────────────────────────────────────── */
+
+/* Label */
+.al-form__label {
+  color: var(--chat-text) !important;
+}
+
+/* Input wrapper */
+.al-form__input {
+  background: var(--chat-bg-tertiary) !important;
+  border-color: var(--chat-border) !important;
+
+  &.ant-input-affix-wrapper {
+    background: var(--chat-bg-tertiary) !important;
+    border-color: var(--chat-border) !important;
+  }
+
+  &:hover {
+    border-color: var(--chat-accent) !important;
+    background: var(--chat-input-bg) !important;
+  }
+
+  &:focus,
+  &.ant-input-affix-wrapper-focused {
+    border-color: var(--al-primary-color) !important;
+    background: var(--chat-input-bg) !important;
+    box-shadow: 0 0 0 3px var(--al-form-focus-shadow) !important;
+  }
+}
+
+/* Input prefix icon */
+.al-form__prefix-icon {
+  color: var(--chat-text-secondary) !important;
+}
+
+/* Password visibility toggle */
+.al-form__eye {
+  color: var(--chat-text-secondary) !important;
+
+  &:hover {
+    color: var(--chat-text) !important;
+  }
+}
+
+/* Submit button — uses --al-primary-color already via shared-ui, but
+   ensure the shadow uses the skin-aware variable */
+.al-form__submit {
+  box-shadow: 0 2px 8px var(--al-primary-shadow) !important;
+
+  &:hover {
+    box-shadow: 0 4px 14px var(--al-primary-shadow) !important;
+  }
+}
+
+/* ── Divider ─────────────────────────────────────────────────────────── */
+.al-divider {
+  &::before,
+  &::after {
+    background: var(--chat-border-light) !important;
+  }
+
+  &__text {
+    color: var(--chat-text-secondary) !important;
+  }
+}
+
+/* ── SSO button ──────────────────────────────────────────────────────── */
+.al-sso-btn {
+  border-color: var(--chat-border) !important;
+  color: var(--chat-text) !important;
+  background: var(--chat-bg-secondary) !important;
+
+  &:hover {
+    border-color: var(--chat-accent) !important;
+    color: var(--chat-accent) !important;
+    background: var(--al-sso-hover-bg) !important;
+  }
+}
+
+/* ── Autofill overrides ────────────────────────────────────────────────── */
+.al-form input {
+  &:-webkit-autofill,
+  &:-webkit-autofill:hover,
+  &:-webkit-autofill:focus,
+  &:-webkit-autofill:active {
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: var(--chat-text) !important;
+    transition: background-color 5000s ease-in-out 0s !important;
+    box-shadow: inset 0 0 0px 1000px var(--chat-bg-tertiary) !important;
+    caret-color: var(--chat-text) !important;
+  }
 }

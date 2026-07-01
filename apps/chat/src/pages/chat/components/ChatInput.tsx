@@ -112,7 +112,7 @@ const ChatInput = memo<{
               <div className="chat-attachment-row">
                 {attachments.map((a) => (
                   <div key={a.id} className="chat-attachment-chip">
-                    <img src={a.previewUrl} alt="" />
+                    <img src={a.previewUrl} alt="" loading="lazy" />
                     <button
                       type="button"
                       className="chat-attachment-remove"
@@ -174,7 +174,7 @@ const ChatInput = memo<{
                   options={modelOptions}
                   className="chat-input-model-selector"
                   popupMatchSelectWidth={false}
-                  popupClassName="chat-input-model-selector-dropdown"
+                  classNames={{ popup: { root: 'chat-input-model-selector-dropdown' } }}
                   variant="borderless"
                 />
                 <span className="chat-input-footer__shortcut">

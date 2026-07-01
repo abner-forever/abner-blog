@@ -17,6 +17,7 @@ import { createSearchKnowledgeTool } from '../../tools/built-in/search-knowledge
 import { createDynamicMcpTools } from '../../tools/mcp/mcp-tool-factory';
 import type { WorkflowDeps } from '../workflow';
 import { buildChatHumanMessage } from '../../../utils/build-chat-human-message';
+import { buildModelIdentity } from '../../../langchain/model';
 
 /**
  * 判断用户查询是否明显是本地数据操作，无需自动联网搜索。
@@ -116,7 +117,7 @@ export function createPreprocessNode(deps: WorkflowDeps) {
 
     // ── 5. 构建 SystemPrompt ──
     const parts: string[] = [
-      '你是一个智能 AI 助手。你可以使用工具来帮助用户完成各种任务。',
+      buildModelIdentity(deps.llm.config),
       '',
       '## 工具使用规则',
       '1. 根据用户需求选择合适的工具',

@@ -1,5 +1,3 @@
-import { domToBlob } from 'modern-screenshot';
-
 /** 控制台过滤用前缀，例如 DevTools 里搜 `chat:copy-image` */
 export const CHAT_COPY_IMAGE_DEBUG_TAG = '[chat:copy-image]';
 
@@ -58,6 +56,7 @@ function captureFilter(node: Node): boolean {
 }
 
 async function captureElementToPngBlob(element: HTMLElement): Promise<Blob> {
+  const { domToBlob } = await import('modern-screenshot');
   const w = Math.ceil(
     Math.max(element.scrollWidth, element.offsetWidth, element.clientWidth, 1),
   );

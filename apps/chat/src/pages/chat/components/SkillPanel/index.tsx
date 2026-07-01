@@ -157,7 +157,7 @@ const SkillPanel: React.FC<Props> = ({ onClose }) => {
                     avatar={
                       <div className="skill-icon">
                         {skill.avatar ? (
-                          <img src={skill.avatar} alt={skill.name} />
+                          <img src={skill.avatar} alt={skill.name} loading="lazy" />
                         ) : (
                           <RobotOutlined />
                         )}

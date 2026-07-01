@@ -1,6 +1,11 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback, forwardRef, useImperativeHandle } from 'react';
 import { CloseOutlined } from '@ant-design/icons';
 import './DraggableSheet.less';
+
+export interface DraggableSheetHandle {
+  /** 触发关闭动画（高度塌陷），动画完成后自动调用 onClose */
+  close: () => void;
+}
 
 interface DraggableSheetProps {
   /** 是否展示 */
@@ -21,13 +26,15 @@ const CLOSE_ANIM_MS = 350;
  * 入场：从底部滑入 + 遮罩淡入（CSS transform 驱动，高性能）。
  * 出场：高度逐渐缩小至 0 + 遮罩淡出（高度塌陷效果）。
  * 拖拽：通过高度压缩实现跟手感，拖拽超过阈值后触发关闭动画。
+ *
+ * 通过 ref 暴露 close() 方法，可用于表单提交成功后程序化关闭。
  */
-const DraggableSheet: React.FC<DraggableSheetProps> = ({
+const DraggableSheet = forwardRef<DraggableSheetHandle, DraggableSheetProps>(function DraggableSheet({
   open,
   title,
   onClose,
   children,
-}) => {
+}, ref) {
   const contentRef = useRef<HTMLDivElement>(null);
   const sheetRef = useRef<HTMLDivElement>(null);
 
@@ -70,6 +77,19 @@ const DraggableSheet: React.FC<DraggableSheetProps> = ({
     }
   }, [open]);
 
+  /**
+   * 关闭动画结束后确保 closing 状态被重置，避免卡在 sheet--closing
+   * 导致下次无法重新打开弹窗。
+   * 同时卸载 DOM，消除 backdrop pointer-events 对底层页面的遮挡。
+   */
+  useEffect(() => {
+    if (!open && mounted) {
+      setClosing(false);
+      setEntered(false);
+      setMounted(false);
+    }
+  }, [open, mounted]);
+
   /* ── 关闭动画：高度塌陷 ── */
   const startCloseAnimation = useCallback(() => {
     if (closingLockRef.current) return;
@@ -100,6 +120,11 @@ const DraggableSheet: React.FC<DraggableSheetProps> = ({
       onClose();
     }, CLOSE_ANIM_MS + 30);
   }, [onClose]);
+
+  /* ── 暴露 ref API：close() 可被父组件调用 ── */
+  useImperativeHandle(ref, () => ({
+    close: startCloseAnimation,
+  }), [startCloseAnimation]);
 
   /* ── 拖拽（高度压缩跟手） ── */
   const handleDragStart = useCallback(
@@ -313,6 +338,6 @@ const DraggableSheet: React.FC<DraggableSheetProps> = ({
       </div>
     </div>
   );
-};
+});
 
 export default DraggableSheet;

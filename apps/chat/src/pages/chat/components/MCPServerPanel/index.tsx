@@ -378,9 +378,16 @@ const MCPServerPanel: React.FC<Props> = ({ onClose }) => {
                     }
                     description={
                       <div className="server-info">
-                        <span className="server-tools">
-                          {server.allowedTools?.length || 0} tools
-                        </span>
+                        <div className="server-tools-list">
+                          {server.allowedTools?.slice(0, 6).map((tool) => (
+                            <Tag key={tool} className="tool-tag" color="blue">
+                              {tool}
+                            </Tag>
+                          ))}
+                          {(server.allowedTools?.length || 0) > 6 && (
+                            <Tag className="tool-tag">+{server.allowedTools!.length - 6}</Tag>
+                          )}
+                        </div>
                         {server.lastError && (
                           <Tooltip title={server.lastError}>
                             <span className="server-error">

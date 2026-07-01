@@ -1,11 +1,13 @@
-import { useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
 import { message } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { LoginPage } from '@abner-blog/shared-ui';
 import type { LoginPageProps, SSOUser } from '@abner-blog/shared-ui';
 import { httpMutator } from '@/services/http';
 import { setCredentials, setSSOCredentials } from '@/store/authSlice';
+import type { RootState } from '@/store';
 import { getSSOStatus } from '@/services/sso';
 import './index.less';
 
@@ -29,7 +31,7 @@ const brandLogo = (
 );
 
 const mobileLogo = (
-  <svg viewBox="0 0 32 32" fill="none" width="22" height="22" style={{ color: '#7c3aed' }}>
+  <svg viewBox="0 0 32 32" fill="none" width="22" height="22" style={{ color: 'var(--skin-primary, #7c3aed)' }}>
     <rect x="2" y="2" width="28" height="28" rx="8" stroke="currentColor" strokeWidth="2" fill="none" />
     <path d="M10 22V10h4l4 8 4-8h4v12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
@@ -37,8 +39,19 @@ const mobileLogo = (
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useDispatch();
   const { t } = useTranslation();
+  const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
+
+  // 认证成功后自动跳转首页（兜底 navigation）
+  // 移动端浏览器中，异步回调内的 navigate 可能因键盘收起 / 窗口尺寸变化
+  // 而无法触发路由跳转，useEffect 是更可靠的钩子方案
+  useEffect(() => {
+    if (isAuthenticated && location.pathname === '/login') {
+      navigate('/chat', { replace: true });
+    }
+  }, [isAuthenticated, navigate, location.pathname]);
 
   const handleLogin: LoginPageProps['onLogin'] = async (values) => {
     const data = await httpMutator<LoginResponse>({

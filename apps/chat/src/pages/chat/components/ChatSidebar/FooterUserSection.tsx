@@ -91,7 +91,7 @@ const FooterUserSection: React.FC = memo(function FooterUserSection() {
         menu={{ items: userMenuItems }}
         trigger={['click']}
         placement="topLeft"
-        overlayClassName="user-dropdown-overlay"
+        classNames={{ root: 'user-dropdown-overlay' }}
       >
         <Button type="text" className="footer-user-btn">
           <Avatar

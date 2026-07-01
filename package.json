@@ -12,7 +12,7 @@
     "dev:web": "cd apps/web && pnpm run dev",
     "dev:server": "cd apps/server && pnpm run dev",
     "dev:admin": "cd apps/admin && pnpm run dev",
-    "dev:chat": "cd apps/chat && pnpm run dev",
+    "dev:chat": "lsof -ti:3002 | xargs kill -9 2>/dev/null; while lsof -ti:3002 >/dev/null 2>&1; do sleep 0.5; done; cd apps/chat && pnpm run dev",
     "dev:upload": "cd packages/upload/preview && pnpm run dev",
     "build:web": "cd apps/web && pnpm run build",
     "build:server": "cd apps/server && pnpm run build",

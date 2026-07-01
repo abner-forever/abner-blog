@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Form, Input, Button, message } from "antd";
 import {
@@ -60,6 +60,33 @@ export interface LoginPageProps {
   defaultRedirect?: string;
 }
 
+/* ─── Hook: deferred navigation ──────────────────────────────────────── */
+
+/**
+ * 将 `navigate` 延迟到 useEffect 中执行，避免在 async callback 中直接导航时
+ * 因 React 尚未完成 batched state update（Redux dispatch 等）而导致竞态条件：
+ * ProtectedRoute 读到旧的 auth 状态 → 重定向回登录页。
+ */
+function useDeferredNavigate() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const pendingRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (pendingRef.current) {
+      navigate(pendingRef.current, { replace: true });
+      pendingRef.current = null;
+    }
+  });
+
+  return {
+    navigateAfterRender: (to: string) => {
+      pendingRef.current = to;
+    },
+    location,
+  };
+}
+
 /* ─── Component ──────────────────────────────────────────────────────── */
 
 const LoginPage: React.FC<LoginPageProps> = ({
@@ -71,8 +98,7 @@ const LoginPage: React.FC<LoginPageProps> = ({
   onSSOAutoLogin,
   defaultRedirect = "/",
 }) => {
-  const navigate = useNavigate();
-  const location = useLocation();
+  const { navigateAfterRender, location } = useDeferredNavigate();
 
   /* form state */
   const [loading, setLoading] = useState(false);
@@ -91,8 +117,9 @@ const LoginPage: React.FC<LoginPageProps> = ({
         if (user && !cancelled) {
           onSSOAutoLogin(user);
           message.success(texts.loginSuccess || "登录成功");
-          const from = (location.state as { from?: string })?.from || defaultRedirect;
-          navigate(from, { replace: true });
+          const rawFrom = (location.state as { from?: string | { pathname?: string } })?.from;
+          const from = typeof rawFrom === 'string' ? rawFrom : rawFrom?.pathname || defaultRedirect;
+          navigateAfterRender(from);
         }
       })
       .catch(() => {
@@ -112,8 +139,9 @@ const LoginPage: React.FC<LoginPageProps> = ({
     try {
       await onLogin(values);
       message.success(texts.loginSuccess || "登录成功");
-      const from = (location.state as { from?: string })?.from || defaultRedirect;
-      navigate(from, { replace: true });
+      const rawFrom = (location.state as { from?: string | { pathname?: string } })?.from;
+      const from = typeof rawFrom === 'string' ? rawFrom : rawFrom?.pathname || defaultRedirect;
+      navigateAfterRender(from);
     } catch (error: unknown) {
       const axiosError = error as { response?: { data?: { message?: string } }; message?: string };
       const errorMsg = axiosError.response?.data?.message || axiosError.message || "登录失败";
