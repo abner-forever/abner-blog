@@ -1,8 +1,10 @@
 # 低代码平台 — 迭代路线图
 
+> **归档说明**: 此文档原位于 `specs/low-code-platform/roadmap.md`，为迭代规划文档而非规范真理源。移入 `changes/archive/` 以便 `specs/` 保持纯粹的规范内容。
+>
 > 版本: v1.0
 > 日期: 2026-06-21
-> 前置文档: [`low-code-platform-spec.md`](./low-code-platform-spec.md)（架构设计）、[`low-code-platform-progress.md`](./low-code-platform-progress.md)（进度跟踪）
+> 前置文档: [`low-code-platform-spec.md`](../specs/low-code-platform/spec.md)（架构设计）、[`low-code-platform-progress.md`](../archive/low-code-platform-progress/progress.md)（进度跟踪）
 
 ---
 

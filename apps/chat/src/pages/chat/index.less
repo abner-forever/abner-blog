@@ -1638,8 +1638,15 @@
       color: #fff;
     }
 
+    // Textarea wrapper — allows floating action buttons overlay
+    .chat-textarea-wrapper {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
     .chat-textarea {
-      padding: var(--chat-space-1) 2px 2px;
+      padding: var(--chat-space-3) 52px var(--chat-space-3) var(--chat-space-2); // right padding for floating buttons
       font-size: var(--chat-font-base);
       line-height: 1.65;
       resize: none;
@@ -1662,6 +1669,92 @@
         cursor: not-allowed;
         opacity: 1;
       }
+    }
+
+    // Voice status bar — shows recording state or error message
+    .chat-voice-status {
+      font-size: var(--chat-font-sm);
+      line-height: 1.4;
+      padding: 0 0 2px;
+      color: var(--chat-text-secondary);
+
+      &--error {
+        color: var(--chat-error, #ef4444);
+      }
+    }
+
+    // Floating action buttons inside textarea (voice + send)
+    .chat-textarea-actions {
+      position: absolute;
+      bottom: 8px;
+      right: 8px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      z-index: 2;
+    }
+
+    // Voice input button — rounded-rect style (Claude Code inspired)
+    .chat-voice-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      padding: 0;
+      border: none;
+      border-radius: var(--chat-radius-md);
+      background: transparent;
+      color: var(--chat-text-secondary);
+      cursor: pointer;
+      transition: all 0.15s ease;
+
+      &:hover:not(:disabled) {
+        background: var(--chat-bg-tertiary);
+        color: var(--chat-text);
+      }
+
+      &:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+
+      &.is-recording {
+        color: var(--chat-error, #ef4444);
+        background: color-mix(in srgb, var(--chat-error, #ef4444) 8%, transparent);
+      }
+    }
+
+    // Waveform SVG icon
+    .voice-waveform-icon {
+      display: block;
+    }
+
+    // Waveform bar — each bar is one <rect>
+    .waveform-bar {
+      transform-box: fill-box;
+      transform-origin: center bottom;
+      transition: transform 0.15s ease;
+    }
+
+    // Equalizer bounce animation during recording
+    .waveform-bar.animating {
+      animation: waveform-bounce 0.8s ease-in-out infinite alternate;
+    }
+
+    @keyframes waveform-bounce {
+      0% {
+        transform: scaleY(1);
+      }
+      100% {
+        transform: scaleY(0.25);
+      }
+    }
+
+    // Recording state for input container
+    &.is-recording {
+      border-color: var(--chat-error, #ef4444) !important;
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--chat-error, #ef4444) 15%, transparent) !important;
     }
 
     .ant-input-textarea.chat-textarea.ant-input-disabled {
@@ -1762,31 +1855,31 @@
       }
     }
 
-    // Model selector inside chat input — compact pill style
+    // Model selector inside chat input — pill style, consistent with tool buttons
     .chat-input-model-selector {
-      height: 28px;
-      line-height: 28px;
+      height: 32px;
+      line-height: 32px;
 
       .ant-select-selector {
         border-radius: var(--chat-radius-full) !important;
-        padding: 0 20px 0 8px !important;
-        height: 28px !important;
+        padding: 0 22px 0 10px !important;
+        height: 32px !important;
         background: transparent !important;
         border: 1px solid var(--chat-border) !important;
         transition: border-color 0.15s ease !important;
       }
 
       .ant-select-selection-item {
-        font-size: var(--chat-font-sm);
-        line-height: 26px !important;
-        color: var(--chat-text-secondary) !important;
+        font-size: var(--chat-font-base);
+        line-height: 30px !important;
+        color: var(--chat-text) !important;
         font-weight: 400;
       }
 
       .ant-select-arrow {
         color: var(--chat-text-secondary);
-        font-size: 10px;
-        inset-inline-end: 6px;
+        font-size: 11px;
+        inset-inline-end: 7px;
       }
 
       &:hover {
@@ -1812,17 +1905,17 @@
       }
     }
 
-    // Model selector dropdown
+    // Model selector dropdown — font consistent with messages
     .chat-input-model-selector-dropdown {
       .ant-select-item {
-        font-size: var(--chat-font-sm);
+        font-size: var(--chat-font-base);
         padding: var(--chat-space-1) var(--chat-space-2);
-        min-height: 28px;
-        line-height: 20px;
+        min-height: 32px;
+        line-height: 22px;
       }
 
       .ant-select-item-option-content {
-        font-size: var(--chat-font-sm);
+        font-size: var(--chat-font-base);
       }
 
       .ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
@@ -2187,7 +2280,7 @@
     }
 
     .chat-textarea {
-      padding: 6px 2px var(--chat-space-1);
+      padding: var(--chat-space-2) 52px var(--chat-space-3) var(--chat-space-2);
       font-size: var(--chat-font-lg);
       line-height: 1.55;
       border-radius: 0;
@@ -2244,6 +2337,35 @@
 
       .anticon {
         font-size: 18px;
+      }
+    }
+
+    // Mobile textarea wrapper for floating buttons
+    .chat-textarea-wrapper {
+      padding: 0;
+    }
+
+    .chat-textarea-actions {
+      bottom: 8px;
+      right: 8px;
+    }
+
+    .chat-voice-btn {
+      width: 36px;
+      height: 36px;
+    }
+
+    // Mobile model selector
+    .chat-input-model-selector {
+      height: 32px;
+
+      .ant-select-selector {
+        height: 32px !important;
+      }
+
+      .ant-select-selection-item {
+        font-size: var(--chat-font-base);
+        line-height: 30px !important;
       }
     }
   }

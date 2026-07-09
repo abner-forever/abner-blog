@@ -1,4 +1,4 @@
-import React, { memo, useMemo } from 'react';
+import React, { memo, useMemo, useRef, useCallback } from 'react';
 import { Button, Input, Select } from 'antd';
 import {
   ArrowUpOutlined,
@@ -9,8 +9,42 @@ import {
 } from '@ant-design/icons';
 import { MODEL_VENDORS } from '../constants';
 import type { ChatImagePayload } from '../utils/chat-images';
+import { useVoiceInput } from '../hooks/useVoiceInput';
 
 const { TextArea } = Input;
+
+// Waveform equalizer icon — 6-bar SVG, matches Claude Code voice button style
+const VoiceWaveformIcon = ({ recording }: { recording?: boolean }) => (
+  <svg
+    width="20"
+    height="20"
+    viewBox="0 0 22 22"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className="voice-waveform-icon"
+  >
+    {[
+      { x: 1, y: 8, h: 6 },
+      { x: 4.5, y: 6, h: 10 },
+      { x: 8, y: 3, h: 16 },
+      { x: 11.5, y: 6, h: 10 },
+      { x: 15, y: 3, h: 16 },
+      { x: 18.5, y: 8, h: 6 },
+    ].map((bar, i) => (
+      <rect
+        key={i}
+        x={bar.x}
+        y={bar.y}
+        width="2"
+        height={bar.h}
+        rx="1"
+        fill="currentColor"
+        className={`waveform-bar${recording ? ' animating' : ''}`}
+        style={recording ? { animationDelay: `${i * 0.12}s` } : undefined}
+      />
+    ))}
+  </svg>
+);
 
 const ChatInput = memo<{
   value: string;
@@ -62,7 +96,6 @@ const ChatInput = memo<{
     attachLabel,
     pasteHint,
     placeholder,
-    sendShortcutHint,
     stopLabel,
     sendLabel,
     imageUploadSupported,
@@ -76,7 +109,12 @@ const ChatInput = memo<{
     onModelChange,
     hasApiKeyByProvider,
   }) => {
-    const expanded = inputFocused || value || attachments.length > 0;
+    const voice = useVoiceInput();
+    const hasAttachments = attachments.length > 0;
+    const expanded = inputFocused || value || hasAttachments || voice.recording;
+
+    // Mobile touch tracking
+    const isTouchRef = useRef(false);
 
     const modelOptions = useMemo(() => {
       return MODEL_VENDORS.flatMap((v) =>
@@ -91,24 +129,72 @@ const ChatInput = memo<{
         return vendor ? hasApiKeyByProvider[vendor.value] : false;
       });
     }, [hasApiKeyByProvider]);
+
     const handleContainerClick = (e: React.MouseEvent<HTMLDivElement>) => {
       const target = e.target as HTMLElement;
       if (target.closest('button, a, input, textarea, [role="button"]')) {
         return;
       }
-
       const textarea = e.currentTarget.querySelector('textarea');
       textarea?.focus();
     };
 
+    // Voice button handlers
+    const handleVoiceClick = useCallback(async () => {
+      if (voice.recording) {
+        const text = await voice.stopListening();
+        if (text) {
+          onChange(value ? `${value}${value.endsWith(' ') || value.endsWith('\n') ? '' : ' '}${text}` : text);
+        }
+      } else {
+        voice.startListening();
+      }
+    }, [voice, onChange, value]);
+
+    const handleVoiceTouchStart = useCallback(
+      (e: React.TouchEvent) => {
+        e.preventDefault();
+        isTouchRef.current = true;
+        voice.startListening();
+      },
+      [voice],
+    );
+
+    const handleVoiceTouchEnd = useCallback(
+      async (e: React.TouchEvent) => {
+        e.preventDefault();
+        isTouchRef.current = false;
+        const text = await voice.stopListening();
+        if (text) {
+          onChange(value ? `${value}${value.endsWith(' ') || value.endsWith('\n') ? '' : ' '}${text}` : text);
+        }
+      },
+      [voice, onChange, value],
+    );
+
+    // Determine placeholder text
+    const currentPlaceholder = voice.recording
+      ? '🎤 正在录音... 说完后点击停止'
+      : voice.error
+        ? '❌ ' + voice.error
+        : placeholder;
+
+    // Determine model label to display
+    const currentModelLabel = useMemo(() => {
+      const found = MODEL_VENDORS.flatMap((v) => v.models).find(
+        (m) => m.value === model,
+      );
+      return found?.label || model;
+    }, [model]);
+
     return (
       <div className="chat-input-area">
         <div
-          className={`input-container${expanded ? ' focused' : ''}${loading ? ' is-sending' : ''}`}
+          className={`input-container${expanded ? ' focused' : ''}${loading ? ' is-sending' : ''}${voice.recording ? ' is-recording' : ''}`}
           onClick={handleContainerClick}
         >
           <div className="input-wrapper">
-            {imageUploadSupported && attachments.length > 0 && (
+            {imageUploadSupported && hasAttachments && (
               <div className="chat-attachment-row">
                 {attachments.map((a) => (
                   <div key={a.id} className="chat-attachment-chip">
@@ -125,18 +211,76 @@ const ChatInput = memo<{
                 ))}
               </div>
             )}
-            <TextArea
-              value={value}
-              onChange={(e) => onChange(e.target.value)}
-              onKeyDown={onKeyDown}
-              onPaste={onPaste}
-              onFocus={onFocus}
-              onBlur={onBlur}
-              placeholder={placeholder}
-              autoSize={{ minRows: expanded ? 3 : 1, maxRows: 10 }}
-              disabled={loading}
-              className="chat-textarea"
-            />
+
+              {/* Textarea with floating action buttons */}
+            <div className="chat-textarea-wrapper">
+              <TextArea
+                value={voice.recording ? `${value}${voice.interimText ? ' ' + voice.interimText : ''}` : value}
+                onChange={(e) => onChange(e.target.value)}
+                onKeyDown={onKeyDown}
+                onPaste={onPaste}
+                onFocus={onFocus}
+                onBlur={onBlur}
+                placeholder={currentPlaceholder}
+                autoSize={{ minRows: expanded ? 3 : 1, maxRows: 10 }}
+                disabled={loading}
+                className="chat-textarea"
+              />
+
+              {/* Voice status bar — shows recording state or error message */}
+              {(voice.recording || voice.error) && (
+                <div
+                  className={`chat-voice-status${voice.error ? ' chat-voice-status--error' : ''}`}
+                >
+                  {voice.recording && !voice.error ? '🎤 正在录音...'
+                    : voice.error ? `❌ ${voice.error}`
+                    : null}
+                </div>
+              )}
+
+              {/* Floating actions inside textarea: voice + send */}
+              <div className="chat-textarea-actions">
+                {/* Voice button */}
+                {voice.supported && (
+                  <button
+                    type="button"
+                    className={`chat-voice-btn${voice.recording ? ' is-recording' : ''}`}
+                    onClick={handleVoiceClick}
+                    onTouchStart={handleVoiceTouchStart}
+                    onTouchEnd={handleVoiceTouchEnd}
+                    aria-label={voice.recording ? '停止录音' : '语音输入'}
+                    disabled={loading}
+                  >
+                    <VoiceWaveformIcon recording={voice.recording} />
+                  </button>
+                )}
+
+                {/* Send / Stop button */}
+                {loading ? (
+                  <Button
+                    type="primary"
+                    danger
+                    shape="circle"
+                    icon={<StopOutlined />}
+                    onClick={onStop}
+                    className="chat-send-fab chat-send-fab--stop"
+                    aria-label={stopLabel}
+                  />
+                ) : (
+                  <Button
+                    type="primary"
+                    shape="circle"
+                    icon={<ArrowUpOutlined />}
+                    onClick={onSend}
+                    disabled={!canSend}
+                    className="chat-send-fab"
+                    aria-label={sendLabel}
+                  />
+                )}
+              </div>
+            </div>
+
+            {/* Bottom toolbar */}
             <div className="chat-input-tools">
               <div className="chat-input-tools__left">
                 <button
@@ -168,6 +312,7 @@ const ChatInput = memo<{
                 </button>
               </div>
               <div className="chat-input-tools__right">
+                {/* Model selector — pill style, consistent 14px */}
                 <Select
                   value={model}
                   onChange={onModelChange}
@@ -177,35 +322,11 @@ const ChatInput = memo<{
                   classNames={{ popup: { root: 'chat-input-model-selector-dropdown' } }}
                   variant="borderless"
                 />
-                <span className="chat-input-footer__shortcut">
-                  {sendShortcutHint}
-                </span>
-                {loading ? (
-                  <Button
-                    type="primary"
-                    danger
-                    shape="circle"
-                    icon={<StopOutlined />}
-                    onClick={onStop}
-                    className="chat-send-fab chat-send-fab--stop"
-                    aria-label={stopLabel}
-                  />
-                ) : (
-                  <Button
-                    type="primary"
-                    shape="circle"
-                    icon={<ArrowUpOutlined />}
-                    onClick={onSend}
-                    disabled={!canSend}
-                    className="chat-send-fab"
-                    aria-label={sendLabel}
-                  />
-                )}
               </div>
             </div>
           </div>
         </div>
-        {imageUploadSupported && expanded && (
+        {imageUploadSupported && expanded && !voice.recording && (
           <span className="chat-input-area__hint">{pasteHint}</span>
         )}
       </div>

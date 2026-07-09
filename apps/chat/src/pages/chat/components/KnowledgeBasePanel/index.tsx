@@ -5,6 +5,7 @@ import {
   List,
   Upload,
   Form,
+  Modal,
   message,
   Popconfirm,
   Empty,
@@ -32,6 +33,7 @@ import {
 } from '@services/knowledge-base';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import DraggableSheet, { type DraggableSheetHandle } from '../../../../components/DraggableSheet';
+import { isMobile } from '@/utils/device';
 import './KnowledgeBasePanel.less';
 
 interface Props {
@@ -869,114 +871,233 @@ const KnowledgeBasePanel: React.FC<Props> = ({ onClose }) => {
         </div>
       </div>
 
-      <DraggableSheet
-        ref={createSheetRef}
-        open={createModalOpen}
-        title={t('chat.createKnowledgeBase')}
-        onClose={() => {
-          setCreateModalOpen(false);
-          form.resetFields();
-        }}
-      >
-        <div className="kb-sheet-form">
-          <Form form={form} onFinish={handleCreate} layout="vertical">
-            <Form.Item
-              name="name"
-              label={t('chat.name')}
-              rules={[{ required: true, message: t('chat.nameRequired') || '请输入知识库名称' }]}
-            >
-              <Input placeholder={t('chat.namePlaceholder')} />
-            </Form.Item>
-            <Form.Item
-              name="description"
-              label={t('chat.description')}
-            >
-              <Input.TextArea
-                placeholder={t('chat.descriptionPlaceholder')}
-                rows={3}
-              />
-            </Form.Item>
-            <Form.Item className="kb-sheet-form__action">
-              <Button type="primary" htmlType="submit" block size="large">
-                {t('common.create')}
-              </Button>
-            </Form.Item>
-          </Form>
-        </div>
-      </DraggableSheet>
+      {isMobile() ? (
+        <DraggableSheet
+          ref={createSheetRef}
+          open={createModalOpen}
+          title={t('chat.createKnowledgeBase')}
+          onClose={() => {
+            setCreateModalOpen(false);
+            form.resetFields();
+          }}
+        >
+          <div className="kb-sheet-form">
+            <Form form={form} onFinish={handleCreate} layout="vertical">
+              <Form.Item
+                name="name"
+                label={t('chat.name')}
+                rules={[{ required: true, message: t('chat.nameRequired') || '请输入知识库名称' }]}
+              >
+                <Input placeholder={t('chat.namePlaceholder')} />
+              </Form.Item>
+              <Form.Item
+                name="description"
+                label={t('chat.description')}
+              >
+                <Input.TextArea
+                  placeholder={t('chat.descriptionPlaceholder')}
+                  rows={3}
+                />
+              </Form.Item>
+              <Form.Item className="kb-sheet-form__action">
+                <Button type="primary" htmlType="submit" block size="large">
+                  {t('common.create')}
+                </Button>
+              </Form.Item>
+            </Form>
+          </div>
+        </DraggableSheet>
+      ) : (
+        <Modal
+          open={createModalOpen}
+          title={t('chat.createKnowledgeBase')}
+          onCancel={() => {
+            setCreateModalOpen(false);
+            form.resetFields();
+          }}
+          footer={null}
+          width={480}
+        >
+          <div className="kb-sheet-form">
+            <Form form={form} onFinish={handleCreate} layout="vertical">
+              <Form.Item
+                name="name"
+                label={t('chat.name')}
+                rules={[{ required: true, message: t('chat.nameRequired') || '请输入知识库名称' }]}
+              >
+                <Input placeholder={t('chat.namePlaceholder')} />
+              </Form.Item>
+              <Form.Item
+                name="description"
+                label={t('chat.description')}
+              >
+                <Input.TextArea
+                  placeholder={t('chat.descriptionPlaceholder')}
+                  rows={3}
+                />
+              </Form.Item>
+              <Form.Item className="kb-sheet-form__action">
+                <Button type="primary" htmlType="submit" block size="large">
+                  {t('common.create')}
+                </Button>
+              </Form.Item>
+            </Form>
+          </div>
+        </Modal>
+      )}
 
-      <DraggableSheet
-        ref={editSheetRef}
-        open={editModalOpen}
-        title={t('common.edit')}
-        onClose={() => {
-          setEditModalOpen(false);
-          setEditingKb(null);
-          editForm.resetFields();
-        }}
-      >
-        <div className="kb-sheet-form">
-          <Form form={editForm} onFinish={handleSubmitEdit} layout="vertical">
-            <Form.Item
-              name="name"
-              label={t('chat.name')}
-              rules={[{ required: true, message: t('chat.nameRequired') || '请输入知识库名称' }]}
-            >
-              <Input placeholder={t('chat.namePlaceholder')} maxLength={60} />
-            </Form.Item>
-            <Form.Item
-              name="description"
-              label={t('chat.description')}
-            >
-              <Input.TextArea
-                placeholder={t('chat.descriptionPlaceholder')}
-                rows={3}
-                maxLength={300}
-              />
-            </Form.Item>
-            <Form.Item
-              name="useInChat"
-              valuePropName="checked"
-              label={t('chat.kbChatRetrieval')}
-              tooltip={t('chat.kbChatRetrievalHint')}
-            >
-              <Switch />
-            </Form.Item>
-            <Form.Item className="kb-sheet-form__action">
-              <Button type="primary" htmlType="submit" block size="large" loading={savingEdit}>
-                {t('common.save')}
-              </Button>
-            </Form.Item>
-          </Form>
-        </div>
-      </DraggableSheet>
+      {isMobile() ? (
+        <DraggableSheet
+          ref={editSheetRef}
+          open={editModalOpen}
+          title={t('common.edit')}
+          onClose={() => {
+            setEditModalOpen(false);
+            setEditingKb(null);
+            editForm.resetFields();
+          }}
+        >
+          <div className="kb-sheet-form">
+            <Form form={editForm} onFinish={handleSubmitEdit} layout="vertical">
+              <Form.Item
+                name="name"
+                label={t('chat.name')}
+                rules={[{ required: true, message: t('chat.nameRequired') || '请输入知识库名称' }]}
+              >
+                <Input placeholder={t('chat.namePlaceholder')} maxLength={60} />
+              </Form.Item>
+              <Form.Item
+                name="description"
+                label={t('chat.description')}
+              >
+                <Input.TextArea
+                  placeholder={t('chat.descriptionPlaceholder')}
+                  rows={3}
+                  maxLength={300}
+                />
+              </Form.Item>
+              <Form.Item
+                name="useInChat"
+                valuePropName="checked"
+                label={t('chat.kbChatRetrieval')}
+                tooltip={t('chat.kbChatRetrievalHint')}
+              >
+                <Switch />
+              </Form.Item>
+              <Form.Item className="kb-sheet-form__action">
+                <Button type="primary" htmlType="submit" block size="large" loading={savingEdit}>
+                  {t('common.save')}
+                </Button>
+              </Form.Item>
+            </Form>
+          </div>
+        </DraggableSheet>
+      ) : (
+        <Modal
+          open={editModalOpen}
+          title={t('common.edit')}
+          onCancel={() => {
+            setEditModalOpen(false);
+            setEditingKb(null);
+            editForm.resetFields();
+          }}
+          footer={null}
+          width={480}
+        >
+          <div className="kb-sheet-form">
+            <Form form={editForm} onFinish={handleSubmitEdit} layout="vertical">
+              <Form.Item
+                name="name"
+                label={t('chat.name')}
+                rules={[{ required: true, message: t('chat.nameRequired') || '请输入知识库名称' }]}
+              >
+                <Input placeholder={t('chat.namePlaceholder')} maxLength={60} />
+              </Form.Item>
+              <Form.Item
+                name="description"
+                label={t('chat.description')}
+              >
+                <Input.TextArea
+                  placeholder={t('chat.descriptionPlaceholder')}
+                  rows={3}
+                  maxLength={300}
+                />
+              </Form.Item>
+              <Form.Item
+                name="useInChat"
+                valuePropName="checked"
+                label={t('chat.kbChatRetrieval')}
+                tooltip={t('chat.kbChatRetrievalHint')}
+              >
+                <Switch />
+              </Form.Item>
+              <Form.Item className="kb-sheet-form__action">
+                <Button type="primary" htmlType="submit" block size="large" loading={savingEdit}>
+                  {t('common.save')}
+                </Button>
+              </Form.Item>
+            </Form>
+          </div>
+        </Modal>
+      )}
 
-      <DraggableSheet
-        ref={chunksSheetRef}
-        open={chunksModalOpen}
-        title={`${t('chat.chunksManage')} - ${selectedKb?.name || ''}`}
-        onClose={() => setChunksModalOpen(false)}
-      >
-        <div className="kb-chunks-sheet-body">
-          {chunksLoading ? (
-            <div className="kb-chunks-sheet-body__loading">
-              <Spin />
-            </div>
-          ) : chunks.length === 0 ? (
-            <div className="kb-chunks-sheet-body__empty">
-              <Empty description={t('chat.noChunks')} image={Empty.PRESENTED_IMAGE_SIMPLE} />
-            </div>
-          ) : (
-            <div className="kb-chunks-sheet-body__list" ref={chunksSheetBodyRef}>
-              <KnowledgeChunksVirtualList
-                chunks={chunks}
-                height={chunksListViewportHeight}
-                onDeleteChunk={handleDeleteChunk}
-              />
-            </div>
-          )}
-        </div>
-      </DraggableSheet>
+      {isMobile() ? (
+        <DraggableSheet
+          ref={chunksSheetRef}
+          open={chunksModalOpen}
+          title={`${t('chat.chunksManage')} - ${selectedKb?.name || ''}`}
+          onClose={() => setChunksModalOpen(false)}
+        >
+          <div className="kb-chunks-sheet-body">
+            {chunksLoading ? (
+              <div className="kb-chunks-sheet-body__loading">
+                <Spin />
+              </div>
+            ) : chunks.length === 0 ? (
+              <div className="kb-chunks-sheet-body__empty">
+                <Empty description={t('chat.noChunks')} image={Empty.PRESENTED_IMAGE_SIMPLE} />
+              </div>
+            ) : (
+              <div className="kb-chunks-sheet-body__list" ref={chunksSheetBodyRef}>
+                <KnowledgeChunksVirtualList
+                  chunks={chunks}
+                  height={chunksListViewportHeight}
+                  onDeleteChunk={handleDeleteChunk}
+                />
+              </div>
+            )}
+          </div>
+        </DraggableSheet>
+      ) : (
+        <Modal
+          open={chunksModalOpen}
+          title={`${t('chat.chunksManage')} - ${selectedKb?.name || ''}`}
+          onCancel={() => setChunksModalOpen(false)}
+          footer={null}
+          width={640}
+          styles={{ body: { padding: '16px 24px' } }}
+        >
+          <div className="kb-chunks-sheet-body" style={{ minHeight: 'auto' }}>
+            {chunksLoading ? (
+              <div className="kb-chunks-sheet-body__loading">
+                <Spin />
+              </div>
+            ) : chunks.length === 0 ? (
+              <div className="kb-chunks-sheet-body__empty">
+                <Empty description={t('chat.noChunks')} image={Empty.PRESENTED_IMAGE_SIMPLE} />
+              </div>
+            ) : (
+              <div className="kb-chunks-sheet-body__list" ref={chunksSheetBodyRef}>
+                <KnowledgeChunksVirtualList
+                  chunks={chunks}
+                  height={400}
+                  onDeleteChunk={handleDeleteChunk}
+                />
+              </div>
+            )}
+          </div>
+        </Modal>
+      )}
     </div>
   );
 };

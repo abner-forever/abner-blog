@@ -1,5 +1,8 @@
 # 聊天移动端设置体系
 
+> **状态**: 已归档 — 被 [V2（全屏页面 + 拖拽半弹窗）](mobile-settings-iteration-2.md) 取代
+> 保留此文档以供 V2 引用，不再更新。
+
 ## 概述
 
 本规范定义 AI 聊天应用（apps/chat）的移动端设置体系重构方案，解决当前「ChatHeader 右上角设置按钮在移动端无法点击退出、ChatHistoryDrawer 底部为功能 Toggle 而非用户中心、设置弹窗（ChatSettingsModal）为桌面式普通 Modal 而非移动端底部弹窗」等问题。

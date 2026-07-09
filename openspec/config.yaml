@@ -1,20 +1,30 @@
 schema: spec-driven
 
-# Project context (optional)
-# This is shown to AI when creating artifacts.
-# Add your tech stack, conventions, style guides, domain knowledge, etc.
-# Example:
-#   context: |
-#     Tech stack: TypeScript, React, Node.js
-#     We use conventional commits
-#     Domain: e-commerce platform
+# Project context — shown to AI when creating/updating artifacts
+context: |
+  Tech stack: NestJS 11 + TypeORM + MySQL + Redis + pnpm monorepo
+  Frontend: React 18 + Vite 8 + Ant Design 6 + Redux Toolkit + TanStack Query
+  UI: LESS + BEM + react-i18next (zh-CN/en/zh-TW)
+  Ports: server:8080, web:3000, admin:3001, chat:3002, editor:5175
+  Auth: JWT (passport-jwt) + Keycloak SSO (OIDC + PKCE)
+  AI: LangChain + LangGraph + MCP protocol
+  API pattern: RESTful, unified { data, message, timestamp } response
+  Git: conventional commits (feat/fix/chore/refactor)
+  See openspec/project.md for full project conventions.
 
-# Per-artifact rules (optional)
-# Add custom rules for specific artifacts.
-# Example:
-#   rules:
-#     proposal:
-#       - Keep proposals under 500 words
-#       - Always include a "Non-goals" section
-#     tasks:
-#       - Break tasks into chunks of max 2 hours
+# Per-artifact rules
+rules:
+  spec:
+    - 每个 spec 以版本号和日期开头，标注状态（草案/审核中/已定稿）
+    - 第一版 spec 从问题定义和技术方案开始，后续统一使用 changes/ 提案修改
+    - spec 应包含：概述、架构/设计、API/数据模型（若相关）、分阶段计划
+    - 核心变更（API 变更、架构决策、新模块引入）必须更新对应 spec
+  proposal:
+    - 每个提案必须包含 "Motivation"（动机）和 "Impact"（影响分析）章节
+    - 修改已有 spec 时需说明做了哪些变更并标注版本号
+    - 提案应说明 "Non-goals"（非目标）以防止 scope creep
+    - 涉及 API 变更的提案需描述新旧对比
+  tasks:
+    - 每项任务不超过 2 天工作量
+    - 包含涉及的文件路径列表
+    - 标注依赖任务和阻塞关系

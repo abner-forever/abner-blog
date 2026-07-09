@@ -1,0 +1,36 @@
+{
+  "run_id": "30a8b0a9-1529-43ef-9592-6abd8975e794",
+  "workflow_id": "git-review",
+  "status": "waitinggate",
+  "current_step_index": 1,
+  "steps": [
+    {
+      "step_id": "diff-review",
+      "status": "completed",
+      "gate": "auto",
+      "artifact_path": "/Users/huohua/Documents/demo/abner-blog/.aicode/runs/30a8b0a9-1529-43ef-9592-6abd8975e794/review.json"
+    },
+    {
+      "step_id": "commit-message",
+      "status": "waitingapproval",
+      "gate": "approval",
+      "artifact_path": "/Users/huohua/Documents/demo/abner-blog/.aicode/runs/30a8b0a9-1529-43ef-9592-6abd8975e794/commit-message.md"
+    }
+  ],
+  "context": {
+    "workspace_root": "/Users/huohua/Documents/demo/abner-blog",
+    "selection": "",
+    "git_branch": "main",
+    "git_staged_diff": "diff --git a/openspec/specs/ai-chat/review.md b/openspec/changes/archive/ai-chat-review/review.md\nsimilarity index 100%\nrename from openspec/specs/ai-chat/review.md\nrename to openspec/changes/archive/ai-chat-review/review.md\ndiff --git a/openspec/specs/low-code-platform/progress.md b/openspec/changes/archive/low-code-platform-progress/progress.md\nsimilarity index 100%\nrename from openspec/specs/low-code-platform/progress.md\nrename to openspec/changes/archive/low-code-platform-progress/progress.md\ndiff --git a/openspec/specs/low-code-platform/roadmap.md b/openspec/changes/archive/low-code-platform-roadmap/roadmap.md\nsimilarity index 100%\nrename from openspec/specs/low-code-platform/roadmap.md\nrename to openspec/changes/archive/low-code-platform-roadmap/roadmap.md\n",
+    "git_changed_files": "apps/chat/src/pages/chat/components/ChatInput.tsx\napps/server/src/mcp/controllers/mcp-web-search.controller.ts\napps/chat/src/i18n/locales/en.json\nopenspec/specs/ai-chat/review.md\nopenspec/specs/low-code-platform/roadmap.md\nopenspec/specs/low-code-platform/progress.md\nopenspec/config.yaml\n.aicode/runs/96480c77-7226-4cbe-ab08-7883a83bf172/commit-message.md\napps/server/src/web-search/web-search.service.ts\napps/server/src/web-search/web-search.module.ts\nopenspec/specs/ai-chat/mobile-settings-architecture.md\napps/server/src/mcp/mcp.module.ts\nopenspec/changes/optimize-chat-input/tasks.md\napps/chat/src/pages/chat/hooks/useVoiceInput.ts\nopenspec/changes/optimize-chat-input/proposal.md\nopenspec/index.md\napps/server/src/mcp/services/index.ts\nopenspec/changes/README.md\napps/chat/src/pages/chat/components/KnowledgeBasePanel/index.tsx\nopenspec/project.md\napps/chat/src/i18n/locales/zh-CN.json\napps/server/src/ai/ai.module.ts\n.aicode/runs/96480c77-7226-4cbe-ab08-7883a83bf172/meta.json\napps/chat/src/i18n/locales/zh-TW.json\napps/chat/src/pages/chat/index.less\n.aicode/runs/96480c77-7226-4cbe-ab08-7883a83bf172/review.json",
+    "step_outputs": {
+      "commit-message": "Not logged in · Please run /login",
+      "diff-review": "Not logged in · Please run /login"
+    },
+    "artifacts": {
+      "commit-message.md": "/Users/huohua/Documents/demo/abner-blog/.aicode/runs/30a8b0a9-1529-43ef-9592-6abd8975e794/commit-message.md",
+      "review.json": "/Users/huohua/Documents/demo/abner-blog/.aicode/runs/30a8b0a9-1529-43ef-9592-6abd8975e794/review.json"
+    }
+  },
+  "started_at": "2026-07-03T08:25:35.700187Z"
+}

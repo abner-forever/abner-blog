@@ -11,7 +11,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import type { Request, Response } from 'express';
-import { WebSearchService } from '../../web-search/web-search.service';
+import { WebSearchService } from '../services/web-search.service';
 
 interface JsonRpcRequest {
   jsonrpc?: string;

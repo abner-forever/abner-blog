@@ -27,13 +27,12 @@ import { TodosModule } from '../todos/todos.module';
 import { UsersModule } from '../users/users.module';
 import { AuthModule } from '../auth/auth.module';
 import { MCPServer } from '../entities/mcp-server.entity';
-import { WebSearchModule } from '../web-search/web-search.module';
+import { WebSearchService } from './services/web-search.service';
 import { UserTools } from './tools/user.tools';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([MCPServer]),
-    WebSearchModule,
     WeatherModule,
     CalendarModule,
     TodosModule,
@@ -59,6 +58,7 @@ import { UserTools } from './tools/user.tools';
     CalendarTools,
     TodoTools,
     UserTools,
+    WebSearchService,
   ],
   exports: [McpService, MCPServersService],
 })
